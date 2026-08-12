@@ -2421,12 +2421,17 @@ function openMyLogs(){
 }
 
 function renderMyLogsSummary(){
-  const hostCount = myLogsEntries.filter(e => e.role === 'HOST').length;
-  const joinerCount = myLogsEntries.filter(e => e.role === 'JOINER').length;
+  // "Total Saved" now reflects only the month currently shown on the
+  // calendar (myLogsViewYear/myLogsViewMonth) — switch months and this
+  // count updates with it, instead of always showing the all-time total.
+  const monthCount = myLogsEntries.filter(e=>{
+    const key = mlDateKeyOf(e.date);
+    if(!key) return false;
+    const [y, m] = key.split('-').map(Number);
+    return y === myLogsViewYear && (m - 1) === myLogsViewMonth;
+  }).length;
   document.getElementById('myLogsSummary').innerHTML = `
-    <div class="mylog-stat"><div class="num">${myLogsEntries.length}</div><div class="lbl">Total Saved</div></div>
-    <div class="mylog-stat"><div class="num">${hostCount}</div><div class="lbl">As Host</div></div>
-    <div class="mylog-stat"><div class="num">${joinerCount}</div><div class="lbl">As Joiner</div></div>
+    <div class="mylog-stat"><div class="num">${monthCount}</div><div class="lbl">Total Saved</div></div>
   `;
 }
 
@@ -2710,11 +2715,13 @@ document.getElementById('myLogEntryCloseBtn').addEventListener('click', ()=>{
 document.getElementById('myLogsPrevBtn').addEventListener('click', ()=>{
   myLogsViewMonth--;
   if(myLogsViewMonth < 0){ myLogsViewMonth = 11; myLogsViewYear--; }
+  renderMyLogsSummary();
   renderMyLogsCalendar();
 });
 document.getElementById('myLogsNextBtn').addEventListener('click', ()=>{
   myLogsViewMonth++;
   if(myLogsViewMonth > 11){ myLogsViewMonth = 0; myLogsViewYear++; }
+  renderMyLogsSummary();
   renderMyLogsCalendar();
 });
 document.getElementById('myLogsTodayBtn').addEventListener('click', ()=>{
@@ -2722,6 +2729,7 @@ document.getElementById('myLogsTodayBtn').addEventListener('click', ()=>{
   myLogsViewYear = today.getFullYear();
   myLogsViewMonth = today.getMonth();
   myLogsSelectedKey = mlTodayKey();
+  renderMyLogsSummary();
   renderMyLogsCalendar();
 });
 
