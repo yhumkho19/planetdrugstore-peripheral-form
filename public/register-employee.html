@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Register Employee — Planet Drugstore Peripherals</title>
+<link rel="icon" type="image/x-icon" href="logo-transparent.png">
+<style>
+  :root{
+    --maroon:#6E1620;
+    --maroon-dark:#3D0A10;
+    --red:#d61f2c;
+    --red-dark:#a5151f;
+    --paper:#FBF5F4;
+    --line:#E8D7D8;
+    --ink:#2A1416;
+    --muted:#8C6B6E;
+    --good:#1f8a4c;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family:'Segoe UI', Roboto, Arial, sans-serif;
+    color:var(--ink);
+    background:var(--paper);
+    min-height:100vh;
+  }
+  #checkingScreen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:var(--maroon-dark);color:#EDD9DA;font-size:13.5px;letter-spacing:0.3px;
+  }
+
+  .appbar{
+    background:var(--maroon);color:#fff;padding:14px 26px;display:flex;
+    align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    border-bottom:3px solid var(--red);
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{width:40px;height:40px;border-radius:9px;object-fit:cover;flex:none;display:block;}
+  .brand-name{font-weight:800;color:#fff;line-height:1.05;font-size:13.5px;letter-spacing:0.5px;}
+  .brand-name span{display:block;color:#ffb3b8;}
+  .appbar-title{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#E3C7CA;margin-left:6px;padding-left:14px;border-left:1px solid rgba(255,255,255,0.25);}
+  .appbar-right{display:flex;align-items:center;gap:14px;}
+  .back-link{color:#fff;font-size:12.5px;text-decoration:none;border:1px solid rgba(255,255,255,0.35);border-radius:6px;padding:7px 14px;}
+  .back-link:hover{background:rgba(255,255,255,0.12);}
+
+  .wrap{max-width:640px;margin:34px auto;padding:0 20px 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .card-head{padding:18px 24px;border-bottom:1px solid var(--line);}
+  .card-head h1{margin:0;color:var(--maroon);font-size:17px;}
+  .card-head p{margin:5px 0 0;font-size:12.5px;color:var(--muted);}
+  .card-body{padding:22px 24px 26px;}
+
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:11.5px;font-weight:700;color:var(--maroon);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;}
+  .field input{
+    width:100%;padding:10px 12px;font-size:14px;border:1px solid var(--line);
+    border-radius:6px;background:var(--paper);color:var(--ink);
+  }
+  .field input:focus{outline:none;border-color:var(--red);background:#fff;}
+  .field select{
+    width:100%;padding:10px 12px;font-size:14px;border:1px solid var(--line);
+    border-radius:6px;background:var(--paper);color:var(--ink);font-family:inherit;
+  }
+  .field select:focus{outline:none;border-color:var(--red);background:#fff;}
+  .field .hint{font-size:11px;color:var(--muted);margin-top:4px;}
+  .two-col{display:flex;gap:16px;flex-wrap:wrap;}
+  .two-col .field{flex:1;min-width:200px;}
+
+  .submit-btn{
+    border:none;border-radius:6px;padding:11px 18px;font-size:14px;font-weight:700;
+    cursor:pointer;background:var(--red);color:#fff;letter-spacing:0.3px;
+  }
+  .submit-btn:hover{background:var(--red-dark);}
+  .submit-btn:disabled{opacity:0.6;cursor:default;}
+
+  .msg{margin-top:16px;font-size:12.5px;padding:10px 12px;border-radius:6px;display:none;}
+  .msg.err{background:#fdecec;border:1px solid #f3c2c6;color:var(--red-dark);}
+  .msg.ok{background:#e6f5ea;border:1px solid #bfe6cb;color:var(--good);}
+
+  .recent-head{display:flex;justify-content:space-between;align-items:center;margin:26px 0 10px;}
+  .recent-head h2{margin:0;font-size:13.5px;color:var(--maroon);}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+  thead th{background:var(--maroon);color:#fff;font-size:10.8px;text-transform:uppercase;padding:8px 10px;text-align:left;}
+  tbody td{padding:8px 10px;border-bottom:1px solid var(--line);}
+  tbody tr:last-child td{border-bottom:none;}
+  .empty-row td{text-align:center;color:var(--muted);padding:20px;}
+  .del-emp-btn{
+    border:1px solid #f3c2c6;background:#fdecec;color:var(--red-dark);
+    border-radius:5px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;
+  }
+  .del-emp-btn:hover{background:#f9d3d6;}
+  .del-emp-btn:disabled{opacity:0.5;cursor:default;}
+</style>
+</head>
+<body>
+
+<div id="checkingScreen">Checking your session…</div>
+
+<div id="app" style="display:none;">
+  <div class="appbar">
+    <div style="display:flex;align-items:center;">
+      <div class="brand">
+        <img src="logo.png" alt="Planet Drugstore" class="brand-mark">
+        <div class="brand-name">PLANET<span>DRUGSTORE</span></div>
+      </div>
+      <div class="appbar-title">Register Employee</div>
+    </div>
+    <div class="appbar-right">
+      <a class="back-link" href="admin-console.html">&larr; Back to Admin Console</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="card-head">
+        <h1>New Employee Account</h1>
+        <p>Create the login the employee will use on the Peripherals Receiving form. Give them the Staff ID and password directly — this page is for Admin/IT use only.</p>
+      </div>
+      <div class="card-body">
+        <form id="registerForm">
+          <div class="field">
+            <label for="empName">Full Name</label>
+            <input type="text" id="empName" placeholder="Juan Dela Cruz" required>
+          </div>
+          <div class="field">
+            <label for="empEmail">Email</label>
+            <input type="email" id="empEmail" placeholder="juan.delacruz@planetdrugstore.com" required>
+          </div>
+          <div class="field">
+            <label for="empDepartment">Department</label>
+            <select id="empDepartment" required>
+              <option value="" disabled selected>Select department</option>
+              <option value="IT NORTH">IT NORTH</option>
+              <option value="IT SOUTH">IT SOUTH</option>
+              <option value="BILLING NORTH">BILLING NORTH</option>
+              <option value="BILLING SOUTH">BILLING SOUTH</option>
+              <option value="Pharmacy Assistant NORTH">Pharmacy Assistant NORTH</option>
+              <option value="Pharmacy Assistant SOUTH">Pharmacy Assistant SOUTH</option>
+            </select>
+          </div>
+          <div class="two-col">
+            <div class="field">
+              <label for="empStaffId">Staff ID</label>
+              <input type="text" id="empStaffId" placeholder="10234" required>
+              <div class="hint">Employee will use this to log in to the form.</div>
+            </div>
+            <div class="field">
+              <label for="empPassword">Password</label>
+              <input type="text" id="empPassword" placeholder="Temporary password" required minlength="6">
+              <div class="hint">Minimum 6 characters.</div>
+            </div>
+          </div>
+          <button type="submit" class="submit-btn" id="registerBtn">Create Account</button>
+          <div class="msg err" id="errMsg"></div>
+          <div class="msg ok" id="okMsg"></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="recent-head">
+      <h2>Recently Registered</h2>
+    </div>
+    <table>
+      <thead><tr><th>Name</th><th>Staff ID</th><th>Department</th><th>Email</th><th>Registered</th><th>Action</th></tr></thead>
+      <tbody id="empBody"><tr class="empty-row"><td colspan="6">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    initializeFirestore, collection, doc, setDoc, deleteDoc, query, orderBy, limit, onSnapshot, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
+    authDomain: "planetdrugstore-peripher-d24c0.firebaseapp.com",
+    projectId: "planetdrugstore-peripher-d24c0",
+    storageBucket: "planetdrugstore-peripher-d24c0.firebasestorage.app",
+    messagingSenderId: "115454971026",
+    appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
+  };
+  const STAFF_DOMAIN = 'staff.planetdrugstore.local';
+
+  // Primary app instance — this is the Admin's own signed-in session, used to
+  // guard this page and to write/read Firestore.
+  const app = initializeApp(firebaseConfig);
+  const db = initializeFirestore(app, { experimentalForceLongPolling: true, useFetchStreams: false });
+  const auth = getAuth(app);
+
+  // A SECOND, isolated Firebase app instance, used only to create the new
+  // employee's login. Creating a user normally signs that user in on whatever
+  // app instance made the call — using a separate instance means the Admin's
+  // own session up top is never touched or logged out.
+  const secondaryApp = initializeApp(firebaseConfig, 'EmployeeCreator');
+  const secondaryAuth = getAuth(secondaryApp);
+
+  const checkingScreen = document.getElementById('checkingScreen');
+  const appEl = document.getElementById('app');
+
+  // Guard: only a signed-in Admin (real email, not a staff-domain login) may
+  // reach this page. Employees and signed-out visitors get sent elsewhere.
+  onAuthStateChanged(auth, (user)=>{
+    if(!user){
+      window.location.replace('admin-login.html');
+      return;
+    }
+    if(user.email && user.email.endsWith('@' + STAFF_DOMAIN)){
+      window.location.replace('peripheral-form.html');
+      return;
+    }
+    checkingScreen.style.display = 'none';
+    appEl.style.display = 'block';
+    startEmployeeListener();
+  });
+
+  const registerForm = document.getElementById('registerForm');
+  const registerBtn = document.getElementById('registerBtn');
+  const errMsg = document.getElementById('errMsg');
+  const okMsg = document.getElementById('okMsg');
+
+  registerForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    errMsg.style.display = 'none';
+    okMsg.style.display = 'none';
+    registerBtn.disabled = true;
+    registerBtn.textContent = 'Creating…';
+
+    const name = document.getElementById('empName').value.trim();
+    const email = document.getElementById('empEmail').value.trim();
+    const department = document.getElementById('empDepartment').value;
+    const staffId = document.getElementById('empStaffId').value.trim();
+    const password = document.getElementById('empPassword').value;
+    const pseudoEmail = staffId.toLowerCase() + '@' + STAFF_DOMAIN;
+
+    try{
+      const cred = await createUserWithEmailAndPassword(secondaryAuth, pseudoEmail, password);
+      const uid = cred.user.uid;
+
+      await setDoc(doc(db, 'employees', uid), {
+        name, email, staffId, department,
+        createdAt: serverTimestamp(),
+        createdBy: auth.currentUser ? auth.currentUser.email : ''
+      });
+
+      // Keep the secondary session from lingering — the account is created,
+      // we don't need to stay signed in as them on this instance.
+      await signOut(secondaryAuth);
+
+      okMsg.textContent = `Account created for ${name} (Staff ID: ${staffId}). Share the Staff ID and password with them directly.`;
+      okMsg.style.display = 'block';
+      registerForm.reset();
+    }catch(err){
+      errMsg.textContent = friendlyError(err);
+      errMsg.style.display = 'block';
+    }finally{
+      registerBtn.disabled = false;
+      registerBtn.textContent = 'Create Account';
+    }
+  });
+
+  function friendlyError(err){
+    const code = err && err.code || '';
+    if(code.includes('email-already-in-use')) return 'That Staff ID is already registered.';
+    if(code.includes('weak-password')) return 'Password is too weak — use at least 6 characters.';
+    if(code.includes('invalid-email')) return 'That Staff ID contains characters that aren\'t allowed.';
+    return 'Could not create the account (' + (code || 'unknown error') + ').';
+  }
+
+  let unsubEmployees = null;
+  function startEmployeeListener(){
+    if(unsubEmployees) return;
+    const q = query(collection(db, 'employees'), orderBy('createdAt', 'desc'), limit(10));
+    unsubEmployees = onSnapshot(q, (snap)=>{
+      const body = document.getElementById('empBody');
+      if(snap.empty){
+        body.innerHTML = '<tr class="empty-row"><td colspan="6">No employees registered yet.</td></tr>';
+        return;
+      }
+      body.innerHTML = snap.docs.map(d=>{
+        const e = d.data();
+        const when = e.createdAt && e.createdAt.toDate ? e.createdAt.toDate().toLocaleString() : '—';
+        return `<tr>
+          <td>${escapeHtml(e.name)}</td>
+          <td>${escapeHtml(e.staffId)}</td>
+          <td>${escapeHtml(e.department || '—')}</td>
+          <td>${escapeHtml(e.email)}</td>
+          <td>${when}</td>
+          <td><button type="button" class="del-emp-btn" data-uid="${d.id}" data-name="${escapeAttr(e.name)}">Delete</button></td>
+        </tr>`;
+      }).join('');
+    });
+  }
+
+  // Delete Account — removes the employee's profile so they can no longer
+  // sign in / use the Peripherals Receiving form. Peripherals forms they
+  // already filled up and saved are untouched: each saved entry keeps its
+  // own copy of the filler's name/Staff ID/department, so "Filled by" on
+  // past entries still shows their name even after their account is deleted.
+  document.getElementById('empBody').addEventListener('click', async (e)=>{
+    const btn = e.target.closest('.del-emp-btn');
+    if(!btn) return;
+    const uid = btn.dataset.uid;
+    const name = btn.dataset.name || 'this employee';
+    if(!confirm(`Delete the account for ${name}? They will no longer be able to sign in. Peripherals forms they already filled up will keep their name on record.`)){
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Deleting…';
+    try{
+      await deleteDoc(doc(db, 'employees', uid));
+    }catch(err){
+      alert('Could not delete the account (' + (err.code || err.message) + ').');
+      btn.disabled = false;
+      btn.textContent = 'Delete';
+    }
+  });
+
+  function escapeHtml(s){
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function escapeAttr(s){
+    return escapeHtml(s);
+  }
+</script>
+</body>
+</html>

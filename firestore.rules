@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // "Admin" = signed in through Firebase Auth with a real email
+    // (not the @staff.planetdrugstore.local pseudo-emails used internally).
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && !request.auth.token.email.matches('.*@staff[.]planetdrugstore[.]local$');
+    }
+
+    // Employees are NOT Firebase Auth users in this app — their "login" is
+    // just a client-side check against a passwordHash field in this
+    // collection (see employee-login.html / peripheral-form.html). Because
+    // of that, Firestore rules have no way to tell a real logged-in
+    // employee apart from anyone else calling this same doc path, so the
+    // per-document read has to stay open for the login check to work at all.
+    match /employees/{staffId} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Same story as above: peripheral-form.html writes here using the
+    // employee's local-storage session, not a Firebase Auth token, so these
+    // have to stay open to both roles too.
+    match /entries/{entryId} {
+      allow read, write: if true;
+    }
+    match /reservedControlNos/{controlNo} {
+      allow read, write: if true;
+    }
+    match /liveSessions/{controlNo} {
+      allow read, write: if true;
+    }
+    match /receivers/{id} {
+      allow read, write: if true;
+    }
+    match /returners/{id} {
+      allow read, write: if true;
+    }
+    match /venues/{id} {
+      allow read, write: if true;
+    }
+
+    // Read needed by both roles (peripheral-form.html loads the template);
+    // only Admin should be able to change it.
+    match /config/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Admin-console-only.
+    match /preparers/{id} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Admin Login — Planet Drugstore Peripherals</title>
+<link rel="icon" type="image/x-icon" href="logo-transparent.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --maroon:#6E1620;
+    --maroon-dark:#3D0A10;
+    --maroon-deep:#1D0306;
+    --red:#d61f2c;
+    --red-dark:#a5151f;
+    --gold:#C88A2E;
+    --gold-soft:#E3B564;
+    --paper:#FBF5F4;
+    --line:#E8D7D8;
+    --ink:#2A1416;
+    --muted:#8C6B6E;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family:'Inter',-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    background:var(--paper);
+  }
+
+  .stage{min-height:100vh;display:grid;grid-template-columns:1.05fr 1fr;}
+  @media (max-width:900px){ .stage{grid-template-columns:1fr;} }
+
+  /* ---------- Left: brand panel ---------- */
+  .panel-brand{
+    position:relative;overflow:hidden;color:#fff;
+    padding:52px 52px 40px;
+    display:flex;flex-direction:column;justify-content:space-between;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(214,31,44,0.28), transparent 42%),
+      radial-gradient(circle at 88% 88%, rgba(200,138,46,0.20), transparent 50%),
+      linear-gradient(165deg, var(--maroon-dark) 0%, var(--maroon-deep) 100%);
+  }
+  @media (max-width:900px){ .panel-brand{padding:34px 28px 26px;} }
+
+  .brand-row{display:flex;align-items:center;gap:12px;}
+  .brand-mark{width:44px;height:44px;border-radius:10px;object-fit:cover;flex:none;display:block;}
+  .brand-word{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.5px;line-height:1.15;}
+  .brand-word span{display:block;color:var(--red);}
+
+  .live-pill{
+    display:inline-flex;align-items:center;gap:7px;margin-top:26px;
+    font-size:10.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+    color:rgba(255,255,255,0.75);background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.14);padding:6px 12px;border-radius:999px;
+  }
+  .live-dot{width:6px;height:6px;border-radius:50%;background:#5FD98A;flex:none;
+    box-shadow:0 0 0 rgba(95,217,138,0.5);animation:pulseDot 1.8s ease-out infinite;}
+  @keyframes pulseDot{
+    0%{box-shadow:0 0 0 0 rgba(95,217,138,0.55);}
+    70%{box-shadow:0 0 0 8px rgba(95,217,138,0);}
+    100%{box-shadow:0 0 0 0 rgba(95,217,138,0);}
+  }
+
+  .panel-heading{margin-top:26px;}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;
+    letter-spacing:1.6px;text-transform:uppercase;color:var(--gold-soft);
+    background:rgba(255,255,255,0.07);padding:6px 12px;border-radius:999px;
+    border:1px solid rgba(255,255,255,0.15);margin-bottom:18px;
+  }
+  .panel-heading h1{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-0.3px;
+    font-size:clamp(26px,3vw,36px);line-height:1.14;margin:0 0 14px;
+  }
+  .panel-heading p{font-size:14px;line-height:1.65;color:rgba(255,255,255,0.72);max-width:380px;margin:0;}
+
+  .feature-mark{
+    margin: 10px 0 8px;display:flex;align-items:center;justify-content:center;
+    width:190px;height:190px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.10), rgba(255,255,255,0.02));
+    border:1px solid rgba(255,255,255,0.14);
+  }
+  @media (max-width:900px){ .feature-mark{display:none;} }
+  .feature-mark img{width:96px;height:96px;border-radius:20px;object-fit:cover;display:block;
+    box-shadow:0 12px 30px rgba(0,0,0,0.35);}
+
+  .feature-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;}
+  @media (max-width:900px){ .feature-list{display:none;} }
+  .feature-list li{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:rgba(255,255,255,0.75);line-height:1.4;}
+  .feature-list .dot{width:6px;height:6px;border-radius:50%;background:var(--gold-soft);flex:none;margin-top:6px;}
+
+  .panel-foot{font-size:11.5px;color:rgba(255,255,255,0.4);letter-spacing:0.3px;margin-top:28px;}
+
+  /* ---------- Right: form panel ---------- */
+  .panel-form{display:flex;align-items:center;justify-content:center;padding:44px 24px;}
+  .form-card{width:100%;max-width:378px;}
+
+  .access-pill{
+    display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;
+    letter-spacing:1.2px;text-transform:uppercase;color:var(--red-dark);
+    background:#FBE7E9;border:1px solid #F3C2C6;padding:5px 11px;border-radius:999px;margin-bottom:20px;
+  }
+  .form-card h2{font-family:'Space Grotesk',sans-serif;font-size:25px;font-weight:700;
+    margin:0 0 6px;color:var(--ink);letter-spacing:-0.2px;}
+  .form-card .sub{font-size:13px;color:var(--muted);margin:0 0 30px;line-height:1.5;}
+
+  .lfield{margin-bottom:18px;}
+  .lfield label{display:block;font-size:11px;font-weight:600;color:var(--ink);letter-spacing:0.3px;margin-bottom:7px;}
+  .input-wrap{position:relative;}
+  .lfield input{
+    width:100%;padding:13px 14px;font-size:14.5px;border:1.5px solid var(--line);
+    border-radius:10px;background:#fff;color:var(--ink);font-family:inherit;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .lfield input:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 4px rgba(214,31,44,0.10);}
+  .pw-wrap input{padding-right:54px;}
+  .pw-toggle{
+    position:absolute;right:6px;top:50%;transform:translateY(-50%);
+    border:none;background:transparent;color:var(--muted);cursor:pointer;
+    font-size:10.5px;font-weight:700;letter-spacing:0.4px;padding:7px 9px;border-radius:7px;
+  }
+  .pw-toggle:hover{background:var(--paper);color:var(--maroon);}
+
+  .remember-row{display:flex;align-items:center;gap:8px;margin:-2px 0 22px;}
+  .remember-row input[type=checkbox]{width:15px;height:15px;accent-color:var(--red);cursor:pointer;margin:0;}
+  .remember-row label{font-size:12.5px;color:var(--ink);cursor:pointer;user-select:none;}
+
+  .login-btn{
+    width:100%;border:none;border-radius:10px;padding:14px;font-size:14.5px;font-weight:700;
+    cursor:pointer;color:#fff;letter-spacing:0.2px;font-family:inherit;
+    background:linear-gradient(135deg,var(--red),var(--red-dark));
+    box-shadow:0 12px 26px rgba(214,31,44,0.28);
+    transition:transform .15s,box-shadow .15s,opacity .15s;
+  }
+  .login-btn:hover{transform:translateY(-1px);box-shadow:0 16px 32px rgba(214,31,44,0.34);}
+  .login-btn:active{transform:translateY(0);}
+  .login-btn:disabled{opacity:0.65;cursor:default;transform:none;}
+
+  .login-error{
+    margin-top:16px;background:#FBE7E9;border:1px solid #F3C2C6;color:var(--red-dark);
+    font-size:12.5px;padding:11px 13px;border-radius:9px;display:none;
+  }
+  .form-foot{text-align:center;margin-top:26px;font-size:12px;color:var(--muted);}
+  .form-foot a{color:var(--red);text-decoration:none;font-weight:700;}
+  .form-foot a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="panel-brand">
+    <div>
+      <div class="brand-row">
+        <img src="logo.png" alt="Planet Drugstore" class="brand-mark">
+        <div class="brand-word">PLANET<span>DRUGSTORE</span></div>
+      </div>
+      <div class="live-pill"><span class="live-dot"></span> Updates in real time</div>
+
+      <div class="panel-heading">
+        <div class="eyebrow">IT Access</div>
+        <h1>Track every peripheral you receive, issue, and return.</h1>
+        <p>See entries the moment employees save them, across every Medical Mission and Peoples Day.</p>
+      </div>
+
+      <div class="feature-mark">
+        <img src="logo.png" alt="Planet Drugstore">
+      </div>
+    </div>
+
+    <div>
+      <ul class="feature-list">
+        <li><span class="dot"></span> Entries update in real time.</li>
+        <li><span class="dot"></span> Full edit and audit history on every entry</li>
+        <li><span class="dot"></span> Manage employee accounts and login access</li>
+      </ul>
+      <div class="panel-foot">Planet Drugstore &middot; Peripherals Receiving &amp; Tracking</div>
+    </div>
+  </div>
+
+  <div class="panel-form">
+    <div class="form-card">
+      <div class="access-pill">IT Access</div>
+      <h2>Sign in to the console</h2>
+      <p class="sub">Authorized IT Only To Access The Console</p>
+
+      <form id="loginForm" autocomplete="on">
+        <div class="lfield">
+          <label for="loginEmail">Email</label>
+          <div class="input-wrap">
+            <input type="email" id="loginEmail" placeholder="you@planetdrugstore.ph" required autocomplete="username">
+          </div>
+        </div>
+        <div class="lfield">
+          <label for="loginPassword">Password</label>
+          <div class="input-wrap pw-wrap">
+            <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
+            <button type="button" class="pw-toggle" id="pwToggle">SHOW</button>
+          </div>
+        </div>
+        <div class="remember-row">
+          <input type="checkbox" id="rememberMe" checked>
+          <label for="rememberMe">Remember me on this device</label>
+        </div>
+        <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+        <div class="login-error" id="loginError"></div>
+      </form>
+
+      <div class="form-foot"><a href="employee-login.html">Employee Login &rarr;</a></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth, onAuthStateChanged, signInWithEmailAndPassword, setPersistence,
+    browserLocalPersistence, browserSessionPersistence
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  // Same Firebase project as the receiving form and admin console.
+  const firebaseConfig = {
+    apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
+    authDomain: "planetdrugstore-peripher-d24c0.firebaseapp.com",
+    projectId: "planetdrugstore-peripher-d24c0",
+    storageBucket: "planetdrugstore-peripher-d24c0.firebasestorage.app",
+    messagingSenderId: "115454971026",
+    appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const loginForm = document.getElementById('loginForm');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginError = document.getElementById('loginError');
+  const emailInput = document.getElementById('loginEmail');
+  const rememberMe = document.getElementById('rememberMe');
+  const REMEMBER_KEY = 'pd_remembered_adminEmail';
+
+  // Show/Hide password
+  const pwInput = document.getElementById('loginPassword');
+  document.getElementById('pwToggle').addEventListener('click', ()=>{
+    const showing = pwInput.type === 'text';
+    pwInput.type = showing ? 'password' : 'text';
+    document.getElementById('pwToggle').textContent = showing ? 'SHOW' : 'HIDE';
+  });
+
+  // Remember Me — prefill the last-used email so admins don't have to retype
+  // it every time. The password itself is never stored; staying signed in
+  // (so the password isn't needed again either) is handled by Firebase's
+  // own persistence, chosen below based on this checkbox.
+  const rememberedEmail = localStorage.getItem(REMEMBER_KEY);
+  if(rememberedEmail){
+    emailInput.value = rememberedEmail;
+    rememberMe.checked = true;
+  }
+
+  await setPersistence(auth, browserLocalPersistence).catch(()=>{});
+
+  // Already signed in (e.g. came back to this page)? Skip straight to the console.
+  onAuthStateChanged(auth, (user)=>{
+    if(user) window.location.replace('admin-console.html');
+  });
+
+  loginForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    loginError.style.display = 'none';
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Signing in…';
+    PDLoader.show();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    try{
+      // Remember Me checked -> stay signed in across browser restarts (local).
+      // Unchecked -> signed out again once the browser/tab is closed (session).
+      await setPersistence(auth, rememberMe.checked ? browserLocalPersistence : browserSessionPersistence);
+      await signInWithEmailAndPassword(auth, email, password);
+      if(rememberMe.checked){
+        localStorage.setItem(REMEMBER_KEY, email);
+      }else{
+        localStorage.removeItem(REMEMBER_KEY);
+      }
+      window.location.href = 'admin-console.html';
+    }catch(err){
+      PDLoader.hide();
+      loginError.textContent = friendlyAuthError(err);
+      loginError.style.display = 'block';
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Sign In';
+    }
+  });
+
+  function friendlyAuthError(err){
+    const code = err && err.code || '';
+    if(code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found')){
+      return 'Incorrect email or password.';
+    }
+    if(code.includes('too-many-requests')){
+      return 'Too many attempts. Please wait a moment and try again.';
+    }
+    if(code.includes('network-request-failed')){
+      return 'Network error — check your connection and try again.';
+    }
+    return 'Unable to sign in (' + (code || 'unknown error') + ').';
+  }
+</script>
+<script src="loader.js"></script>
+</body>
+</html>

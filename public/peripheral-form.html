@@ -1,0 +1,3900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Peripherals Receiving — Planet Drugstore</title>
+<style>
+  :root{
+    --maroon:#6E1620;
+    --maroon-dark:#3D0A10;
+    --red:#d61f2c;
+    --red-dark:#a5151f;
+    --paper:#FBF5F4;
+    --line:#DCC7C8;
+    --ink:#2A1416;
+    --muted:#8C6B6E;
+    --good:#1f8a4c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    font-family:'Segoe UI', Roboto, Arial, sans-serif;
+    color:var(--ink);
+    padding:24px;
+  }
+  .sheet{
+    max-width:1100px;
+    margin:0 auto;
+    border:2px solid var(--maroon);
+    border-radius:4px;
+    background-color:#fff;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.60), rgba(255,255,255,0.60)),
+      url('logo-transparent.png');
+    background-repeat:no-repeat, no-repeat;
+    background-position:center, center;
+    background-size:cover, 440px auto;
+    overflow:hidden;
+  }
+  .top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 24px;
+    border-bottom:3px solid var(--red);
+    gap:20px;
+    flex-wrap:wrap;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .brand-mark{
+    width:56px;height:56px;border-radius:12px;
+    object-fit:cover;
+    flex:none;
+    display:block;
+  }
+  .brand-name{
+    font-weight:800;
+    color:var(--maroon);
+    line-height:1.05;
+    font-size:14px;
+    letter-spacing:0.5px;
+  }
+  .brand-name span{display:block;color:var(--red);}
+  .titles{flex:1;min-width:260px;text-align:center;}
+  .titles h1{margin:0;color:var(--maroon);font-size:20px;letter-spacing:0.5px;}
+  .titles h2{margin:2px 0 0;color:var(--red);font-size:26px;letter-spacing:0.5px;}
+  .titles .sub{margin-top:4px;font-size:12px;color:var(--muted);letter-spacing:1px;}
+  .meta{
+    font-size:12.5px;
+    min-width:230px;
+  }
+  .meta label{display:block;color:var(--maroon);font-weight:600;margin-top:4px;}
+  .meta input[type=text]{
+    width:100%;border:none;border-bottom:1px solid var(--line);
+    background:transparent;font-size:13px;padding:2px 0;color:var(--ink);
+  }
+  .meta input[readonly]{color:var(--red);font-weight:700;}
+  .cn-field-with-btn{display:flex;align-items:center;gap:8px;}
+  .cn-field-with-btn input{flex:1;min-width:0;}
+  .cn-field-with-btn .btn{
+    flex:none;font-size:11px;padding:5px 10px;white-space:nowrap;
+  }
+  .venue-wrap{position:relative;}
+  .venue-suggest{
+    position:absolute;top:100%;left:0;right:0;z-index:60;
+    background:#fff;border:1px solid var(--line);border-top:none;
+    border-radius:0 0 6px 6px;box-shadow:0 10px 24px rgba(10,14,30,0.15);
+    max-height:190px;overflow-y:auto;display:none;
+  }
+  .venue-suggest.show{display:block;}
+  .venue-suggest-item{
+    padding:7px 10px;font-size:12.5px;color:var(--ink);cursor:pointer;
+    display:flex;justify-content:space-between;align-items:center;gap:8px;
+  }
+  .venue-suggest-item:hover,.venue-suggest-item.active{background:var(--paper);}
+  .venue-suggest-item .vs-count{font-size:10.5px;color:var(--muted);flex:none;letter-spacing:0.2px;}
+  .event-row{display:flex;gap:14px;margin-top:6px;align-items:center;}
+  .event-row label{display:flex;align-items:center;gap:5px;font-weight:600;color:var(--maroon);margin:0;}
+
+  .bands{display:flex;flex-wrap:wrap;}
+  .band{flex:1;min-width:320px;padding:16px 24px;}
+  .band + .band{border-left:1px solid var(--line);}
+  .band-title{
+    background:var(--maroon);color:#fff;font-weight:700;font-size:13px;
+    text-align:center;padding:8px;letter-spacing:1px;border-radius:3px;margin-bottom:12px;
+  }
+  .field-row{display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap;}
+  .field{flex:1;min-width:140px;}
+  .field label{display:block;font-size:11.5px;color:var(--maroon);font-weight:700;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.3px;}
+  .field input{
+    width:100%;border:none;border-bottom:1px solid var(--line);
+    padding:4px 2px;font-size:13.5px;background:transparent;color:var(--ink);
+  }
+  .field input:focus{outline:none;border-bottom:1px solid var(--red);}
+  .field input[readonly]{color:var(--muted);cursor:not-allowed;}
+  .sign-block .sline input[readonly]{color:var(--muted);cursor:not-allowed;}
+
+  .band-attach{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);}
+  .attach-section-label{display:block;font-size:11.5px;color:var(--maroon);font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.3px;}
+  .attach-input-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+  .attach-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .attach-btn{
+    display:inline-flex;align-items:center;gap:6px;
+    border:1.5px solid var(--line);background:#fff;color:var(--maroon);
+    border-radius:9px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;
+    transition:background .15s ease,border-color .15s ease,transform .15s ease,box-shadow .15s ease;
+  }
+  .attach-btn:hover{background:#F6ECEC;border-color:var(--maroon);transform:translateY(-1px);box-shadow:0 4px 10px rgba(110,22,32,0.10);}
+  .attach-btn:active{transform:translateY(0);}
+  .attach-btn.ghost{background:var(--paper);}
+  .attach-preview{display:none;margin-top:12px;}
+  .attach-thumb{
+    position:relative;display:inline-block;border-radius:10px;overflow:hidden;
+    border:1px solid var(--line);background:var(--paper);box-shadow:0 4px 12px rgba(42,20,22,0.10);
+  }
+  .attach-thumb img{display:block;max-width:180px;max-height:130px;object-fit:contain;background:#fff;}
+  .attach-remove{
+    position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;
+    border:none;background:rgba(42,20,22,0.72);color:#fff;font-size:15px;line-height:1;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:background .15s ease,transform .15s ease;
+  }
+  .attach-remove:hover{background:var(--red);transform:scale(1.08);}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  #itemsTable{table-layout:fixed;}
+  .items-wrap{padding:16px 24px;overflow-x:auto;}
+  .section-label{
+    background:var(--red);color:#fff;font-weight:700;font-size:12.5px;
+    padding:6px 10px;letter-spacing:0.5px;margin:18px 0 0;border-radius:3px 3px 0 0;
+  }
+  th,td{border:1px solid var(--line);padding:6px 7px;text-align:left;vertical-align:middle;}
+  thead th{background:var(--maroon);color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;}
+  .grp-before thead th{background:var(--red-dark);}
+  .grp-after thead th{background:var(--red-dark);}
+  td input[type=text]{width:100%;border:none;background:transparent;font-size:12.5px;padding:2px;}
+  td input[type=text]:focus{outline:1px solid var(--red);border-radius:2px;}
+  td select{width:100%;border:none;background:transparent;font-size:12.5px;padding:2px;color:var(--ink);font-family:inherit;}
+  td select:focus{outline:1px solid var(--red);border-radius:2px;}
+  td.item-name{font-weight:600;min-width:0;white-space:normal;word-break:break-word;}
+  td.item-name input[type=text]{white-space:normal;overflow-wrap:break-word;}
+  td.qty{text-align:center;font-weight:700;color:var(--maroon);}
+  td.qty input:disabled{color:var(--maroon);opacity:1;-webkit-text-fill-color:var(--maroon);cursor:default;}
+  td.remarks-cell{min-width:110px;}
+  .remarks-input{
+    width:100%;border:none;background:transparent;font-size:12.5px;padding:2px;
+    font-family:inherit;resize:vertical;overflow:hidden;line-height:1.3;
+    display:block;min-height:20px;
+  }
+  .remarks-input:focus{outline:1px solid var(--red);border-radius:2px;}
+  .rmk-photo-row{display:flex;align-items:center;gap:6px;margin-top:4px;}
+  .rmk-photo-btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:24px;height:24px;border-radius:6px;flex:none;
+    border:1px solid var(--line);background:#fff;color:var(--maroon);
+    font-size:13px;cursor:pointer;line-height:1;
+    transition:background .15s ease,border-color .15s ease;
+  }
+  .rmk-photo-btn:hover{background:#F6ECEC;border-color:var(--maroon);}
+  .rmk-photo-thumb{position:relative;display:none;flex:none;}
+  .rmk-photo-thumb.show{display:inline-flex;}
+  .rmk-photo-thumb img{
+    width:28px;height:28px;object-fit:cover;border-radius:5px;display:block;
+    border:1px solid var(--line);cursor:zoom-in;background:var(--paper);
+  }
+  .rmk-photo-clear{
+    position:absolute;top:-6px;right:-6px;width:15px;height:15px;border-radius:50%;
+    border:none;background:rgba(42,20,22,0.78);color:#fff;font-size:10px;line-height:1;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;
+  }
+  .rmk-photo-clear:hover{background:var(--red);}
+  input[type=checkbox]{width:17px;height:17px;accent-color:var(--red);cursor:pointer;}
+  /* Admin-set fields (Date, Venue/Location, Event Type) — locked so the
+     employee can't overwrite what Admin already prepared for this Control
+     No. Kept legible (not grayed-out like a normal disabled field) since
+     the value is still important info the employee needs to read. */
+  .meta input[readonly]{
+    background:#F6EDEC;cursor:not-allowed;color:var(--ink);
+  }
+  .event-row.locked label{cursor:not-allowed;}
+  .event-row.locked input[type=checkbox]{cursor:not-allowed;opacity:0.85;}
+  .meta-lock-note{
+    font-size:11px;font-weight:600;color:var(--muted);margin:2px 0 0;display:flex;align-items:center;gap:4px;
+  }
+  .chk-cell{text-align:center;}
+
+  .asset-table td, .asset-table th{font-size:12px;}
+
+  .notes{padding:16px 24px;}
+  .notes textarea{
+    width:100%;min-height:60px;border:1px solid var(--line);border-radius:4px;
+    padding:8px;font-family:inherit;font-size:13px;resize:vertical;
+  }
+
+  .ack{padding:12px 24px 4px;font-size:12px;color:var(--muted);display:flex;gap:24px;flex-wrap:wrap;}
+  .ack div{flex:1;min-width:260px;text-align:center;font-style:italic;}
+
+  .sign-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:0 24px 20px;}
+  .sign-block{border-left:1px solid var(--line);padding:10px 14px;}
+  .sign-block:first-child{border-left:none;}
+  .sign-block h4{margin:0 0 10px;color:var(--maroon);font-size:12px;text-align:center;letter-spacing:0.3px;}
+  .sign-block .sline{margin-bottom:14px;}
+  .sign-block .sline label{display:block;font-size:10.5px;color:var(--muted);margin-bottom:2px;}
+  .sign-block .sline input{width:100%;border:none;border-bottom:1px solid var(--line);background:transparent;font-size:12.5px;padding:2px 0;}
+
+  .footer-info{
+    display:flex;gap:20px;padding:16px 24px 8px;flex-wrap:wrap;font-size:11.5px;color:var(--ink);
+  }
+  .footer-info .col{flex:1;min-width:260px;}
+  .footer-info h5{margin:0 0 6px;color:var(--red);font-size:12px;}
+  .footer-info ul{margin:0;padding-left:16px;}
+  .footer-info li{margin-bottom:3px;}
+  .guide-row{display:flex;gap:8px;margin-bottom:3px;}
+  .guide-row b{color:var(--maroon);min-width:90px;display:inline-block;}
+
+  .thanks{
+    text-align:center;color:var(--red);font-weight:700;font-size:13px;
+    padding:14px;border-top:2px solid var(--red);letter-spacing:0.3px;
+  }
+
+  td.item-name input, td.qty input{width:100%;border:none;background:transparent;font-size:12.5px;padding:2px;font-weight:600;}
+  td.qty input{text-align:center;color:var(--maroon);}
+  .item-desc{font-size:12.5px;font-weight:600;white-space:normal;word-break:break-word;line-height:1.3;padding:2px;}
+  td.no-cell{text-align:center;color:var(--muted);font-size:11.5px;}
+
+  /* Mobile: stack each item row into a card instead of a horizontally
+     scrolling table, so the full Peripheral Item name (and every other
+     field) is always visible without needing to swipe sideways. */
+  @media (max-width:1024px){
+    .items-wrap{overflow-x:visible;padding:12px 10px;}
+    #itemsTable{min-width:0;}
+    #itemsTable thead{display:none;}
+    #itemsTable, #itemsTable tbody, #itemsTable tr{display:block;width:100%;}
+    #itemsTable tr{
+      border:1px solid var(--line);border-radius:8px;margin-bottom:12px;
+      padding:10px 12px 12px;background:#fff;box-shadow:0 1px 3px rgba(10,14,30,0.06);
+    }
+    #itemsTable td{
+      display:block;border:none;border-bottom:1px dashed var(--line);
+      padding:7px 0;width:100%;min-width:0;text-align:left;
+    }
+    #itemsTable td:last-child{border-bottom:none;}
+    #itemsTable td[data-label]::before{
+      content:attr(data-label);display:block;font-size:10px;font-weight:700;
+      text-transform:uppercase;letter-spacing:0.3px;color:var(--maroon);margin-bottom:3px;
+    }
+    #itemsTable td.no-cell{
+      display:inline-block;width:auto;border-bottom:none;padding:0 0 6px;
+      font-size:11px;color:var(--muted);
+    }
+    #itemsTable td.no-cell::before{content:"Item ";}
+    #itemsTable td.item-name{font-size:14px;}
+    #itemsTable td.item-name .item-desc{font-size:14px;padding:0;}
+    #itemsTable td.qty{text-align:left;}
+    #itemsTable td input[type=text], #itemsTable td select{
+      background:#FAF6F5;border:1px solid var(--line);border-radius:5px;padding:6px 8px;
+      font-size:16px;
+    }
+  }
+
+  .toolbar{
+    max-width:1100px;margin:0 auto 14px;display:flex;justify-content:flex-end;align-items:center;gap:10px;flex-wrap:wrap;
+  }
+  .btn{
+    border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;
+    cursor:pointer;color:#fff;font-family:inherit;letter-spacing:0.1px;
+    display:inline-flex;align-items:center;gap:7px;
+    background:linear-gradient(135deg,var(--maroon),var(--maroon-dark));
+    box-shadow:0 4px 12px rgba(110,22,32,0.18);
+    transition:transform .15s ease,box-shadow .15s ease,opacity .15s ease,background .15s ease;
+  }
+  .btn.red{background:linear-gradient(135deg,var(--red),var(--red-dark));box-shadow:0 6px 16px rgba(214,31,44,0.26);}
+  .btn.ghost{background:#fff;border:1.5px solid var(--line);color:var(--maroon);box-shadow:none;}
+  .btn.ghost:hover{background:#F6ECEC;border-color:var(--maroon);}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(110,22,32,0.26);}
+  .btn.ghost:hover{box-shadow:0 4px 10px rgba(110,22,32,0.10);}
+  .btn.red:hover{box-shadow:0 12px 26px rgba(214,31,44,0.32);}
+  .btn:active{transform:translateY(0);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none !important;box-shadow:none !important;}
+  .status{font-size:12px;color:var(--muted);align-self:center;}
+
+  .cn-entry-group{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);
+    border-radius:10px;padding:5px 6px 5px 14px;}
+  .cn-entry-group input{
+    border:none;background:transparent;font-size:14px;font-weight:700;letter-spacing:1px;
+    color:var(--maroon);width:150px;font-family:inherit;
+  }
+  .cn-entry-group input:focus{outline:none;}
+  .cn-entry-group input::placeholder{color:var(--muted);font-weight:400;letter-spacing:normal;}
+  .cn-entry-error{font-size:11.5px;color:var(--red);max-width:1100px;margin:-6px auto 8px;text-align:right;display:none;}
+  .cn-entry-error.show{display:block;}
+  .cn-loaded-pill{display:none;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--line);
+    border-radius:10px;padding:7px 14px;font-size:13px;font-weight:700;color:var(--maroon);}
+  .cn-loaded-pill.show{display:inline-flex;}
+  .cn-loaded-pill .cn-change-link{font-weight:600;font-size:11.5px;color:var(--red);cursor:pointer;
+    text-decoration:underline;letter-spacing:normal;}
+  .cn-hint{max-width:1100px;margin:0 auto 10px;text-align:center;font-size:12.5px;color:var(--muted);
+    background:#F6ECEC;border:1px dashed var(--line);border-radius:8px;padding:9px 14px;}
+  body.pd-locked .sheet{opacity:.4;pointer-events:none;filter:grayscale(35%);user-select:none;}
+
+  @media print{
+    body{padding:0;background:#fff;}
+    .toolbar{display:none;}
+    .collab-bar{display:none !important;}
+    .sheet{border:1px solid #000;}
+  }
+
+  .collab-bar{
+    display:none;max-width:1100px;margin:0 auto 10px;align-items:center;justify-content:space-between;
+    gap:10px;background:var(--good);color:#fff;border-radius:6px;padding:9px 16px;font-size:12.5px;flex-wrap:wrap;
+  }
+  .collab-bar.show{display:flex;}
+  .collab-bar button{
+    border:1px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.08);color:#fff;border-radius:8px;
+    padding:6px 14px;font-size:12px;cursor:pointer;font-weight:700;flex:none;
+    transition:background .15s,transform .15s;
+  }
+  .collab-bar button:hover{background:rgba(255,255,255,0.2);transform:translateY(-1px);}
+
+  .employee-bar{
+    display:none;max-width:1100px;margin:0 auto 10px;align-items:center;justify-content:space-between;
+    gap:10px;background:linear-gradient(135deg,var(--maroon),var(--maroon-dark));color:#fff;
+    border-radius:10px;padding:10px 18px;font-size:12.5px;flex-wrap:wrap;
+    box-shadow:0 4px 14px rgba(110,22,32,0.22);
+  }
+  .employee-bar-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .bar-btn{
+    border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.07);color:#fff;
+    border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-weight:700;
+    display:inline-flex;align-items:center;gap:6px;
+    transition:background .15s,border-color .15s,transform .15s;
+  }
+  .bar-btn:hover{background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.6);transform:translateY(-1px);}
+  .bar-btn:active{transform:translateY(0);}
+
+  .collab-overlay{
+    position:fixed;inset:0;background:rgba(61,10,16,0.55);
+    display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;
+  }
+  .collab-overlay.show{display:flex;}
+
+  /* ---- Received By modal — same visual language as the "RETURNED AFTER
+     USE" band (maroon band-title header, field-row/field layout), just
+     presented as a popup with an X close button instead of inline. ---- */
+  .rb-modal-box{
+    background:#fff;border-radius:8px;max-width:440px;width:100%;
+    box-shadow:0 24px 60px rgba(10,14,30,0.35);text-align:left;
+    padding:0;overflow:hidden;max-height:90vh;display:flex;flex-direction:column;
+  }
+  .rb-modal-head{
+    background:var(--maroon);color:#fff;font-weight:700;font-size:13px;
+    text-align:center;padding:10px 36px;letter-spacing:1px;position:relative;
+  }
+  .rb-modal-close{
+    position:absolute;top:50%;right:8px;transform:translateY(-50%);
+    border:none;background:transparent;color:#fff;font-size:20px;line-height:1;
+    cursor:pointer;padding:4px 8px;opacity:0.85;
+  }
+  .rb-modal-close:hover{opacity:1;}
+  .rb-modal-body{padding:18px 20px 20px;overflow-y:auto;}
+  .rb-modal-body .field-row{margin-bottom:12px;}
+  .rb-modal-body .field label{margin-bottom:4px;}
+  .rb-modal-body .field input{border:1px solid var(--line);border-radius:5px;padding:7px 8px;}
+  .rb-modal-body .field input:focus{outline:none;border-color:var(--red);}
+  .rb-modal-body .band-attach{margin-top:16px;}
+  .rb-modal-hint{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;}
+
+  /* ---- My Logs (employee's own saved/joined entries + calendar) ---- */
+  .mylog-overlay{
+    position:fixed;inset:0;background:rgba(61,10,16,0.55);
+    display:none;align-items:flex-start;justify-content:center;z-index:9998;
+    padding:30px 16px;overflow-y:auto;
+  }
+  .mylog-overlay.show{display:flex;}
+  .mylog-box{
+    background:#fff;border-radius:10px;max-width:920px;width:100%;
+    box-shadow:0 24px 60px rgba(10,14,30,0.35);overflow:hidden;
+  }
+  .mylog-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:16px 22px;border-bottom:3px solid var(--red);
+  }
+  .mylog-head h2{margin:0;font-size:16px;color:var(--maroon);}
+  .mylog-close{border:none;background:transparent;font-size:22px;color:var(--muted);cursor:pointer;line-height:1;}
+  .mylog-body{padding:18px 20px 22px;max-height:78vh;overflow-y:auto;background:var(--paper);}
+  .mylog-summary{
+    display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;
+  }
+  .mylog-stat{
+    flex:1;min-width:130px;background:#fff;border:1px solid var(--line);border-radius:8px;
+    padding:10px 14px;text-align:center;
+  }
+  .mylog-stat .num{font-size:20px;font-weight:800;color:var(--maroon);}
+  .mylog-stat .lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.3px;margin-top:2px;}
+  .mylog-loading, .mylog-detail-empty{color:var(--muted);font-size:13px;padding:14px 2px;}
+
+  .mylog-cal-toolbar{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:12px;
+  }
+  .mylog-cal-nav{display:flex;align-items:center;gap:6px;}
+  .mylog-cal-nav button{
+    border:1px solid var(--line);background:#fff;color:var(--maroon);border-radius:6px;
+    padding:5px 11px;font-size:13px;font-weight:700;cursor:pointer;
+  }
+  .mylog-cal-nav button:hover{background:#F6ECEC;}
+  .mylog-cal-title{font-size:14px;font-weight:800;color:var(--maroon);min-width:150px;text-align:center;}
+  .mylog-today-btn{
+    border:1px solid var(--line);background:#fff;color:var(--maroon);border-radius:6px;
+    padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;
+  }
+  .mylog-today-btn:hover{background:#F6ECEC;}
+
+  .mylog-cal-grid{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:16px;}
+  .mylog-cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);background:var(--maroon);}
+  .mylog-cal-weekdays div{
+    color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;
+    padding:7px 5px;text-align:center;
+  }
+  .mylog-cal-days{display:grid;grid-template-columns:repeat(7,1fr);}
+  .mylog-cal-day{
+    min-height:58px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+    padding:5px 6px;cursor:pointer;display:flex;flex-direction:column;gap:3px;background:#fff;
+  }
+  .mylog-cal-day:nth-child(7n){border-right:none;}
+  .mylog-cal-day.outside{background:#FAF6F5;color:var(--muted);}
+  .mylog-cal-day:hover{background:#FAF1F1;}
+  .mylog-cal-day.selected{background:#FBE7E9;box-shadow:inset 0 0 0 2px var(--maroon);}
+  .mylog-cal-day .mylog-daynum{font-size:11.5px;font-weight:700;color:var(--ink);}
+  .mylog-cal-day.outside .mylog-daynum{color:var(--muted);font-weight:600;}
+  .mylog-cal-day.today .mylog-daynum{
+    background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  .mylog-cal-day .mylog-badges{display:flex;gap:3px;flex-wrap:wrap;}
+  .mylog-badge{
+    font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;color:#fff;white-space:nowrap;
+  }
+  .mylog-badge.host{background:var(--maroon);}
+  .mylog-badge.joiner{background:var(--red);}
+
+  .mylog-detail{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px 16px;}
+  .mylog-detail-head h3{margin:0 0 10px;font-size:13.5px;color:var(--maroon);}
+  .mylog-detail-row{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:8px;
+  }
+  .mylog-detail-row .info{font-size:12.5px;}
+  .mylog-detail-row .info .ctrl{font-weight:800;color:var(--maroon);margin-right:8px;}
+  .mylog-detail-row .info .meta{color:var(--muted);}
+  .mylog-role-badge{
+    font-size:10px;font-weight:800;padding:3px 9px;border-radius:10px;color:#fff;letter-spacing:0.3px;
+  }
+  .mylog-role-badge.host{background:var(--maroon);}
+  .mylog-role-badge.joiner{background:var(--red);}
+  .mylog-view-btn{
+    border:1px solid var(--line);background:#fff;color:var(--maroon);border-radius:5px;
+    padding:6px 12px;font-size:11.5px;cursor:pointer;font-weight:600;
+  }
+  .mylog-view-btn:hover{background:#F6ECEC;}
+
+  /* Read-only entry detail (item list) inside myLogEntryOverlay */
+  .mylog-entry-meta{font-size:12.5px;color:var(--ink);margin-bottom:14px;line-height:1.7;}
+  .mylog-entry-meta strong{color:var(--maroon);}
+  .mylog-items-table{width:100%;border-collapse:collapse;font-size:11.5px;background:#fff;}
+  .mylog-items-table th,.mylog-items-table td{border:1px solid var(--line);padding:6px 7px;text-align:left;vertical-align:top;}
+  .mylog-items-table thead th{background:var(--maroon);color:#fff;font-size:10px;text-transform:uppercase;}
+  @media (max-width:720px){
+    .mylog-cal-day{min-height:44px;padding:4px 4px;}
+    .mylog-badges{display:none;}
+    .mylog-items-table{display:block;overflow-x:auto;}
+  }
+
+  /* Read-only clone of the actual form layout, used inside myLogEntryOverlay
+     so employees can see the exact form they (or their co-filler) submitted —
+     same visual structure as the live form above, just non-editable. */
+  .replica{
+    background-color:#fff;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.60), rgba(255,255,255,0.60)),
+      url('logo-transparent.png');
+    background-repeat:no-repeat, no-repeat;
+    background-position:center, center;
+    background-size:cover, 400px auto;
+    border:2px solid var(--maroon);border-radius:4px;overflow:hidden;
+  }
+  .replica-top{
+    display:flex;align-items:center;justify-content:space-between;padding:16px 20px;
+    border-bottom:3px solid var(--red);gap:18px;flex-wrap:wrap;
+  }
+  .replica-brand{display:flex;align-items:center;gap:10px;}
+  .replica-brand-mark{width:44px;height:44px;border-radius:10px;object-fit:cover;flex:none;display:block;}
+  .replica-brand-name{font-weight:800;color:var(--maroon);line-height:1.05;font-size:12px;letter-spacing:0.4px;}
+  .replica-brand-name span{display:block;color:var(--red);}
+  .replica-titles{flex:1;min-width:220px;text-align:center;}
+  .replica-titles h3{margin:0;color:var(--maroon);font-size:15px;letter-spacing:0.4px;}
+  .replica-titles h4{margin:2px 0 0;color:var(--red);font-size:20px;letter-spacing:0.4px;}
+  .replica-titles .sub{margin-top:3px;font-size:10.5px;color:var(--muted);letter-spacing:1px;}
+  .replica-meta{font-size:12px;min-width:200px;}
+  .replica-meta label{display:block;font-size:10.5px;color:var(--maroon);font-weight:700;text-transform:uppercase;letter-spacing:0.3px;margin-top:6px;}
+  .replica-meta .val{width:100%;border-bottom:1px solid var(--line);background:transparent;font-size:12.5px;padding:2px 0;color:var(--ink);min-height:16px;}
+  .replica-meta .val.ctrl{color:var(--red);font-weight:700;}
+  .replica-event-row{display:flex;gap:14px;margin-top:6px;}
+  .replica-event-row span{font-size:11px;font-weight:600;color:var(--maroon);display:flex;align-items:center;gap:4px;}
+  .replica-event-row .dot{width:8px;height:8px;border-radius:50%;background:var(--line);}
+  .replica-event-row .dot.on{background:var(--good);}
+
+  .replica-bands{display:flex;flex-wrap:wrap;}
+  .replica-band{flex:1;min-width:280px;padding:16px 20px;}
+  .replica-band+.replica-band{border-left:1px solid var(--line);}
+  .replica-band-title{
+    background:var(--maroon);color:#fff;font-weight:700;font-size:12.5px;text-align:center;
+    padding:8px;letter-spacing:0.8px;border-radius:3px;margin-bottom:12px;
+  }
+  .replica-field-row{display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap;}
+  .replica-field{flex:1;min-width:130px;}
+  .replica-field label{display:block;font-size:11px;color:var(--maroon);font-weight:700;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.3px;}
+  .replica-field .val{width:100%;border-bottom:1px solid var(--line);padding:4px 2px;font-size:13px;background:transparent;color:var(--ink);min-height:18px;}
+  .replica-attach{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);}
+  .replica-attach label{display:block;font-size:11px;color:var(--maroon);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.3px;}
+  .replica-attach img{max-width:180px;max-height:130px;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:var(--paper);cursor:zoom-in;transition:opacity 0.15s;}
+  .replica-attach img:hover{opacity:0.85;}
+  .replica-attach .none{font-size:12px;color:var(--muted);font-style:italic;}
+
+  .mylog-lightbox-overlay{
+    display:none;position:fixed;inset:0;background:rgba(10,14,30,0.88);
+    z-index:99999;align-items:center;justify-content:center;padding:30px;
+  }
+  .mylog-lightbox-overlay.show{display:flex;}
+  .mylog-lightbox-overlay img{max-width:92vw;max-height:88vh;object-fit:contain;border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+  .mylog-lightbox-close{
+    position:absolute;top:18px;right:24px;background:rgba(255,255,255,0.12);color:#fff;
+    border:1px solid rgba(255,255,255,0.35);border-radius:6px;width:38px;height:38px;
+    font-size:20px;line-height:1;cursor:pointer;
+  }
+  .mylog-lightbox-close:hover{background:rgba(255,255,255,0.22);}
+
+  .save-toast{
+    position:fixed;top:18px;left:50%;
+    transform:translate(-50%,-140%);
+    background:#1E7A34;color:#fff;
+    padding:12px 24px;border-radius:10px;
+    font-size:14px;font-weight:700;letter-spacing:0.2px;
+    display:flex;align-items:center;gap:10px;
+    box-shadow:0 10px 28px rgba(0,0,0,0.22);
+    z-index:100000;opacity:0;pointer-events:none;
+    transition:transform .4s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+  }
+  .save-toast.show{transform:translate(-50%,0);opacity:1;}
+  .save-toast.warning{background:#8a5a00;}
+  .save-toast-icon{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:20px;height:20px;border-radius:50%;flex:none;
+    background:rgba(255,255,255,0.25);font-size:12px;
+  }
+  .save-toast.show .save-toast-icon{animation:saveToastTick .4s ease .15s both;}
+  @keyframes saveToastTick{
+    0%{transform:scale(0);}
+    60%{transform:scale(1.3);}
+    100%{transform:scale(1);}
+  }
+
+  .replica-items{padding:16px 20px;overflow-x:auto;}
+  .replica-items table{width:100%;border-collapse:collapse;font-size:11.5px;}
+  .replica-items th,.replica-items td{border:1px solid var(--line);padding:6px 7px;text-align:left;vertical-align:middle;}
+  .replica-items thead th{background:var(--maroon);color:#fff;font-size:10px;text-transform:uppercase;letter-spacing:0.3px;}
+  .replica-items .grp-before{background:var(--red-dark);}
+  .replica-items .grp-after{background:var(--red-dark);}
+  .replica-items td.item-name{font-weight:600;min-width:150px;white-space:normal;word-break:break-word;}
+  .replica-items td.qty{text-align:center;font-weight:700;color:var(--maroon);}
+  .replica-items td.remarks-cell{min-width:130px;white-space:normal;word-break:break-word;}
+  .rmk-photo-view{width:44px;height:44px;object-fit:cover;border-radius:6px;margin-top:4px;
+    border:1px solid var(--line);cursor:zoom-in;display:inline-block;}
+
+  .replica-ack{padding:12px 20px 4px;font-size:11.5px;color:var(--muted);display:flex;gap:24px;flex-wrap:wrap;}
+  .replica-ack div{flex:1;min-width:240px;text-align:center;font-style:italic;}
+
+  .replica-sign-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:8px 20px 20px;}
+  .replica-sign-block{border-left:1px solid var(--line);padding:10px 14px;}
+  .replica-sign-block:first-child{border-left:none;}
+  .replica-sign-block h5{margin:0 0 10px;color:var(--maroon);font-size:11px;text-align:center;letter-spacing:0.3px;}
+  .replica-sign-block .sline{margin-bottom:10px;}
+  .replica-sign-block .sline label{display:block;font-size:10px;color:var(--muted);margin-bottom:2px;}
+  .replica-sign-block .sline .val{font-size:12px;border-bottom:1px solid var(--line);padding:2px 0;min-height:16px;}
+  .replica-sign-block .sig-img{width:100%;height:60px;object-fit:contain;background:var(--paper);border:1px solid var(--line);border-radius:4px;}
+  .replica-sign-block .no-sig{font-size:10.5px;color:var(--muted);text-align:center;padding:18px 0;border:1px dashed var(--line);border-radius:4px;}
+  @media (max-width:720px){
+    .replica-sign-grid{grid-template-columns:repeat(2,1fr);}
+    .replica-band+.replica-band{border-left:none;border-top:1px solid var(--line);}
+  }
+  .collab-box{
+    background:#fff;border-radius:10px;max-width:360px;width:100%;
+    padding:22px 22px 18px;box-shadow:0 12px 30px rgba(0,0,0,0.3);text-align:center;
+  }
+  .collab-box h3{margin:0 0 8px;color:var(--maroon);font-size:16px;}
+  .collab-box p{margin:0 0 16px;color:var(--muted);font-size:12.5px;line-height:1.5;}
+  .collab-code-input{
+    width:100%;text-align:center;letter-spacing:6px;font-size:22px;font-weight:700;
+    border:1px solid var(--line);border-radius:6px;padding:10px;margin-bottom:16px;color:var(--maroon);
+  }
+  .collab-code-input:focus{outline:none;border-color:var(--red);}
+  .collab-actions{display:flex;gap:10px;justify-content:center;}
+  .collab-actions .btn{flex:1;}
+  .collab-actions .btn.ghost{background:#fff;color:var(--maroon);border:1px solid var(--line);}
+
+  /* In-page Yes/No confirm dialog (Save / New Entry) — replaces the browser's
+     native confirm() popup, which appears at the top of the page/tab instead
+     of inline where the person is actually working. */
+  .action-confirm-overlay{
+    position:fixed;inset:0;background:rgba(61,10,16,0.55);
+    display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;
+  }
+  .action-confirm-overlay.show{display:flex;}
+  .action-confirm-box{
+    background:#fff;border-radius:10px;max-width:460px;width:100%;
+    padding:22px 24px 20px;box-shadow:0 12px 30px rgba(0,0,0,0.3);
+  }
+  .action-confirm-box h3{margin:0 0 8px;color:var(--maroon);font-size:16.5px;text-align:center;}
+  .action-confirm-box .ac-message{margin:0 0 18px;color:var(--muted);font-size:12.5px;line-height:1.5;text-align:center;white-space:pre-line;}
+  .ac-choices{display:flex;gap:12px;flex-wrap:wrap;}
+  .ac-choice{
+    flex:1;min-width:170px;border-radius:8px;padding:14px 14px;cursor:pointer;text-align:left;
+    display:flex;flex-direction:column;gap:6px;background:var(--paper);
+  }
+  .ac-choice .ac-label{font-size:14px;font-weight:800;letter-spacing:0.3px;}
+  .ac-choice .ac-desc{font-size:11.5px;line-height:1.4;color:var(--muted);}
+  .ac-choice.yes{border:2px solid var(--maroon);}
+  .ac-choice.yes .ac-label{color:var(--maroon);}
+  .ac-choice.yes:hover{background:#F5EAEA;}
+  .ac-choice.no{border:2px solid var(--line);}
+  .ac-choice.no .ac-label{color:var(--red);}
+  .ac-choice.no:hover{background:#fdecec;}
+  @media (max-width:480px){
+    .ac-choices{flex-direction:column;}
+  }
+
+  .sig-pad-wrap{position:relative;}
+  .sig-canvas{
+    width:100%;height:70px;display:block;
+    border:1px solid var(--line);border-radius:4px;background:#fff;
+    touch-action:none;cursor:crosshair;
+  }
+  .sig-clear{
+    position:absolute;top:3px;right:4px;
+    border:none;background:transparent;color:var(--red);
+    font-size:10px;font-weight:700;cursor:pointer;padding:2px 5px;letter-spacing:0.3px;
+  }
+  .sig-clear:hover{text-decoration:underline;}
+  .sig-canvas.sig-locked{background:#FBF7F5;cursor:default;}
+
+  @media (max-width:760px){
+    body{padding:10px;}
+    .toolbar{max-width:100%;padding:0 2px;}
+    .top{flex-direction:column;text-align:center;padding:14px;}
+    .titles h1{font-size:16px;}
+    .titles h2{font-size:21px;}
+    .meta{width:100%;min-width:0;}
+    .event-row{justify-content:center;}
+    .bands{flex-direction:column;}
+    .band{min-width:100%;border-left:none;}
+    .band + .band{border-left:none;border-top:1px solid var(--line);}
+    .field-row{flex-direction:column;gap:8px;}
+    .field{min-width:100%;}
+    table{font-size:11px;}
+    th,td{padding:4px 5px;}
+    .footer-info{flex-direction:column;}
+    .sign-grid{grid-template-columns:1fr 1fr;}
+    .sign-block{border-left:none;border-top:1px solid var(--line);padding:10px 8px;}
+    .sign-block:nth-child(-n+2){border-top:none;}
+    .sign-block:nth-child(odd){border-left:none;}
+  }
+  @media (max-width:460px){
+    .sign-grid{grid-template-columns:1fr;}
+    .sign-block:nth-child(-n+2){border-top:1px solid var(--line);}
+    .sign-block:first-child{border-top:none;}
+  }
+
+  /* Prevent iOS Safari's auto-zoom-on-focus (triggered by any input/select
+     under 16px) and give touch targets more room across the whole form,
+     not just the items table handled above. */
+  @media (max-width:760px){
+    .meta input, .meta select,
+    .sign-block .sline input,
+    .cn-entry-group input,
+    input[type=text], input[type=email], input[type=password], input[type=number],
+    select, textarea{
+      font-size:16px !important;
+    }
+    .sign-block .sline input{padding:5px 0;}
+    .btn{padding:11px 16px;font-size:14.5px;}
+    .toolbar{justify-content:center;}
+    .cn-entry-group input{width:120px;}
+  }
+</style>
+</head>
+<body class="pd-locked">
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    initializeFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp, setLogLevel,
+    collection, query, where, getDocs, increment, runTransaction
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  setLogLevel('debug');
+
+  const SESSION_KEY = 'pd_employee_session';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
+    authDomain: "planetdrugstore-peripher-d24c0.firebaseapp.com",
+    projectId: "planetdrugstore-peripher-d24c0",
+    storageBucket: "planetdrugstore-peripher-d24c0.firebasestorage.app",
+    messagingSenderId: "115454971026",
+    appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  // Force long-polling instead of the default streaming transport.
+  // Fixes writes hanging forever behind corporate proxies / antivirus SSL
+  // inspection, even when the connection itself looks alive in DevTools.
+  const db = initializeFirestore(app, {
+    experimentalForceLongPolling: true,
+    useFetchStreams: false
+  });
+
+  // Control Numbers are no longer self-generated by the employee's device —
+  // IT/Admin generates them from the admin console ("reservedControlNos"
+  // collection) and hands the number to whoever is filling up the form.
+  // Look up whether a typed-in Control No. was actually generated by Admin.
+  // Returns the reserved doc's data ({status, generatedAt, ...}) or null if
+  // that number was never generated (i.e. not legit).
+  window.fsCheckReservedControlNo = async function(controlNo){
+    const snap = await getDoc(doc(db, "reservedControlNos", String(controlNo)));
+    return snap.exists() ? snap.data() : null;
+  };
+  // Atomically checks + claims a Control No. in one Firestore transaction,
+  // instead of a separate read-then-later-write — closes the race window
+  // where two people load the exact same fresh Control No. within the same
+  // second or two and BOTH pass a plain read-only status check before
+  // either write lands. Throws {code:'not-found'} or {code:'already-used'}
+  // (with the existing entry's data attached, if any) so the caller can
+  // show the right message; only resolves once this device has
+  // successfully marked the number 'used' and nobody else can.
+  window.fsClaimReservedControlNo = async function(controlNo, existingEntry){
+    const ref = doc(db, "reservedControlNos", String(controlNo));
+    return await runTransaction(db, async (tx) => {
+      const snap = await tx.get(ref);
+      if(!snap.exists()){
+        const err = new Error('Control No. not found'); err.code = 'not-found'; throw err;
+      }
+      const data = snap.data();
+      if(data.status === 'used'){
+        const err = new Error('Control No. already used'); err.code = 'already-used'; err.data = data; throw err;
+      }
+      tx.set(ref, { status: 'used', usedAt: serverTimestamp() }, { merge: true });
+      return data;
+    });
+  };
+  // Fetches a previously-saved entry (the nested database record shape from
+  // buildDatabaseRecord()) by Control No., so it can be re-opened for
+  // updating instead of always starting blank.
+  window.fsGetEntry = async function(controlNo){
+    const snap = await getDoc(doc(db, "entries", String(controlNo)));
+    return snap.exists() ? snap.data() : null;
+  };
+
+  // Best-effort backup of an entry (draft or finalized) to Firestore,
+  // keyed by its control number, so there's a shared, permanent record.
+  window.fsSaveEntry = async function(controlNo, payload){
+    if(!controlNo) return;
+    const entryRef = doc(db, "entries", String(controlNo));
+    await setDoc(entryRef, { ...payload, controlNo: String(controlNo), savedAt: serverTimestamp() });
+  };
+
+  // The fixed peripheral item list (name + default Qty) that a new/blank
+  // entry starts from. Managed only from the admin console; read-only here.
+  // Returns null if it hasn't been customized/saved yet or can't be reached
+  // — callers fall back to their own built-in default list in that case.
+  window.fsGetItemsTemplate = async function(){
+    try{
+      const snap = await getDoc(doc(db, "config", "peripheralItemsTemplate"));
+      if(snap.exists()){
+        const data = snap.data();
+        if(Array.isArray(data.items) && data.items.length) return data.items;
+      }
+    }catch(e){
+      console.error('Could not load peripheral items template', e);
+    }
+    return null;
+  };
+  // Fetched once at page load (in parallel with everything else) so a
+  // fresh/blank entry can start from whatever IT has configured, instead of
+  // only the hard-coded fallback list. See the "itemsTemplateReady" listener
+  // further down for how this gets applied.
+  (async function loadItemsTemplateOnce(){
+    window.itemsTemplate = await window.fsGetItemsTemplate();
+    window.itemsTemplateReady = true;
+    window.dispatchEvent(new CustomEvent('itemsTemplateReady', { detail: window.itemsTemplate }));
+  })();
+
+  // Turns a venue name into a safe Firestore doc ID. Venue text is already
+  // forced uppercase by the form itself, so this just collapses stray
+  // whitespace and swaps out the one character ('/') that Firestore doc IDs
+  // can't contain, keeping "SOUTH CITY HALL" typed two different ways as
+  // the same shared record.
+  function venueDocId(name){
+    const clean = String(name || '').trim().replace(/\s+/g, ' ').replace(/\//g, '-');
+    return clean ? clean.slice(0, 300) : null;
+  }
+
+  // Bumps a shared, cross-employee "venues" collection every time an entry
+  // is saved with a venue filled in — used to power the Venue/Location
+  // autocomplete so a venue typed by one employee gets suggested to others.
+  // Best-effort: never blocks or fails the actual entry save.
+  window.fsRecordVenueUsage = async function(venueName){
+    const id = venueDocId(venueName);
+    if(!id) return;
+    try{
+      await setDoc(doc(db, "venues", id), {
+        name: String(venueName).trim(),
+        useCount: increment(1),
+        lastUsedAt: serverTimestamp()
+      }, { merge: true });
+    }catch(e){
+      console.error('Could not record venue usage', e);
+    }
+  };
+
+  // Live list of every venue any employee has ever saved, most-used first.
+  // Kept as one lightweight listener for the life of the form so the
+  // autocomplete dropdown is always current, even mid-session.
+  window.fsListenVenues = function(callback){
+    return onSnapshot(collection(db, "venues"), (snap)=>{
+      const list = [];
+      snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+      list.sort((a, b)=> (b.useCount || 0) - (a.useCount || 0));
+      callback(list);
+    }, (err)=>{
+      console.error('Venues listener error', err);
+    });
+  };
+
+  // Normalizes a person's name into a safe Firestore doc ID, case- and
+  // spacing-insensitive, so "Jelyn Ragundiaz" and "JELYN  RAGUNDIAZ" both
+  // resolve to the same directory record.
+  function personDocId(name){
+    const clean = String(name || '').trim().replace(/\s+/g, ' ').toUpperCase().replace(/\//g, '-');
+    return clean ? clean.slice(0, 300) : null;
+  }
+
+  // Remembers which Team/Department, Contact No., and Signature a given
+  // "Returned By" name last used, shared across every employee's device —
+  // so once someone has filled up the form with their name + these details
+  // once, typing that same name again later (even by someone else operating
+  // the form) can auto-fill all of it. Best-effort: never blocks or fails
+  // the actual save.
+  window.fsRecordReturnerInfo = async function(name, department, contact, signature){
+    const id = personDocId(name);
+    const dept = String(department || '').trim();
+    const cnt = String(contact || '').trim();
+    const sig = String(signature || '').trim();
+    if(!id || (!dept && !cnt && !sig)) return;
+    const data = { name: String(name).trim(), lastUsedAt: serverTimestamp() };
+    if(dept) data.department = dept;
+    if(cnt) data.contact = cnt;
+    if(sig) data.signature = sig;
+    try{
+      await setDoc(doc(db, "returners", id), data, { merge: true });
+    }catch(e){
+      console.error('Could not record returner info', e);
+    }
+  };
+  // Back-compat alias — same behavior, old name.
+  window.fsRecordReturnerDept = function(name, department){
+    return window.fsRecordReturnerInfo(name, department, '', '');
+  };
+
+  // Same idea as fsRecordReturnerInfo/fsLookupReturnerInfo above, but for
+  // "Received By" — Team/Department, Contact No. and Signature are all
+  // tracked, same fields as returners now that Received By has its own
+  // Team/Department + Contact No. fields. Shared across every employee's
+  // device via the "receivers" collection, keyed by name.
+  window.fsRecordReceiverInfo = async function(name, department, contact, signature){
+    const id = personDocId(name);
+    const dept = String(department || '').trim();
+    const cnt = String(contact || '').trim();
+    const sig = String(signature || '').trim();
+    if(!id || (!dept && !cnt && !sig)) return;
+    const data = { name: String(name).trim(), lastUsedAt: serverTimestamp() };
+    if(dept) data.department = dept;
+    if(cnt) data.contact = cnt;
+    if(sig) data.signature = sig;
+    try{
+      await setDoc(doc(db, "receivers", id), data, { merge: true });
+    }catch(e){
+      console.error('Could not record receiver info', e);
+    }
+  };
+  // One-off lookup: the last-known { department, contact, signature } for a
+  // given "Received By" name, or all '' if that name has never been recorded.
+  window.fsLookupReceiverInfo = async function(name){
+    const id = personDocId(name);
+    if(!id) return { department:'', contact:'', signature:'' };
+    try{
+      const snap = await getDoc(doc(db, "receivers", id));
+      if(!snap.exists()) return { department:'', contact:'', signature:'' };
+      const d = snap.data();
+      return { department: d.department || '', contact: d.contact || '', signature: d.signature || '' };
+    }catch(e){
+      console.error('Could not look up receiver info', e);
+      return { department:'', contact:'', signature:'' };
+    }
+  };
+
+  // One-off lookup: the last-known { department, contact, signature } for a
+  // given "Returned By" name, or all '' if that name has never been recorded.
+  window.fsLookupReturnerInfo = async function(name){
+    const id = personDocId(name);
+    if(!id) return { department:'', contact:'', signature:'' };
+    try{
+      const snap = await getDoc(doc(db, "returners", id));
+      if(!snap.exists()) return { department:'', contact:'', signature:'' };
+      const d = snap.data();
+      return { department: d.department || '', contact: d.contact || '', signature: d.signature || '' };
+    }catch(e){
+      console.error('Could not look up returner info', e);
+      return { department:'', contact:'', signature:'' };
+    }
+  };
+
+  // Pulls every entry the signed-in employee has a hand in: entries they
+  // personally saved (HOST — filledUpBy.uid matches), and entries someone
+  // else saved after this employee joined the fill-up live (JOINER —
+  // coFilledUpBy.uid matches). Two separate equality queries + client-side
+  // merge, so no composite Firestore index is required.
+  window.fsGetMyEntries = async function(uid){
+    if(!uid) return [];
+    const entriesCol = collection(db, "entries");
+    const [hostSnap, joinerSnap] = await Promise.all([
+      getDocs(query(entriesCol, where('filledUpBy.uid', '==', uid))),
+      getDocs(query(entriesCol, where('coFilledUpBy.uid', '==', uid)))
+    ]);
+    const out = [];
+    hostSnap.forEach(d => out.push({ id: d.id, role: 'HOST', ...d.data() }));
+    joinerSnap.forEach(d => out.push({ id: d.id, role: 'JOINER', ...d.data() }));
+    // Newest first, by actual save timestamp.
+    out.sort((a, b)=>{
+      const ta = a.savedAt && a.savedAt.toMillis ? a.savedAt.toMillis() : 0;
+      const tb = b.savedAt && b.savedAt.toMillis ? b.savedAt.toMillis() : 0;
+      return tb - ta;
+    });
+    return out;
+  };
+
+  // Live version of fsGetMyEntries: keeps two onSnapshot listeners running
+  // (HOST + JOINER) and calls back with the merged, sorted list every time
+  // either query changes — new saves, edits, or deletes — so "My Logs" stays
+  // current without needing a tab refresh. Returns an unsubscribe function
+  // that stops both listeners.
+  window.fsListenMyEntries = function(uid, callback){
+    if(!uid) { callback([]); return function(){}; }
+    const entriesCol = collection(db, "entries");
+    let hostList = [], joinerList = [];
+    let hostReady = false, joinerReady = false;
+
+    function emit(){
+      if(!hostReady || !joinerReady) return;
+      const merged = hostList.concat(joinerList);
+      merged.sort((a, b)=>{
+        const ta = a.savedAt && a.savedAt.toMillis ? a.savedAt.toMillis() : 0;
+        const tb = b.savedAt && b.savedAt.toMillis ? b.savedAt.toMillis() : 0;
+        return tb - ta;
+      });
+      callback(merged);
+    }
+
+    const unsubHost = onSnapshot(query(entriesCol, where('filledUpBy.uid', '==', uid)), (snap)=>{
+      hostList = [];
+      snap.forEach(d => hostList.push({ id: d.id, role: 'HOST', ...d.data() }));
+      hostReady = true;
+      emit();
+    }, (err)=>{ console.error('My entries (host) listener error', err); });
+
+    const unsubJoiner = onSnapshot(query(entriesCol, where('coFilledUpBy.uid', '==', uid)), (snap)=>{
+      joinerList = [];
+      snap.forEach(d => joinerList.push({ id: d.id, role: 'JOINER', ...d.data() }));
+      joinerReady = true;
+      emit();
+    }, (err)=>{ console.error('My entries (joiner) listener error', err); });
+
+    return function(){ unsubHost(); unsubJoiner(); };
+  };
+
+  // ---- Live co-fill-up (join) system ----
+  // One shared "liveSessions/{controlNo}" doc per entry holds:
+  //   - request: the pending/accepted/declined join handshake
+  //   - active: whether two people are currently co-filling this entry
+  //   - fields / itemRows / signatures / attachments: the live shared draft
+  // Both sides subscribe to the same doc so edits mirror in real time.
+  window.fsListenLiveSession = function(controlNo, callback){
+    if(!controlNo) return function(){};
+    const ref = doc(db, "liveSessions", String(controlNo));
+    return onSnapshot(ref, (snap) => {
+      callback(snap.exists() ? snap.data() : null);
+    }, (err) => {
+      console.error('Live session listener error', err);
+    });
+  };
+
+  window.fsSendJoinRequest = async function(controlNo, requesterName, requesterInfo){
+    const ref = doc(db, "liveSessions", String(controlNo));
+    await setDoc(ref, {
+      request: {
+        status: 'pending',
+        requestedBy: requesterName || 'Colleague',
+        requesterInfo: requesterInfo || null,
+        requestedAt: serverTimestamp()
+      }
+    }, { merge: true });
+  };
+
+  window.fsAcceptJoinRequest = async function(controlNo, state, joinerInfo, hostInfo){
+    const ref = doc(db, "liveSessions", String(controlNo));
+    await setDoc(ref, {
+      request: { status: 'accepted', respondedAt: serverTimestamp() },
+      active: true,
+      // Who the joiner is, so the entry that eventually gets saved (by the
+      // host only — see saveBtn gating below) can record both names, not
+      // just the host's.
+      joinerInfo: joinerInfo || null,
+      // Who the host is, per the shared record — lets saveForm() verify
+      // (via fsGetLiveSession) that whichever device is about to Save is
+      // actually the recognized host, instead of trusting only that
+      // device's own local window.collabRole/localStorage state, which can
+      // desync (refresh timing, restored drafts, etc.) and otherwise let a
+      // real joiner get saved into filledUpBy (HOST) with no coFilledUpBy
+      // recorded at all.
+      hostInfo: hostInfo || null,
+      fields: state.fields || {},
+      itemRows: state.itemRows || [],
+      signatures: state.signatures || {},
+      attachments: state.attachments || {},
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  };
+
+  window.fsDeclineJoinRequest = async function(controlNo){
+    const ref = doc(db, "liveSessions", String(controlNo));
+    await setDoc(ref, {
+      request: { status: 'declined', respondedAt: serverTimestamp() }
+    }, { merge: true });
+  };
+
+  window.fsPushLiveState = async function(controlNo, state){
+    if(!controlNo) return;
+    const ref = doc(db, "liveSessions", String(controlNo));
+    await setDoc(ref, { ...state, updatedAt: serverTimestamp() }, { merge: true });
+  };
+
+  window.fsEndCollabSession = async function(controlNo){
+    if(!controlNo) return;
+    const ref = doc(db, "liveSessions", String(controlNo));
+    await setDoc(ref, { active: false, request: null }, { merge: true });
+  };
+
+  // One-time read of the shared liveSession doc, used right before Save to
+  // confirm — against the record both sides share — that this device is
+  // really the host, rather than trusting only its own local state.
+  window.fsGetLiveSession = async function(controlNo){
+    if(!controlNo) return null;
+    const ref = doc(db, "liveSessions", String(controlNo));
+    const snap = await getDoc(ref);
+    return snap.exists() ? snap.data() : null;
+  };
+
+  window.firebaseReady = true;
+
+  // ---- Employee auth guard ----
+  // This form is only reachable by a signed-in employee (Staff ID + password,
+  // via employee-login.html). Employees are no longer real Firebase Auth
+  // users — "signed in" is a small session record in localStorage/
+  // sessionStorage (written by employee-login.html), re-checked here against
+  // Firestore on every load so a deleted account is still kicked out.
+  // window.currentEmployee.uid is kept as a stable key (= their Staff ID) so
+  // the rest of this file — entries, live co-fill sessions, "My Logs" — works
+  // exactly as before.
+  window.currentEmployee = null;
+
+  function readSession(){
+    try{
+      const raw = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  }
+
+  function clearSession(){
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+  }
+
+  (async function initEmployeeAuth(){
+    const session = readSession();
+    if(!session || !session.staffId){
+      window.location.replace('employee-login.html');
+      return;
+    }
+    const staffDocId = session.staffId.toLowerCase();
+    try{
+      const snap = await getDoc(doc(db, 'employees', staffDocId));
+      if(!snap.exists()){
+        // Their session record still exists locally, but their employee
+        // profile was deleted by an Admin — treat that as the account being
+        // deleted and refuse them the form.
+        clearSession();
+        window.location.replace('employee-login.html?deleted=1');
+        return;
+      }
+      const profile = snap.data();
+      window.currentEmployee = {
+        uid: profile.staffId || session.staffId,
+        name: profile.name || '(no name on file)',
+        staffId: profile.staffId || session.staffId,
+        email: profile.email || '',
+        department: profile.department || ''
+      };
+    }catch(e){
+      console.error('Could not load employee profile', e);
+      window.currentEmployee = { uid: session.staffId, name: session.name || '(unknown)', staffId: session.staffId, email: session.email || '', department: session.department || '' };
+    }
+    const bar = document.getElementById('employeeBar');
+    if(bar){
+      document.getElementById('employeeBarName').textContent =
+        window.currentEmployee.name + ' (Staff ID: ' + window.currentEmployee.staffId +
+        (window.currentEmployee.department ? ' — ' + window.currentEmployee.department : '') + ')';
+      bar.style.display = 'flex';
+    }
+    window.employeeReady = true;
+    window.dispatchEvent(new Event('employeeReady'));
+  })();
+
+  window.fsSignOut = async function(){
+    if(window.stopMyLogsListener) window.stopMyLogsListener();
+    clearSession();
+    window.location.href = 'employee-login.html';
+  };
+</script>
+
+<div id="employeeBar" class="employee-bar">
+  <span>Signed in as: <strong id="employeeBarName"></strong></span>
+  <span class="employee-bar-actions">
+    <button id="myLogsBtn" class="bar-btn">📋 My Logs</button>
+    <button id="employeeLogoutBtn" class="bar-btn">🚪 Log Out</button>
+  </span>
+</div>
+
+<div id="collabBar" class="collab-bar">
+  <span>🟢 Live Fill-Up — Control No. <strong id="collabBarControlNo"></strong> (you're both here together, syncing in real time)</span>
+  <button id="collabLeaveBtn">Leave Live</button>
+</div>
+
+<div id="collabOverlay" class="collab-overlay">
+  <div class="collab-box" id="collabOverlayBox"></div>
+</div>
+
+<!-- Received By modal — opened via the button beside Control No. Holds the
+     REAL, authoritative fields for "Received By" (same ids used by
+     save/collect logic: dateReceived, timeReceived, s2name, teamReceived,
+     contactReceived, receivedAttachment) — same shape as the "RETURNED
+     AFTER USE" band below. The Name field here mirrors down into the
+     "RECEIVED BY" block in the sign-grid (see syncReceivedByMirror()), but
+     the actual Signature pad lives ONLY in that sign-grid block, not here. -->
+<div id="receivedByOverlay" class="collab-overlay">
+  <div class="rb-modal-box" id="receivedByModalBox">
+    <div class="rb-modal-head">
+      RECEIVED BY
+      <button type="button" class="rb-modal-close" id="receivedByCloseBtn" aria-label="Close">&times;</button>
+    </div>
+    <div class="rb-modal-body rb-modal-fields">
+      <div class="field-row">
+        <div class="field"><label>Date Received</label><input type="text" id="dateReceived"></div>
+        <div class="field"><label>Time</label><input type="text" id="timeReceived"></div>
+      </div>
+      <div class="field-row"><div class="field"><label>Received By (Name)</label><input type="text" id="s2name" autocomplete="off"></div></div>
+      <div class="field-row"><div class="field"><label>Team / Department</label><input type="text" id="teamReceived"></div></div>
+      <div class="field-row"><div class="field"><label>Contact No.</label><input type="text" id="contactReceived"></div></div>
+      <div class="band-attach">
+        <label class="attach-section-label">Attachment (Photo) — Received</label>
+        <div class="attach-actions">
+          <label for="receivedCameraInput" class="attach-btn">📷 Take Photo</label>
+          <label for="receivedFileInput" class="attach-btn ghost">🖼️ Attach File</label>
+        </div>
+        <input type="file" accept="image/*" capture="environment" id="receivedCameraInput" class="attach-input-hidden">
+        <input type="file" accept="image/*" id="receivedFileInput" class="attach-input-hidden">
+        <div class="attach-preview" id="receivedAttachPreview">
+          <div class="attach-thumb">
+            <img id="receivedAttachImg" alt="Received attachment">
+            <button type="button" class="attach-remove" id="receivedAttachClear" aria-label="Remove photo">&times;</button>
+          </div>
+        </div>
+      </div>
+      <div class="rb-modal-hint">Auto-fills based on your name if you've filled up this form before. Sign in the "RECEIVED BY" box at the bottom of the form — once signed, the signature can no longer be edited there.</div>
+    </div>
+  </div>
+</div>
+
+<div id="myLogsOverlay" class="mylog-overlay">
+  <div class="mylog-box">
+    <div class="mylog-head">
+      <h2>My Peripherals Logs</h2>
+      <button id="myLogsCloseBtn" class="mylog-close" title="Close">×</button>
+    </div>
+    <div class="mylog-body">
+      <div class="mylog-summary" id="myLogsSummary"></div>
+
+      <div class="mylog-cal-toolbar">
+        <div class="mylog-cal-nav">
+          <button id="myLogsPrevBtn">‹</button>
+          <div class="mylog-cal-title" id="myLogsCalTitle"></div>
+          <button id="myLogsNextBtn">›</button>
+        </div>
+        <button id="myLogsTodayBtn" class="mylog-today-btn">Today</button>
+      </div>
+
+      <div class="mylog-cal-grid">
+        <div class="mylog-cal-weekdays">
+          <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+        </div>
+        <div class="mylog-cal-days" id="myLogsCalDays"></div>
+      </div>
+
+      <div class="mylog-detail">
+        <div class="mylog-detail-head">
+          <h3 id="myLogsDetailTitle">Select a date</h3>
+        </div>
+        <div class="mylog-detail-list" id="myLogsDetailList">
+          <div class="mylog-detail-empty">Click a day on the calendar to see the entries you filled up or joined that day.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="myLogEntryOverlay" class="mylog-overlay">
+  <div class="mylog-box" style="max-width:1150px;">
+    <div class="mylog-head">
+      <h2 id="myLogEntryTitle">Entry Detail</h2>
+      <button id="myLogEntryCloseBtn" class="mylog-close" title="Close">×</button>
+    </div>
+    <div class="mylog-body" id="myLogEntryBody" style="background:var(--paper);"></div>
+  </div>
+</div>
+
+<div id="myLogLightboxOverlay" class="mylog-lightbox-overlay">
+  <img id="myLogLightboxImg" src="" alt="Attachment">
+  <button class="mylog-lightbox-close" id="myLogLightboxCloseBtn" title="Close">×</button>
+</div>
+
+<div id="saveToast" class="save-toast" role="status" aria-live="polite">
+  <span class="save-toast-icon">✓</span>
+  <span class="save-toast-text">Successfully Saved</span>
+</div>
+
+<div id="actionConfirmOverlay" class="action-confirm-overlay">
+  <div class="action-confirm-box">
+    <h3 id="acTitle"></h3>
+    <p class="ac-message" id="acMessage"></p>
+    <div class="ac-choices">
+      <button type="button" class="ac-choice yes" id="acYesBtn">
+        <span class="ac-label" id="acYesLabel">Yes</span>
+        <span class="ac-desc" id="acYesDesc"></span>
+      </button>
+      <button type="button" class="ac-choice no" id="acNoBtn">
+        <span class="ac-label" id="acNoLabel">No</span>
+        <span class="ac-desc" id="acNoDesc"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <span class="status" id="status"></span>
+  <div class="cn-entry-group" id="cnEntryGroup">
+    <input type="text" inputmode="numeric" maxlength="6" id="cnEntryInput" placeholder="Control No. from Admin">
+    <button class="btn" id="loadFormBtn">📄 Load / Generate Form</button>
+  </div>
+  <div class="cn-loaded-pill" id="cnLoadedPill">
+    <span id="cnLoadedLabel"></span>
+    <span class="cn-change-link" id="cnChangeLink">Change Control No.</span>
+  </div>
+  <button class="btn ghost" id="joinFillUpBtn" style="display:none;">🔗 Join Fill Up Peripherals</button>
+  <button class="btn red" id="saveBtn">💾 Save</button>
+  <button class="btn" id="printBtn">🖨️ Print</button>
+</div>
+<div class="cn-entry-error" id="cnEntryError"></div>
+<div class="cn-hint" id="cnHint">Enter the Control No. given by IT/Admin, then click "Load / Generate Form" to start the peripherals form.</div>
+
+<div class="sheet">
+
+  <div class="top">
+    <div class="brand">
+      <img src="logo.png" alt="Planet Drugstore" class="brand-mark">
+      <div class="brand-name">PLANET<span>DRUGSTORE</span></div>
+    </div>
+    <div class="titles">
+      <h1>CLCN MEDICAL MISSION &amp; PEOPLES DAY</h1>
+      <h2>PERIPHERALS RECEIVING COPY</h2>
+      <div class="sub">FOR BEFORE AND AFTER USE</div>
+    </div>
+    <div class="meta">
+      <label>Control No. <span style="font-weight:400;color:var(--muted);text-transform:none;">(from Admin)</span></label>
+      <div class="cn-field-with-btn">
+        <input type="text" id="controlNo" readonly>
+        <button type="button" class="btn" id="receivedByBtn">✍️ Received By</button>
+      </div>
+      <label>Date</label><input type="text" id="metaDate" placeholder="MM/DD/YYYY" readonly>
+      <label>Venue / Location</label>
+      <div class="venue-wrap">
+        <input type="text" id="venue" style="text-transform:uppercase;" autocomplete="off" readonly>
+        <div class="venue-suggest" id="venueSuggest"></div>
+      </div>
+      <div class="event-row locked" id="eventRow">
+        <label><input type="checkbox" id="evMission" disabled> Medical Mission</label>
+        <label><input type="checkbox" id="evPeoples" disabled> Peoples Day</label>
+      </div>
+      <p class="meta-lock-note">🔒 Set by Admin — not editable here</p>
+    </div>
+  </div>
+
+  <div class="bands">
+    <div class="band">
+      <div class="band-title">PREPARE BEFORE USE</div>
+      <div class="field-row">
+        <div class="field"><label>Date Prepared</label><input type="text" id="dateIssued" readonly></div>
+        <div class="field"><label>Time</label><input type="text" id="timeIssued" readonly></div>
+      </div>
+      <div class="field-row"><div class="field"><label>Prepared By (Name)</label><input type="text" id="issuedTo" readonly></div></div>
+      <div class="field-row"><div class="field"><label>Team / Department</label><input type="text" id="teamIssued" value="Information Technology (IT)" readonly></div></div>
+      <div class="band-attach">
+        <label class="attach-section-label">Attachment (Photo) — Before Use</label>
+        <div class="attach-preview" id="beforeAttachPreview">
+          <div class="attach-thumb">
+            <img id="beforeAttachImg" alt="Before use attachment">
+            <button type="button" class="attach-remove" id="beforeAttachClear" aria-label="Remove photo">&times;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="band">
+      <div class="band-title">RETURNED AFTER USE</div>
+      <div class="field-row">
+        <div class="field"><label>Date Returned</label><input type="text" id="dateReturned"></div>
+        <div class="field"><label>Time</label><input type="text" id="timeReturned"></div>
+      </div>
+      <div class="field-row"><div class="field"><label>Returned By (Name)</label><input type="text" id="returnedBy"></div></div>
+      <div class="field-row"><div class="field"><label>Team / Department</label><input type="text" id="teamReturned"></div></div>
+      <div class="field-row"><div class="field"><label>Contact No.</label><input type="text" id="contactReturned"></div></div>
+      <div class="band-attach">
+        <label class="attach-section-label">Attachment (Photo) — After Use</label>
+        <div class="attach-actions">
+          <label for="afterCameraInput" class="attach-btn">📷 Take Photo</label>
+          <label for="afterFileInput" class="attach-btn ghost">🖼️ Attach File</label>
+        </div>
+        <input type="file" accept="image/*" capture="environment" id="afterCameraInput" class="attach-input-hidden">
+        <input type="file" accept="image/*" id="afterFileInput" class="attach-input-hidden">
+        <div class="attach-preview" id="afterAttachPreview">
+          <div class="attach-thumb">
+            <img id="afterAttachImg" alt="After use attachment">
+            <button type="button" class="attach-remove" id="afterAttachClear" aria-label="Remove photo">&times;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="items-wrap">
+    <p style="max-width:1100px;margin:0 auto 8px;font-size:12px;color:var(--muted);">For a row that groups several pieces (e.g. <strong>[ LAPTOP ] , [ CHARGER ] , [ BAG ]</strong>), enter Received/Returned Qty in the same order separated by "/" — e.g. <strong>2 / 2 / 2</strong>.</p>
+    <table id="itemsTable">
+      <colgroup>
+        <col style="width:4%;">
+        <col style="width:19%;">
+        <col style="width:6%;">
+        <col style="width:9%;">
+        <col style="width:8%;">
+        <col style="width:15%;">
+        <col style="width:9%;">
+        <col style="width:8%;">
+        <col style="width:15%;">
+      </colgroup>
+      <thead>
+        <tr>
+          <th rowspan="2">No.</th>
+          <th rowspan="2">Peripheral Item</th>
+          <th rowspan="2">Orig. Qty</th>
+          <th colspan="3" class="grp-before">BEFORE USE (ISSUED)</th>
+          <th colspan="2" class="grp-after">AFTER USE (RETURNED)</th>
+          <th rowspan="2">Remarks (Damage / Missing / Others)</th>
+        </tr>
+        <tr>
+          <th class="grp-before">Received Qty</th>
+          <th class="grp-before">Condition</th>
+          <th class="grp-before">Remarks (Damage / Missing / Others)</th>
+          <th class="grp-after">Returned Qty</th>
+          <th class="grp-after">Condition</th>
+        </tr>
+      </thead>
+      <tbody id="itemsBody"></tbody>
+    </table>
+  </div>
+
+  <div class="ack">
+    <div>"I hereby acknowledge that the items listed above are received in good condition and will be returned in the same condition unless otherwise stated."</div>
+    <div>"I hereby acknowledge that the items listed above are returned and accounted for."</div>
+  </div>
+
+  <div class="sign-grid">
+    <div class="sign-block">
+      <h4>PREPARED BY</h4>
+      <div class="sline"><label>Name</label><input type="text" id="pbName" readonly></div>
+      <div class="sline"><label>Signature</label>
+        <div class="attach-preview" id="s1sigPreview">
+          <div class="attach-thumb">
+            <img id="s1sigImg" alt="Prepared By signature">
+          </div>
+        </div>
+      </div>
+      <div class="sline"><label>Date / Time</label><input type="text" id="pbDateTime" readonly></div>
+    </div>
+    <div class="sign-block">
+      <h4>RECEIVED BY</h4>
+      <div class="sline"><label>Name</label><input type="text" id="s2nameMirror" readonly></div>
+      <div class="sline"><label>Signature</label>
+        <div class="sig-pad-wrap">
+          <canvas class="sig-canvas" id="s2sigCanvas" width="280" height="90"></canvas>
+          <button type="button" class="sig-clear" data-canvas="s2sigCanvas">Clear</button>
+        </div>
+      </div>
+      <div class="sline"><label>Date / Time</label><input type="text" id="s2dt" readonly></div>
+    </div>
+    <div class="sign-block">
+      <h4>RETURNED BY</h4>
+      <div class="sline"><label>Name</label><input type="text" id="s3name" readonly></div>
+      <div class="sline"><label>Signature</label>
+        <div class="sig-pad-wrap">
+          <canvas class="sig-canvas" id="s3sigCanvas" width="280" height="90"></canvas>
+          <button type="button" class="sig-clear" data-canvas="s3sigCanvas">Clear</button>
+        </div>
+      </div>
+      <div class="sline"><label>Date / Time</label><input type="text" id="s3dt" readonly></div>
+    </div>
+  </div>
+
+  <div class="footer-info">
+    <div class="col">
+      <h5>IMPORTANT REMINDERS</h5>
+      <ul>
+        <li>Ensure all peripherals and accessories are complete before and after use.</li>
+        <li>Report immediately any damage, defect, or missing item.</li>
+        <li>Handle all equipment with care. You are accountable for all items issued to you.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h5>CONDITION GUIDE</h5>
+      <div class="guide-row"><b>GOOD</b> Fully functional, no visible damage</div>
+      <div class="guide-row"><b>FAIR</b> Minor signs of use, fully functional</div>
+      <div class="guide-row"><b>NEEDS REPAIR</b> With issue(s), needs repair/maintenance</div>
+    </div>
+  </div>
+
+  <div class="thanks">THANK YOU FOR YOUR COOPERATION AND GOOD STEWARDSHIP.</div>
+
+</div>
+
+<script>
+// Starting rows are the fixed peripheral list — item names and the row
+// count are locked (locked:true) so staff can't rename/retype items or
+// add/remove rows; only Qty, Condition, and Remarks stay editable. The
+// item list itself is managed solely from the admin console's Peripheral
+// Form editor.
+//
+// The list itself normally comes from the admin-configured template
+// (itemsTemplateCache, populated once loadItemsTemplateOnce() resolves —
+// see the "itemsTemplateReady" listener below); this hard-coded list is
+// only the fallback for when that template hasn't been customized yet or
+// couldn't be reached.
+let itemsTemplateCache = null;
+function defaultItemRows(){
+  if(Array.isArray(itemsTemplateCache) && itemsTemplateCache.length){
+    return itemsTemplateCache.map(t => ({
+      item: t.item || '', qty: (t.qty === undefined || t.qty === null) ? '' : String(t.qty),
+      locked:true, bRecv:"", bCond:"", bRmk:"", bRmkPhoto:"", aRel:"", aCond:"", rmk:"", rmkPhoto:""
+    }));
+  }
+  return [
+    {item:"[ LAPTOP ] , [ CHARGER ] , [ BAG ]", qty:"2 / 2 / 2", locked:true, bRecv:"", bCond:"", bRmk:"", bRmkPhoto:"", aRel:"", aCond:"", rmk:"", rmkPhoto:""},
+    {item:"[ MOUSE ] X2", qty:"2", locked:true, bRecv:"", bCond:"", bRmk:"", bRmkPhoto:"", aRel:"", aCond:"", rmk:"", rmkPhoto:""},
+    {item:"[ POS PRINTER ] , [ USB CABLE ] , [ POWER CABLE ]", qty:"2 / 2 / 2", locked:true, bRecv:"", bCond:"", bRmk:"", bRmkPhoto:"", aRel:"", aCond:"", rmk:"", rmkPhoto:""},
+    {item:"[ DOCUMENT PRINTER ] , [ USB CABLE PRINTER ] , [ POWER CABLE PRINTER ]", qty:"1 / 1 / 1", locked:true, bRecv:"", bCond:"", bRmk:"", bRmkPhoto:"", aRel:"", aCond:"", rmk:"", rmkPhoto:""},
+    {item:"[ DITO ROUTER ] , [ DITO CABLE ]", qty:"1 / 1", locked:true, bRecv:"", bCond:"", bRmk:"", bRmkPhoto:"", aRel:"", aCond:"", rmk:"", rmkPhoto:""},
+    {item:"[ EXTENSION (WHITE)] X2", qty:"2", locked:true, bRecv:"", bCond:"", bRmk:"", bRmkPhoto:"", aRel:"", aCond:"", rmk:"", rmkPhoto:""},
+  ];
+}
+let itemRows = []; // stays empty — nothing shows on the dashboard until a
+                    // Control No. from Admin is loaded (see handleLoadFormClick)
+// True only once a Control No. has been validated and the sheet unlocked —
+// guards every path that would otherwise auto-populate the item list
+// (async items-template fetch, draft restore, etc.) from doing so while
+// the dashboard is supposed to be sitting blank.
+let cnFormUnlocked = false;
+// Whether a saved local draft already supplied its own itemRows — if so,
+// the async items-template fetch below must NOT clobber it once it arrives.
+let draftItemsLoaded = false;
+const itemsBody = document.getElementById('itemsBody');
+const CONDITION_OPTIONS = ['GOOD', 'FAIR', 'NEEDS REPAIR'];
+function conditionSelectHtml(value){
+  const val = value || '';
+  let html = `<option value="" ${val===''?'selected':''}>-- Condition --</option>`;
+  CONDITION_OPTIONS.forEach(o=>{
+    html += `<option value="${escapeAttr(o)}" ${val===o?'selected':''}>${o}</option>`;
+  });
+  // Preserve any already-saved value that predates this dropdown (old free-typed
+  // entries) instead of silently blanking it out.
+  if(val && !CONDITION_OPTIONS.includes(val)){
+    html += `<option value="${escapeAttr(val)}" selected>${escapeAttr(val)}</option>`;
+  }
+  return html;
+}
+
+// Counts the bracketed [ ITEM ] groups in a Peripheral Item field, so the
+// matching Qty/Received Qty/Returned Qty field knows how many "/"-separated
+// slots it should have. Text with no brackets at all counts as one slot.
+function countBracketItems(text){
+  const matches = String(text || '').match(/\[[^\]]*\]/g);
+  return matches && matches.length ? matches.length : 1;
+}
+// If someone just types plain digits into a Qty/Received/Returned field that
+// covers more than one bracketed item, auto-expand it into "/"-separated
+// slots so they never have to type the "/" separators themselves:
+//  - a single digit (e.g. "2") repeats into all slots — "2 / 2 / 2"
+//  - digits matching the slot count (e.g. "212" for 3 slots) split one
+//    digit per slot in order — "2 / 1 / 2"
+// Anything else (wrong digit count, already has "/", non-numeric) is left
+// untouched, since that means per-item quantities were already customized.
+function autoExpandQty(value, count){
+  const v = String(value || '').trim();
+  if(count > 1 && /^\d+$/.test(v)){
+    if(v.length === count) return v.split('').join(' / ');
+    if(v.length === 1) return Array(count).fill(v).join(' / ');
+  }
+  return value;
+}
+
+function renderItems(){
+  itemsBody.innerHTML = '';
+  // Peripheral Item names (and their base Qty) are always locked/display-only
+  // on this live form — the item catalog is managed solely from the admin
+  // console's Peripheral Item List editor, never edited here by staff.
+  itemRows.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    const itemCell = `<div class="item-desc">${escapeAttr(row.item)}</div>`;
+    const qtyCell = `<input type="text" value="${escapeAttr(row.qty)}" data-field="qty" disabled>`;
+    tr.innerHTML = `
+      <td class="no-cell" data-label="No.">${i+1}</td>
+      <td class="item-name" data-label="Peripheral Item">${itemCell}</td>
+      <td class="qty" data-label="Qty">${qtyCell}</td>
+      <td class="qty" data-label="Received Qty (Before Use)"><input type="text" placeholder="e.g. 2 / 2 / 2" value="${escapeAttr(row.bRecv)}" data-field="bRecv"></td>
+      <td data-label="Condition (Before Use)"><select data-field="bCond">${conditionSelectHtml(row.bCond)}</select></td>
+      <td class="remarks-cell" data-label="Remarks (Before Use)">
+        <textarea class="remarks-input" rows="1" data-field="bRmk">${escapeAttr(row.bRmk)}</textarea>
+        ${photoControlHtml('bRmkPhoto', row.bRmkPhoto)}
+      </td>
+      <td class="qty" data-label="Returned Qty (After Use)"><input type="text" placeholder="e.g. 2 / 2 / 2" value="${escapeAttr(row.aRel)}" data-field="aRel"></td>
+      <td data-label="Condition (After Use)"><select data-field="aCond">${conditionSelectHtml(row.aCond)}</select></td>
+      <td class="remarks-cell" data-label="Remarks (Damage / Missing / Others)">
+        <textarea class="remarks-input" rows="1" data-field="rmk">${escapeAttr(row.rmk)}</textarea>
+        ${photoControlHtml('rmkPhoto', row.rmkPhoto)}
+      </td>
+    `;
+    tr.querySelectorAll('input:not(.rmk-photo-input), select, textarea').forEach(inp=>{
+      const isTextarea = inp.tagName === 'TEXTAREA';
+      inp.addEventListener('input', ()=>{
+        const f = inp.dataset.field;
+        itemRows[i][f] = inp.type === 'checkbox' ? inp.checked : inp.value;
+        if(isTextarea) autoGrowRemarks(inp);
+        scheduleLiveSync();
+      });
+    });
+    // Qty / Received Qty / Returned Qty: auto-repeat a plain number typed
+    // here into "2 / 2 / 2" etc. on blur, matching how many [ bracketed ]
+    // pieces this row's Peripheral Item has.
+    const itemFieldEl = tr.querySelector('[data-field="item"]');
+    ['qty','bRecv','aRel'].forEach(fieldName=>{
+      const el = tr.querySelector(`[data-field="${fieldName}"]`);
+      if(!el || el.disabled) return;
+      el.addEventListener('blur', ()=>{
+        const itemText = itemFieldEl ? itemFieldEl.value : row.item;
+        const expanded = autoExpandQty(el.value, countBracketItems(itemText));
+        if(expanded !== el.value){
+          el.value = expanded;
+          itemRows[i][fieldName] = expanded;
+          scheduleLiveSync();
+        }
+      });
+      el.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter'){ e.preventDefault(); el.blur(); el.focus(); }
+      });
+    });
+    // Remark photos (damage / missing / others) — same compress-to-base64
+    // approach as the Before/After Use band attachments, just stored per
+    // row/column. One photo control for the Before Use remarks, another
+    // for the overall Remarks column.
+    wirePhotoControl(tr, i, 'bRmkPhoto');
+    wirePhotoControl(tr, i, 'rmkPhoto');
+    itemsBody.appendChild(tr);
+  });
+  // Only now are the rows actually in the document, so sizing (scrollHeight)
+  // reads correctly — needed for restored Remarks text from a saved draft.
+  itemsBody.querySelectorAll('.remarks-input').forEach(autoGrowRemarks);
+}
+
+// Builds the markup for one photo control (camera/attach button + thumbnail
+// with a remove button) for a given itemRows photo field.
+function photoControlHtml(photoField, photoValue){
+  return `
+    <div class="rmk-photo-row" data-photo-field="${photoField}">
+      <label class="rmk-photo-btn" title="Photo of item (damage / missing / others)">📷
+        <input type="file" accept="image/*" capture="environment" class="attach-input-hidden rmk-photo-input">
+      </label>
+      <div class="rmk-photo-thumb${photoValue ? ' show' : ''}">
+        <img class="rmk-photo-img" ${photoValue ? `src="${photoValue}"` : ''} alt="Item remark photo">
+        <button type="button" class="rmk-photo-clear" title="Remove photo">&times;</button>
+      </div>
+    </div>
+  `;
+}
+
+// Wires up one photo control's camera/attach input, remove button, and
+// zoom-on-click, storing the compressed photo on itemRows[i][photoField].
+function wirePhotoControl(tr, i, photoField){
+  const wrap = tr.querySelector(`.rmk-photo-row[data-photo-field="${photoField}"]`);
+  if(!wrap) return;
+  const input = wrap.querySelector('.rmk-photo-input');
+  const thumb = wrap.querySelector('.rmk-photo-thumb');
+  const img = wrap.querySelector('.rmk-photo-img');
+  const clearBtn = wrap.querySelector('.rmk-photo-clear');
+  input.addEventListener('change', async ()=>{
+    const file = input.files && input.files[0];
+    if(!file) return;
+    try{
+      const dataUrl = await compressImageFile(file);
+      itemRows[i][photoField] = dataUrl;
+      img.src = dataUrl;
+      thumb.classList.add('show');
+      scheduleLiveSync();
+    }catch(err){
+      console.error('Remark photo processing failed', err);
+      alert('Could not process the photo. Please try a different one.');
+    }
+    input.value = '';
+  });
+  clearBtn.addEventListener('click', ()=>{
+    itemRows[i][photoField] = '';
+    img.removeAttribute('src');
+    thumb.classList.remove('show');
+    scheduleLiveSync();
+  });
+  img.addEventListener('click', ()=>{
+    if(!itemRows[i][photoField]) return;
+    document.getElementById('myLogLightboxImg').src = itemRows[i][photoField];
+    document.getElementById('myLogLightboxOverlay').classList.add('show');
+  });
+}
+
+function escapeAttr(s){
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+// Grows a Remarks textarea to fit its content so long notes wrap and stay
+// fully visible instead of needing to scroll sideways inside the box.
+function autoGrowRemarks(el){
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+renderItems();
+
+// Re-render once we know the signed-in employee's department, so IT staff
+// see the item name/Qty fields unlocked (the render above runs before the
+// async profile lookup finishes, so it defaults to locked until then).
+if(window.employeeReady){
+  renderItems();
+}else{
+  window.addEventListener('employeeReady', renderItems, { once: true });
+}
+
+// Swap in the admin-configured item list once the fetch (started at the
+// very top of the page) resolves — unless a saved local draft already beat
+// it to itemRows, in which case the draft wins and this is skipped.
+function applyItemsTemplateIfSafe(items){
+  itemsTemplateCache = items;
+  if(!Array.isArray(items) || !items.length) return;
+  if(draftItemsLoaded) return;
+  if(!cnFormUnlocked) return; // stay blank until a Control No. is loaded
+  itemRows = defaultItemRows();
+  renderItems();
+}
+if(window.itemsTemplateReady){
+  applyItemsTemplateIfSafe(window.itemsTemplate);
+}else{
+  window.addEventListener('itemsTemplateReady', (e)=> applyItemsTemplateIfSafe(e.detail), { once: true });
+}
+
+// ---- Auto date/time fill-in ----
+// Keeps the many date/time boxes from being manual busywork: each one stamps
+// itself with "now" the moment it actually becomes relevant, but only if it's
+// still empty — so it never clobbers a value someone typed/backdated by hand.
+function nowDateStr(){
+  const d = new Date();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return mm + '/' + dd + '/' + d.getFullYear();
+}
+function nowTimeStr(){
+  const d = new Date();
+  let h = d.getHours();
+  const m = String(d.getMinutes()).padStart(2,'0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12; if(h === 0) h = 12;
+  return h + ':' + m + ' ' + ampm;
+}
+function autofillIfEmpty(id, value){
+  const el = document.getElementById(id);
+  if(el && !el.value){ el.value = value; return true; }
+  return false;
+}
+// "PREPARED BY" Name / Date-Time are never typed by hand — they just mirror
+// whatever's in the "Released Before Use (Issued)" band (Prepared By Name +
+// Date Issued + Time), which itself is readonly and comes from Admin. Call
+// this any time those three source fields get a new value so the sign-block
+// copy stays in sync automatically.
+function syncPreparedByMirror(){
+  const nameEl = document.getElementById('pbName');
+  const dtEl = document.getElementById('pbDateTime');
+  if(!nameEl || !dtEl) return;
+  const issuedToEl = document.getElementById('issuedTo');
+  const dateEl = document.getElementById('dateIssued');
+  const timeEl = document.getElementById('timeIssued');
+  nameEl.value = (issuedToEl && issuedToEl.value) || '';
+  const d = (dateEl && dateEl.value) || '';
+  const t = (timeEl && timeEl.value) || '';
+  dtEl.value = (d || t) ? (d + ' ' + t).trim() : '';
+}
+// "RETURNED BY" Name / Date-Time (in the sign-off block) are never typed by
+// hand either — they mirror the "Returned After Use" band above (Returned
+// By Name + Date Returned + Time), so the employee only has to fill that
+// band in once and then just sign here. Call this any time those three
+// source fields get a new value so the sign-block copy stays in sync.
+function syncReturnedByMirror(){
+  const nameEl = document.getElementById('s3name');
+  const dtEl = document.getElementById('s3dt');
+  if(!nameEl || !dtEl) return;
+  const returnedByEl = document.getElementById('returnedBy');
+  const dateEl = document.getElementById('dateReturned');
+  const timeEl = document.getElementById('timeReturned');
+  nameEl.value = (returnedByEl && returnedByEl.value) || '';
+  const d = (dateEl && dateEl.value) || '';
+  const t = (timeEl && timeEl.value) || '';
+  dtEl.value = (d || t) ? (d + ' ' + t).trim() : '';
+}
+// "RECEIVED BY" Name/Date-Time (in the sign-grid) are read-only mirrors —
+// the real Name/Date Received/Time fields live in the Received By modal
+// (opened via the button beside Control No.), same idea as "RETURNED BY"
+// mirroring "Returned By (Name)" + "Date Returned"/"Time" from its band.
+// Only Signature is NOT mirrored — it lives directly in the sign-grid
+// block itself (s2sigCanvas), just like RETURNED BY's s3sigCanvas. Call
+// this any time the modal's Name/Date Received/Time fields change so the
+// mirror down below stays current.
+function syncReceivedByMirror(){
+  const nameEl = document.getElementById('s2nameMirror');
+  const dtEl = document.getElementById('s2dt');
+  const srcName = document.getElementById('s2name');
+  const dateEl = document.getElementById('dateReceived');
+  const timeEl = document.getElementById('timeReceived');
+  if(nameEl && srcName) nameEl.value = srcName.value || '';
+  if(dtEl){
+    const d = (dateEl && dateEl.value) || '';
+    const t = (timeEl && timeEl.value) || '';
+    dtEl.value = (d || t) ? (d + ' ' + t).trim() : '';
+  }
+}
+// Maps each signature pad to the date/time field it stamps. "Prepared By"
+// no longer has a live pad here — IT/Admin signs it in the admin console
+// when generating the Control No., and it just carries over (see
+// preparedSignature below), so it isn't in this map at all.
+const SIG_AUTOFILL = {
+  s2sigCanvas: { dt:'s2dt', pairDate:'dateReceived', pairTime:'timeReceived' }, // RECEIVED BY (before use)
+  s3sigCanvas: { dt:'s3dt', pairDate:'dateReturned', pairTime:'timeReturned' }, // RETURNED BY
+};
+function autofillOnSign(canvasId){
+  const cfg = SIG_AUTOFILL[canvasId];
+  if(!cfg) return;
+  let changed = false;
+  if(cfg.dt) changed = autofillIfEmpty(cfg.dt, nowDateStr() + ' ' + nowTimeStr()) || changed;
+  if(cfg.pairDate) changed = autofillIfEmpty(cfg.pairDate, nowDateStr()) || changed;
+  if(cfg.pairTime) changed = autofillIfEmpty(cfg.pairTime, nowTimeStr()) || changed;
+  if(changed) scheduleLiveSync();
+}
+
+// ---- Signature pads ----
+const SIG_IDS = ['s2sigCanvas','s3sigCanvas'];
+
+function getPos(e, canvas){
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+}
+
+function setupSignaturePad(canvas){
+  const ctx = canvas.getContext('2d');
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#6E1620';
+  let drawing = false;
+
+  function start(e){
+    drawing = true;
+    sigDrawingNow[canvas.id] = true;
+    const pos = getPos(e, canvas);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    e.preventDefault();
+  }
+  function move(e){
+    if(!drawing) return;
+    const pos = getPos(e, canvas);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    e.preventDefault();
+  }
+  function stop(){
+    if(!drawing) return;
+    drawing = false;
+    sigDrawingNow[canvas.id] = false;
+    autofillOnSign(canvas.id);
+    if(canvas.id === 's2sigCanvas'){ syncReceivedByMirror(); maybeRecordReceiverInfo(); }
+    scheduleLiveSync();
+  }
+
+  canvas.addEventListener('pointerdown', start);
+  canvas.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', stop);
+  canvas.addEventListener('pointerleave', ()=>{ /* keep drawing until pointerup */ });
+}
+
+SIG_IDS.forEach(id=>{
+  const c = document.getElementById(id);
+  if(c) setupSignaturePad(c);
+});
+
+document.querySelectorAll('.sig-clear').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const canvas = document.getElementById(btn.dataset.canvas);
+    if(!canvas || canvas.classList.contains('sig-locked')) return;
+    canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+    scheduleLiveSync();
+  });
+});
+
+// Locks a signature pad after a saved (predicted) signature is auto-filled
+// into it — the user can't draw over it or hit Clear, since it isn't a
+// fresh signature drawn this session. Unlocked automatically if the name
+// it was predicted for changes (see the predict block below), so someone
+// else typing their own name still gets a normal, drawable pad.
+function lockSignaturePad(canvasId, predictedForName){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  canvas.classList.add('sig-locked');
+  canvas.dataset.predictedFor = predictedForName || '';
+  canvas.style.pointerEvents = 'none';
+  const btn = document.querySelector(`.sig-clear[data-canvas="${canvasId}"]`);
+  if(btn){ btn.disabled = true; btn.style.display = 'none'; }
+}
+function unlockSignaturePad(canvasId){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  canvas.classList.remove('sig-locked');
+  delete canvas.dataset.predictedFor;
+  canvas.style.pointerEvents = '';
+  const btn = document.querySelector(`.sig-clear[data-canvas="${canvasId}"]`);
+  if(btn){ btn.disabled = false; btn.style.display = ''; }
+}
+
+// ---- Before/After Use photo attachments ----
+// Stored as compressed base64 JPEG data URLs (like the signature pads) so
+// entries stay well under Firestore's 1MB-per-document limit.
+let beforeAttachment = '';
+let afterAttachment = '';
+let receivedAttachment = '';
+
+// "Prepared By" signature — IT/Admin signs this in the admin console at the
+// same time they attach the "Before Use" photo and generate the Control
+// No., so it just carries over here read-only (see handleLoadFormClick /
+// applyDatabaseRecordToForm). No drawing pad for it on this form anymore.
+let preparedSignature = '';
+
+function compressImageFile(file, maxDim, quality){
+  maxDim = maxDim || 900;
+  quality = quality || 0.72;
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        let w = img.width, h = img.height;
+        if(w >= h && w > maxDim){ h = Math.round(h * maxDim / w); w = maxDim; }
+        else if(h > maxDim){ w = Math.round(w * maxDim / h); h = maxDim; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = ()=>reject(new Error('Could not read the image.'));
+      img.src = e.target.result;
+    };
+    reader.onerror = ()=>reject(new Error('Could not open the file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function applyAttachment(dataUrl, imgId, previewId, setter){
+  setter(dataUrl || '');
+  const img = document.getElementById(imgId);
+  const preview = document.getElementById(previewId);
+  if(dataUrl){
+    img.src = dataUrl;
+    preview.style.display = 'flex';
+  }else{
+    img.src = '';
+    preview.style.display = 'none';
+  }
+}
+
+function setupAttachmentInput(inputIds, previewId, imgId, clearId, setter){
+  const clearBtn = document.getElementById(clearId);
+  inputIds.forEach(inputId=>{
+    const input = document.getElementById(inputId);
+    input.addEventListener('change', async ()=>{
+      const file = input.files && input.files[0];
+      if(!file) return;
+      try{
+        const dataUrl = await compressImageFile(file);
+        applyAttachment(dataUrl, imgId, previewId, setter);
+        scheduleLiveSync();
+      }catch(err){
+        console.error('Attachment processing failed', err);
+        alert('Could not process the image. Please try a different photo.');
+      }
+      input.value = '';
+    });
+  });
+  clearBtn.addEventListener('click', ()=>{
+    applyAttachment('', imgId, previewId, setter);
+    scheduleLiveSync();
+  });
+}
+
+// "Before Use" photo is no longer taken/attached here — IT/Admin attaches
+// it in the admin console when generating the Control No., and it carries
+// over automatically when this form is loaded (see handleLoadFormClick).
+// Only the Clear ("x") button stays, in case the carried-over photo needs
+// to be removed.
+document.getElementById('beforeAttachClear').addEventListener('click', ()=>{
+  applyAttachment('', 'beforeAttachImg', 'beforeAttachPreview', v=>beforeAttachment=v);
+  scheduleLiveSync();
+});
+setupAttachmentInput(['afterCameraInput','afterFileInput'], 'afterAttachPreview', 'afterAttachImg', 'afterAttachClear', v=>afterAttachment=v);
+setupAttachmentInput(['receivedCameraInput','receivedFileInput'], 'receivedAttachPreview', 'receivedAttachImg', 'receivedAttachClear', v=>receivedAttachment=v);
+
+// True if a signature pad has no strokes drawn on it (fully transparent) —
+// used so we never overwrite an in-progress or already-drawn signature with
+// a predicted one, and never bother saving a blank pad to the directory.
+function isCanvasBlank(canvas){
+  const ctx = canvas.getContext('2d');
+  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  for(let i = 3; i < data.length; i += 4){
+    if(data[i] !== 0) return false;
+  }
+  return true;
+}
+function collectSignatures(){
+  const sigs = {};
+  SIG_IDS.forEach(id=>{
+    const c = document.getElementById(id);
+    if(c) sigs[id] = c.toDataURL();
+  });
+  return sigs;
+}
+function applySignatures(sigs){
+  if(!sigs) return;
+  Object.keys(sigs).forEach(id=>{
+    const c = document.getElementById(id);
+    if(!c || !sigs[id]) return;
+    const ctx = c.getContext('2d');
+    const img = new Image();
+    img.onload = ()=>{ ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(img,0,0,c.width,c.height); if(id==='s2sigCanvas') syncReceivedByMirror(); };
+    img.src = sigs[id];
+  });
+}
+
+// Header/meta/signature fields (still simple id-based fields, these are fixed labels on the real form)
+function collectFields(){
+  const data = {};
+  document.querySelectorAll('.top input[id], .bands input[id], .notes textarea[id], .sign-grid input[id], .rb-modal-fields input[id]').forEach(el=>{
+    data[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  return data;
+}
+function applyFields(data){
+  if(!data) return;
+  Object.keys(data).forEach(key=>{
+    const el = document.getElementById(key);
+    if(!el) return;
+    if(el.type === 'checkbox') el.checked = !!data[key];
+    else el.value = data[key];
+  });
+  syncPreparedByMirror();
+  syncReturnedByMirror();
+  syncReceivedByMirror();
+}
+
+// Same as applyFields, but never overwrites whatever field the local user is
+// currently typing into — used only for incoming real-time updates from the
+// other person co-filling this entry, so their edits don't get clobbered.
+function applyFieldsRemote(data){
+  if(!data) return;
+  const active = document.activeElement;
+  Object.keys(data).forEach(key=>{
+    const el = document.getElementById(key);
+    if(!el || el === active) return;
+    if(el.type === 'checkbox') el.checked = !!data[key];
+    else el.value = data[key];
+  });
+  syncPreparedByMirror();
+  syncReturnedByMirror();
+  syncReceivedByMirror();
+}
+
+// ---- Live co-fill-up (join) system ----
+// Lets a second person (e.g. IT) join the SAME entry another person
+// (e.g. Billing) is currently filling up, on their own device, in real time —
+// instead of borrowing/handing over the device. The other side must accept
+// via a 6-digit code (the Control No. already shown on their screen).
+let liveUnsub = null;               // active Firestore listener unsubscribe fn
+let myPendingJoinCode = null;       // control no. I'm waiting for a response on
+let joinRequestModalShown = false;  // guard so the accept/decline popup shows once
+const sigDrawingNow = {};           // canvasId -> true while a stroke is in progress
+window.collabActive = false;
+window.collabControlNo = null;
+window.collabRole = null;        // 'host' (owns the entry, can Save) or 'joiner' (co-fills only)
+window.collabJoinerInfo = null;  // host-side only: identity of whoever joined in
+
+// Only the host may Save an entry to the database — a joiner's edits sync
+// live over to the host instead, so we don't end up with the same entry
+// half-saved from two different devices. Toggle the button whenever role
+// changes (accept, get-accepted, leave, session-ended, page-load restore).
+function updateSaveButtonForRole(){
+  const btn = document.getElementById('saveBtn');
+  if(!btn) return;
+  if(window.collabRole === 'joiner'){
+    btn.disabled = true;
+    btn.title = 'Only the host can save this entry. Your changes are automatically synced over to them.';
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+  }else{
+    btn.disabled = false;
+    btn.title = '';
+    btn.style.opacity = '';
+    btn.style.cursor = '';
+  }
+}
+
+let liveSyncTimer = null;
+let localDraftTimer = null;
+
+// Autosaves whatever has been filled in so far to localStorage, completely
+// independent of the live co-fill-up session. This runs on every edit (see
+// scheduleLiveSync below) so a refresh or an accidentally-closed tab never
+// wipes out peripherals the employee already filled up — loadForm() below
+// restores this same draft the moment the page loads again.
+function saveLocalDraft(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      fields: collectFields(),
+      itemRows: itemRows,
+      signatures: collectSignatures(),
+      attachments: { before: beforeAttachment, after: afterAttachment, preparedSignature: preparedSignature, received: receivedAttachment }
+    }));
+  }catch(e){
+    console.error('Local draft autosave failed', e);
+  }
+}
+
+function scheduleLiveSync(){
+  syncReceivedByMirror();
+  // Always keep the local draft fresh, whether or not a co-fill session is
+  // active — this is what makes the form survive a page refresh.
+  clearTimeout(localDraftTimer);
+  localDraftTimer = setTimeout(saveLocalDraft, 400);
+
+  if(!window.collabActive || !window.collabControlNo || !window.fsPushLiveState) return;
+  clearTimeout(liveSyncTimer);
+  liveSyncTimer = setTimeout(()=>{
+    if(!window.collabActive || !window.collabControlNo) return;
+    window.fsPushLiveState(window.collabControlNo, {
+      fields: collectFields(),
+      itemRows: itemRows,
+      signatures: collectSignatures(),
+      attachments: { before: beforeAttachment, after: afterAttachment, preparedSignature: preparedSignature, received: receivedAttachment }
+    }).catch(e=>console.error('Live sync push failed', e));
+  }, 500);
+}
+
+// Sync any manual edit to `.top`/`.bands`/`.notes`/`.sign-grid` fields while
+// co-filling is active (no-ops otherwise, so this is always safe to attach).
+document.querySelectorAll('.top input[id], .bands input[id], .notes textarea[id], .sign-grid input[id], .rb-modal-fields input[id]').forEach(el=>{
+  el.addEventListener('input', scheduleLiveSync);
+  el.addEventListener('change', scheduleLiveSync);
+});
+
+function attachLiveListenerFor(controlNo){
+  if(liveUnsub){ liveUnsub(); liveUnsub = null; }
+  joinRequestModalShown = false;
+  if(!controlNo || !window.fsListenLiveSession) return;
+  liveUnsub = window.fsListenLiveSession(controlNo, (data)=>handleLiveSnapshot(controlNo, data));
+}
+
+function handleLiveSnapshot(controlNo, data){
+  if(!data) return;
+
+  // Case A: I sent a join request for this control no. and I'm waiting.
+  if(myPendingJoinCode === controlNo && data.request){
+    if(data.request.status === 'accepted'){
+      myPendingJoinCode = null;
+      hideCollabOverlay();
+      unlockForm(controlNo);
+      applyFields(data.fields);
+      applySignatures(data.signatures);
+      if(data.attachments){
+        applyAttachment(data.attachments.before || '', 'beforeAttachImg', 'beforeAttachPreview', v=>beforeAttachment=v);
+        applyAttachment(data.attachments.after || '', 'afterAttachImg', 'afterAttachPreview', v=>afterAttachment=v);
+        applyAttachment(data.attachments.preparedSignature || '', 's1sigImg', 's1sigPreview', v=>preparedSignature=v);
+        applyAttachment(data.attachments.received || '', 'receivedAttachImg', 'receivedAttachPreview', v=>receivedAttachment=v);
+      }
+      if(Array.isArray(data.itemRows) && data.itemRows.length){
+        itemRows = data.itemRows;
+        renderItems();
+      }
+      window.collabActive = true;
+      window.collabControlNo = controlNo;
+      // I'm the one who sent the join request — I'm the joiner, not the
+      // owner of this entry. Only the host saves; my edits just sync over.
+      window.collabRole = 'joiner';
+      window.collabJoinerInfo = null;
+      saveCollabState(controlNo, 'joiner', null);
+      showCollabBar(controlNo);
+      updateSaveButtonForRole();
+      statusEl.textContent = 'You\'ve joined! This form is now syncing live. The host will save it.';
+      setTimeout(()=>statusEl.textContent='', 5000);
+      return;
+    }
+    if(data.request.status === 'declined'){
+      myPendingJoinCode = null;
+      hideCollabOverlay();
+      if(liveUnsub){ liveUnsub(); liveUnsub = null; }
+      alert('The other side declined your request to join this form.');
+      return;
+    }
+    return; // still pending, keep waiting
+  }
+
+  // Case B: this is MY OWN active entry and someone wants to join it.
+  if(!window.collabActive && data.request && data.request.status === 'pending' && !joinRequestModalShown){
+    joinRequestModalShown = true;
+    showJoinRequestPrompt(controlNo, data.request.requestedBy || 'Colleague', data.request.requesterInfo || null);
+    return;
+  }
+
+  // Case C: co-filling is active on this control no. — apply incoming edits.
+  if(window.collabActive && window.collabControlNo === controlNo){
+    // The other side ended the session (Leave / New Entry) while we were
+    // away or in between snapshots — stop treating this as a live session.
+    if(data.active === false){
+      const wasJoiner = window.collabRole === 'joiner';
+      window.collabActive = false;
+      window.collabControlNo = null;
+      window.collabRole = null;
+      window.collabJoinerInfo = null;
+      clearCollabState();
+      hideCollabBar();
+      updateSaveButtonForRole();
+
+      if(!wasJoiner){
+        // I was the HOST and the joiner is the one who left/ended things
+        // (e.g. they clicked "Leave Live" on their side) — this is MY
+        // own entry, so keep everything exactly as it is. Just stop
+        // treating it as a live co-fill session.
+        statusEl.textContent = 'Your co-filler has left the live session. The data stays here — you\'re still the owner of this entry.';
+        setTimeout(()=>statusEl.textContent='', 5000);
+        return;
+      }
+
+      // I was the JOINER and the host ended the shared entry — nothing of
+      // mine to keep. Wipe and start fresh.
+      backToBlankAwaitingControlNo('Your co-filler has ended this live session');
+      return;
+    }
+    applyFieldsRemote(data.fields);
+    if(data.signatures) applySignaturesRemote(data.signatures);
+    if(data.attachments){
+      if((data.attachments.before || '') !== beforeAttachment){
+        applyAttachment(data.attachments.before || '', 'beforeAttachImg', 'beforeAttachPreview', v=>beforeAttachment=v);
+      }
+      if((data.attachments.after || '') !== afterAttachment){
+        applyAttachment(data.attachments.after || '', 'afterAttachImg', 'afterAttachPreview', v=>afterAttachment=v);
+      }
+      if((data.attachments.preparedSignature || '') !== preparedSignature){
+        applyAttachment(data.attachments.preparedSignature || '', 's1sigImg', 's1sigPreview', v=>preparedSignature=v);
+      }
+      if((data.attachments.received || '') !== receivedAttachment){
+        applyAttachment(data.attachments.received || '', 'receivedAttachImg', 'receivedAttachPreview', v=>receivedAttachment=v);
+      }
+    }
+    applyItemRowsRemote(data.itemRows);
+  }
+}
+
+function applyItemRowsRemote(rows){
+  if(!Array.isArray(rows)) return;
+
+  // Row count changed (someone added/removed an item on the other side) —
+  // there's no way to patch that in place, so fully rebuild the table.
+  // Focus loss here is rare and acceptable since it only happens on
+  // add/remove, not on every keystroke.
+  if(rows.length !== itemRows.length){
+    itemRows = rows;
+    renderItems();
+    return;
+  }
+
+  // Same number of rows: patch each cell's value IN PLACE (no DOM rebuild)
+  // so nobody's cursor/focus gets yanked away mid-type. Skip only the exact
+  // cell the local user is actively typing into right now — every other
+  // cell, in this row and every other row, still updates live. This is what
+  // lets both people type in the item list at the same time and actually
+  // see each other's edits, instead of updates freezing the moment either
+  // side clicks into any cell.
+  const active = document.activeElement;
+  const rowEls = itemsBody.children;
+  rows.forEach((row, i) => {
+    itemRows[i] = row;
+    const tr = rowEls[i];
+    if(!tr) return;
+    tr.querySelectorAll('[data-field]').forEach(el=>{
+      if(el === active) return;
+      const f = el.dataset.field;
+      if(el.type === 'checkbox'){
+        const v = !!row[f];
+        if(el.checked !== v) el.checked = v;
+      }else{
+        const v = row[f] ?? '';
+        if(el.value !== v){
+          el.value = v;
+          if(el.tagName === 'TEXTAREA') autoGrowRemarks(el);
+        }
+      }
+    });
+    // Remark photos have no data-field (they're file inputs, not values the
+    // other side typed), so sync their thumbnails here explicitly.
+    ['bRmkPhoto','rmkPhoto'].forEach(photoField=>{
+      const wrap = tr.querySelector(`.rmk-photo-row[data-photo-field="${photoField}"]`);
+      if(!wrap) return;
+      const thumbImg = wrap.querySelector('.rmk-photo-img');
+      const thumbWrap = wrap.querySelector('.rmk-photo-thumb');
+      const photo = row[photoField] || '';
+      if(photo){
+        if(thumbImg.getAttribute('src') !== photo) thumbImg.src = photo;
+        thumbWrap.classList.add('show');
+      }else if(thumbWrap.classList.contains('show')){
+        thumbImg.removeAttribute('src');
+        thumbWrap.classList.remove('show');
+      }
+    });
+  });
+}
+
+function applySignaturesRemote(sigs){
+  if(!sigs) return;
+  Object.keys(sigs).forEach(id=>{
+    if(sigDrawingNow[id]) return; // don't clobber an in-progress stroke
+    const c = document.getElementById(id);
+    if(!c || !sigs[id]) return;
+    const ctx = c.getContext('2d');
+    const img = new Image();
+    img.onload = ()=>{ ctx.clearRect(0,0,c.width,c.height); ctx.drawImage(img,0,0,c.width,c.height); if(id==='s2sigCanvas') syncReceivedByMirror(); };
+    img.src = sigs[id];
+  });
+}
+
+function showCollabOverlay(html){
+  document.getElementById('collabOverlayBox').innerHTML = html;
+  document.getElementById('collabOverlay').classList.add('show');
+}
+function hideCollabOverlay(){
+  document.getElementById('collabOverlay').classList.remove('show');
+  document.getElementById('collabOverlayBox').innerHTML = '';
+}
+
+// ==================== MY LOGS (employee's own saved/joined entries) ====================
+let myLogsEntries = [];
+let myLogsLoaded = false;
+let myLogsViewYear, myLogsViewMonth; // set on open
+let myLogsSelectedKey = null;
+
+const MYLOG_MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function mlPad2(n){ return String(n).padStart(2, '0'); }
+function mlTodayKey(){ const d = new Date(); return d.getFullYear() + '-' + mlPad2(d.getMonth()+1) + '-' + mlPad2(d.getDate()); }
+
+// Same normalization the Admin Console calendar uses, so entries land on the
+// same day regardless of whether the "date" field holds ISO or m/d/yyyy text.
+function mlDateKeyOf(dateStr){
+  if(!dateStr) return null;
+  const s = String(dateStr).trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m) return m[1] + '-' + mlPad2(m[2]) + '-' + mlPad2(m[3]);
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m) return m[3] + '-' + mlPad2(m[1]) + '-' + mlPad2(m[2]);
+  const d = new Date(s);
+  if(!isNaN(d.getTime())) return d.getFullYear() + '-' + mlPad2(d.getMonth()+1) + '-' + mlPad2(d.getDate());
+  return null;
+}
+
+function mlGroupByDate(list){
+  const map = {};
+  list.forEach(e=>{
+    const key = mlDateKeyOf(e.date);
+    if(!key) return;
+    (map[key] = map[key] || []).push(e);
+  });
+  return map;
+}
+
+// Keeps the "My Logs" onSnapshot listeners alive across opens/closes of the
+// overlay within a session, so entries stay live-updated. Started once on
+// first open; only torn down if the employee signs out.
+let myLogsUnsub = null;
+window.stopMyLogsListener = function(){
+  if(myLogsUnsub){ myLogsUnsub(); myLogsUnsub = null; }
+  myLogsLoaded = false;
+};
+
+function openMyLogs(){
+  document.getElementById('myLogsOverlay').classList.add('show');
+  const today = new Date();
+  myLogsViewYear = today.getFullYear();
+  myLogsViewMonth = today.getMonth();
+  myLogsSelectedKey = mlTodayKey();
+
+  if(!myLogsLoaded){
+    document.getElementById('myLogsSummary').innerHTML = '<div class="mylog-loading">Loading your logs…</div>';
+    document.getElementById('myLogsCalDays').innerHTML = '';
+  }
+
+  if(!myLogsUnsub){
+    const uid = window.currentEmployee && window.currentEmployee.uid;
+    if(window.fsListenMyEntries){
+      myLogsUnsub = window.fsListenMyEntries(uid, (list)=>{
+        myLogsEntries = list;
+        myLogsLoaded = true;
+        // Only re-render if the overlay is actually open right now, so a
+        // background update doesn't touch the DOM while it's hidden.
+        if(document.getElementById('myLogsOverlay').classList.contains('show')){
+          renderMyLogsSummary();
+          renderMyLogsCalendar();
+        }
+      });
+    }else{
+      myLogsLoaded = true; // no listener available, avoid retry loop
+    }
+  }else if(myLogsLoaded){
+    renderMyLogsSummary();
+    renderMyLogsCalendar();
+  }
+}
+
+function renderMyLogsSummary(){
+  const hostCount = myLogsEntries.filter(e => e.role === 'HOST').length;
+  const joinerCount = myLogsEntries.filter(e => e.role === 'JOINER').length;
+  document.getElementById('myLogsSummary').innerHTML = `
+    <div class="mylog-stat"><div class="num">${myLogsEntries.length}</div><div class="lbl">Total Saved</div></div>
+    <div class="mylog-stat"><div class="num">${hostCount}</div><div class="lbl">As Host</div></div>
+    <div class="mylog-stat"><div class="num">${joinerCount}</div><div class="lbl">As Joiner</div></div>
+  `;
+}
+
+function renderMyLogsCalendar(){
+  const calDays = document.getElementById('myLogsCalDays');
+  const byDate = mlGroupByDate(myLogsEntries);
+
+  document.getElementById('myLogsCalTitle').textContent = MYLOG_MONTH_NAMES[myLogsViewMonth] + ' ' + myLogsViewYear;
+
+  const firstOfMonth = new Date(myLogsViewYear, myLogsViewMonth, 1);
+  const startWeekday = firstOfMonth.getDay();
+  const daysInMonth = new Date(myLogsViewYear, myLogsViewMonth + 1, 0).getDate();
+  const daysInPrevMonth = new Date(myLogsViewYear, myLogsViewMonth, 0).getDate();
+
+  const cells = [];
+  for(let i = startWeekday - 1; i >= 0; i--){
+    cells.push({ date: new Date(myLogsViewYear, myLogsViewMonth - 1, daysInPrevMonth - i), outside: true });
+  }
+  for(let dayNum = 1; dayNum <= daysInMonth; dayNum++){
+    cells.push({ date: new Date(myLogsViewYear, myLogsViewMonth, dayNum), outside: false });
+  }
+  while(cells.length % 7 !== 0){
+    const d = new Date(cells[cells.length - 1].date);
+    d.setDate(d.getDate() + 1);
+    cells.push({ date: d, outside: true });
+  }
+
+  calDays.innerHTML = cells.map(cell=>{
+    const key = cell.date.getFullYear() + '-' + mlPad2(cell.date.getMonth()+1) + '-' + mlPad2(cell.date.getDate());
+    const forDay = byDate[key] || [];
+    const classes = ['mylog-cal-day'];
+    if(cell.outside) classes.push('outside');
+    if(key === mlTodayKey()) classes.push('today');
+    if(key === myLogsSelectedKey) classes.push('selected');
+
+    const hostHere = forDay.some(e => e.role === 'HOST');
+    const joinerHere = forDay.some(e => e.role === 'JOINER');
+    const badges = (hostHere ? '<span class="mylog-badge host">' + forDay.filter(e=>e.role==='HOST').length + ' Host</span>' : '') +
+                   (joinerHere ? '<span class="mylog-badge joiner">' + forDay.filter(e=>e.role==='JOINER').length + ' Joiner</span>' : '');
+
+    return `
+      <div class="${classes.join(' ')}" data-daykey="${key}">
+        <div class="mylog-daynum">${cell.date.getDate()}</div>
+        <div class="mylog-badges">${badges}</div>
+      </div>
+    `;
+  }).join('');
+
+  calDays.querySelectorAll('.mylog-cal-day').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      myLogsSelectedKey = el.getAttribute('data-daykey');
+      renderMyLogsCalendar();
+      renderMyLogsDetail(byDate);
+    });
+  });
+
+  renderMyLogsDetail(byDate);
+}
+
+function renderMyLogsDetail(byDate){
+  const titleEl = document.getElementById('myLogsDetailTitle');
+  const listEl = document.getElementById('myLogsDetailList');
+  if(!myLogsSelectedKey){
+    titleEl.textContent = 'Select a date';
+    listEl.innerHTML = '<div class="mylog-detail-empty">Click a day on the calendar to see the entries you filled up or joined that day.</div>';
+    return;
+  }
+  const list = byDate[myLogsSelectedKey] || [];
+  const [y, m, d] = myLogsSelectedKey.split('-').map(Number);
+  const niceDate = new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  titleEl.textContent = niceDate + ' — ' + list.length + ' entr' + (list.length === 1 ? 'y' : 'ies');
+
+  if(!list.length){
+    listEl.innerHTML = '<div class="mylog-detail-empty">No entries of yours on this date.</div>';
+    return;
+  }
+
+  listEl.innerHTML = list.map(e => `
+    <div class="mylog-detail-row">
+      <div class="info">
+        <span class="ctrl">${escapeAttr(e.controlNo || e.id)}</span>
+        <span class="meta">${escapeAttr(e.venue || 'No venue noted')}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="mylog-role-badge ${e.role === 'HOST' ? 'host' : 'joiner'}">${e.role}</span>
+        <button class="mylog-view-btn" data-viewid="${escapeAttr(e.id)}">View</button>
+      </div>
+    </div>
+  `).join('');
+
+  listEl.querySelectorAll('[data-viewid]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const entry = list.find(e => e.id === btn.getAttribute('data-viewid'));
+      if(entry) openMyLogEntryDetail(entry);
+    });
+  });
+}
+
+function openMyLogEntryDetail(e){
+  document.getElementById('myLogEntryTitle').textContent = 'Control No. ' + (e.controlNo || e.id) + ' — viewing as ' + e.role;
+  const fb = e.filledUpBy || {};
+  const cb = e.coFilledUpBy || {};
+  const rb = e.releasedBeforeUse || {};
+  const rcv = e.receivedBeforeUse || {};
+  const ra = e.returnedAfterUse || {};
+  const items = e.peripheralItems || [];
+  const sigs = e.signatures || {};
+  const et = e.eventType || {};
+
+  const itemRowsHtml = items.map((it, i) => `
+    <tr>
+      <td style="text-align:center;color:var(--muted);">${i+1}</td>
+      <td class="item-name">${escapeAttr(it.item)}</td>
+      <td class="qty">${escapeAttr(it.qty)}</td>
+      <td class="qty">${escapeAttr(it.beforeUse && it.beforeUse.receivedQty)}</td>
+      <td>${escapeAttr(it.beforeUse && it.beforeUse.condition)}</td>
+      <td class="remarks-cell">${escapeAttr(it.beforeUse && it.beforeUse.remarks)}${it.beforeUse && it.beforeUse.remarksPhoto ? `<br><img class="mylog-zoomable rmk-photo-view" src="${it.beforeUse.remarksPhoto}" alt="Item remark photo">` : ''}</td>
+      <td class="qty">${escapeAttr(it.afterUse && it.afterUse.returnedQty)}</td>
+      <td>${escapeAttr(it.afterUse && it.afterUse.condition)}</td>
+      <td class="remarks-cell">${escapeAttr(it.remarks)}${it.remarksPhoto ? `<br><img class="mylog-zoomable rmk-photo-view" src="${it.remarksPhoto}" alt="Item remark photo">` : ''}</td>
+    </tr>
+  `).join('');
+
+  const sigKeys = [
+    ['issuedBy','PREPARED BY'],
+    ['receivedBy','RECEIVED BY'],
+    ['returnedBy','RETURNED BY']
+  ];
+  const sigHtml = sigKeys.map(([key,label])=>{
+    const s = sigs[key] || {};
+    return `
+      <div class="replica-sign-block">
+        <h5>${label}</h5>
+        <div class="sline"><label>Name</label><div class="val">${escapeAttr(s.name || '—')}</div></div>
+        <div class="sline"><label>Signature</label>
+          ${s.signatureImage ? `<img class="sig-img mylog-zoomable" src="${s.signatureImage}">` : '<div class="no-sig">No signature</div>'}
+        </div>
+        <div class="sline"><label>Date / Time</label><div class="val">${escapeAttr(s.dateTime || '—')}</div></div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('myLogEntryBody').innerHTML = `
+    <div class="replica">
+      <div class="replica-top">
+        <div class="replica-brand">
+          <img src="logo.png" alt="Planet Drugstore" class="replica-brand-mark">
+          <div class="replica-brand-name">PLANET<span>DRUGSTORE</span></div>
+        </div>
+        <div class="replica-titles">
+          <h3>CLCN MEDICAL MISSION &amp; PEOPLES DAY</h3>
+          <h4>PERIPHERALS RECEIVING COPY</h4>
+          <div class="sub">FOR BEFORE AND AFTER USE</div>
+        </div>
+        <div class="replica-meta">
+          <label>Control No.</label><div class="val ctrl">${escapeAttr(e.controlNo || e.id)}</div>
+          <label>Date</label><div class="val">${escapeAttr(e.date || '—')}</div>
+          <label>Venue / Location</label><div class="val">${escapeAttr(e.venue || '—')}</div>
+          <div class="replica-event-row">
+            <span><span class="dot ${et.medicalMission ? 'on' : ''}"></span> Medical Mission</span>
+            <span><span class="dot ${et.peoplesDay ? 'on' : ''}"></span> Peoples Day</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:8px 20px 0;font-size:11.5px;color:var(--muted);">
+        Filled up by (Host): <strong style="color:var(--maroon);">${escapeAttr(fb.name || '—')}</strong>
+        ${fb.staffId ? ' (Staff ID: ' + escapeAttr(fb.staffId) + (fb.department ? ' — ' + escapeAttr(fb.department) : '') + ')' : ''}
+        ${cb.name ? `
+        <br>Co-filled up by (Joiner): <strong style="color:var(--maroon);">${escapeAttr(cb.name)}</strong>
+        ${cb.staffId ? ' (Staff ID: ' + escapeAttr(cb.staffId) + (cb.department ? ' — ' + escapeAttr(cb.department) : '') + ')' : ''}
+        ` : ''}
+        <br><span style="display:inline-block;margin-top:4px;">Your role on this entry: <span class="mylog-role-badge ${e.role === 'HOST' ? 'host' : 'joiner'}">${e.role}</span></span>
+      </div>
+
+      <div class="replica-bands">
+        <div class="replica-band">
+          <div class="replica-band-title">RELEASED BEFORE USE (ISSUED)</div>
+          <div class="replica-field-row">
+            <div class="replica-field"><label>Date Issued</label><div class="val">${escapeAttr(rb.dateIssued || '—')}</div></div>
+            <div class="replica-field"><label>Time</label><div class="val">${escapeAttr(rb.timeIssued || '—')}</div></div>
+          </div>
+          <div class="replica-field-row"><div class="replica-field"><label>Prepared By (Name)</label><div class="val">${escapeAttr(rb.issuedTo || '—')}</div></div></div>
+          <div class="replica-field-row"><div class="replica-field"><label>Team / Department</label><div class="val">${escapeAttr(rb.teamIssued || '—')}</div></div></div>
+          <div class="replica-attach">
+            <label>Attachment (Photo) — Before Use</label>
+            ${rb.attachment ? `<img class="mylog-zoomable" src="${rb.attachment}">` : '<div class="none">No attachment.</div>'}
+          </div>
+        </div>
+        <div class="replica-band">
+          <div class="replica-band-title">RECEIVED BY (BEFORE USE)</div>
+          <div class="replica-field-row">
+            <div class="replica-field"><label>Date Received</label><div class="val">${escapeAttr(rcv.dateReceived || '—')}</div></div>
+            <div class="replica-field"><label>Time</label><div class="val">${escapeAttr(rcv.timeReceived || '—')}</div></div>
+          </div>
+          <div class="replica-field-row"><div class="replica-field"><label>Received By (Name)</label><div class="val">${escapeAttr(rcv.receivedBy || '—')}</div></div></div>
+          <div class="replica-field-row"><div class="replica-field"><label>Team / Department</label><div class="val">${escapeAttr(rcv.teamReceived || '—')}</div></div></div>
+          <div class="replica-field-row"><div class="replica-field"><label>Contact No.</label><div class="val">${escapeAttr(rcv.contactReceived || '—')}</div></div></div>
+          <div class="replica-attach">
+            <label>Attachment (Photo) — Received</label>
+            ${rcv.attachment ? `<img class="mylog-zoomable" src="${rcv.attachment}">` : '<div class="none">No attachment.</div>'}
+          </div>
+        </div>
+        <div class="replica-band">
+          <div class="replica-band-title">RETURNED AFTER USE</div>
+          <div class="replica-field-row">
+            <div class="replica-field"><label>Date Returned</label><div class="val">${escapeAttr(ra.dateReturned || '—')}</div></div>
+            <div class="replica-field"><label>Time</label><div class="val">${escapeAttr(ra.timeReturned || '—')}</div></div>
+          </div>
+          <div class="replica-field-row"><div class="replica-field"><label>Returned By (Name)</label><div class="val">${escapeAttr(ra.returnedBy || '—')}</div></div></div>
+          <div class="replica-field-row"><div class="replica-field"><label>Team / Department</label><div class="val">${escapeAttr(ra.teamReturned || '—')}</div></div></div>
+          <div class="replica-field-row"><div class="replica-field"><label>Contact No.</label><div class="val">${escapeAttr(ra.contactReturned || '—')}</div></div></div>
+          <div class="replica-attach">
+            <label>Attachment (Photo) — After Use</label>
+            ${ra.attachment ? `<img class="mylog-zoomable" src="${ra.attachment}">` : '<div class="none">No attachment.</div>'}
+          </div>
+        </div>
+      </div>
+
+      <div class="replica-items">
+        <table>
+          <thead>
+            <tr>
+              <th rowspan="2">No.</th>
+              <th rowspan="2">Peripheral Item</th>
+              <th rowspan="2">Qty</th>
+              <th colspan="3" class="grp-before">BEFORE USE (ISSUED)</th>
+              <th colspan="2" class="grp-after">AFTER USE (RETURNED)</th>
+              <th rowspan="2">Remarks (Damage / Missing / Others)</th>
+            </tr>
+            <tr>
+              <th class="grp-before">Received Qty</th>
+              <th class="grp-before">Condition</th>
+              <th class="grp-before">Remarks (Damage / Missing / Others)</th>
+              <th class="grp-after">Returned Qty</th>
+              <th class="grp-after">Condition</th>
+            </tr>
+          </thead>
+          <tbody>${itemRowsHtml || '<tr><td colspan="10" style="text-align:center;color:var(--muted);">No items.</td></tr>'}</tbody>
+        </table>
+      </div>
+
+      <div class="replica-ack">
+        <div>"I hereby acknowledge that the items listed above are received in good condition and will be returned in the same condition unless otherwise stated."</div>
+        <div>"I hereby acknowledge that the items listed above are returned and accounted for."</div>
+      </div>
+
+      <div class="replica-sign-grid">
+        ${sigHtml}
+      </div>
+    </div>
+  `;
+  document.getElementById('myLogEntryOverlay').classList.add('show');
+}
+
+document.getElementById('myLogEntryBody').addEventListener('click', (e)=>{
+  const img = e.target.closest('.mylog-zoomable');
+  if(img){
+    document.getElementById('myLogLightboxImg').src = img.src;
+    document.getElementById('myLogLightboxOverlay').classList.add('show');
+  }
+});
+document.getElementById('myLogLightboxCloseBtn').addEventListener('click', ()=>{
+  document.getElementById('myLogLightboxOverlay').classList.remove('show');
+  document.getElementById('myLogLightboxImg').src = '';
+});
+document.getElementById('myLogLightboxOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'myLogLightboxOverlay'){
+    document.getElementById('myLogLightboxOverlay').classList.remove('show');
+    document.getElementById('myLogLightboxImg').src = '';
+  }
+});
+
+document.getElementById('myLogsBtn').addEventListener('click', openMyLogs);
+document.getElementById('myLogsCloseBtn').addEventListener('click', ()=>{
+  document.getElementById('myLogsOverlay').classList.remove('show');
+});
+document.getElementById('myLogEntryCloseBtn').addEventListener('click', ()=>{
+  document.getElementById('myLogEntryOverlay').classList.remove('show');
+});
+document.getElementById('myLogsPrevBtn').addEventListener('click', ()=>{
+  myLogsViewMonth--;
+  if(myLogsViewMonth < 0){ myLogsViewMonth = 11; myLogsViewYear--; }
+  renderMyLogsCalendar();
+});
+document.getElementById('myLogsNextBtn').addEventListener('click', ()=>{
+  myLogsViewMonth++;
+  if(myLogsViewMonth > 11){ myLogsViewMonth = 0; myLogsViewYear++; }
+  renderMyLogsCalendar();
+});
+document.getElementById('myLogsTodayBtn').addEventListener('click', ()=>{
+  const today = new Date();
+  myLogsViewYear = today.getFullYear();
+  myLogsViewMonth = today.getMonth();
+  myLogsSelectedKey = mlTodayKey();
+  renderMyLogsCalendar();
+});
+
+function showCollabBar(controlNo){
+  document.getElementById('collabBarControlNo').textContent = controlNo;
+  document.getElementById('collabBar').classList.add('show');
+}
+function hideCollabBar(){
+  document.getElementById('collabBar').classList.remove('show');
+}
+
+function showJoinCodeModal(){
+  showCollabOverlay(`
+    <h3>Join Fill-Up</h3>
+    <p>Enter the 6-digit Control No. shown on your partner's screen (Billing/IT) to fill up the same form together in real time.</p>
+    <input type="text" inputmode="numeric" maxlength="6" class="collab-code-input" id="joinCodeInput" placeholder="000000">
+    <div class="collab-actions">
+      <button class="btn ghost" id="joinCodeCancelBtn">Cancel</button>
+      <button class="btn" id="joinCodeSubmitBtn">Join</button>
+    </div>
+  `);
+  const input = document.getElementById('joinCodeInput');
+  input.focus();
+  document.getElementById('joinCodeCancelBtn').addEventListener('click', hideCollabOverlay);
+  document.getElementById('joinCodeSubmitBtn').addEventListener('click', ()=>{
+    const code = input.value.trim();
+    if(!/^\d{6}$/.test(code)){
+      alert('Please enter a valid 6-digit Control No.');
+      return;
+    }
+    submitJoinRequest(code);
+  });
+  input.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter') document.getElementById('joinCodeSubmitBtn').click();
+  });
+}
+
+function showWaitingModal(code){
+  showCollabOverlay(`
+    <h3>Waiting for Response...</h3>
+    <p>Waiting for approval from the current owner of Control No. <strong>${code}</strong>.</p>
+    <div class="collab-actions">
+      <button class="btn ghost" id="joinWaitCancelBtn">Cancel</button>
+    </div>
+  `);
+  document.getElementById('joinWaitCancelBtn').addEventListener('click', ()=>{
+    myPendingJoinCode = null;
+    if(liveUnsub){ liveUnsub(); liveUnsub = null; }
+    hideCollabOverlay();
+  });
+}
+
+function showJoinRequestPrompt(controlNo, requesterName, requesterInfo){
+  const dept = requesterInfo && requesterInfo.department ? requesterInfo.department : '';
+  const deptSuffix = dept ? ` (${escapeAttr(dept)})` : '';
+  showCollabOverlay(`
+    <h3>Someone Wants to Join</h3>
+    <p><strong>${escapeAttr(requesterName)}</strong>${deptSuffix} is requesting to join the fill-up of this form (Control No. ${escapeAttr(controlNo)}). Accept?</p>
+    <div class="collab-actions">
+      <button class="btn ghost" id="joinReqDeclineBtn">Decline</button>
+      <button class="btn" id="joinReqAcceptBtn">Accept</button>
+    </div>
+  `);
+  document.getElementById('joinReqDeclineBtn').addEventListener('click', async ()=>{
+    hideCollabOverlay();
+    joinRequestModalShown = false;
+    PDLoader.show();
+    try{ await window.fsDeclineJoinRequest(controlNo); }catch(e){ console.error('Decline failed', e); }finally{ PDLoader.hide(); }
+  });
+  document.getElementById('joinReqAcceptBtn').addEventListener('click', async ()=>{
+    hideCollabOverlay();
+    PDLoader.show();
+    try{
+      const acceptingHostInfo = window.currentEmployee ? {
+        uid: window.currentEmployee.uid,
+        name: window.currentEmployee.name,
+        staffId: window.currentEmployee.staffId,
+        email: window.currentEmployee.email,
+        department: window.currentEmployee.department || ''
+      } : null;
+      await window.fsAcceptJoinRequest(controlNo, {
+        fields: collectFields(),
+        itemRows: itemRows,
+        signatures: collectSignatures(),
+        attachments: { before: beforeAttachment, after: afterAttachment, preparedSignature: preparedSignature, received: receivedAttachment }
+      }, requesterInfo, acceptingHostInfo);
+      window.collabActive = true;
+      window.collabControlNo = controlNo;
+      // I'm the one who OWNS this entry and accepted someone else in — I'm
+      // the host. Only the host gets to Save (see updateSaveButtonForRole),
+      // and the joiner's identity rides along into the saved record.
+      window.collabRole = 'host';
+      window.collabJoinerInfo = requesterInfo || null;
+      saveCollabState(controlNo, 'host', requesterInfo || null);
+      showCollabBar(controlNo);
+      updateSaveButtonForRole();
+      statusEl.textContent = 'Request accepted — now syncing live.';
+      setTimeout(()=>statusEl.textContent='', 4000);
+    }catch(e){
+      console.error('Accept join failed', e);
+      joinRequestModalShown = false;
+      alert('Could not accept the request. Please try again.');
+    }finally{
+      PDLoader.hide();
+    }
+  });
+}
+
+async function submitJoinRequest(code){
+  PDLoader.show();
+  try{
+    myPendingJoinCode = code;
+    attachLiveListenerFor(code);
+    const requesterName = (window.currentEmployee && window.currentEmployee.name) || 'Colleague';
+    const requesterInfo = window.currentEmployee ? {
+      uid: window.currentEmployee.uid,
+      name: window.currentEmployee.name,
+      staffId: window.currentEmployee.staffId,
+      email: window.currentEmployee.email,
+      department: window.currentEmployee.department || ''
+    } : null;
+    await window.fsSendJoinRequest(code, requesterName, requesterInfo);
+    showWaitingModal(code);
+  }catch(e){
+    console.error('Join request failed', e);
+    myPendingJoinCode = null;
+    alert('Could not send the request. Please try again.');
+  }finally{
+    PDLoader.hide();
+  }
+}
+
+document.getElementById('joinFillUpBtn').addEventListener('click', showJoinCodeModal);
+document.getElementById('collabLeaveBtn').addEventListener('click', async ()=>{
+  const ok = confirm('Leave the live collaboration? Real-time syncing will stop on your side.');
+  if(!ok) return;
+  PDLoader.show();
+  const cno = window.collabControlNo;
+  const wasJoiner = window.collabRole === 'joiner';
+  window.collabActive = false;
+  window.collabControlNo = null;
+  window.collabRole = null;
+  window.collabJoinerInfo = null;
+  clearCollabState();
+  hideCollabBar();
+  updateSaveButtonForRole();
+  if(liveUnsub){ liveUnsub(); liveUnsub = null; }
+  if(cno && window.fsEndCollabSession){
+    try{ await window.fsEndCollabSession(cno); }catch(e){ console.error('End collab session failed', e); }
+  }
+  // If I was the joiner, this was never my entry to begin with — wipe my
+  // own screen and lock it back to "awaiting Control No." instead of
+  // leaving someone else's half-filled data sitting here.
+  if(wasJoiner){
+    backToBlankAwaitingControlNo('You left the live session');
+  }
+  PDLoader.hide();
+});
+
+const STORAGE_KEY = 'peripherals-form:current';
+const COLLAB_STATE_KEY = 'peripherals-form:collabState';
+
+// Remembers that this device is actively co-filling a specific Control No.
+// so a page refresh doesn't kick the joiner out of the live session they're
+// part of — restoreCollabStateIfAny() below re-attaches to it on load.
+function saveCollabState(controlNo, role, joinerInfo){
+  try{
+    localStorage.setItem(COLLAB_STATE_KEY, JSON.stringify({
+      controlNo: String(controlNo),
+      role: role || null,
+      joinerInfo: joinerInfo || null
+    }));
+  }catch(e){
+    console.error('Saving collab state failed', e);
+  }
+}
+function clearCollabState(){
+  try{ localStorage.removeItem(COLLAB_STATE_KEY); }catch(e){}
+}
+function getSavedCollabControlNo(){
+  try{
+    const raw = localStorage.getItem(COLLAB_STATE_KEY);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && parsed.controlNo ? String(parsed.controlNo) : null;
+  }catch(e){
+    return null;
+  }
+}
+function getSavedCollabState(){
+  try{
+    const raw = localStorage.getItem(COLLAB_STATE_KEY);
+    if(!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){
+    return null;
+  }
+}
+const statusEl = document.getElementById('status');
+
+function clearSignaturePads(){
+  SIG_IDS.forEach(id=>{
+    const c = document.getElementById(id);
+    if(c) c.getContext('2d').clearRect(0,0,c.width,c.height);
+  });
+  if(typeof unlockSignaturePad === 'function'){
+    unlockSignaturePad('s2sigCanvas');
+    unlockSignaturePad('s3sigCanvas');
+  }
+  syncReceivedByMirror();
+}
+
+// ---- Control No. gate: blank dashboard until Admin's number is loaded ----
+// The dashboard starts locked/blank. Nothing gets typed into the actual
+// sheet until a Control No. that IT/Admin generated (from the admin
+// console) is entered here and validated against Firestore. This one
+// button/input pair replaces both the old auto-generating "New Entry" and
+// covers "Update Peripheral Form" too — if that Control No. already has a
+// saved entry, it's loaded for editing; if not, a fresh blank form starts
+// under that same number.
+function lockForm(){
+  cnFormUnlocked = false;
+  document.body.classList.add('pd-locked');
+  document.getElementById('cnHint').style.display = 'block';
+  document.getElementById('cnEntryGroup').style.display = 'inline-flex';
+  document.getElementById('cnLoadedPill').classList.remove('show');
+  document.getElementById('saveBtn').disabled = true;
+  document.getElementById('printBtn').disabled = true;
+  // Belt-and-suspenders: make sure nothing lingers visible in the item
+  // list while locked, even if some async path slipped through.
+  if(itemRows.length){
+    itemRows = [];
+    renderItems();
+  }
+}
+function unlockForm(controlNoValue){
+  cnFormUnlocked = true;
+  document.body.classList.remove('pd-locked');
+  document.getElementById('cnHint').style.display = 'none';
+  document.getElementById('cnEntryGroup').style.display = 'none';
+  document.getElementById('cnEntryError').classList.remove('show');
+  document.getElementById('cnLoadedLabel').textContent = 'Control No. ' + controlNoValue;
+  document.getElementById('cnLoadedPill').classList.add('show');
+  document.getElementById('saveBtn').disabled = false;
+  document.getElementById('printBtn').disabled = false;
+  updateSaveButtonForRole();
+}
+
+// Wipes the sheet blank and goes back to the locked, awaiting-Control-No.
+// state — used after a save completes, when a joiner's host ends the live
+// session, and from "Change Control No.". Deliberately does NOT mint any
+// number on its own anymore; the next number always has to come from
+// Admin via the input above.
+function backToBlankAwaitingControlNo(statusMsgPrefix){
+  document.querySelectorAll('.top input[id], .bands input[id], .notes textarea[id], .sign-grid input[id], .rb-modal-fields input[id]').forEach(el=>{
+    if(el.id === 'controlNo') return;
+    if(el.id === 'teamIssued'){ el.value = 'Information Technology (IT)'; return; } // fixed default, not blanked
+    if(el.type === 'checkbox') el.checked = false;
+    else el.value = '';
+  });
+  clearSignaturePads();
+  applyAttachment('', 'beforeAttachImg', 'beforeAttachPreview', v=>beforeAttachment=v);
+  applyAttachment('', 'afterAttachImg', 'afterAttachPreview', v=>afterAttachment=v);
+  applyAttachment('', 's1sigImg', 's1sigPreview', v=>preparedSignature=v);
+  applyAttachment('', 'receivedAttachImg', 'receivedAttachPreview', v=>receivedAttachment=v);
+  itemRows = [];
+  renderItems();
+  localStorage.removeItem(STORAGE_KEY);
+  document.getElementById('controlNo').value = '';
+  document.getElementById('cnEntryInput').value = '';
+  syncPreparedByMirror();
+  syncReturnedByMirror();
+  syncReceivedByMirror();
+  if(liveUnsub){ liveUnsub(); liveUnsub = null; }
+  lockForm();
+  if(statusMsgPrefix){
+    statusEl.textContent = statusMsgPrefix + ' — enter a new Control No. from Admin to continue.';
+    setTimeout(()=>statusEl.textContent='', 5000);
+  }
+}
+
+// Reverses buildDatabaseRecord()'s nested shape back into the flat
+// fields/itemRows/signatures/attachments shape the form actually edits, so
+// a previously-saved entry can be reopened here for updating.
+function applyDatabaseRecordToForm(rec){
+  const fields = {
+    metaDate: rec.date || '',
+    venue: rec.venue || '',
+    evMission: !!(rec.eventType && rec.eventType.medicalMission),
+    evPeoples: !!(rec.eventType && rec.eventType.peoplesDay),
+    dateIssued: (rec.releasedBeforeUse && rec.releasedBeforeUse.dateIssued) || '',
+    timeIssued: (rec.releasedBeforeUse && rec.releasedBeforeUse.timeIssued) || '',
+    issuedTo: (rec.releasedBeforeUse && rec.releasedBeforeUse.issuedTo) || '',
+    teamIssued: (rec.releasedBeforeUse && rec.releasedBeforeUse.teamIssued) || 'Information Technology (IT)',
+    dateReceived: (rec.receivedBeforeUse && rec.receivedBeforeUse.dateReceived) || '',
+    timeReceived: (rec.receivedBeforeUse && rec.receivedBeforeUse.timeReceived) || '',
+    teamReceived: (rec.receivedBeforeUse && rec.receivedBeforeUse.teamReceived) || '',
+    contactReceived: (rec.receivedBeforeUse && rec.receivedBeforeUse.contactReceived) || '',
+    dateReturned: (rec.returnedAfterUse && rec.returnedAfterUse.dateReturned) || '',
+    timeReturned: (rec.returnedAfterUse && rec.returnedAfterUse.timeReturned) || '',
+    returnedBy: (rec.returnedAfterUse && rec.returnedAfterUse.returnedBy) || '',
+    teamReturned: (rec.returnedAfterUse && rec.returnedAfterUse.teamReturned) || '',
+    contactReturned: (rec.returnedAfterUse && rec.returnedAfterUse.contactReturned) || '',
+    s2name: (rec.signatures && rec.signatures.receivedBy && rec.signatures.receivedBy.name) || '',
+    s2dt: (rec.signatures && rec.signatures.receivedBy && rec.signatures.receivedBy.dateTime) || '',
+    s3name: (rec.signatures && rec.signatures.returnedBy && rec.signatures.returnedBy.name) || '',
+    s3dt: (rec.signatures && rec.signatures.returnedBy && rec.signatures.returnedBy.dateTime) || ''
+  };
+  applyFields(fields);
+  applySignatures({
+    s2sigCanvas: (rec.signatures && rec.signatures.receivedBy && rec.signatures.receivedBy.signatureImage) || '',
+    s3sigCanvas: (rec.signatures && rec.signatures.returnedBy && rec.signatures.returnedBy.signatureImage) || ''
+  });
+  applyAttachment((rec.releasedBeforeUse && rec.releasedBeforeUse.attachment) || '', 'beforeAttachImg', 'beforeAttachPreview', v=>beforeAttachment=v);
+  applyAttachment((rec.receivedBeforeUse && rec.receivedBeforeUse.attachment) || '', 'receivedAttachImg', 'receivedAttachPreview', v=>receivedAttachment=v);
+  applyAttachment((rec.returnedAfterUse && rec.returnedAfterUse.attachment) || '', 'afterAttachImg', 'afterAttachPreview', v=>afterAttachment=v);
+  // "Prepared By" signature is IT/Admin's — carried from the finalized
+  // entry the same way it's carried from a fresh reservedControlNos doc.
+  applyAttachment((rec.signatures && rec.signatures.issuedBy && rec.signatures.issuedBy.signatureImage) || '', 's1sigImg', 's1sigPreview', v=>preparedSignature=v);
+  if(Array.isArray(rec.peripheralItems) && rec.peripheralItems.length){
+    itemRows = rec.peripheralItems.map(p=>({
+      item: p.item || '', qty: p.qty || '', locked:true,
+      bRecv: (p.beforeUse && p.beforeUse.receivedQty) || '',
+      bCond: (p.beforeUse && p.beforeUse.condition) || '',
+      bRmk: (p.beforeUse && p.beforeUse.remarks) || '',
+      bRmkPhoto: (p.beforeUse && p.beforeUse.remarksPhoto) || '',
+      aRel: (p.afterUse && p.afterUse.returnedQty) || '',
+      aCond: (p.afterUse && p.afterUse.condition) || '',
+      rmk: p.remarks || '', rmkPhoto: p.remarksPhoto || ''
+    }));
+    renderItems();
+  }
+}
+
+async function handleLoadFormClick(){
+  const errEl = document.getElementById('cnEntryError');
+  errEl.classList.remove('show');
+  const raw = document.getElementById('cnEntryInput').value.trim();
+  if(!/^\d{6}$/.test(raw)){
+    errEl.textContent = 'Enter a valid 6-digit Control No.';
+    errEl.classList.add('show');
+    return;
+  }
+  PDLoader.show();
+  try{
+    if(!window.fsClaimReservedControlNo){
+      errEl.textContent = 'Can\'t verify the Control No. right now (no connection). Please try again.';
+      errEl.classList.add('show');
+      return;
+    }
+
+    // A Control No. is meant for ONE use — see the "you'll need a new
+    // Control No. for the next form" copy in the Save confirmation. The
+    // claim below runs as a single Firestore transaction that reads
+    // status AND flips it to 'used' atomically, so two people loading the
+    // exact same fresh number within the same second can't both succeed
+    // (whichever transaction commits first wins; the other sees
+    // status:'used' and is rejected) — a plain read-then-later-write had a
+    // race window here before. It also means an already-saved/finalized
+    // number can never be reopened and edited again by anyone who types
+    // it back in.
+    let reserved;
+    try{
+      reserved = await window.fsClaimReservedControlNo(raw);
+    }catch(claimErr){
+      if(claimErr && claimErr.code === 'not-found'){
+        errEl.textContent = 'Invalid Control No. — this wasn\'t generated by IT/Admin. Please verify with them first.';
+      }else if(claimErr && claimErr.code === 'already-used'){
+        const wasSaved = window.fsGetEntry ? await window.fsGetEntry(raw) : null;
+        errEl.textContent = wasSaved
+          ? ('Control No. ' + raw + ' has already been saved and completed — it can no longer be reopened. Please get a new Control No. from Admin.')
+          : ('Control No. ' + raw + ' is currently being used by someone else. Please wait for them to finish, or get a new Control No. from Admin.');
+      }else{
+        throw claimErr;
+      }
+      errEl.classList.add('show');
+      return;
+    }
+
+    console.log('[Peripheral Form] Loaded reserved Control No. ' + raw + ' — photo attached by Admin:', !!reserved.beforeAttachment, reserved.beforeAttachment ? (reserved.beforeAttachment.length + ' chars') : '(none)', '| signature by Admin:', !!reserved.preparedSignature);
+    localStorage.removeItem(STORAGE_KEY);
+    document.getElementById('controlNo').value = raw;
+
+    {
+      // Use the item list snapshot attached to THIS Control No. (set by
+      // Admin's "Update Peripheral Form / Generate Control No." action) so
+      // this form shows exactly what Admin prepared for it — falls back to
+      // the shared default list only for older numbers generated before
+      // this snapshot existed.
+      if(Array.isArray(reserved.items) && reserved.items.length){
+        itemRows = reserved.items.map(t => ({
+          item: t.item || '', qty: (t.qty === undefined || t.qty === null) ? '' : String(t.qty),
+          locked:true, bRecv:"", bCond:"", bRmk:"", bRmkPhoto:"", aRel:"", aCond:"", rmk:"", rmkPhoto:""
+        }));
+      }else{
+        itemRows = defaultItemRows();
+      }
+      renderItems();
+      clearSignaturePads();
+      // "Before Use" photo and "Prepared By" signature Admin already
+      // took/attached/signed when generating this Control No. (proof of
+      // who prepared the box) carry over here too.
+      applyAttachment(reserved.beforeAttachment || '', 'beforeAttachImg', 'beforeAttachPreview', v=>beforeAttachment=v);
+      applyAttachment(reserved.preparedSignature || '', 's1sigImg', 's1sigPreview', v=>preparedSignature=v);
+      applyAttachment('', 'afterAttachImg', 'afterAttachPreview', v=>afterAttachment=v);
+      autofillIfEmpty('metaDate', nowDateStr());
+      autofillIfEmpty('dateIssued', nowDateStr());
+      // Venue/Location, Event Type, Prepared By, Team, and Prepared Time
+      // that Admin filled in when generating this Control No. — pre-fill
+      // them here so the person doesn't have to retype what's already known.
+      applyFields({
+        venue: reserved.venue || '',
+        evMission: !!(reserved.eventType && reserved.eventType.medicalMission),
+        evPeoples: !!(reserved.eventType && reserved.eventType.peoplesDay),
+        issuedTo: reserved.preparedBy || '',
+        teamIssued: reserved.team || 'Information Technology (IT)',
+        timeIssued: reserved.preparedTime || ''
+      });
+      statusEl.textContent = 'New blank form — Control No. ' + raw;
+    }
+    setTimeout(()=>statusEl.textContent='', 5000);
+
+    unlockForm(raw);
+    attachLiveListenerFor(raw);
+  }catch(e){
+    console.error('Load/Generate Form failed', e);
+    errEl.textContent = 'There was a problem verifying. Please try again.';
+    errEl.classList.add('show');
+  }finally{
+    PDLoader.hide();
+  }
+}
+document.getElementById('loadFormBtn').addEventListener('click', handleLoadFormClick);
+document.getElementById('cnEntryInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') handleLoadFormClick();
+});
+
+document.getElementById('cnChangeLink').addEventListener('click', async ()=>{
+  const isCollabActive = window.collabActive && window.collabControlNo;
+  const yesDesc = isCollabActive
+    ? 'The live co-fill-up session will end (your co-filler will be disconnected), and any unsaved data on screen will be lost.'
+    : 'Any unsaved peripherals data on screen will be lost.';
+  const ok = await showActionConfirm({
+    title: isCollabActive ? '⚠️ Someone Is Co-Filling With You — Change Control No.?' : 'Change Control No.?',
+    yesLabel: 'Yes',
+    yesDesc,
+    noLabel: 'No',
+    noDesc: 'You\'ll continue on the current peripherals form — nothing will change.'
+  });
+  if(!ok) return;
+
+  PDLoader.show();
+  if(window.collabActive && window.collabControlNo && window.fsEndCollabSession){
+    try{ await window.fsEndCollabSession(window.collabControlNo); }catch(e){ console.error('End collab session failed', e); }
+  }
+  window.collabActive = false;
+  window.collabControlNo = null;
+  window.collabRole = null;
+  window.collabJoinerInfo = null;
+  clearCollabState();
+  hideCollabBar();
+  backToBlankAwaitingControlNo(null);
+  PDLoader.hide();
+});
+
+// Builds a nested, human-readable record for the DATABASE only — grouped to
+// mirror the form's visual layout (unlike collectFields/collectSignatures,
+// which stay flat and are only used for the local draft save/load round-trip).
+function buildDatabaseRecord(){
+  const f = collectFields();
+  const sigs = collectSignatures();
+  return {
+    date: f.metaDate || '',
+    venue: f.venue || '',
+    filledUpBy: window.currentEmployee ? {
+      uid: window.currentEmployee.uid,
+      name: window.currentEmployee.name,
+      staffId: window.currentEmployee.staffId,
+      email: window.currentEmployee.email,
+      department: window.currentEmployee.department || ''
+    } : null,
+    // Only ever set on the host's device (joiners can't Save at all — see
+    // updateSaveButtonForRole), and only when this entry was actually
+    // co-filled live with someone else. Lets admin see both names on one
+    // saved entry instead of just whoever happened to click Save.
+    coFilledUpBy: window.collabJoinerInfo ? {
+      uid: window.collabJoinerInfo.uid,
+      name: window.collabJoinerInfo.name,
+      staffId: window.collabJoinerInfo.staffId,
+      email: window.collabJoinerInfo.email,
+      department: window.collabJoinerInfo.department || ''
+    } : null,
+    eventType: {
+      medicalMission: !!f.evMission,
+      peoplesDay: !!f.evPeoples
+    },
+    releasedBeforeUse: {
+      dateIssued: f.dateIssued || '',
+      timeIssued: f.timeIssued || '',
+      issuedTo: f.issuedTo || '',
+      teamIssued: f.teamIssued || 'Information Technology (IT)',
+      attachment: beforeAttachment || ''
+    },
+    receivedBeforeUse: {
+      dateReceived: f.dateReceived || '',
+      timeReceived: f.timeReceived || '',
+      receivedBy: f.s2name || '',
+      teamReceived: f.teamReceived || '',
+      contactReceived: f.contactReceived || '',
+      attachment: receivedAttachment || ''
+    },
+    returnedAfterUse: {
+      dateReturned: f.dateReturned || '',
+      timeReturned: f.timeReturned || '',
+      returnedBy: f.returnedBy || '',
+      teamReturned: f.teamReturned || '',
+      contactReturned: f.contactReturned || '',
+      attachment: afterAttachment || ''
+    },
+    peripheralItems: itemRows.map((r, i) => ({
+      no: i + 1,
+      item: r.item || '',
+      qty: r.qty || '',
+      beforeUse: {
+        receivedQty: r.bRecv || '',
+        condition: r.bCond || '',
+        remarks: r.bRmk || '',
+        remarksPhoto: r.bRmkPhoto || ''
+      },
+      afterUse: {
+        returnedQty: r.aRel || '',
+        condition: r.aCond || ''
+      },
+      remarks: r.rmk || '',
+      remarksPhoto: r.rmkPhoto || ''
+    })),
+    signatures: {
+      // "Prepared By" — signed by IT/Admin in the admin console, not here.
+      // Name/date-time are just mirrored from the Released Before Use band
+      // (Prepared By Name + Time) instead of their own inputs.
+      issuedBy: {
+        role: 'CLCN IT / Logistics',
+        name: f.issuedTo || '',
+        dateTime: (f.dateIssued || f.timeIssued) ? ((f.dateIssued || '') + ' ' + (f.timeIssued || '')).trim() : '',
+        signatureImage: preparedSignature || ''
+      },
+      receivedBy: {
+        role: 'User / Team',
+        name: f.s2name || '',
+        dateTime: f.s2dt || '',
+        signatureImage: sigs.s2sigCanvas || ''
+      },
+      returnedBy: {
+        role: 'User / Team',
+        name: f.s3name || '',
+        dateTime: f.s3dt || '',
+        signatureImage: sigs.s3sigCanvas || ''
+      }
+    }
+  };
+}
+
+function withTimeout(promise, ms){
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(()=>reject(new Error('timeout after ' + (ms/1000) + 's — no response from server, possibly blocked by an ad-blocker/firewall')), ms))
+  ]);
+}
+
+let saveToastTimer = null;
+// Shows a brief animated banner confirming the save went through, on top of
+// (not instead of) the small status line — meant to be hard to miss.
+function showSaveToast(message, type){
+  const el = document.getElementById('saveToast');
+  if(!el) return;
+  clearTimeout(saveToastTimer);
+  el.querySelector('.save-toast-text').textContent = message;
+  el.querySelector('.save-toast-icon').textContent = type === 'warning' ? '⚠' : '✓';
+  el.classList.toggle('warning', type === 'warning');
+  // Drop and re-add "show" (with a reflow in between) so the animation
+  // restarts cleanly even if a toast is already on screen.
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+  saveToastTimer = setTimeout(()=>{ el.classList.remove('show'); }, 3000);
+}
+
+async function saveForm(){
+  if(window.collabRole === 'joiner'){
+    // Belt-and-suspenders: the Save button is disabled for joiners already
+    // (updateSaveButtonForRole), but guard the actual save path too.
+    statusEl.textContent = 'Only the host can save this. Your changes are already synced over to them.';
+    setTimeout(()=>statusEl.textContent='', 4000);
+    return;
+  }
+
+  // Extra check against the SHARED record (not just this device's local
+  // window.collabRole/localStorage state, which can desync — e.g. a page
+  // refresh mid-session, a restored draft, a race between two devices).
+  // Without this, a device that is actually a joiner could still fall
+  // through the check above (if its local role got lost) and get saved
+  // into filledUpBy — recording it as HOST with no coFilledUpBy at all,
+  // which is exactly the bug where a real joiner's own MyLogs shows HOST
+  // instead of Joiner for that entry.
+  const controlNoNow = document.getElementById('controlNo').value;
+  if(controlNoNow && window.fsGetLiveSession){
+    try{
+      const liveDoc = await window.fsGetLiveSession(controlNoNow);
+      if(liveDoc && liveDoc.active && liveDoc.hostInfo && liveDoc.hostInfo.uid &&
+         window.currentEmployee && liveDoc.hostInfo.uid !== window.currentEmployee.uid){
+        // The shared record says someone else is the host of this entry —
+        // correct this device back to Joiner instead of letting it save.
+        window.collabRole = 'joiner';
+        window.collabActive = true;
+        window.collabControlNo = controlNoNow;
+        window.collabJoinerInfo = null;
+        saveCollabState(controlNoNow, 'joiner', null);
+        updateSaveButtonForRole();
+        statusEl.textContent = 'This entry is hosted by someone else — only they can save it. Your role has been corrected to Joiner.';
+        setTimeout(()=>statusEl.textContent='', 6000);
+        return;
+      }
+    }catch(e){
+      console.error('Live session host check failed', e);
+      // Fall through and let the save proceed rather than blocking a
+      // legitimate solo save just because this check couldn't run.
+    }
+  }
+
+  const payload = {
+    fields: collectFields(),
+    itemRows: itemRows,
+    signatures: collectSignatures(),
+    attachments: { before: beforeAttachment, after: afterAttachment, preparedSignature: preparedSignature, received: receivedAttachment },
+  };
+
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  }catch(e){
+    console.error('Local save error', e);
+  }
+
+  const controlNo = document.getElementById('controlNo').value;
+
+  if(window.fsSaveEntry && controlNo){
+    statusEl.textContent = 'Saving to database...';
+    try{
+      await withTimeout(window.fsSaveEntry(controlNo, buildDatabaseRecord()), 15000);
+      statusEl.textContent = 'Saved ✓ (cloud + local)';
+      setTimeout(()=>statusEl.textContent='', 2500);
+      showSaveToast('Successfully Saved', 'success');
+      const venueVal = document.getElementById('venue').value.trim();
+      if(venueVal && window.fsRecordVenueUsage) window.fsRecordVenueUsage(venueVal);
+      const returnedByVal = document.getElementById('returnedBy').value.trim();
+      const teamReturnedVal = document.getElementById('teamReturned').value.trim();
+      const contactReturnedVal = document.getElementById('contactReturned').value.trim();
+      const s3sigCanvasEl = document.getElementById('s3sigCanvas');
+      const s3sigVal = (s3sigCanvasEl && !isCanvasBlank(s3sigCanvasEl)) ? s3sigCanvasEl.toDataURL() : '';
+      if(returnedByVal && (teamReturnedVal || contactReturnedVal || s3sigVal) && window.fsRecordReturnerInfo){
+        window.fsRecordReturnerInfo(returnedByVal, teamReturnedVal, contactReturnedVal, s3sigVal);
+      }
+      const receivedByVal = document.getElementById('s2name').value.trim();
+      const teamReceivedVal = document.getElementById('teamReceived').value.trim();
+      const contactReceivedVal = document.getElementById('contactReceived').value.trim();
+      const s2sigCanvasEl = document.getElementById('s2sigCanvas');
+      const s2sigVal = (s2sigCanvasEl && !isCanvasBlank(s2sigCanvasEl)) ? s2sigCanvasEl.toDataURL() : '';
+      if(receivedByVal && (teamReceivedVal || contactReceivedVal || s2sigVal) && window.fsRecordReceiverInfo){
+        window.fsRecordReceiverInfo(receivedByVal, teamReceivedVal, contactReceivedVal, s2sigVal);
+      }
+    }catch(e){
+      console.error('Cloud backup failed', e);
+      const reason = (e && (e.code || e.message)) || 'unknown error';
+      statusEl.textContent = '⚠ Saved locally only — cloud save FAILED (' + reason + ')';
+      statusEl.style.color = 'var(--red)';
+      setTimeout(()=>{ statusEl.textContent=''; statusEl.style.color=''; }, 8000);
+    }
+  }else{
+    statusEl.textContent = 'Saved locally ✓ (no database connection)';
+    statusEl.style.color = 'var(--red)';
+    showSaveToast('Saved Locally', 'warning');
+    setTimeout(()=>{ statusEl.textContent=''; statusEl.style.color=''; }, 4000);
+  }
+}
+async function loadForm(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const payload = JSON.parse(raw);
+      applyFields(payload.fields);
+      applySignatures(payload.signatures);
+      if(payload.attachments){
+        applyAttachment(payload.attachments.before, 'beforeAttachImg', 'beforeAttachPreview', v=>beforeAttachment=v);
+        applyAttachment(payload.attachments.after, 'afterAttachImg', 'afterAttachPreview', v=>afterAttachment=v);
+        applyAttachment(payload.attachments.preparedSignature || '', 's1sigImg', 's1sigPreview', v=>preparedSignature=v);
+        applyAttachment(payload.attachments.received || '', 'receivedAttachImg', 'receivedAttachPreview', v=>receivedAttachment=v);
+      }
+      if(Array.isArray(payload.itemRows) && payload.itemRows.length){
+        itemRows = payload.itemRows;
+        draftItemsLoaded = true;
+        renderItems();
+      }
+      statusEl.textContent = 'Loaded saved data';
+      setTimeout(()=>statusEl.textContent='', 2000);
+    }
+  }catch(e){
+    // no saved data yet, that's fine
+  }
+}
+
+// In-page Yes/No confirm dialog — used instead of the browser's native
+// confirm() popup (which shows at the top of the tab, away from the form)
+// for both Save and New Entry. Returns a Promise<boolean>: true if the
+// person picked Yes, false if they picked No or dismissed the overlay.
+function showActionConfirm({ title, message, yesLabel, yesDesc, noLabel, noDesc }){
+  return new Promise(resolve=>{
+    const overlay = document.getElementById('actionConfirmOverlay');
+    document.getElementById('acTitle').textContent = title || '';
+    document.getElementById('acMessage').textContent = message || '';
+    document.getElementById('acYesLabel').textContent = yesLabel || 'Yes';
+    document.getElementById('acYesDesc').textContent = yesDesc || '';
+    document.getElementById('acNoLabel').textContent = noLabel || 'No';
+    document.getElementById('acNoDesc').textContent = noDesc || '';
+
+    const yesBtn = document.getElementById('acYesBtn');
+    const noBtn = document.getElementById('acNoBtn');
+
+    function finish(result){
+      overlay.classList.remove('show');
+      yesBtn.removeEventListener('click', onYes);
+      noBtn.removeEventListener('click', onNo);
+      overlay.removeEventListener('click', onOverlayClick);
+      resolve(result);
+    }
+    function onYes(){ finish(true); }
+    function onNo(){ finish(false); }
+    // Clicking the dimmed backdrop counts as "No" — same as dismissing a
+    // native confirm() without choosing OK.
+    function onOverlayClick(e){ if(e.target === overlay) finish(false); }
+
+    yesBtn.addEventListener('click', onYes);
+    noBtn.addEventListener('click', onNo);
+    overlay.addEventListener('click', onOverlayClick);
+    overlay.classList.add('show');
+  });
+}
+
+// Ends any live co-fill-up session tied to the current entry, exactly like
+// New Entry does — used before wiping the screen back to blank so a joiner
+// isn't left connected to an entry that's already been saved and closed out.
+async function endCollabSessionIfAny(){
+  if(window.collabActive && window.collabControlNo && window.fsEndCollabSession){
+    try{ await window.fsEndCollabSession(window.collabControlNo); }catch(e){ console.error('End collab session failed', e); }
+  }
+  window.collabActive = false;
+  window.collabControlNo = null;
+  window.collabRole = null;
+  window.collabJoinerInfo = null;
+  clearCollabState();
+  hideCollabBar();
+  updateSaveButtonForRole();
+}
+
+// Save button flow: ask for confirmation first.
+//  - Yes -> actually save, briefly show the save result (cloud ✓ / failed),
+//           then clear the screen back to blank, locked, and awaiting the
+//           next Control No. from Admin.
+//  - No  -> do nothing at all; stay on the current form so filling up /
+//           editing can continue uninterrupted.
+async function handleSaveButtonClick(){
+  const ok = await showActionConfirm({
+    title: 'Save This Peripherals Form?',
+    yesLabel: 'Yes',
+    yesDesc: 'The form will be saved now, and the screen will clear — you\'ll need a new Control No. from Admin for the next form.',
+    noLabel: 'No',
+    noDesc: 'Nothing happens yet — you\'ll go back to the current form to keep filling it up or editing it.'
+  });
+  if(!ok) return;
+
+  PDLoader.show();
+  try{
+    await saveForm();
+
+    // Give the "Saved ✓" / cloud-failure status a moment to actually be seen
+    // before the screen resets — an instant wipe would hide a failure warning.
+    await new Promise(resolve => setTimeout(resolve, 1400));
+
+    await endCollabSessionIfAny();
+    backToBlankAwaitingControlNo('Peripherals form saved');
+  } finally {
+    PDLoader.hide();
+  }
+}
+
+document.getElementById('saveBtn').addEventListener('click', handleSaveButtonClick);
+document.getElementById('printBtn').addEventListener('click', ()=>window.print());
+document.getElementById('employeeLogoutBtn').addEventListener('click', async ()=>{
+  PDLoader.show();
+  if(window.fsSignOut) await window.fsSignOut();
+  window.location.href = 'employee-login.html';
+});
+loadForm();
+// Flush the draft immediately (don't wait for the 400ms debounce) the
+// moment the tab is hidden, closed, or refreshed, so the very last
+// keystrokes before a refresh are never lost.
+window.addEventListener('beforeunload', saveLocalDraft);
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'hidden') saveLocalDraft();
+});
+// If there's no restored draft value, stamp today's date so staff don't
+// have to type it in themselves for every new sheet.
+autofillIfEmpty('metaDate', nowDateStr());
+// Date Issued is IT/Admin's own stamp for when they prepared this box —
+// same auto-stamp treatment as the sheet date above.
+autofillIfEmpty('dateIssued', nowDateStr());
+syncPreparedByMirror();
+syncReturnedByMirror();
+syncReceivedByMirror();
+
+// Keep the "RECEIVED BY" sign-block Name/Date-Time mirror live as the
+// employee types into (or the auto-fill sets) Received By Name, Date
+// Received, or Time — same idea as RETURNED BY below.
+['s2name','dateReceived','timeReceived'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('input', syncReceivedByMirror);
+});
+
+// Keep the "RETURNED BY" sign-block Name/Date-Time mirror live as the
+// employee types into (or the auto-fill sets) Returned By Name, Date
+// Returned, or Time — same idea as PREPARED BY, just for editable source
+// fields instead of readonly/admin-set ones.
+['returnedBy','dateReturned','timeReturned'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('input', syncReturnedByMirror);
+});
+
+// Date Returned / Time: stamp both the moment the employee taps into the
+// "Date Returned" field, instead of only when they later sign — so the
+// timestamp reflects when the return was actually being recorded, not
+// whenever the signature happened to get drawn.
+(function(){
+  const dateReturnedEl = document.getElementById('dateReturned');
+  if(!dateReturnedEl) return;
+  dateReturnedEl.addEventListener('focus', ()=>{
+    const changed1 = autofillIfEmpty('dateReturned', nowDateStr());
+    const changed2 = autofillIfEmpty('timeReturned', nowTimeStr());
+    if(changed1 || changed2){
+      syncReturnedByMirror();
+      scheduleLiveSync();
+    }
+  }, { once:true });
+})();
+
+// Date Received / Time: stamp both the moment the employee taps into the
+// "Date Received" field, instead of only when they later sign — same idea
+// as Date Returned below.
+(function(){
+  const dateReceivedEl = document.getElementById('dateReceived');
+  if(!dateReceivedEl) return;
+  dateReceivedEl.addEventListener('focus', ()=>{
+    const changed1 = autofillIfEmpty('dateReceived', nowDateStr());
+    const changed2 = autofillIfEmpty('timeReceived', nowTimeStr());
+    if(changed1 || changed2){
+      scheduleLiveSync();
+    }
+  }, { once:true });
+})();
+
+// Team/Department + Contact No. + Signature auto-predict: once a "Returned
+// By" name that's been used before (by anyone, on any device) is entered,
+// their last-used Team/Department, Contact No., and signature auto-fill the
+// moment the relevant field is focused — so returning staff don't have to
+// re-type or re-sign every single time they fill up this form. A predicted
+// signature is locked (can't be drawn over or cleared), since it isn't a
+// fresh signature drawn this session — it unlocks automatically only if the
+// Returned By name is then changed to someone else. Team/Department and
+// Contact No. still respect anything already typed in.
+(function(){
+  const returnedByEl = document.getElementById('returnedBy');
+  const teamReturnedEl = document.getElementById('teamReturned');
+  const contactReturnedEl = document.getElementById('contactReturned');
+  const s3sigCanvasEl = document.getElementById('s3sigCanvas');
+  if(!returnedByEl || !teamReturnedEl || !contactReturnedEl || !s3sigCanvasEl) return;
+
+  async function tryPredict(){
+    const name = returnedByEl.value.trim();
+    const needTeam = !teamReturnedEl.value.trim();
+    const needContact = !contactReturnedEl.value.trim();
+    const needSig = isCanvasBlank(s3sigCanvasEl) && !sigDrawingNow['s3sigCanvas'];
+    if(!name || (!needTeam && !needContact && !needSig) || !window.fsLookupReturnerInfo) return;
+    try{
+      const info = await window.fsLookupReturnerInfo(name);
+      // Re-check right before writing: the name or these fields may have
+      // changed while this lookup was in flight.
+      if(returnedByEl.value.trim() !== name) return;
+      let changed = false;
+      if(info.department && !teamReturnedEl.value.trim()){
+        teamReturnedEl.value = info.department;
+        changed = true;
+      }
+      if(info.contact && !contactReturnedEl.value.trim()){
+        contactReturnedEl.value = info.contact;
+        changed = true;
+      }
+      if(info.signature && isCanvasBlank(s3sigCanvasEl) && !sigDrawingNow['s3sigCanvas']){
+        applySignatures({ s3sigCanvas: info.signature });
+        autofillOnSign('s3sigCanvas');
+        lockSignaturePad('s3sigCanvas', name);
+        changed = true;
+      }
+      if(changed) scheduleLiveSync();
+    }catch(e){
+      console.error('Returned By prediction failed', e);
+    }
+  }
+  returnedByEl.addEventListener('blur', tryPredict);
+  teamReturnedEl.addEventListener('focus', tryPredict);
+  contactReturnedEl.addEventListener('focus', tryPredict);
+  s3sigCanvasEl.addEventListener('pointerenter', tryPredict);
+
+  // If the Returned By name changes away from whoever the currently-shown
+  // signature was predicted for, that signature no longer belongs here —
+  // unlock and clear the pad so it's ready for the new name (either a fresh
+  // prediction, or the new person signing by hand).
+  returnedByEl.addEventListener('input', ()=>{
+    const canvas = s3sigCanvasEl;
+    if(!canvas.classList.contains('sig-locked')) return;
+    if(returnedByEl.value.trim() === (canvas.dataset.predictedFor || '')) return;
+    canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+    unlockSignaturePad('s3sigCanvas');
+  });
+})();
+
+// Team/Department + Contact No. + Signature auto-predict for "Received By"
+// (in the modal): once a name that's been used before (by anyone, on any
+// device) is entered, their last-used Team/Department, Contact No., and
+// signature auto-fill the moment the relevant field is focused — same
+// behavior as "Returned By" above. A predicted signature is locked (can't
+// be drawn over or cleared), since it isn't a fresh signature drawn this
+// session — it unlocks automatically only if the Received By name is then
+// changed to someone else. Team/Department and Contact No. still respect
+// anything already typed in.
+(function(){
+  const receivedByEl = document.getElementById('s2name');
+  const teamReceivedEl = document.getElementById('teamReceived');
+  const contactReceivedEl = document.getElementById('contactReceived');
+  const s2sigCanvasEl = document.getElementById('s2sigCanvas');
+  if(!receivedByEl || !teamReceivedEl || !contactReceivedEl || !s2sigCanvasEl) return;
+
+  async function tryPredict(){
+    const name = receivedByEl.value.trim();
+    const needTeam = !teamReceivedEl.value.trim();
+    const needContact = !contactReceivedEl.value.trim();
+    const needSig = isCanvasBlank(s2sigCanvasEl) && !sigDrawingNow['s2sigCanvas'];
+    if(!name || (!needTeam && !needContact && !needSig) || !window.fsLookupReceiverInfo) return;
+    try{
+      const info = await window.fsLookupReceiverInfo(name);
+      // Re-check right before writing: the name or these fields may have
+      // changed while this lookup was in flight.
+      if(receivedByEl.value.trim() !== name) return;
+      let changed = false;
+      if(info.department && !teamReceivedEl.value.trim()){
+        teamReceivedEl.value = info.department;
+        changed = true;
+      }
+      if(info.contact && !contactReceivedEl.value.trim()){
+        contactReceivedEl.value = info.contact;
+        changed = true;
+      }
+      if(info.signature && isCanvasBlank(s2sigCanvasEl) && !sigDrawingNow['s2sigCanvas']){
+        applySignatures({ s2sigCanvas: info.signature });
+        autofillOnSign('s2sigCanvas');
+        lockSignaturePad('s2sigCanvas', name);
+        syncReceivedByMirror();
+        changed = true;
+      }
+      if(changed) scheduleLiveSync();
+    }catch(e){
+      console.error('Received By prediction failed', e);
+    }
+  }
+  receivedByEl.addEventListener('blur', tryPredict);
+  teamReceivedEl.addEventListener('focus', tryPredict);
+  contactReceivedEl.addEventListener('focus', tryPredict);
+  s2sigCanvasEl.addEventListener('pointerenter', tryPredict);
+
+  // If the Received By name changes away from whoever the currently-shown
+  // signature was predicted for, that signature no longer belongs here —
+  // unlock and clear the pad so it's ready for the new name (either a
+  // fresh prediction, or the new person signing by hand).
+  receivedByEl.addEventListener('input', ()=>{
+    const canvas = s2sigCanvasEl;
+    if(!canvas.classList.contains('sig-locked')) return;
+    if(receivedByEl.value.trim() === (canvas.dataset.predictedFor || '')) return;
+    canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+    unlockSignaturePad('s2sigCanvas');
+    syncReceivedByMirror();
+  });
+})();
+
+// Records the "Received By" name + Team/Department + Contact No. +
+// signature to the shared directory once there's actually a signature to
+// save, so the same person's info can auto-predict next time (mirrors how
+// "Returned By" is recorded on save).
+function maybeRecordReceiverInfo(){
+  const receivedByEl = document.getElementById('s2name');
+  const teamReceivedEl = document.getElementById('teamReceived');
+  const contactReceivedEl = document.getElementById('contactReceived');
+  const s2sigCanvasEl = document.getElementById('s2sigCanvas');
+  if(!receivedByEl || !s2sigCanvasEl) return;
+  const name = receivedByEl.value.trim();
+  if(!name || isCanvasBlank(s2sigCanvasEl) || !window.fsRecordReceiverInfo) return;
+  const dept = teamReceivedEl ? teamReceivedEl.value.trim() : '';
+  const contact = contactReceivedEl ? contactReceivedEl.value.trim() : '';
+  window.fsRecordReceiverInfo(name, dept, contact, s2sigCanvasEl.toDataURL());
+}
+(function(){
+  const receivedByEl = document.getElementById('s2name');
+  if(receivedByEl) receivedByEl.addEventListener('blur', maybeRecordReceiverInfo);
+})();
+
+// Received By modal — opened via the button beside Control No. Just shows
+// and hides the overlay; the fields inside (s2name/s2sigCanvas/s2dt) are
+// the real, live form fields, so nothing else needs to happen on open —
+// any edits made here flow straight into the mirror below via
+// syncReceivedByMirror() (see the listeners set up above).
+function showReceivedByModal(){
+  document.getElementById('receivedByOverlay').classList.add('show');
+}
+function hideReceivedByModal(){
+  document.getElementById('receivedByOverlay').classList.remove('show');
+}
+document.getElementById('receivedByBtn').addEventListener('click', showReceivedByModal);
+document.getElementById('receivedByCloseBtn').addEventListener('click', hideReceivedByModal);
+document.getElementById('receivedByOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'receivedByOverlay') hideReceivedByModal();
+});
+
+// Venue/Location: force the actual saved value to uppercase as the employee
+// types (not just a visual CSS effect), and show a dropdown of venues other
+// employees have already used — ranked by how often they've been saved —
+// so typing "SO" can surface "SOUTH CITY HALL" the moment it's a match.
+(function(){
+  const venueEl = document.getElementById('venue');
+  const suggestBox = document.getElementById('venueSuggest');
+  if(!venueEl || !suggestBox) return;
+
+  let venueList = []; // [{name, useCount}], newest data from the shared "venues" collection
+  let activeIdx = -1;
+
+  // The listener lives in the Firebase module script, which loads slightly
+  // after this one — poll briefly until it's available rather than missing
+  // the hookup entirely.
+  (function startListening(){
+    if(window.fsListenVenues){
+      window.fsListenVenues((list)=>{ venueList = list; });
+    }else{
+      setTimeout(startListening, 200);
+    }
+  })();
+
+  function hideSuggestions(){
+    suggestBox.classList.remove('show');
+    suggestBox.innerHTML = '';
+    activeIdx = -1;
+  }
+
+  function updateActive(items){
+    items.forEach((it, i)=> it.classList.toggle('active', i === activeIdx));
+  }
+
+  function renderSuggestions(){
+    const typed = venueEl.value.trim();
+    if(!typed){ hideSuggestions(); return; }
+    const matches = venueList
+      .filter(v => v.name && v.name.toUpperCase().startsWith(typed) && v.name.toUpperCase() !== typed)
+      .slice(0, 6);
+    if(!matches.length){ hideSuggestions(); return; }
+    activeIdx = -1;
+    suggestBox.innerHTML = matches.map(v =>
+      `<div class="venue-suggest-item" data-name="${v.name.replace(/"/g,'&quot;')}">`+
+      `<span>${v.name}</span><span class="vs-count">${v.useCount || 1}&times;</span></div>`
+    ).join('');
+    suggestBox.classList.add('show');
+    suggestBox.querySelectorAll('.venue-suggest-item').forEach(item=>{
+      // mousedown (not click) fires before the input's blur, so the
+      // selection registers before the dropdown gets hidden on blur.
+      item.addEventListener('mousedown', (e)=>{
+        e.preventDefault();
+        venueEl.value = item.dataset.name;
+        hideSuggestions();
+      });
+    });
+  }
+
+  venueEl.addEventListener('input', ()=>{
+    const start = venueEl.selectionStart;
+    const end = venueEl.selectionEnd;
+    venueEl.value = venueEl.value.toUpperCase();
+    try{ venueEl.setSelectionRange(start, end); }catch(e){}
+    renderSuggestions();
+  });
+  venueEl.addEventListener('focus', renderSuggestions);
+  venueEl.addEventListener('blur', ()=> setTimeout(hideSuggestions, 120));
+  venueEl.addEventListener('keydown', (e)=>{
+    const items = suggestBox.querySelectorAll('.venue-suggest-item');
+    if(!items.length) return;
+    if(e.key === 'ArrowDown'){
+      e.preventDefault();
+      activeIdx = Math.min(activeIdx + 1, items.length - 1);
+      updateActive(items);
+    }else if(e.key === 'ArrowUp'){
+      e.preventDefault();
+      activeIdx = Math.max(activeIdx - 1, 0);
+      updateActive(items);
+    }else if(e.key === 'Enter'){
+      if(activeIdx >= 0){
+        e.preventDefault();
+        venueEl.value = items[activeIdx].dataset.name;
+        hideSuggestions();
+      }
+    }else if(e.key === 'Escape'){
+      hideSuggestions();
+    }
+  });
+})();
+
+function initControlNoIfNeeded(){
+  const existing = document.getElementById('controlNo').value;
+  const savedCollabControlNo = getSavedCollabControlNo();
+
+  if(savedCollabControlNo){
+    // We were in the middle of a live co-fill-up session before this page
+    // got refreshed/reloaded — rejoin the SAME session instead of treating
+    // this as a fresh visit, so the joiner isn't silently kicked out just
+    // because they refreshed the page.
+    const savedState = getSavedCollabState();
+    unlockForm(savedCollabControlNo);
+    window.collabActive = true;
+    window.collabControlNo = savedCollabControlNo;
+    window.collabRole = (savedState && savedState.role) || null;
+    window.collabJoinerInfo = (savedState && savedState.joinerInfo) || null;
+    showCollabBar(savedCollabControlNo);
+    updateSaveButtonForRole();
+    attachLiveListenerFor(savedCollabControlNo);
+    statusEl.textContent = 'Reconnecting to the live session (Control No. ' + savedCollabControlNo + ')…';
+    setTimeout(()=>statusEl.textContent='', 4000);
+    return;
+  }
+
+  if(!existing){
+    // Fresh visit, nothing restored — stay locked/blank until a Control No.
+    // from Admin is typed into the Load / Generate Form box above.
+    lockForm();
+  }else{
+    // A draft (already validated earlier in this browser session) was
+    // restored from localStorage — unlock the sheet and keep listening for
+    // incoming join requests on this same control number.
+    unlockForm(existing);
+    attachLiveListenerFor(existing);
+  }
+}
+// Wait for the auth guard to confirm a signed-in employee before touching
+// the shared Firestore counter, so a signed-out visitor never burns a number.
+async function bootstrapControlNo(){
+  initControlNoIfNeeded();
+}
+if(window.employeeReady){
+  bootstrapControlNo();
+}else{
+  window.addEventListener('employeeReady', bootstrapControlNo, { once: true });
+}
+</script>
+<script src="loader.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,3364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>IT Admin Console — Planet Drugstore Peripherals</title>
+<link rel="icon" type="image/x-icon" href="logo-transparent.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --maroon:#6E1620;
+    --maroon-dark:#3D0A10;
+    --red:#d61f2c;
+    --red-dark:#a5151f;
+    --paper:#FAF6F5;
+    --line:#E6D5D6;
+    --ink:#2A1416;
+    --muted:#7A5B5D;
+    --good:#1f8a4c;
+  }
+
+  /* ---- Redirect-to-Peripheral-Form overlay (edit Control No.) ---- */
+  .pf-redirect-overlay{
+    position:fixed; inset:0; z-index:9999;
+    background:radial-gradient(circle at 50% 40%, var(--maroon) 0%, var(--maroon-dark) 100%);
+    display:none; align-items:center; justify-content:center; flex-direction:column;
+    opacity:0; transition:opacity 0.25s ease;
+  }
+  .pf-redirect-overlay.show{ display:flex; opacity:1; }
+  .pf-redirect-overlay.hide{ opacity:0; }
+  .pf-redirect-logo-ring{
+    width:120px; height:120px; border-radius:50%;
+    border:3px solid rgba(255,255,255,0.25); border-top-color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    animation:pfRedirectSpin 1s linear infinite;
+  }
+  .pf-redirect-logo-ring img{
+    width:76px; height:76px; object-fit:contain; border-radius:50%;
+    background:#fff; padding:8px;
+    animation:pfRedirectPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pfRedirectSpin{ to{ transform:rotate(360deg); } }
+  @keyframes pfRedirectPulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.08); } }
+  .pf-redirect-text{
+    margin-top:26px; color:#fff; font-weight:800; font-size:17px; letter-spacing:0.3px;
+    text-align:center;
+  }
+  .pf-redirect-sub{
+    margin-top:6px; color:rgba(255,255,255,0.75); font-size:13.5px; text-align:center;
+  }
+  .pf-redirect-dots span{ animation:pfRedirectDots 1.4s infinite; opacity:0; }
+  .pf-redirect-dots span:nth-child(2){ animation-delay:0.2s; }
+  .pf-redirect-dots span:nth-child(3){ animation-delay:0.4s; }
+  @keyframes pfRedirectDots{ 0%{opacity:0;} 30%{opacity:1;} 60%{opacity:0;} 100%{opacity:0;} }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    font-family:'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
+    color:var(--ink);
+    padding:20px;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4,h5,h6{font-family:'Plus Jakarta Sans','Inter',sans-serif;}
+  .wrap{max-width:1200px;margin:0 auto;}
+
+  /* Top bar */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    background:var(--maroon);color:#fff;border-radius:8px;padding:14px 20px;margin-bottom:16px;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{width:40px;height:40px;border-radius:9px;object-fit:cover;flex:none;display:block;}
+  .brand-name{font-weight:800;line-height:1.05;font-size:15px;letter-spacing:0.4px;}
+  .brand-name span{display:block;color:#FFA3A8;}
+  .topbar h1{font-size:18px;margin:0 0 0 6px;font-weight:700;letter-spacing:0.3px;flex:1;min-width:160px;}
+  .who{font-size:14px;color:#E8C9CC;}
+  .who strong{color:#fff;}
+  .logout-btn{
+    border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.06);color:#fff;border-radius:9px;
+    padding:8px 16px;font-size:14.5px;cursor:pointer;font-weight:700;
+    display:inline-flex;align-items:center;gap:6px;
+    transition:background .15s ease,border-color .15s ease,transform .15s ease;
+  }
+  .logout-btn:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.55);transform:translateY(-1px);}
+  .logout-btn:active{transform:translateY(0);}
+
+  /* Toolbar */
+  .toolbar{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;
+    background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 16px;
+  }
+  .search-box{
+    flex:1;min-width:220px;display:flex;align-items:center;gap:8px;
+    border:1px solid var(--line);border-radius:6px;padding:7px 12px;background:var(--paper);
+  }
+  .search-box input{border:none;background:transparent;outline:none;font-size:15.5px;width:100%;color:var(--ink);}
+  .toggle-group{display:flex;gap:3px;padding:3px;border:1px solid var(--line);border-radius:11px;background:var(--paper);}
+  .toggle-group button{
+    border:none;background:transparent;color:var(--maroon);padding:7px 14px;font-size:14.5px;font-weight:700;
+    cursor:pointer;border-radius:8px;transition:background .18s ease,color .18s ease,box-shadow .18s ease;
+  }
+  .toggle-group button:hover:not(.active){background:rgba(110,22,32,0.07);}
+  .toggle-group button.active{background:var(--maroon);color:#fff;box-shadow:0 4px 10px rgba(110,22,32,0.25);}
+  .btn{
+    border:none;border-radius:10px;padding:9px 16px;font-size:14.5px;font-weight:700;
+    cursor:pointer;color:#fff;font-family:inherit;display:inline-flex;align-items:center;gap:7px;
+    background:linear-gradient(135deg,var(--maroon),var(--maroon-dark));
+    box-shadow:0 4px 12px rgba(110,22,32,0.18);
+    transition:transform .15s ease,box-shadow .15s ease,opacity .15s ease,background .15s ease;
+  }
+  .btn.red{background:linear-gradient(135deg,var(--red),var(--red-dark));box-shadow:0 5px 14px rgba(214,31,44,0.24);}
+  .btn.ghost{background:#fff;border:1.5px solid var(--line);color:var(--maroon);box-shadow:none;}
+  .btn.ghost:hover{background:#F6ECEC;border-color:var(--maroon);box-shadow:0 4px 10px rgba(110,22,32,0.10);}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 9px 20px rgba(110,22,32,0.24);}
+  .btn.red:hover{box-shadow:0 10px 24px rgba(214,31,44,0.3);}
+  .btn:active{transform:translateY(0);}
+  .btn .btn-icon{display:inline-block;transition:transform .3s ease;}
+  .btn:hover .btn-icon.spin{transform:rotate(180deg);}
+  .count-pill{font-size:14px;color:var(--muted);white-space:nowrap;}
+
+  /* Table view */
+  .table-wrap{
+    background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden;overflow-x:auto;
+  }
+  table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:middle;}
+  thead th{background:var(--maroon);color:#fff;font-size:13px;text-transform:uppercase;letter-spacing:0.3px;position:sticky;top:0;}
+  tbody tr:hover{background:#FAF1F1;}
+  td.control-no{font-weight:700;color:var(--maroon);}
+  .badge{
+    display:inline-block;font-size:12.5px;font-weight:700;padding:2px 8px;border-radius:10px;
+    background:#F5EAEA;color:var(--maroon);
+  }
+  .row-btn{
+    border:1px solid var(--line);background:#fff;color:var(--maroon);border-radius:5px;
+    padding:5px 10px;font-size:13.5px;cursor:pointer;font-weight:600;margin-right:6px;
+  }
+  .row-btn:hover{background:#F6ECEC;}
+  .row-btn.del{color:var(--red);}
+  .row-btn.del:hover{background:#fdecec;}
+
+  /* Card view */
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;}
+  .entry-card{
+    background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px 16px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .entry-card .ctrl{font-weight:800;color:var(--maroon);font-size:16px;}
+  .entry-card .venue{font-weight:600;font-size:15px;}
+  .entry-card .meta-line{font-size:13.5px;color:var(--muted);}
+  .entry-card .actions{display:flex;gap:8px;margin-top:8px;}
+
+  .empty-state{padding:50px 20px;text-align:center;color:var(--muted);font-size:15.5px;}
+  .entries-scope-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap;}
+  .entries-date-label{font-size:15px;font-weight:700;color:var(--maroon);letter-spacing:0.2px;}
+  .empty-state.no-event{font-weight:700;color:var(--maroon);font-size:17px;padding:60px 20px;}
+  .loading-state{padding:50px 20px;text-align:center;color:var(--muted);font-size:15.5px;}
+
+  /* Modal */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(61,10,16,0.55);
+    align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto;z-index:50;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:#fff;border-radius:10px;max-width:1150px;width:100%;overflow:hidden;
+    box-shadow:0 24px 60px rgba(10,14,30,0.35);
+  }
+  .modal-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:16px 22px;border-bottom:3px solid var(--red);
+  }
+  .modal-head h2{margin:0;font-size:19px;color:var(--maroon);}
+  .modal-head .close-btn{border:none;background:transparent;font-size:24px;color:var(--muted);cursor:pointer;line-height:1;}
+  .modal-body{padding:0;max-height:75vh;overflow-y:auto;background:var(--paper);}
+  .modal-body-inner{padding:18px;}
+
+  /* Replica of the original Peripherals Receiving form layout */
+  .replica{
+    background-color:#fff;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.60), rgba(255,255,255,0.60)),
+      url('logo-transparent.png');
+    background-repeat:no-repeat, no-repeat;
+    background-position:center, center;
+    background-size:cover, 400px auto;
+    border:2px solid var(--maroon);border-radius:4px;overflow:hidden;
+  }
+  .replica-top{
+    display:flex;align-items:center;justify-content:space-between;padding:16px 20px;
+    border-bottom:3px solid var(--red);gap:18px;flex-wrap:wrap;
+  }
+  .replica-brand{display:flex;align-items:center;gap:10px;}
+  .replica-brand-mark{width:44px;height:44px;border-radius:10px;object-fit:cover;flex:none;display:block;}
+  .replica-brand-name{font-weight:800;color:var(--maroon);line-height:1.05;font-size:14px;letter-spacing:0.4px;}
+  .replica-brand-name span{display:block;color:var(--red);}
+  .replica-titles{flex:1;min-width:220px;text-align:center;}
+  .replica-titles h3{margin:0;color:var(--maroon);font-size:17px;letter-spacing:0.4px;}
+  .replica-titles h4{margin:2px 0 0;color:var(--red);font-size:22px;letter-spacing:0.4px;}
+  .replica-titles .sub{margin-top:3px;font-size:12.5px;color:var(--muted);letter-spacing:1px;}
+  .replica-meta{font-size:14px;min-width:200px;}
+  .replica-meta label{display:block;font-size:12.5px;color:var(--maroon);font-weight:700;text-transform:uppercase;letter-spacing:0.3px;margin-top:6px;}
+  .replica-meta input{width:100%;border:none;border-bottom:1px solid var(--line);background:transparent;font-size:14.5px;padding:2px 0;color:var(--ink);}
+  .replica-meta input:disabled{color:var(--red);font-weight:700;}
+  .replica-event-row{display:flex;gap:14px;margin-top:6px;}
+  .replica-event-row span{font-size:13px;font-weight:600;color:var(--maroon);display:flex;align-items:center;gap:4px;}
+  .replica-event-row .dot{width:8px;height:8px;border-radius:50%;background:var(--line);}
+  .replica-event-row .dot.on{background:var(--good);}
+
+  .replica-bands{display:flex;flex-wrap:wrap;}
+  .replica-band{flex:1;min-width:280px;padding:16px 20px;}
+  .replica-band+.replica-band{border-left:1px solid var(--line);}
+  .replica-band-title{
+    background:var(--maroon);color:#fff;font-weight:700;font-size:14.5px;text-align:center;
+    padding:8px;letter-spacing:0.8px;border-radius:3px;margin-bottom:12px;
+  }
+  .replica-field-row{display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap;}
+  .replica-field{flex:1;min-width:130px;}
+  .replica-field label{display:block;font-size:13px;color:var(--maroon);font-weight:700;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.3px;}
+  .replica-field input{width:100%;border:none;border-bottom:1px solid var(--line);padding:4px 2px;font-size:15px;background:transparent;color:var(--ink);}
+  .replica-field input:focus{outline:none;border-bottom:1px solid var(--red);}
+  .replica-field input[readonly]{color:var(--muted);cursor:not-allowed;}
+  .replica-attach{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);}
+  .replica-attach label{display:block;font-size:13px;color:var(--maroon);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.3px;}
+  .replica-attach img{max-width:180px;max-height:130px;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:var(--paper);cursor:zoom-in;transition:opacity 0.15s;}
+  .replica-attach img:hover{opacity:0.85;}
+  .replica-attach .none{font-size:14px;color:var(--muted);font-style:italic;}
+
+  .lightbox-overlay{
+    display:none;position:fixed;inset:0;background:rgba(10,14,30,0.88);
+    z-index:9999;align-items:center;justify-content:center;padding:30px;
+  }
+  .lightbox-overlay.show{display:flex;}
+  .lightbox-overlay img{max-width:92vw;max-height:88vh;object-fit:contain;border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+  .lightbox-close{
+    position:absolute;top:18px;right:24px;background:rgba(255,255,255,0.12);color:#fff;
+    border:1px solid rgba(255,255,255,0.35);border-radius:6px;width:38px;height:38px;
+    font-size:22px;line-height:1;cursor:pointer;
+  }
+  .lightbox-close:hover{background:rgba(255,255,255,0.22);}
+
+  .replica-items{padding:16px 20px;overflow-x:auto;}
+  .replica-items table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  .replica-items-table{table-layout:fixed;}
+  .replica-items th,.replica-items td{border:1px solid var(--line);padding:6px 7px;text-align:left;vertical-align:middle;}
+  .replica-items thead th{background:var(--maroon);color:#fff;font-size:12px;text-transform:uppercase;letter-spacing:0.3px;}
+  .replica-items .grp-before{background:var(--red-dark);}
+  .replica-items .grp-after{background:var(--red-dark);}
+  .replica-items td.item-name{font-weight:600;}
+  .replica-items td.qty{text-align:center;font-weight:700;color:var(--maroon);}
+  .replica-items td input{width:100%;border:none;background:transparent;font-size:13.5px;padding:2px;}
+  .replica-items td input:focus{outline:1px solid var(--red);border-radius:2px;}
+  .replica-items td.remarks-cell{min-width:130px;}
+  .replica-items .remarks-input,
+  .replica-items .grow-input{
+    width:100%;border:none;background:transparent;font-size:13.5px;padding:2px;
+    font-family:inherit;resize:vertical;overflow:hidden;line-height:1.3;
+    display:block;min-height:20px;white-space:normal;word-break:break-word;
+  }
+  .replica-items .remarks-input:focus,
+  .replica-items .grow-input:focus{outline:1px solid var(--red);border-radius:2px;}
+  .replica-items td.item-name{white-space:normal;word-break:break-word;}
+  .item-name-view{font-weight:600;white-space:normal;word-break:break-word;line-height:1.35;padding:2px;}
+  .rmk-photo-view{width:44px;height:44px;object-fit:cover;border-radius:6px;margin-top:4px;
+    border:1px solid var(--line);cursor:zoom-in;display:inline-block;transition:opacity 0.15s;}
+  .rmk-photo-view:hover{opacity:0.85;}
+
+  .replica-ack{padding:12px 20px 4px;font-size:13.5px;color:var(--muted);display:flex;gap:24px;flex-wrap:wrap;}
+  .replica-ack div{flex:1;min-width:240px;text-align:center;font-style:italic;}
+
+  .replica-sign-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:8px 20px 20px;}
+  .replica-sign-block{border-left:1px solid var(--line);padding:10px 14px;}
+  .replica-sign-block:first-child{border-left:none;}
+  .replica-sign-block h5{margin:0 0 10px;color:var(--maroon);font-size:13px;text-align:center;letter-spacing:0.3px;}
+  .replica-sign-block .sline{margin-bottom:10px;}
+  .replica-sign-block .sline label{display:block;font-size:12px;color:var(--muted);margin-bottom:2px;}
+  .replica-sign-block .sline .val{font-size:14px;border-bottom:1px solid var(--line);padding:2px 0;min-height:16px;}
+  .replica-sign-block .sig-img{width:100%;height:60px;object-fit:contain;background:var(--paper);border:1px solid var(--line);border-radius:4px;}
+  .replica-sign-block .no-sig{font-size:12.5px;color:var(--muted);text-align:center;padding:18px 0;border:1px dashed var(--line);border-radius:4px;}
+
+  @media (max-width:720px){
+    .replica-sign-grid{grid-template-columns:repeat(2,1fr);}
+    .replica-band+.replica-band{border-left:none;border-top:1px solid var(--line);}
+  }
+
+  /* On small screens, stop forcing horizontal scroll on the items table —
+     stack each row into a labeled card instead so every field (including
+     Remarks) is fully readable without swiping right. */
+  @media (max-width:1024px){
+    .replica-items{overflow-x:visible;padding:14px 14px;}
+    .replica-items table{border:none;}
+    .replica-items thead{display:none;}
+    .replica-items tbody{display:block;}
+    .replica-items tr{
+      display:block;border:1px solid var(--line);border-radius:8px;
+      margin-bottom:12px;padding:8px 10px;background:#fff;
+    }
+    .replica-items td{
+      display:block;width:100%!important;border:none;border-bottom:1px solid var(--line);
+      padding:7px 2px;white-space:normal;word-break:break-word;
+    }
+    .replica-items tr td:last-child{border-bottom:none;}
+    .replica-items td.no-cell{display:none;}
+    .replica-items td::before{
+      content:attr(data-label);display:block;font-size:12px;font-weight:700;
+      color:var(--maroon);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:3px;
+    }
+    .replica-items td input,
+    .replica-items .remarks-input,
+    .replica-items .grow-input{
+      white-space:normal;word-break:break-word;font-size:15px;
+    }
+  }
+  /* General mobile pass — the sections above only tune the printed-form
+     replica; these rules cover the actual console chrome (topbar, toolbar,
+     tabs, modals, buttons) so the app is usable on a phone, not just the
+     document previews. */
+  @media (max-width:640px){
+    body{padding:10px;}
+    .topbar{padding:12px 14px;border-radius:10px;}
+    .topbar h1{font-size:15.5px;flex-basis:100%;order:3;margin:2px 0 0;}
+    .brand-name{font-size:13px;}
+    .who{font-size:12.5px;order:2;}
+    .logout-btn{padding:7px 12px;font-size:13.5px;}
+    .toolbar{padding:10px 12px;}
+    .search-box{min-width:0;flex-basis:100%;}
+    .toggle-group{flex:1;justify-content:center;}
+    .toggle-group button{flex:1;padding:8px 10px;}
+    .btn{padding:10px 14px;font-size:14px;}
+    .count-pill{flex-basis:100%;text-align:center;}
+    .main-tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;}
+    .main-tabs button{flex:none;padding:9px 14px;font-size:14px;}
+    .card-grid{grid-template-columns:1fr;}
+    .modal-overlay{padding:0;align-items:stretch;}
+    .modal{max-width:100%;width:100%;min-height:100%;border-radius:0;}
+    .modal-head{padding:14px 16px;}
+    .modal-head h2{font-size:16.5px;}
+    .modal-body-inner{padding:12px;}
+    .modal-foot{padding:12px 16px;flex-direction:column;align-items:stretch;}
+    .modal-foot > div{display:flex;gap:8px;}
+    .modal-foot .btn{flex:1;justify-content:center;}
+    .row-btn{padding:7px 10px;font-size:13px;}
+    /* Stop iOS Safari's auto-zoom-on-focus, which fires on any input/select
+       rendered under 16px. */
+    .search-box input, .cal-search input, .replica-meta input, .replica-field input,
+    .replica-items td input, .replica-items .remarks-input, .replica-items .grow-input,
+    input[type=text], input[type=email], input[type=password], input[type=number],
+    select, textarea{
+      font-size:16px !important;
+    }
+  }
+
+  .modal-foot{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:14px 22px;border-top:1px solid var(--line);background:var(--paper);flex-wrap:wrap;
+  }
+  .modal-status{font-size:14px;color:var(--muted);}
+
+  /* Main section tabs (Entries / Register Employee) */
+  .main-tabs{
+    display:inline-flex;gap:4px;margin-bottom:18px;padding:5px;
+    background:#fff;border:1px solid var(--line);border-radius:14px;
+    box-shadow:0 1px 3px rgba(42,20,22,0.05);
+  }
+  .main-tabs button{
+    border:none;background:transparent;color:var(--muted);border-radius:10px;
+    padding:9px 18px;font-size:14.5px;font-weight:700;cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px;
+    transition:background .18s ease,color .18s ease,box-shadow .18s ease,transform .15s ease;
+  }
+  .main-tabs button.active{
+    background:linear-gradient(135deg,var(--maroon),var(--maroon-dark));
+    color:#fff;box-shadow:0 6px 16px rgba(110,22,32,0.28);
+  }
+  .main-tabs button:hover:not(.active){background:#F6ECEC;color:var(--maroon);}
+  .main-tabs button:active{transform:translateY(1px);}
+
+  /* Register Employee section */
+  .reg-row{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
+  .reg-logo-panel{
+    flex:1;min-width:220px;display:flex;align-items:center;justify-content:center;
+    padding:40px 20px;
+    /* margin-left: 200px; */
+  }
+  .reg-logo-img{max-width:450px;width:100%;height:auto;display:block;opacity:0.92;}
+  @media (max-width:900px){ .reg-logo-panel{display:none;} }
+  .reg-card{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;max-width:640px;flex:none;width:100%;}
+  .reg-card-head{padding:18px 24px;border-bottom:1px solid var(--line);}
+  .reg-card-head h2{margin:0;color:var(--maroon);font-size:18px;}
+  .reg-card-head p{margin:5px 0 0;font-size:14.5px;color:var(--muted);}
+  .reg-card-body{padding:22px 24px 26px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:13.5px;font-weight:700;color:var(--maroon);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;}
+  .field input{
+    width:100%;padding:10px 12px;font-size:16px;border:1px solid var(--line);
+    border-radius:6px;background:var(--paper);color:var(--ink);
+  }
+  .field input:focus{outline:none;border-color:var(--red);background:#fff;}
+  .field input[readonly]{color:var(--muted);cursor:not-allowed;}
+  .pf-attach-section{padding:4px 20px 6px;}
+  .sig-pad-wrap{position:relative;max-width:280px;}
+  .sig-canvas{
+    width:100%;height:70px;display:block;
+    border:1px solid var(--line);border-radius:4px;background:#fff;
+    touch-action:none;cursor:crosshair;
+  }
+  .sig-clear{
+    position:absolute;top:3px;right:4px;
+    border:none;background:transparent;color:var(--red);
+    font-size:12px;font-weight:700;cursor:pointer;padding:2px 5px;letter-spacing:0.3px;
+  }
+  .sig-clear:hover{text-decoration:underline;}
+  .sig-canvas.sig-locked{background:#FBF7F5;cursor:default;}
+  .attach-section-label{display:block;font-size:13.5px;color:var(--maroon);font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.3px;}
+  .attach-input-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+  .attach-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .attach-btn{
+    display:inline-flex;align-items:center;gap:6px;
+    border:1.5px solid var(--line);background:#fff;color:var(--maroon);
+    border-radius:9px;padding:8px 14px;font-size:14px;font-weight:700;cursor:pointer;
+    transition:background .15s ease,border-color .15s ease,transform .15s ease,box-shadow .15s ease;
+  }
+  .attach-btn:hover{background:#F6ECEC;border-color:var(--maroon);transform:translateY(-1px);box-shadow:0 4px 10px rgba(110,22,32,0.10);}
+  .attach-btn:active{transform:translateY(0);}
+  .attach-btn.ghost{background:var(--paper);}
+  .attach-preview{display:none;margin-top:12px;}
+  .attach-thumb{
+    position:relative;display:inline-block;border-radius:10px;overflow:hidden;
+    border:1px solid var(--line);background:var(--paper);box-shadow:0 4px 12px rgba(42,20,22,0.10);
+  }
+  .attach-thumb img{display:block;max-width:180px;max-height:130px;object-fit:contain;background:#fff;}
+  .attach-remove{
+    position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;
+    border:none;background:rgba(42,20,22,0.72);color:#fff;font-size:17px;line-height:1;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:background .15s ease,transform .15s ease;
+  }
+  .attach-remove:hover{background:var(--red);transform:scale(1.08);}
+  .field select{
+    width:100%;padding:10px 12px;font-size:16px;border:1px solid var(--line);
+    border-radius:6px;background:var(--paper);color:var(--ink);font-family:inherit;
+  }
+  .field select:focus{outline:none;border-color:var(--red);background:#fff;}
+  .field .hint{font-size:13px;color:var(--muted);margin-top:4px;}
+  .two-col{display:flex;gap:16px;flex-wrap:wrap;}
+  .two-col .field{flex:1;min-width:200px;}
+  .pf-meta-fields{padding:6px 22px 8px;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;}
+  .pf-meta-fields .field{margin-bottom:12px;min-width:220px;flex:1;}
+  .pf-event-row{display:flex;gap:20px;align-items:center;padding:2px 0 14px;}
+  .pf-event-row label{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer;}
+  .pf-event-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--maroon);cursor:pointer;}
+  .submit-btn{
+    border:none;border-radius:6px;padding:11px 18px;font-size:16px;font-weight:700;
+    cursor:pointer;background:var(--red);color:#fff;letter-spacing:0.3px;
+  }
+  .submit-btn:hover{background:var(--red-dark);}
+  .submit-btn:disabled{opacity:0.6;cursor:default;}
+  .msg{margin-top:16px;font-size:14.5px;padding:10px 12px;border-radius:6px;display:none;}
+  .msg.err{background:#fdecec;border:1px solid #f3c2c6;color:var(--red-dark);}
+  .msg.ok{background:#e6f5ea;border:1px solid #bfe6cb;color:var(--good);}
+  .recent-head{margin:26px 0 10px;max-width:820px;}
+  .recent-head h2{margin:0;font-size:15.5px;color:var(--maroon);}
+  .empty-row td{text-align:center;color:var(--muted);padding:20px;}
+  #empGroups{display:flex;flex-direction:column;gap:20px;max-width:820px;}
+  .team-card{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .team-card-head{
+    padding:12px 18px;border-bottom:1px solid var(--line);background:var(--paper);
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .team-card-head h3{margin:0;font-size:15.5px;color:var(--maroon);letter-spacing:0.2px;}
+  .team-card-head .team-count{font-size:13px;font-weight:700;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 9px;}
+  .team-table{width:100%;}
+  .branch-block + .branch-block{border-top:1px solid var(--line);}
+  .branch-head{
+    padding:8px 18px;display:flex;align-items:center;gap:8px;
+    font-size:12.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);
+  }
+  .branch-head .branch-count{font-size:12px;font-weight:700;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:1px 7px;}
+  .branch-empty{padding:14px 18px;font-size:14px;color:var(--muted);}
+  .emp-toolbar{
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px;max-width:820px;
+  }
+  .emp-search-input{
+    flex:1;min-width:200px;padding:10px 14px;font-size:15.5px;border:1px solid var(--line);
+    border-radius:8px;background:#fff;color:var(--ink);font-family:inherit;
+  }
+  .emp-search-input:focus{outline:none;border-color:var(--red);}
+  .branch-filter-group{display:flex;gap:6px;flex:none;}
+  .branch-filter-btn{
+    border:1px solid var(--line);background:#fff;color:var(--maroon);
+    font-size:14px;font-weight:700;letter-spacing:0.2px;padding:9px 14px;
+    border-radius:8px;cursor:pointer;transition:background .15s,border-color .15s,color .15s;
+  }
+  .branch-filter-btn:hover{background:#F6ECEC;}
+  .branch-filter-btn.active{background:var(--red);border-color:var(--red);color:#fff;}
+  .team-card.empty-hidden{display:none;}
+
+  /* Mobile: the 5-column employee table (Name/Staff ID/Email/Registered/
+     Action) is wider than a phone screen, and .team-card has
+     overflow:hidden for its rounded corners — so on mobile the Action
+     column (Change Password / Delete) was getting silently clipped off
+     the edge with no way to scroll to it. Stack each row into a labeled
+     card instead, with full-width action buttons, same pattern as the
+     other tables in this file. */
+  @media (max-width:700px){
+    .team-table{border-collapse:separate;border-spacing:0;}
+    .team-table thead{display:none;}
+    .team-table, .team-table tbody, .team-table tr{display:block;width:100%;}
+    .team-table tr{
+      border-bottom:1px solid var(--line);padding:10px 18px 12px;
+    }
+    .team-table tr:last-child{border-bottom:none;}
+    .team-table td{
+      display:block;width:100%;padding:4px 0;border-bottom:none;word-break:break-word;
+    }
+    .team-table td[data-label]::before{
+      content:attr(data-label);display:block;font-size:11px;font-weight:700;
+      text-transform:uppercase;letter-spacing:0.3px;color:var(--maroon);margin-bottom:2px;
+    }
+    .team-table td[data-label="Action"]{margin-top:6px;}
+    .team-table td[data-label="Action"] .row-btn{
+      display:block;width:100%;margin:0 0 8px;text-align:center;padding:9px 10px;font-size:14px;
+    }
+    .team-table td[data-label="Action"] .row-btn:last-child{margin-bottom:0;}
+  }
+
+  /* ---- Peripheral Form (item list) editor ---- */
+  .pf-head{padding:22px 22px 6px;}
+  .pf-head h2{margin:0 0 14px;font-size:19px;color:var(--maroon);font-weight:800;letter-spacing:0.2px;}
+  .pf-head-note{
+    background:#fff;border:1px solid var(--line);border-left:3px solid var(--red);
+    border-radius:8px;padding:10px 16px;margin-bottom:10px;max-width:720px;
+    box-shadow:0 2px 8px rgba(110,22,32,0.05);
+  }
+  .pf-head-note-title{
+    display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:800;color:var(--maroon);
+    text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;list-style:none;
+    padding:2px 0;user-select:none;
+  }
+  .pf-head-note-title::-webkit-details-marker{display:none;}
+  .pf-head-note-title::after{
+    content:'▾';margin-left:auto;font-size:12px;color:var(--muted);transition:transform .15s ease;
+  }
+  .pf-head-note[open] .pf-head-note-title{margin-bottom:6px;}
+  .pf-head-note[open] .pf-head-note-title::after{transform:rotate(-180deg);}
+  .pf-head-note-title:hover{color:var(--red-dark);}
+  .pf-head p{margin:0;font-size:13px;color:var(--muted);max-width:680px;line-height:1.6;}
+  .pf-head p strong{color:var(--ink);}
+  .pf-meta{padding:2px 20px 0;font-size:14px;color:var(--muted);}
+  .pf-table{border-collapse:collapse;margin:14px 20px 0;width:calc(100% - 40px);}
+  .pf-table th{
+    text-align:left;font-size:13px;text-transform:uppercase;letter-spacing:0.4px;color:#fff;
+    background:var(--maroon);padding:10px 12px;
+  }
+  .pf-table td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:middle;background:#fff;}
+  .pf-table input[type=text]{
+    width:100%;border:1.5px solid var(--line);border-radius:7px;padding:8px 10px;
+    font-size:15.5px;font-family:inherit;color:var(--ink);
+  }
+  .pf-table input[type=text]:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(214,31,44,0.10);}
+  .pf-locked-text{
+    width:100%;border:1.5px solid var(--line);border-radius:7px;padding:8px 10px;
+    font-size:15.5px;font-family:inherit;color:var(--ink);background:var(--paper);
+    box-sizing:border-box;white-space:normal;word-break:break-word;
+  }
+  .pf-locked-text.center{text-align:center;color:var(--maroon);font-weight:700;}
+  .pf-row-actions{display:flex;gap:4px;align-items:center;}
+  .pf-edit-btn{
+    border:1px solid var(--line);background:#fff;color:var(--maroon);font-size:15px;line-height:1;
+    cursor:pointer;padding:6px 8px;border-radius:6px;transition:background .15s,border-color .15s;
+  }
+  .pf-edit-btn:hover{background:#F6ECEC;border-color:var(--maroon);}
+  .pf-remove-btn{
+    border:none;background:transparent;color:var(--muted);font-size:21px;line-height:1;
+    cursor:pointer;padding:5px 9px;border-radius:6px;transition:background .15s,color .15s;
+  }
+  .pf-remove-btn:hover{background:#FBE7E9;color:var(--red-dark);}
+  .pf-actions{display:flex;gap:10px;padding:16px 20px 6px;}
+  .pf-save-msg{padding:0 20px 20px;font-size:15px;font-weight:600;min-height:18px;}
+  .pf-save-msg.ok{color:#1E7A34;}
+  .pf-save-msg.err{color:var(--red-dark);}
+  .cn-status-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:13px;font-weight:700;letter-spacing:.3px;}
+  .cn-status-pill.unused{background:#E4F3E8;color:#1E7A34;}
+  .cn-status-pill.used{background:#F0F0F0;color:var(--muted);}
+
+  /* Mobile: the item-name column has no room to breathe in a 3-column
+     table on a phone (~360-400px wide), so text like
+     "[ LAPTOP ] , [ CHARGER ] , [ BAG ]" wraps one fragment per line and
+     the Qty/action columns get crushed. Stack each row into a labeled
+     card instead, same pattern used for the printed-form replica tables. */
+  @media (max-width:700px){
+    .pf-table{width:100%;margin:14px 0 0;border-collapse:separate;border-spacing:0;}
+    .pf-table thead{display:none;}
+    .pf-table, .pf-table tbody, .pf-table tr{display:block;width:100%;}
+    .pf-table tr{
+      border:1px solid var(--line);border-radius:8px;margin-bottom:12px;
+      padding:10px 12px 12px;background:#fff;
+    }
+    .pf-table td{
+      display:block;width:100%;padding:6px 0;border-bottom:none;background:transparent;
+    }
+    .pf-table td[data-label]:not([data-label=""])::before{
+      content:attr(data-label);display:block;font-size:11px;font-weight:700;
+      text-transform:uppercase;letter-spacing:0.3px;color:var(--maroon);margin-bottom:4px;
+    }
+    .pf-table .pf-locked-text.center{text-align:left;}
+    .pf-table .pf-row-actions{justify-content:flex-end;padding-top:4px;}
+  }
+  .cn-copy-btn{border:1.5px solid var(--line);background:#fff;color:var(--maroon);border-radius:7px;
+    padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;margin-right:6px;}
+  .cn-copy-btn:hover{background:#F6ECEC;border-color:var(--maroon);}
+  .cn-edit-btn{border:1.5px solid var(--red);background:#fff;color:var(--red);border-radius:7px;
+    padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;}
+  .cn-edit-btn:hover{background:var(--red);color:#fff;}
+  .cn-edit-btn:disabled{opacity:0.6;cursor:not-allowed;}
+  .cn-mono{font-family:'Courier New',monospace;font-size:16.5px;font-weight:700;letter-spacing:1px;color:var(--maroon);}
+  .cn-result-box{margin:0 20px 20px;background:#F6ECEC;border:1.5px dashed var(--maroon);border-radius:10px;padding:14px 16px;}
+  .cn-result-label{font-size:14.5px;color:var(--muted);margin-bottom:8px;font-weight:600;}
+  .cn-result-row{display:flex;align-items:center;gap:12px;}
+  .cn-result-number{font-size:24px;letter-spacing:2px;}
+
+  .pf-edit-banner{
+    margin:0 20px 16px;background:#F6ECEC;border:1.5px solid var(--maroon);border-radius:10px;
+    padding:12px 16px;display:flex;align-items:center;justify-content:space-between;
+    gap:12px;flex-wrap:wrap;font-size:14.5px;color:var(--maroon);
+  }
+  .pf-edit-banner strong{font-family:'Courier New',monospace;letter-spacing:1px;}
+  .pf-edit-banner .btn{padding:8px 14px;font-size:14px;}
+
+  /* ---- Calendar ---- */
+  .cal-toolbar{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;
+    background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 16px;
+  }
+  .cal-nav{display:flex;align-items:center;gap:6px;}
+  .cal-nav button{
+    border:1px solid var(--line);background:#fff;color:var(--maroon);border-radius:6px;
+    padding:6px 12px;font-size:15px;font-weight:700;cursor:pointer;
+  }
+  .cal-nav button:hover{background:#F6ECEC;}
+  .cal-title{font-size:17px;font-weight:800;color:var(--maroon);min-width:170px;text-align:center;}
+  .cal-search{
+    display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:6px;
+    padding:7px 12px;background:var(--paper);min-width:200px;
+  }
+  .cal-search input{border:none;background:transparent;outline:none;font-size:15px;width:100%;color:var(--ink);}
+  .cal-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13.5px;color:var(--muted);margin-left:auto;}
+  .cal-legend span{display:inline-flex;align-items:center;gap:5px;}
+  .cal-legend .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .cal-legend .dot.mm{background:var(--maroon);}
+  .cal-legend .dot.pd{background:var(--red);}
+  .cal-legend .dot.other{background:var(--muted);}
+  .cal-month-count{font-size:14px;color:var(--muted);white-space:nowrap;}
+
+  .cal-grid{
+    background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:18px;
+  }
+  .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);background:var(--maroon);}
+  .cal-weekdays div{
+    color:#fff;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;
+    padding:8px 6px;text-align:center;
+  }
+  .cal-days{display:grid;grid-template-columns:repeat(7,1fr);}
+  .cal-day{
+    min-height:92px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+    padding:6px 7px;cursor:pointer;position:relative;display:flex;flex-direction:column;gap:4px;
+    background:#fff;
+  }
+  .cal-day:nth-child(7n){border-right:none;}
+  .cal-day.outside{background:#FAF6F5;color:var(--muted);}
+  .cal-day:hover{background:#FAF1F1;}
+  .cal-day.selected{background:#FBE7E9;box-shadow:inset 0 0 0 2px var(--maroon);}
+  .cal-day .cal-daynum{font-size:14px;font-weight:700;color:var(--ink);}
+  .cal-day.outside .cal-daynum{color:var(--muted);font-weight:600;}
+  .cal-day.today .cal-daynum{
+    background:var(--red);color:#fff;border-radius:50%;width:20px;height:20px;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  .cal-day .cal-count{
+    font-size:12px;font-weight:700;color:var(--maroon);background:#F5EAEA;
+    border-radius:9px;padding:1px 7px;align-self:flex-start;
+  }
+  .cal-day.has-entries .cal-count{background:var(--maroon);color:#fff;}
+  .cal-chips{display:flex;flex-direction:column;gap:2px;overflow:hidden;}
+  .cal-chip{
+    font-size:11px;padding:1px 5px;border-radius:3px;background:#F5EAEA;color:var(--maroon);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px;
+  }
+  .cal-chip .dot{width:6px;height:6px;border-radius:50%;flex:none;}
+  .cal-chip .dot.mm{background:var(--maroon);}
+  .cal-chip .dot.pd{background:var(--red);}
+  .cal-chip .dot.other{background:var(--muted);}
+  .cal-day.dimmed{opacity:0.3;}
+  .cal-more{font-size:11px;color:var(--muted);padding-left:1px;}
+
+  .cal-detail{background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px 18px;}
+  .cal-detail-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  .cal-detail-head h3{margin:0;font-size:16px;color:var(--maroon);}
+  .cal-detail-list{display:flex;flex-direction:column;gap:10px;}
+  .cal-detail-empty{color:var(--muted);font-size:15px;padding:14px 0;}
+  .cal-detail-row{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    border:1px solid var(--line);border-radius:6px;padding:10px 12px;
+  }
+  .cal-detail-row .info{font-size:14.5px;}
+  .cal-detail-row .info .ctrl{font-weight:800;color:var(--maroon);margin-right:8px;}
+  .cal-detail-row .info .meta{color:var(--muted);}
+  @media (max-width:720px){
+    .cal-day{min-height:64px;padding:4px 5px;}
+    .cal-chips{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="pf-redirect-overlay" id="pfRedirectOverlay">
+  <div class="pf-redirect-logo-ring"><img src="logo-transparent.png" alt="Planet Drugstore"></div>
+  <div class="pf-redirect-text">Directing to the Peripheral Form<span class="pf-redirect-dots"><span>.</span><span>.</span><span>.</span></span></div>
+  <div class="pf-redirect-sub">Loading Control No. for editing</div>
+</div>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <img src="logo.png" alt="Planet Drugstore" class="brand-mark">
+      <div class="brand-name">PLANET<span>DRUGSTORE</span></div>
+    </div>
+    <h1>IT Admin Console — Peripherals Entries</h1>
+    <div class="who">Signed in as <strong id="whoEmail">…</strong></div>
+    <button class="logout-btn" id="logoutBtn">🚪 Log Out</button>
+  </div>
+
+  <div class="main-tabs">
+    <button id="tabEntriesBtn" class="active">📋 Peripheral Entries</button>
+    <button id="tabCalendarBtn">📅 Calendar</button>
+    <button id="tabRegisterBtn">👤 Register Employee</button>
+    <button id="tabPeripheralFormBtn">🧰 Peripheral Form</button>
+    <button id="tabControlNosBtn">🔑 Control Numbers (USED & UNUSED)</button>
+    <button id="tabDangerZoneBtn" style="color:#b42318;">⚠️ DELEET ALL DATA</button>
+  </div>
+
+  <div id="entriesSection">
+    <div class="entries-scope-bar" id="entriesScopeBar">
+      <span class="entries-date-label" id="entriesDateLabel"></span>
+      <button class="btn ghost" id="backToTodayBtn" style="display:none;">← Back to Today</button>
+    </div>
+    <div class="toolbar">
+      <div class="search-box">
+        <span>🔎</span>
+        <input type="text" id="searchInput" placeholder="Search by Control No, Venue, or Filled By...">
+      </div>
+      <div class="toggle-group">
+        <button id="viewTableBtn" class="active">☰ Table</button>
+        <button id="viewCardBtn">▦ Cards</button>
+      </div>
+      <button class="btn ghost" id="refreshBtn"><span class="btn-icon spin">↻</span> Refresh</button>
+      <span class="count-pill" id="countPill"></span>
+    </div>
+
+    <div id="loadingState" class="loading-state">Loading entries…</div>
+    <div id="emptyState" class="empty-state" style="display:none;">No saved peripheral entries yet.</div>
+
+    <div id="tableView" class="table-wrap" style="display:none;">
+      <table>
+        <thead>
+          <tr>
+            <th>Control No.</th>
+            <th>Date</th>
+            <th>Venue</th>
+            <th>Event</th>
+            <th>Filled Up By</th>
+            <th>Saved At</th>
+            <th style="width:150px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <div id="cardView" class="card-grid" style="display:none;"></div>
+  </div>
+
+  <div id="calendarSection" style="display:none;">
+    <div class="cal-toolbar">
+      <div class="cal-nav">
+        <button id="calPrevBtn" title="Previous month">&larr;</button>
+        <button id="calTodayBtn">Today</button>
+        <button id="calNextBtn" title="Next month">&rarr;</button>
+      </div>
+      <div class="cal-title" id="calTitle"></div>
+      <div class="cal-search">
+        <span>🔎</span>
+        <input type="text" id="calSearchInput" placeholder="Filter by Control No, Venue, or Filled By...">
+      </div>
+      <div class="cal-legend">
+        <span><span class="dot mm"></span> Medical Mission</span>
+        <span><span class="dot pd"></span> Peoples Day</span>
+        <span><span class="dot other"></span> Other / Unspecified</span>
+      </div>
+      <span class="cal-month-count" id="calMonthCount"></span>
+    </div>
+
+    <div class="cal-grid">
+      <div class="cal-weekdays">
+        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+      </div>
+      <div class="cal-days" id="calDays"></div>
+    </div>
+
+    <div class="cal-detail">
+      <div class="cal-detail-head">
+        <h3 id="calDetailTitle">Select a date</h3>
+        <button class="btn ghost" id="calViewAllBtn" style="display:none;">View this date in Entries tab</button>
+      </div>
+      <div class="cal-detail-list" id="calDetailList"></div>
+    </div>
+  </div>
+
+  <div id="registerSection" style="display:none;">
+    <div class="reg-row">
+    <div class="reg-card">
+      <div class="reg-card-head">
+        <h2>New Employee Account</h2>
+        <p>Create the login the employee will use on the Peripherals Receiving form. Give them the Staff ID and password directly.</p>
+      </div>
+      <div class="reg-card-body">
+        <form id="registerForm">
+          <div class="field">
+            <label for="empName">Full Name</label>
+            <input type="text" id="empName" placeholder="Juan Dela Cruz" required>
+          </div>
+          <div class="field">
+            <label for="empEmail">Email</label>
+            <input type="email" id="empEmail" placeholder="juan.delacruz@planetdrugstore.ph" required>
+          </div>
+          <div class="field">
+            <label for="empDepartment">Department</label>
+            <select id="empDepartment" required>
+              <option value="" disabled selected>Select department</option>
+              <option value="IT NORTH">IT NORTH</option>
+              <option value="IT SOUTH">IT SOUTH</option>
+              <option value="BILLING NORTH">BILLING NORTH</option>
+              <option value="BILLING SOUTH">BILLING SOUTH</option>
+              <option value="Pharmacy Assistant NORTH">Pharmacy Assistant NORTH</option>
+              <option value="Pharmacy Assistant SOUTH">Pharmacy Assistant SOUTH</option>
+            </select>
+          </div>
+          <div class="two-col">
+            <div class="field">
+              <label for="empStaffId">Staff ID</label>
+              <input type="text" id="empStaffId" placeholder="10234" required>
+              <div class="hint">Employee will use this to log in to the form.</div>
+            </div>
+            <div class="field">
+              <label for="empPassword">Password</label>
+              <input type="text" id="empPassword" placeholder="Temporary password" required>
+              <div class="hint">Any length is allowed.</div>
+            </div>
+          </div>
+          <button type="submit" class="submit-btn" id="registerBtn">Create Account</button>
+          <div class="msg err" id="errMsg"></div>
+          <div class="msg ok" id="okMsg"></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="reg-logo-panel">
+      <img src="logo-transparent.png" alt="Planet Drugstore" class="reg-logo-img">
+    </div>
+    </div>
+
+    <div class="recent-head">
+      <h2>Recently Registered</h2>
+    </div>
+    <div class="emp-toolbar">
+      <input type="text" id="empSearchInput" class="emp-search-input" placeholder="Search by name…">
+      <div class="branch-filter-group" id="branchFilterGroup">
+        <button type="button" class="branch-filter-btn active" data-branch-filter="ALL">All</button>
+        <button type="button" class="branch-filter-btn" data-branch-filter="NORTH">North</button>
+        <button type="button" class="branch-filter-btn" data-branch-filter="SOUTH">South</button>
+      </div>
+    </div>
+    <div id="empGroups"></div>
+  </div>
+
+  <div id="peripheralFormSection" style="display:none;">
+    <div class="pf-edit-banner" id="pfEditBanner" style="display:none;">
+      <span>✏️ Editing Control No. <strong id="pfEditBannerCn"></strong> — Save will update this same number, not generate a new one.</span>
+      <button type="button" class="btn ghost" id="pfEditCancelBtn">Cancel</button>
+    </div>
+    <div class="pf-head">
+      <h2>Peripheral Item List</h2>
+      <details class="pf-head-note">
+        <summary class="pf-head-note-title">ℹ️ How this works</summary>
+        <p>Fill in the Venue/Location and Event Type below, and edit the peripheral items for this specific form (Qty is the starting quantity per item), then click "Update Peripheral Form / Generate Control No." — this saves the list AND generates a new Control No. in one go, with all of this attached to it. Give that number to whoever will fill it up; their dashboard will open with the Venue, Event Type, and item list already filled in. Numbers generated earlier keep whatever was set when they were generated, even if you edit again here later.</p>
+      </details>
+      <details class="pf-head-note">
+        <summary class="pf-head-note-title">🧩 Grouping multiple pieces in one row</summary>
+        <p>Wrap each piece in brackets separated by commas — e.g. <strong>[ LAPTOP ] , [ CHARGER ] , [ BAG ]</strong> — and give Default Qty in the same order separated by "/" — e.g. <strong>2 / 2 / 2</strong>. For a single-piece row, you can just write <strong>[ ITEM NAME ] X2</strong> with a matching Default Qty of <strong>2</strong>.</p>
+      </details>
+      <details class="pf-head-note">
+        <summary class="pf-head-note-title">🔒 Editing existing rows</summary>
+        <p>Existing items are locked by default so they can't be changed by accident — click <strong>✏️</strong> beside a row to unlock just that row and edit it, or click <strong>↺ Restore Default Items</strong> to bring back the built-in bracketed list in one click (still needs "Update Peripheral Form / Generate Control No." below to actually save it).</p>
+      </details>
+    </div>
+    <div class="pf-meta-fields">
+      <div class="field">
+        <label for="pfVenue">Venue / Location</label>
+        <input type="text" id="pfVenue" style="text-transform:uppercase;" placeholder="e.g. NORTH CITY HALL / SOUTH CITY HALL" list="pfVenueList" autocomplete="off">
+        <datalist id="pfVenueList"></datalist>
+      </div>
+      <div class="field">
+        <label for="pfPreparedBy">Prepared By (Name)</label>
+        <input type="text" id="pfPreparedBy" placeholder="Name of whoever prepared the box" list="pfPreparedByList" autocomplete="off">
+        <datalist id="pfPreparedByList"></datalist>
+      </div>
+      <div class="field">
+        <label for="pfTeam">Team / Department</label>
+        <input type="text" id="pfTeam" value="Information Technology (IT)" readonly>
+      </div>
+      <div class="field">
+        <label for="pfPreparedTime">Prepared Time</label>
+        <input type="time" id="pfPreparedTime">
+      </div>
+    </div>
+    <div class="pf-event-row" style="padding-left:20px;">
+      <label><input type="checkbox" id="pfEvMission"> Medical Mission</label>
+      <label><input type="checkbox" id="pfEvPeoples"> People's Day</label>
+    </div>
+    <div class="pf-attach-section">
+      <label class="attach-section-label">Attachment (Photo) — Before Use</label>
+      <div class="attach-actions">
+        <label for="pfBeforeCameraInput" class="attach-btn">📷 Take Photo</label>
+        <label for="pfBeforeFileInput" class="attach-btn ghost">🖼️ Attach File</label>
+      </div>
+      <input type="file" accept="image/*" capture="environment" id="pfBeforeCameraInput" class="attach-input-hidden">
+      <input type="file" accept="image/*" id="pfBeforeFileInput" class="attach-input-hidden">
+      <div class="attach-preview" id="pfBeforeAttachPreview">
+        <div class="attach-thumb">
+          <img id="pfBeforeAttachImg" alt="Before use attachment">
+          <button type="button" class="attach-remove" id="pfBeforeAttachClear" aria-label="Remove photo">&times;</button>
+        </div>
+      </div>
+    </div>
+    <div class="pf-attach-section">
+      <label class="attach-section-label">Prepared By — Signature</label>
+      <div class="sig-pad-wrap">
+        <canvas class="sig-canvas" id="pfPreparedSigCanvas" width="280" height="90"></canvas>
+        <button type="button" class="sig-clear" id="pfPreparedSigClear">Clear</button>
+      </div>
+    </div>
+    <div class="pf-meta" id="pfMeta"></div>
+    <table class="pf-table">
+      <thead>
+        <tr><th>Peripheral Item</th><th style="width:150px;">Default Qty</th><th style="width:56px;"></th></tr>
+      </thead>
+      <tbody id="pfItemsBody"></tbody>
+    </table>
+    <div class="pf-actions">
+      <button type="button" class="btn ghost" id="pfAddItemBtn">+ Add Item</button>
+      <button type="button" class="btn ghost" id="pfRestoreDefaultsBtn">↺ Restore Default Items</button>
+      <button type="button" class="btn" id="pfUpdateBtn">Update Peripheral Form / Generate Control No.</button>
+    </div>
+    <div class="pf-save-msg" id="pfSaveMsg"></div>
+    <div class="cn-result-box" id="cnResultBox" style="display:none;">
+      <div class="cn-result-label">New Control No. — give this to whoever will fill up this form:</div>
+      <div class="cn-result-row">
+        <span class="cn-mono cn-result-number" id="cnResultNumber"></span>
+        <button type="button" class="cn-copy-btn" id="cnResultCopyBtn">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="controlNosSection" style="display:none;">
+    <div class="pf-head">
+      <h2>Peripheral Control Numbers</h2>
+      <p>Log of every Control No. generated so far, each with the item list it was created with. To generate a new one, go to the Peripheral Form tab and use "Update Peripheral Form / Generate Control No."</p>
+    </div>
+    <table class="pf-table" style="margin-top:6px;">
+      <thead>
+        <tr><th style="width:140px;">Control No.</th><th style="width:120px;">Status</th><th>Venue</th><th>Generated</th><th>Used</th><th style="width:80px;"></th></tr>
+      </thead>
+      <tbody id="cnListBody"></tbody>
+    </table>
+    <div class="pf-meta" id="cnEmptyState" style="display:none;padding-bottom:20px;">No Control Numbers generated yet.</div>
+  </div>
+
+  <div id="dangerZoneSection" style="display:none;">
+    <div class="pf-head">
+      <h2 style="color:#b42318;">⚠️ Danger Zone — Delete All Data</h2>
+      <p>This permanently deletes <strong>every</strong> Peripheral Entry, Control Number, saved Venue suggestion, and the Peripheral Items Template. It does <strong>not</strong> touch Employee accounts (Register Employee tab) — those stay untouched. <strong>This cannot be undone.</strong></p>
+    </div>
+    <div id="dzSummary" style="padding:0 20px 10px;color:#555;font-size:14px;">Checking what's currently stored…</div>
+    <div style="padding:0 20px 20px;max-width:520px;">
+      <label for="dzConfirmInput" style="display:block;font-weight:600;margin-bottom:6px;">
+        Type <code style="background:#fbe9e7;padding:2px 6px;border-radius:4px;">DELETE ALL DATA</code> to confirm:
+      </label>
+      <input type="text" id="dzConfirmInput" placeholder="DELETE ALL DATA" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box;" autocomplete="off">
+      <button type="button" class="btn" id="dzDeleteBtn" disabled style="margin-top:12px;background:#b42318;border-color:#b42318;opacity:.5;cursor:not-allowed;">🗑️ Permanently Delete All Data</button>
+      <div class="pf-save-msg" id="dzStatusMsg" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Attachment Lightbox (click a photo to maximize it) -->
+<div class="lightbox-overlay" id="lightboxOverlay">
+  <button type="button" class="lightbox-close" id="lightboxCloseBtn">&times;</button>
+  <img id="lightboxImg" src="" alt="Attachment (full size)">
+</div>
+
+<!-- Detail / Edit Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Entry <span id="modalControlNo"></span></h2>
+      <button class="close-btn" id="modalCloseBtn">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- populated by JS -->
+    </div>
+    <div class="modal-foot">
+      <span class="modal-status" id="modalStatus"></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn red" id="modalDeleteBtn">Delete Entry</button>
+        <button class="btn ghost" id="modalCloseBtn2">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="pwModalOverlay">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-head">
+      <h2>Change Password — <span id="pwModalEmpName"></span></h2>
+      <button class="close-btn" id="pwModalCloseBtn">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px 22px;">
+      <p style="font-size:13px;color:var(--muted);margin:0 0 16px;">
+        Set a new password for Staff ID <strong id="pwModalStaffId"></strong>. They will need to sign in with this new password next time.
+      </p>
+      <div class="field">
+        <label for="pwModalInput">New Password</label>
+        <input type="text" id="pwModalInput" placeholder="New temporary password" autocomplete="off">
+        <div class="hint">Any length is allowed.</div>
+      </div>
+      <div class="login-error" id="pwModalError" style="display:none;background:#FBE7E9;border:1px solid #F3C2C6;color:var(--red-dark);font-size:12.5px;padding:10px 12px;border-radius:8px;margin-top:6px;"></div>
+    </div>
+    <div class="modal-foot">
+      <span></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn ghost" id="pwModalCancelBtn">Cancel</button>
+        <button class="btn red" id="pwModalSaveBtn">Save New Password</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm-password gate before saving/generating a Control No. Re-checks
+     the password of whoever is CURRENTLY signed in on this device, so a
+     device left logged-in can't be used to process a peripheral form /
+     generate a Control No. without knowing that admin's password. -->
+<div class="modal-overlay" id="cnConfirmModalOverlay">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-head">
+      <h2>Confirm Password</h2>
+      <button class="close-btn" id="cnConfirmCloseBtn">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px 22px;">
+      <p style="font-size:13px;color:var(--muted);margin:0 0 16px;">
+        Signed in as <strong id="cnConfirmAdminEmail"></strong>. Enter this account's password to <span id="cnConfirmPurpose">save these changes</span>.
+      </p>
+      <div class="field">
+        <label for="cnConfirmInput">Password</label>
+        <input type="password" id="cnConfirmInput" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div class="login-error" id="cnConfirmError" style="display:none;background:#FBE7E9;border:1px solid #F3C2C6;color:var(--red-dark);font-size:12.5px;padding:10px 12px;border-radius:8px;margin-top:6px;"></div>
+    </div>
+    <div class="modal-foot">
+      <span></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn ghost" id="cnConfirmCancelBtn">Cancel</button>
+        <button class="btn red" id="cnConfirmSubmitBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Danger Zone final warning — a real modal instead of a native browser
+     confirm(), so it can't be dismissed with a stray Enter keypress and
+     matches the rest of this console's look. -->
+<div class="modal-overlay" id="dzWarnModalOverlay">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-head">
+      <h2 style="color:#b42318;">⚠️ Confirm Permanent Deletion</h2>
+      <button class="close-btn" id="dzWarnCloseBtn">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px 22px;">
+      <p style="font-size:13.5px;color:var(--ink);line-height:1.6;margin:0;" id="dzWarnModalMsg"></p>
+    </div>
+    <div class="modal-foot">
+      <span></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn ghost" id="dzWarnCancelBtn">Cancel</button>
+        <button class="btn red" id="dzWarnYesBtn">Yes, Delete Everything</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    initializeFirestore, collection, getDocs, doc, getDoc, setDoc, deleteDoc, writeBatch,
+    query, orderBy, onSnapshot, serverTimestamp, runTransaction
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    getAuth, onAuthStateChanged, signOut, setPersistence,
+    indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence,
+    EmailAuthProvider, reauthenticateWithCredential
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const STAFF_DOMAIN = 'staff.planetdrugstore.local';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
+    authDomain: "planetdrugstore-peripher-d24c0.firebaseapp.com",
+    projectId: "planetdrugstore-peripher-d24c0",
+    storageBucket: "planetdrugstore-peripher-d24c0.firebasestorage.app",
+    messagingSenderId: "115454971026",
+    appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = initializeFirestore(app, {
+    experimentalForceLongPolling: true,
+    useFetchStreams: false
+  });
+  const auth = getAuth(app);
+
+  // Persistence fallback chain — this is the #1 cause of admin-login <->
+  // admin-console loops on mobile. Some mobile browsers (in-app browsers
+  // like Facebook/Messenger/Instagram, Safari private mode, or Safari with
+  // "Prevent Cross-Site Tracking" strict settings) block IndexedDB and/or
+  // localStorage. When that happens, signing in on admin-login.html
+  // succeeds in memory, but the moment it navigates to admin-console.html
+  // (a fresh page load / fresh JS context) the session is gone, so
+  // onAuthStateChanged below fires with user=null and bounces back to
+  // admin-login.html — which then does the same thing in reverse. The
+  // previous code (`setPersistence(...).catch(()=>{})`) swallowed that
+  // failure silently instead of falling back, so it looked like "random"
+  // looping with no error. admin-login.html needs this SAME fallback
+  // chain (see console warning below) or the loop will still happen.
+  let persistenceMode = 'indexedDB';
+  try{
+    await setPersistence(auth, indexedDBLocalPersistence);
+  }catch(e1){
+    console.warn('indexedDBLocalPersistence failed, falling back to browserLocalPersistence', e1);
+    try{
+      persistenceMode = 'local';
+      await setPersistence(auth, browserLocalPersistence);
+    }catch(e2){
+      console.warn('browserLocalPersistence failed, falling back to browserSessionPersistence', e2);
+      try{
+        persistenceMode = 'session';
+        await setPersistence(auth, browserSessionPersistence);
+      }catch(e3){
+        console.error('All persistent auth storage failed — session will not survive navigating to a new page. This browser is likely blocking IndexedDB/localStorage (common in in-app browsers or strict private-browsing mode). admin-login.html must use the same fallback chain.', e3);
+        persistenceMode = 'memory';
+        await setPersistence(auth, inMemoryPersistence).catch(()=>{});
+      }
+    }
+  }
+  window.__pdAuthPersistenceMode = persistenceMode; // for debugging from the console
+
+  // Employee accounts are no longer real Firebase Auth users — they're just
+  // documents in the "employees" collection (Staff ID as the doc ID, plus a
+  // hashed password). This lets Admin set passwords of any length, since
+  // Firebase Auth itself enforces a hard 6-character minimum that can't be
+  // turned off. SHA-256 (built into the browser, no library needed) is used
+  // so plaintext passwords are never stored in Firestore. Note this is a
+  // simple hash, not a salted/slow hash like bcrypt — reasonable for an
+  // internal tool, but keep Firestore rules locked down since anyone who
+  // could read the "employees" collection could attempt to crack the hashes.
+  async function hashPassword(pw){
+    const enc = new TextEncoder().encode(pw);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // ---- "Prepared By" signature auto-predict (Admin-side) ----
+  // Same idea as peripheral-form.html's fsRecordReceiverInfo/fsLookupReceiverInfo
+  // for "Received By" — remembers the last-used signature for a given
+  // "Prepared By" name (shared across every admin device via the "preparers"
+  // collection, keyed by name), so typing a name that's signed before
+  // auto-fills their signature instead of needing them to sign again.
+  function personDocId(name){
+    const clean = String(name || '').trim().replace(/\s+/g, ' ').toUpperCase().replace(/\//g, '-');
+    return clean ? clean.slice(0, 300) : null;
+  }
+  window.fsRecordPreparerInfo = async function(name, signature){
+    const id = personDocId(name);
+    const sig = String(signature || '').trim();
+    if(!id || !sig) return;
+    try{
+      await setDoc(doc(db, "preparers", id), { name: String(name).trim(), signature: sig, lastUsedAt: serverTimestamp() }, { merge: true });
+    }catch(e){
+      console.error('Could not record preparer info', e);
+    }
+  };
+  window.fsLookupPreparerInfo = async function(name){
+    const id = personDocId(name);
+    if(!id) return { signature: '' };
+    try{
+      const snap = await getDoc(doc(db, "preparers", id));
+      if(!snap.exists()) return { signature: '' };
+      return { signature: snap.data().signature || '' };
+    }catch(e){
+      console.error('Could not look up preparer info', e);
+      return { signature: '' };
+    }
+  };
+
+  // ---- Peripheral item list (template) ----
+  // The fixed item list (name + default Qty) every new Peripheral Form
+  // starts from. Read here by the editor UI and by peripheral-form.html
+  // itself; saved only from this console.
+  window.fsGetItemsTemplate = async function(){
+    try{
+      const snap = await getDoc(doc(db, "config", "peripheralItemsTemplate"));
+      if(snap.exists()) return snap.data();
+    }catch(e){
+      console.error('Could not load peripheral items template', e);
+    }
+    return null;
+  };
+  window.fsSaveItemsTemplate = async function(items, updatedByEmail){
+    await setDoc(doc(db, "config", "peripheralItemsTemplate"), {
+      items,
+      updatedAt: serverTimestamp(),
+      updatedBy: updatedByEmail || ''
+    });
+  };
+
+  // ---- Control Numbers (reservedControlNos) ----
+  // Generated together with the item-list edit (see pfUpdateBtn below) —
+  // each Control No. carries its OWN snapshot of the peripheral item list
+  // at the moment it was generated, so different numbers can go out with
+  // different item lists, and a later item-list edit never retroactively
+  // changes a number that's already been generated/handed out.
+  // Employee's dashboard stays blank/locked until this exact number is
+  // typed in and validated — see fsCheckReservedControlNo in
+  // peripheral-form.html.
+  window.fsGenerateControlNo = async function(adminEmail, items, meta){
+    for(let attempt = 0; attempt < 8; attempt++){
+      const candidate = String(Math.floor(100000 + Math.random() * 900000));
+      const ref = doc(db, "reservedControlNos", candidate);
+      const snap = await getDoc(ref);
+      if(!snap.exists()){
+        await setDoc(ref, {
+          status: 'unused',
+          generatedAt: serverTimestamp(),
+          generatedBy: adminEmail || '',
+          usedAt: null,
+          items: Array.isArray(items) ? items : [],
+          venue: (meta && meta.venue) || '',
+          eventType: {
+            medicalMission: !!(meta && meta.eventType && meta.eventType.medicalMission),
+            peoplesDay: !!(meta && meta.eventType && meta.eventType.peoplesDay)
+          },
+          preparedBy: (meta && meta.preparedBy) || '',
+          team: (meta && meta.team) || 'Information Technology (IT)',
+          preparedTime: (meta && meta.preparedTime) || '',
+          beforeAttachment: (meta && meta.beforeAttachment) || '',
+          preparedSignature: (meta && meta.preparedSignature) || ''
+        });
+        return candidate;
+      }
+    }
+    throw new Error('Could not find a free Control No. after several tries — please try again.');
+  };
+
+  // Updates an EXISTING reservedControlNos doc IN PLACE — used only when
+  // Admin edits a still-unused Control No. from the Control Numbers list
+  // "✏️ Edit" button (see enterPfEditMode in the Peripheral Form tab
+  // code). Unlike fsGenerateControlNo above, this never picks a new
+  // number and never touches status/generatedAt/generatedBy/usedAt — it
+  // only overwrites the venue/eventType/preparedBy/team/preparedTime/
+  // attachment/signature/items fields. Runs as a transaction and refuses
+  // (throws {code:'already-used'}) if the number became 'used' in the
+  // moment between Admin opening the editor and clicking Save, so a
+  // stale edit can never silently overwrite someone's real, in-progress
+  // entry.
+  window.fsUpdateReservedControlNo = async function(controlNo, items, meta){
+    const ref = doc(db, "reservedControlNos", String(controlNo));
+    return await runTransaction(db, async (tx) => {
+      const snap = await tx.get(ref);
+      if(!snap.exists()){
+        const err = new Error('Control No. not found'); err.code = 'not-found'; throw err;
+      }
+      const data = snap.data();
+      if(data.status === 'used'){
+        const err = new Error('Control No. already used'); err.code = 'already-used'; throw err;
+      }
+      tx.set(ref, {
+        items: Array.isArray(items) ? items : [],
+        venue: (meta && meta.venue) || '',
+        eventType: {
+          medicalMission: !!(meta && meta.eventType && meta.eventType.medicalMission),
+          peoplesDay: !!(meta && meta.eventType && meta.eventType.peoplesDay)
+        },
+        preparedBy: (meta && meta.preparedBy) || '',
+        team: (meta && meta.team) || 'Information Technology (IT)',
+        preparedTime: (meta && meta.preparedTime) || '',
+        beforeAttachment: (meta && meta.beforeAttachment) || '',
+        preparedSignature: (meta && meta.preparedSignature) || ''
+      }, { merge: true });
+      return true;
+    });
+  };
+
+  // ---- Admin-only auth guard ----
+  // Only real admin/IT-Logistics accounts (real email, via admin-login.html) may
+  // reach this console. Employee Staff-ID accounts and signed-out visitors
+  // are sent to the admin login page.
+  onAuthStateChanged(auth, (user)=>{
+    const isStaffAccount = !!(user && user.email && user.email.endsWith('@' + STAFF_DOMAIN));
+    if(!user || isStaffAccount){
+      window.location.replace('admin-login.html');
+      return;
+    }
+    document.getElementById('whoEmail').textContent = user.email;
+    window.currentAdminEmail = user.email;
+    loadEntries();
+    startControlNosListener(); // start early too, so pfVenue/pfPreparedBy suggestions
+                                // are ready as soon as the Generate form is used —
+                                // not just after visiting the Control Numbers tab
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+    PDLoader.show();
+    await signOut(auth);
+    window.location.href = 'admin-login.html';
+  });
+
+  // ---- Data loading ----
+  let allEntries = []; // [{id, ...data}]
+  let allControlNos = []; // [{id, ...data}] — from reservedControlNos, kept for the
+                           // Venue/Prepared-By suggestion lists below
+  const loadingState = document.getElementById('loadingState');
+  const emptyState = document.getElementById('emptyState');
+  const tableView = document.getElementById('tableView');
+  const cardView = document.getElementById('cardView');
+  const tableBody = document.getElementById('tableBody');
+  const countPill = document.getElementById('countPill');
+  const entriesDateLabel = document.getElementById('entriesDateLabel');
+  const backToTodayBtn = document.getElementById('backToTodayBtn');
+
+  // The Entries tab is scoped to a single day at a time. By default (null)
+  // it always tracks the live current day, resetting automatically at
+  // midnight. Clicking "View this date" from the Calendar tab pins it to
+  // that specific date instead, until "Back to Today" is clicked.
+  let entriesViewDate = null;
+  function entriesDateKey(){ return entriesViewDate || todayKey(); }
+  function isPastDateKey(k){ return k < todayKey(); }
+  function isFutureDateKey(k){ return k > todayKey(); }
+
+  // Tracks whether the day that just ended (before the current live day)
+  // passed with zero entries. Only once this is true — meaning the day is
+  // fully over — do we show the definitive "No Event This Day" message for
+  // an empty live-today view; while today is still in progress we stay quiet.
+  let lastRolloverCheckedKey = todayKey();
+  let todayConcludedNoEvent = false;
+
+  function checkDayRollover(){
+    const nowKey = todayKey();
+    if(nowKey !== lastRolloverCheckedKey){
+      const hadEntries = allEntries.some(e => dateKeyOf(e.date) === lastRolloverCheckedKey);
+      todayConcludedNoEvent = !hadEntries;
+      lastRolloverCheckedKey = nowKey;
+      if(!entriesViewDate) render(); // only auto-refresh when tracking the live day
+      renderCalendar();
+    }
+  }
+  setInterval(checkDayRollover, 60000);
+
+  // Live-updating: one onSnapshot listener for the whole "entries" collection,
+  // kept open for the life of the console session. Any save/edit/delete —
+  // from this admin, another admin, or an employee — pushes a fresh snapshot
+  // here automatically, so the Entries/Calendar views update on their own
+  // with no tab refresh needed.
+  let unsubEntries = null;
+  function loadEntries(){
+    if(unsubEntries) return; // listener already running
+    loadingState.style.display = 'block';
+    emptyState.style.display = 'none';
+    tableView.style.display = 'none';
+    cardView.style.display = 'none';
+    unsubEntries = onSnapshot(collection(db, 'entries'), (snap)=>{
+      allEntries = [];
+      snap.forEach(d => allEntries.push({ id: d.id, ...d.data() }));
+      // newest first
+      allEntries.sort((a,b)=>{
+        const at = a.savedAt && a.savedAt.seconds ? a.savedAt.seconds : 0;
+        const bt = b.savedAt && b.savedAt.seconds ? b.savedAt.seconds : 0;
+        if(bt !== at) return bt - at;
+        return String(b.controlNo||b.id).localeCompare(String(a.controlNo||a.id));
+      });
+      render();
+      updatePfSuggestions();
+    }, (e)=>{
+      console.error('Entries listener error', e);
+      loadingState.textContent = 'Failed to load entries (' + (e.code || e.message) + '). Check Firestore rules / connection.';
+    });
+  }
+
+  // ---- Venue / Prepared-By suggestions ("has this been used before?") ----
+  // Feeds the pfVenue / pfPreparedBy <datalist>s from what's actually been
+  // typed before — pulled from both saved entries and previously generated
+  // Control Numbers — so the admin can just pick "SOUTH CITY HALL" again
+  // instead of retyping it, without maintaining a separate managed list.
+  // Ranked by how often each value shows up, most-used first.
+  function rankedUniqueValues(rawValues){
+    const counts = new Map();
+    rawValues.forEach(v=>{
+      const val = (v || '').toString().trim();
+      if(!val) return;
+      const key = val.toUpperCase();
+      const existing = counts.get(key);
+      if(existing) existing.count++;
+      else counts.set(key, { display: val, count: 1 });
+    });
+    return [...counts.values()]
+      .sort((a,b)=> b.count - a.count)
+      .map(v=>v.display);
+  }
+  function fillDatalist(id, values){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.innerHTML = values.slice(0, 50).map(v=>`<option value="${escapeAttr(v)}"></option>`).join('');
+  }
+  function updatePfSuggestions(){
+    const venues = rankedUniqueValues([
+      ...allEntries.map(e=>e.venue),
+      ...allControlNos.map(c=>c.venue)
+    ]);
+    const preparedByNames = rankedUniqueValues([
+      ...allEntries.map(e=> e.signatures && e.signatures.issuedBy && e.signatures.issuedBy.name),
+      ...allControlNos.map(c=>c.preparedBy)
+    ]);
+    fillDatalist('pfVenueList', venues);
+    fillDatalist('pfPreparedByList', preparedByNames);
+  }
+
+  function fmtSavedAt(entry){
+    if(entry.savedAt && entry.savedAt.seconds){
+      return new Date(entry.savedAt.seconds * 1000).toLocaleString();
+    }
+    return '—';
+  }
+
+  function matchesSearch(entry, q){
+    if(!q) return true;
+    q = q.toLowerCase();
+    const hay = [
+      entry.controlNo, entry.venue, entry.date,
+      entry.filledUpBy && entry.filledUpBy.name,
+      entry.filledUpBy && entry.filledUpBy.staffId,
+      entry.filledUpBy && entry.filledUpBy.department,
+      entry.coFilledUpBy && entry.coFilledUpBy.name,
+      entry.coFilledUpBy && entry.coFilledUpBy.staffId,
+      entry.coFilledUpBy && entry.coFilledUpBy.department
+    ].filter(Boolean).join(' ').toLowerCase();
+    return hay.includes(q);
+  }
+
+  // Shows the host's name, plus the joiner's name (if this entry was
+  // co-filled live) clearly labeled so admins can tell the two apart —
+  // e.g. "Juan Dela Cruz (Host) + Maria Santos (Joiner)".
+  function filledByLabel(entry){
+    const host = entry.filledUpBy && entry.filledUpBy.name;
+    const joiner = entry.coFilledUpBy && entry.coFilledUpBy.name;
+    if(!host && !joiner) return '—';
+    if(!joiner) return host || '—';
+    return (host || '—') + ' (Host) + ' + joiner + ' (Joiner)';
+  }
+
+  function eventLabel(entry){
+    const et = entry.eventType || {};
+    const labels = [];
+    if(et.medicalMission) labels.push('Medical Mission');
+    if(et.peoplesDay) labels.push('Peoples Day');
+    return labels.length ? labels.join(', ') : '—';
+  }
+
+  function updateEntriesScopeUI(viewKey){
+    const [y, m, d] = viewKey.split('-').map(Number);
+    const nice = new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    const isTodayView = !entriesViewDate;
+    entriesDateLabel.textContent = (isTodayView ? 'Today — ' : '') + nice;
+    backToTodayBtn.style.display = entriesViewDate ? 'inline-block' : 'none';
+  }
+
+  function render(){
+    const q = document.getElementById('searchInput').value.trim();
+    const viewKey = entriesDateKey();
+    const scoped = allEntries.filter(e => dateKeyOf(e.date) === viewKey);
+    const filtered = scoped.filter(e => matchesSearch(e, q));
+
+    loadingState.style.display = 'none';
+    updateEntriesScopeUI(viewKey);
+    countPill.textContent = filtered.length + ' / ' + scoped.length + ' entries';
+
+    if(scoped.length === 0){
+      tableView.style.display = 'none';
+      cardView.style.display = 'none';
+      emptyState.classList.remove('no-event');
+      if(isPastDateKey(viewKey)){
+        emptyState.textContent = 'No Event This Day';
+        emptyState.classList.add('no-event');
+      }else if(isFutureDateKey(viewKey)){
+        emptyState.textContent = 'No peripherals form yet for this upcoming date.';
+      }else if(todayConcludedNoEvent){
+        emptyState.textContent = 'No Event This Day';
+        emptyState.classList.add('no-event');
+      }else{
+        emptyState.textContent = 'No saved peripheral entries yet.';
+      }
+      emptyState.style.display = 'block';
+      return;
+    }
+    emptyState.style.display = 'none';
+    todayConcludedNoEvent = false; // this day clearly has an event
+
+    // Table
+    tableBody.innerHTML = filtered.map(e => `
+      <tr>
+        <td class="control-no">${escapeHtml(e.controlNo || e.id)}</td>
+        <td>${escapeHtml(e.date || '—')}</td>
+        <td>${escapeHtml(e.venue || '—')}</td>
+        <td><span class="badge">${escapeHtml(eventLabel(e))}</span></td>
+        <td>${escapeHtml(filledByLabel(e))}</td>
+        <td>${escapeHtml(fmtSavedAt(e))}</td>
+        <td>
+          <button class="row-btn" data-view="${e.id}">View</button>
+          <button class="row-btn del" data-del="${e.id}">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+
+    // Cards
+    cardView.innerHTML = filtered.map(e => `
+      <div class="entry-card">
+        <div class="ctrl">#${escapeHtml(e.controlNo || e.id)}</div>
+        <div class="venue">${escapeHtml(e.venue || '(no venue)')}</div>
+        <div class="meta-line">${escapeHtml(e.date || '—')} · <span class="badge">${escapeHtml(eventLabel(e))}</span></div>
+        <div class="meta-line">Filled by: ${escapeHtml(filledByLabel(e))}</div>
+        <div class="meta-line">Saved: ${escapeHtml(fmtSavedAt(e))}</div>
+        <div class="actions">
+          <button class="row-btn" data-view="${e.id}">View</button>
+          <button class="row-btn del" data-del="${e.id}">Delete</button>
+        </div>
+      </div>
+    `).join('');
+
+    applyViewToggle();
+    wireRowButtons();
+    renderCalendar();
+  }
+
+  function wireRowButtons(){
+    document.querySelectorAll('[data-view]').forEach(btn=>{
+      btn.addEventListener('click', ()=> openModal(btn.getAttribute('data-view')));
+    });
+    document.querySelectorAll('[data-del]').forEach(btn=>{
+      btn.addEventListener('click', ()=> deleteEntry(btn.getAttribute('data-del')));
+    });
+  }
+
+  function escapeHtml(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+
+  document.getElementById('searchInput').addEventListener('input', render);
+  document.getElementById('refreshBtn').addEventListener('click', loadEntries);
+
+  // ---- Table / Card toggle ----
+  let currentView = 'table';
+  const viewTableBtn = document.getElementById('viewTableBtn');
+  const viewCardBtn = document.getElementById('viewCardBtn');
+  function applyViewToggle(){
+    tableView.style.display = currentView === 'table' ? 'block' : 'none';
+    cardView.style.display = currentView === 'card' ? 'grid' : 'none';
+    viewTableBtn.classList.toggle('active', currentView === 'table');
+    viewCardBtn.classList.toggle('active', currentView === 'card');
+  }
+  viewTableBtn.addEventListener('click', ()=>{ currentView='table'; applyViewToggle(); });
+  viewCardBtn.addEventListener('click', ()=>{ currentView='card'; applyViewToggle(); });
+
+  // ---- Delete ----
+  async function deleteEntry(id){
+    const entry = allEntries.find(e=>e.id === id);
+    const label = entry ? (entry.controlNo || id) : id;
+    const ok = confirm('Are you sure you want to delete entry #' + label + '? This cannot be undone.');
+    if(!ok) return;
+    PDLoader.show();
+    try{
+      await deleteDoc(doc(db, 'entries', id));
+      allEntries = allEntries.filter(e=>e.id !== id);
+      render();
+      if(modalOverlay.classList.contains('open') && currentEditId === id){
+        closeModal();
+      }
+    }catch(e){
+      console.error('Delete failed', e);
+      alert('Could not delete (' + (e.code || e.message) + ').');
+    }finally{
+      PDLoader.hide();
+    }
+  }
+
+  // ---- Modal: view / edit ----
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalBody = document.getElementById('modalBody');
+  const modalStatus = document.getElementById('modalStatus');
+  let currentEditId = null;
+  let currentEditEntry = null;
+
+  function openModal(id){
+    const entry = allEntries.find(e=>e.id === id);
+    if(!entry) return;
+    currentEditId = id;
+    currentEditEntry = JSON.parse(JSON.stringify(entry)); // working copy
+    document.getElementById('modalControlNo').textContent = '#' + (entry.controlNo || id);
+    modalStatus.textContent = '';
+    modalBody.innerHTML = buildModalHtml(currentEditEntry);
+    modalOverlay.classList.add('open');
+    // Auto-fit each Remarks textarea to its saved content so long notes
+    // are visible in full without needing to scroll sideways, and keep
+    // growing it live while an admin edits the text.
+    modalBody.querySelectorAll('.remarks-input, .grow-input').forEach(el=>{
+      autoGrowRemarks(el);
+      el.addEventListener('input', ()=> autoGrowRemarks(el));
+    });
+    // Safety net: re-measure one frame later, after the browser has
+    // finished laying out the now-fixed table columns, in case the
+    // very first measurement above ran before column widths settled.
+    requestAnimationFrame(()=>{
+      modalBody.querySelectorAll('.remarks-input, .grow-input').forEach(autoGrowRemarks);
+    });
+    // Venue/Location: keep the actual stored value uppercase as the admin
+    // types, same as the employee-facing form.
+    const venueField = document.getElementById('f_venue');
+    if(venueField){
+      venueField.addEventListener('input', ()=>{
+        const start = venueField.selectionStart;
+        const end = venueField.selectionEnd;
+        venueField.value = venueField.value.toUpperCase();
+        try{ venueField.setSelectionRange(start, end); }catch(e){}
+      });
+    }
+    // Qty / Received Qty / Returned Qty: if the admin just types a plain
+    // number into a row whose Peripheral Item has more than one [ bracketed ]
+    // piece, auto-repeat it into "2 / 2 / 2" etc. on blur, matching the count
+    // of bracketed items in that row — so they never have to type the "/"
+    // separators by hand.
+    modalBody.querySelectorAll('[data-item][data-field="qty"], [data-item][data-field="beforeUse.receivedQty"], [data-item][data-field="afterUse.returnedQty"]').forEach(qtyInput=>{
+      qtyInput.addEventListener('blur', ()=>{
+        const idx = qtyInput.getAttribute('data-item');
+        const itemEl = modalBody.querySelector(`[data-item="${idx}"][data-field="item"]`);
+        const itemText = itemEl ? (itemEl.value !== undefined ? itemEl.value : itemEl.textContent) : '';
+        const count = countBracketItems(itemText);
+        const expanded = autoExpandQty(qtyInput.value, count);
+        if(expanded !== qtyInput.value) qtyInput.value = expanded;
+      });
+      // Enter also triggers the expand immediately, without needing to
+      // click/tab away first.
+      qtyInput.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter'){ e.preventDefault(); qtyInput.blur(); qtyInput.focus(); }
+      });
+    });
+  }
+
+  function closeModal(){
+    modalOverlay.classList.remove('open');
+    currentEditId = null;
+    currentEditEntry = null;
+  }
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.getElementById('modalCloseBtn2').addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', (e)=>{ if(e.target === modalOverlay) closeModal(); });
+
+  // ---- Attachment Lightbox ----
+  // Lets admins click any "Before Use" / "After Use" attachment photo to
+  // view it full-size, since the inline thumbnail is too small to make out
+  // details the employee is trying to show.
+  const lightboxOverlay = document.getElementById('lightboxOverlay');
+  const lightboxImg = document.getElementById('lightboxImg');
+
+  function openLightbox(src){
+    lightboxImg.src = src;
+    lightboxOverlay.classList.add('show');
+  }
+  function closeLightbox(){
+    lightboxOverlay.classList.remove('show');
+    lightboxImg.src = '';
+  }
+  document.getElementById('lightboxCloseBtn').addEventListener('click', closeLightbox);
+  lightboxOverlay.addEventListener('click', (e)=>{ if(e.target === lightboxOverlay) closeLightbox(); });
+  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && lightboxOverlay.classList.contains('show')) closeLightbox(); });
+  // Delegated click on the modal body — reads the already-rendered img's own
+  // src, so no need to re-embed the (often huge) base64 photo data anywhere else.
+  modalBody.addEventListener('click', (e)=>{
+    const img = e.target.closest('.zoomable-attach');
+    if(img) openLightbox(img.src);
+  });
+
+  function buildModalHtml(e){
+    const fb = e.filledUpBy || {};
+    const cb = e.coFilledUpBy || {};
+    const rb = e.releasedBeforeUse || {};
+    const rcv = e.receivedBeforeUse || {};
+    const ra = e.returnedAfterUse || {};
+    const items = e.peripheralItems || [];
+    const sigs = e.signatures || {};
+    const et = e.eventType || {};
+
+    const itemRows = items.map((it, i) => `
+      <tr>
+        <td class="no-cell" data-label="No." style="text-align:center;color:var(--muted);">${i+1}</td>
+        <td class="item-name" data-label="Peripheral Item"><div class="item-name-view" data-item="${i}" data-field="item">${escapeAttr(it.item)}</div></td>
+        <td class="qty" data-label="Qty" style="width:100px;"><input data-item="${i}" data-field="qty" value="${escapeAttr(it.qty)}"></td>
+        <td class="qty" data-label="Received Qty" style="width:100px;"><input data-item="${i}" data-field="beforeUse.receivedQty" value="${escapeAttr(it.beforeUse && it.beforeUse.receivedQty)}"></td>
+        <td data-label="Condition (Before)"><textarea class="grow-input" rows="1" data-item="${i}" data-field="beforeUse.condition">${escapeAttr(it.beforeUse && it.beforeUse.condition)}</textarea></td>
+        <td class="remarks-cell" data-label="Remarks (Before)"><textarea class="remarks-input" rows="1" data-item="${i}" data-field="beforeUse.remarks">${escapeAttr(it.beforeUse && it.beforeUse.remarks)}</textarea>${it.beforeUse && it.beforeUse.remarksPhoto ? `<br><img class="zoomable-attach rmk-photo-view" src="${it.beforeUse.remarksPhoto}" alt="Item remark photo">` : ''}</td>
+        <td class="qty" data-label="Returned Qty" style="width:100px;"><input data-item="${i}" data-field="afterUse.returnedQty" value="${escapeAttr(it.afterUse && it.afterUse.returnedQty)}"></td>
+        <td data-label="Condition (After)"><textarea class="grow-input" rows="1" data-item="${i}" data-field="afterUse.condition">${escapeAttr(it.afterUse && it.afterUse.condition)}</textarea></td>
+        <td class="remarks-cell" data-label="Remarks (Damage / Missing / Others)"><textarea class="remarks-input" rows="1" data-item="${i}" data-field="remarks">${escapeAttr(it.remarks)}</textarea>${it.remarksPhoto ? `<br><img class="zoomable-attach rmk-photo-view" src="${it.remarksPhoto}" alt="Item remark photo">` : ''}</td>
+      </tr>
+    `).join('');
+
+    const sigKeys = [
+      ['issuedBy','PREPARED BY'],
+      ['receivedBy','RECEIVED BY'],
+      ['returnedBy','RETURNED BY']
+    ];
+    const sigHtml = sigKeys.map(([key,label])=>{
+      const s = sigs[key] || {};
+      return `
+        <div class="replica-sign-block">
+          <h5>${label}</h5>
+          <div class="sline"><label>Name</label><div class="val">${escapeHtml(s.name || '—')}</div></div>
+          <div class="sline"><label>Signature</label>
+            ${s.signatureImage ? `<img class="sig-img" src="${s.signatureImage}">` : '<div class="no-sig">No signature</div>'}
+          </div>
+          <div class="sline"><label>Date / Time</label><div class="val">${escapeHtml(s.dateTime || '—')}</div></div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="modal-body-inner">
+      <div class="replica">
+        <div class="replica-top">
+          <div class="replica-brand">
+            <img src="logo.png" alt="Planet Drugstore" class="replica-brand-mark">
+            <div class="replica-brand-name">PLANET<span>DRUGSTORE</span></div>
+          </div>
+          <div class="replica-titles">
+            <h3>CLCN MEDICAL MISSION &amp; PEOPLES DAY</h3>
+            <h4>PERIPHERALS RECEIVING COPY</h4>
+            <div class="sub">FOR BEFORE AND AFTER USE</div>
+          </div>
+          <div class="replica-meta">
+            <label>Control No.</label><input value="${escapeAttr(e.controlNo)}" disabled>
+            <label>Date</label><input id="f_date" value="${escapeAttr(e.date)}">
+            <label>Venue / Location</label><input id="f_venue" style="text-transform:uppercase;" value="${escapeAttr(e.venue)}">
+            <div class="replica-event-row">
+              <span><span class="dot ${et.medicalMission ? 'on' : ''}"></span> Medical Mission</span>
+              <span><span class="dot ${et.peoplesDay ? 'on' : ''}"></span> Peoples Day</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:8px 20px 0;font-size:11.5px;color:var(--muted);">
+          Filled up by (Host): <strong style="color:var(--maroon);">${escapeHtml(fb.name || '—')}</strong>
+          ${fb.staffId ? ' (Staff ID: ' + escapeHtml(fb.staffId) + (fb.department ? ' — ' + escapeHtml(fb.department) : '') + ')' : ''}
+          ${cb.name ? `
+          <br>Co-filled up by (Joiner): <strong style="color:var(--maroon);">${escapeHtml(cb.name)}</strong>
+          ${cb.staffId ? ' (Staff ID: ' + escapeHtml(cb.staffId) + (cb.department ? ' — ' + escapeHtml(cb.department) : '') + ')' : ''}
+          ` : ''}
+        </div>
+
+        <div class="replica-bands">
+          <div class="replica-band">
+            <div class="replica-band-title">RELEASED BEFORE USE (ISSUED)</div>
+            <div class="replica-field-row">
+              <div class="replica-field"><label>Date Issued</label><input id="f_dateIssued" value="${escapeAttr(rb.dateIssued)}"></div>
+              <div class="replica-field"><label>Time</label><input id="f_timeIssued" value="${escapeAttr(rb.timeIssued)}"></div>
+            </div>
+            <div class="replica-field-row"><div class="replica-field"><label>Prepared By (Name)</label><input id="f_issuedTo" value="${escapeAttr(rb.issuedTo)}"></div></div>
+            <div class="replica-field-row"><div class="replica-field"><label>Team / Department</label><input id="f_teamIssued" value="${escapeAttr(rb.teamIssued || 'Information Technology (IT)')}" readonly></div></div>
+            <div class="replica-attach">
+              <label>Attachment (Photo) — Before Use</label>
+              ${rb.attachment ? `<img class="zoomable-attach" src="${rb.attachment}">` : '<div class="none">No attachment.</div>'}
+            </div>
+          </div>
+          <div class="replica-band">
+            <div class="replica-band-title">RECEIVED BEFORE USE</div>
+            <div class="replica-field-row">
+              <div class="replica-field"><label>Date Received</label><input id="f_dateReceived" value="${escapeAttr(rcv.dateReceived)}"></div>
+              <div class="replica-field"><label>Time</label><input id="f_timeReceived" value="${escapeAttr(rcv.timeReceived)}"></div>
+            </div>
+            <div class="replica-field-row"><div class="replica-field"><label>Received By (Name)</label><input id="f_receivedBy" value="${escapeAttr(rcv.receivedBy)}"></div></div>
+            <div class="replica-field-row"><div class="replica-field"><label>Team / Department</label><input id="f_teamReceived" value="${escapeAttr(rcv.teamReceived)}"></div></div>
+            <div class="replica-field-row"><div class="replica-field"><label>Contact No.</label><input id="f_contactReceived" value="${escapeAttr(rcv.contactReceived)}"></div></div>
+            <div class="replica-attach">
+              <label>Attachment (Photo) — Received</label>
+              ${rcv.attachment ? `<img class="zoomable-attach" src="${rcv.attachment}">` : '<div class="none">No attachment.</div>'}
+            </div>
+          </div>
+          <div class="replica-band">
+            <div class="replica-band-title">RETURNED AFTER USE</div>
+            <div class="replica-field-row">
+              <div class="replica-field"><label>Date Returned</label><input id="f_dateReturned" value="${escapeAttr(ra.dateReturned)}"></div>
+              <div class="replica-field"><label>Time</label><input id="f_timeReturned" value="${escapeAttr(ra.timeReturned)}"></div>
+            </div>
+            <div class="replica-field-row"><div class="replica-field"><label>Returned By (Name)</label><input id="f_returnedBy" value="${escapeAttr(ra.returnedBy)}"></div></div>
+            <div class="replica-field-row"><div class="replica-field"><label>Team / Department</label><input id="f_teamReturned" value="${escapeAttr(ra.teamReturned)}"></div></div>
+            <div class="replica-field-row"><div class="replica-field"><label>Contact No.</label><input id="f_contactReturned" value="${escapeAttr(ra.contactReturned)}"></div></div>
+            <div class="replica-attach">
+              <label>Attachment (Photo) — After Use</label>
+              ${ra.attachment ? `<img class="zoomable-attach" src="${ra.attachment}">` : '<div class="none">No attachment.</div>'}
+            </div>
+          </div>
+        </div>
+
+        <div class="replica-items">
+          <table class="replica-items-table">
+            <colgroup>
+              <col style="width:4%;">
+              <col style="width:19%;">
+              <col style="width:6%;">
+              <col style="width:9%;">
+              <col style="width:8%;">
+              <col style="width:15%;">
+              <col style="width:9%;">
+              <col style="width:8%;">
+              <col style="width:15%;">
+            </colgroup>
+            <thead>
+              <tr>
+                <th rowspan="2">No.</th>
+                <th rowspan="2">Peripheral Item</th>
+                <th rowspan="2">Qty</th>
+                <th colspan="3" class="grp-before">BEFORE USE (ISSUED)</th>
+                <th colspan="2" class="grp-after">AFTER USE (RETURNED)</th>
+                <th rowspan="2">Remarks (Damage / Missing / Others)</th>
+              </tr>
+              <tr>
+                <th class="grp-before">Received Qty</th>
+                <th class="grp-before">Condition</th>
+                <th class="grp-before">Remarks (Damage / Missing / Others)</th>
+                <th class="grp-after">Returned Qty</th>
+                <th class="grp-after">Condition</th>
+              </tr>
+            </thead>
+            <tbody>${itemRows || '<tr><td colspan="10" style="text-align:center;color:var(--muted);">No items.</td></tr>'}</tbody>
+          </table>
+        </div>
+
+        <div class="replica-ack">
+          <div>"I hereby acknowledge that the items listed above are received in good condition and will be returned in the same condition unless otherwise stated."</div>
+          <div>"I hereby acknowledge that the items listed above are returned and accounted for."</div>
+        </div>
+
+        <div class="replica-sign-grid">
+          ${sigHtml}
+        </div>
+      </div>
+      </div>
+    `;
+  }
+
+  // Grows a Remarks textarea to fit its content so long employee notes
+  // wrap and stay fully visible instead of needing to scroll sideways.
+  function autoGrowRemarks(el){
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+
+  function escapeAttr(s){
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/"/g, '&quot;').replace(/</g,'&lt;');
+  }
+
+  // Converts an <input type="time"> value ("HH:MM", 24h) into the same
+  // "H:MM AM/PM" format used throughout the actual Peripheral Form.
+  function fmt12hTime(hhmm){
+    if(!hhmm || !/^\d{2}:\d{2}$/.test(hhmm)) return '';
+    let [h, m] = hhmm.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12; if(h === 0) h = 12;
+    return h + ':' + String(m).padStart(2,'0') + ' ' + ampm;
+  }
+  // Inverse of fmt12hTime — turns a stored "H:MM AM/PM" string back into
+  // an <input type="time"> value ("HH:MM", 24h), for re-populating the
+  // Prepared Time field when editing an existing reservation (see
+  // enterPfEditMode below).
+  function parse12hTime(t){
+    const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(String(t || '').trim());
+    if(!m) return '';
+    let h = Number(m[1]);
+    const ampm = m[3].toUpperCase();
+    if(ampm === 'PM' && h !== 12) h += 12;
+    if(ampm === 'AM' && h === 12) h = 0;
+    return String(h).padStart(2,'0') + ':' + m[2];
+  }
+
+  // ---- Peripheral Form: "Before Use" attachment (Admin-side) ----
+  // Same compress/attach pattern as peripheral-form.html — kept independent
+  // so this photo can be taken/attached here at generation time and go out
+  // already attached to the Control No.
+  let pfBeforeAttachment = '';
+  function compressImageFile(file, maxDim, quality){
+    maxDim = maxDim || 900;
+    quality = quality || 0.72;
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = (e)=>{
+        const img = new Image();
+        img.onload = ()=>{
+          let w = img.width, h = img.height;
+          if(w >= h && w > maxDim){ h = Math.round(h * maxDim / w); w = maxDim; }
+          else if(h > maxDim){ w = Math.round(w * maxDim / h); h = maxDim; }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = ()=>reject(new Error('Could not read the image.'));
+        img.src = e.target.result;
+      };
+      reader.onerror = ()=>reject(new Error('Could not open the file.'));
+      reader.readAsDataURL(file);
+    });
+  }
+  function applyPfAttachment(dataUrl){
+    pfBeforeAttachment = dataUrl || '';
+    const img = document.getElementById('pfBeforeAttachImg');
+    const preview = document.getElementById('pfBeforeAttachPreview');
+    if(dataUrl){
+      img.src = dataUrl;
+      preview.style.display = 'flex';
+    }else{
+      img.src = '';
+      preview.style.display = 'none';
+    }
+  }
+  // True while a selected photo is still being read/compressed in the
+  // background. If "Update Peripheral Form / Generate Control No." is
+  // clicked during this window, pfBeforeAttachment is still '' and the new
+  // Control No. gets generated with NO photo attached — this flag lets the
+  // Update button block that race instead of silently losing the photo.
+  let pfAttachmentBusy = false;
+  ['pfBeforeCameraInput','pfBeforeFileInput'].forEach(inputId=>{
+    document.getElementById(inputId).addEventListener('change', async ()=>{
+      const input = document.getElementById(inputId);
+      const file = input.files && input.files[0];
+      if(!file) return;
+      pfAttachmentBusy = true;
+      try{
+        const dataUrl = await compressImageFile(file);
+        applyPfAttachment(dataUrl);
+      }catch(err){
+        console.error('Attachment processing failed', err);
+        alert('Could not process the image. Please try a different photo.');
+      }finally{
+        pfAttachmentBusy = false;
+      }
+      input.value = '';
+    });
+  });
+  document.getElementById('pfBeforeAttachClear').addEventListener('click', ()=>{
+    applyPfAttachment('');
+  });
+
+  // ---- Peripheral Form: "Prepared By" signature (Admin-side) ----
+  // IT/Admin signs here at Control No. generation time — this is the ONLY
+  // place this signature is captured; it just carries over read-only to
+  // the peripheral form (see beforeAttachment carry-over pattern above).
+  //
+  // Auto-predict: once a "Prepared By" name that's signed before (by
+  // anyone, on any device) is entered, their last-used signature auto-fills
+  // the moment the name field loses focus — same behavior as "Received By"
+  // in peripheral-form.html. A predicted signature is locked (can't be
+  // drawn over or cleared) since it isn't freshly drawn this session — it
+  // unlocks automatically the moment the name is changed to someone else.
+  let pfPreparedSignature = '';
+  let pfPreparedSigDrawing = false;
+  function isPfSigBlank(canvas){
+    const ctx = canvas.getContext('2d');
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    for(let i = 3; i < data.length; i += 4){
+      if(data[i] !== 0) return false;
+    }
+    return true;
+  }
+  function lockPfSigPad(predictedForName){
+    const canvas = document.getElementById('pfPreparedSigCanvas');
+    if(!canvas) return;
+    canvas.classList.add('sig-locked');
+    canvas.dataset.predictedFor = predictedForName || '';
+    canvas.style.pointerEvents = 'none';
+    const btn = document.getElementById('pfPreparedSigClear');
+    if(btn){ btn.disabled = true; btn.style.display = 'none'; }
+  }
+  function unlockPfSigPad(){
+    const canvas = document.getElementById('pfPreparedSigCanvas');
+    if(!canvas) return;
+    canvas.classList.remove('sig-locked');
+    delete canvas.dataset.predictedFor;
+    canvas.style.pointerEvents = '';
+    const btn = document.getElementById('pfPreparedSigClear');
+    if(btn){ btn.disabled = false; btn.style.display = ''; }
+  }
+  (function setupPreparedSigPad(){
+    const canvas = document.getElementById('pfPreparedSigCanvas');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#6E1620';
+    let drawing = false;
+    function getPos(e){
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+    }
+    function start(e){
+      if(canvas.classList.contains('sig-locked')) return;
+      drawing = true;
+      pfPreparedSigDrawing = true;
+      const pos = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+      e.preventDefault();
+    }
+    function move(e){
+      if(!drawing) return;
+      const pos = getPos(e);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      e.preventDefault();
+    }
+    function stop(){
+      if(!drawing) return;
+      drawing = false;
+      pfPreparedSigDrawing = false;
+      pfPreparedSignature = canvas.toDataURL();
+      // Someone actually signed by hand this session — remember it for
+      // next time this same name is typed in (here or on another device).
+      const name = (document.getElementById('pfPreparedBy').value || '').trim();
+      if(name && window.fsRecordPreparerInfo) window.fsRecordPreparerInfo(name, pfPreparedSignature);
+    }
+    canvas.addEventListener('pointerdown', start);
+    canvas.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', stop);
+    document.getElementById('pfPreparedSigClear').addEventListener('click', ()=>{
+      if(canvas.classList.contains('sig-locked')) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      pfPreparedSignature = '';
+    });
+
+    // ---- Auto-predict on name entry ----
+    const preparedByEl = document.getElementById('pfPreparedBy');
+    async function tryPredictPreparer(){
+      const name = preparedByEl.value.trim();
+      if(!name || !window.fsLookupPreparerInfo) return;
+      if(!isPfSigBlank(canvas) || pfPreparedSigDrawing) return;
+      try{
+        const info = await window.fsLookupPreparerInfo(name);
+        if(preparedByEl.value.trim() !== name) return; // name changed mid-lookup
+        if(info.signature && isPfSigBlank(canvas) && !pfPreparedSigDrawing){
+          const img = new Image();
+          img.onload = ()=>{ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0,canvas.width,canvas.height); };
+          img.src = info.signature;
+          pfPreparedSignature = info.signature;
+          lockPfSigPad(name);
+        }
+      }catch(e){
+        console.error('Prepared By prediction failed', e);
+      }
+    }
+    preparedByEl.addEventListener('blur', tryPredictPreparer);
+    // If the name changes away from whoever the currently-shown signature
+    // was predicted for, that signature no longer belongs here — unlock
+    // and clear the pad so it's ready for the new name.
+    preparedByEl.addEventListener('input', ()=>{
+      if(!canvas.classList.contains('sig-locked')) return;
+      if(preparedByEl.value.trim() === (canvas.dataset.predictedFor || '')) return;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      pfPreparedSignature = '';
+      unlockPfSigPad();
+    });
+  })();
+
+  document.getElementById('modalDeleteBtn').addEventListener('click', ()=>{
+    if(currentEditId) deleteEntry(currentEditId);
+  });
+
+  // ---- Calendar tab ----
+  const calDays = document.getElementById('calDays');
+  const calTitle = document.getElementById('calTitle');
+  const calMonthCount = document.getElementById('calMonthCount');
+  const calSearchInput = document.getElementById('calSearchInput');
+  const calDetailTitle = document.getElementById('calDetailTitle');
+  const calDetailList = document.getElementById('calDetailList');
+  const calViewAllBtn = document.getElementById('calViewAllBtn');
+
+  const today = new Date();
+  let calViewYear = today.getFullYear();
+  let calViewMonth = today.getMonth(); // 0-indexed
+  let calSelectedKey = null;
+
+  const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const WEEKDAY_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  function pad2(n){ return String(n).padStart(2, '0'); }
+  function todayKey(){ const now = new Date(); return now.getFullYear() + '-' + pad2(now.getMonth()+1) + '-' + pad2(now.getDate()); }
+
+  // Normalizes whatever is stored in entry.date (ISO yyyy-mm-dd from a
+  // native date input, m/d/yyyy, or any other Date-parseable text) into a
+  // plain 'YYYY-MM-DD' key so entries can be grouped onto calendar days
+  // regardless of how the original form saved the date string.
+  function dateKeyOf(dateStr){
+    if(!dateStr) return null;
+    const s = String(dateStr).trim();
+    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if(m) return m[1] + '-' + pad2(m[2]) + '-' + pad2(m[3]);
+    m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if(m) return m[3] + '-' + pad2(m[1]) + '-' + pad2(m[2]);
+    const d = new Date(s);
+    if(!isNaN(d.getTime())) return d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate());
+    return null;
+  }
+
+  function eventDotClass(entry){
+    const et = entry.eventType || {};
+    if(et.medicalMission) return 'mm';
+    if(et.peoplesDay) return 'pd';
+    return 'other';
+  }
+
+  function groupByDate(list){
+    const map = {};
+    list.forEach(e=>{
+      const key = dateKeyOf(e.date);
+      if(!key) return;
+      (map[key] = map[key] || []).push(e);
+    });
+    return map;
+  }
+
+  function renderCalendar(){
+    if(!calDays) return;
+    const q = calSearchInput.value.trim();
+    const allByDate = groupByDate(allEntries);
+    const matchedEntries = allEntries.filter(e => matchesSearch(e, q));
+    const matchByDate = groupByDate(matchedEntries);
+
+    calTitle.textContent = MONTH_NAMES[calViewMonth] + ' ' + calViewYear;
+
+    const firstOfMonth = new Date(calViewYear, calViewMonth, 1);
+    const startWeekday = firstOfMonth.getDay(); // 0=Sun
+    const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+    const daysInPrevMonth = new Date(calViewYear, calViewMonth, 0).getDate();
+
+    const cells = [];
+    // Leading days from previous month
+    for(let i = startWeekday - 1; i >= 0; i--){
+      const dayNum = daysInPrevMonth - i;
+      const d = new Date(calViewYear, calViewMonth - 1, dayNum);
+      cells.push({ date: d, outside: true });
+    }
+    // Days of current month
+    for(let dayNum = 1; dayNum <= daysInMonth; dayNum++){
+      cells.push({ date: new Date(calViewYear, calViewMonth, dayNum), outside: false });
+    }
+    // Trailing days to fill the last week
+    while(cells.length % 7 !== 0){
+      const lastDate = cells[cells.length - 1].date;
+      const d = new Date(lastDate);
+      d.setDate(d.getDate() + 1);
+      cells.push({ date: d, outside: true });
+    }
+
+    let monthMatchCount = 0;
+
+    calDays.innerHTML = cells.map(cell=>{
+      const key = cell.date.getFullYear() + '-' + pad2(cell.date.getMonth()+1) + '-' + pad2(cell.date.getDate());
+      const allForDay = allByDate[key] || [];
+      const matchForDay = matchByDate[key] || [];
+      if(!cell.outside && q) monthMatchCount += matchForDay.length;
+      else if(!cell.outside && !q) monthMatchCount += allForDay.length;
+
+      const classes = ['cal-day'];
+      if(cell.outside) classes.push('outside');
+      if(key === todayKey()) classes.push('today');
+      if(key === calSelectedKey) classes.push('selected');
+      if(matchForDay.length) classes.push('has-entries');
+      if(q && allForDay.length && !matchForDay.length) classes.push('dimmed');
+
+      const shown = matchForDay.slice(0, 3);
+      const chips = shown.map(e => `
+        <div class="cal-chip"><span class="dot ${eventDotClass(e)}"></span>${escapeHtml(e.controlNo || e.id)}</div>
+      `).join('');
+      const more = matchForDay.length > 3 ? `<div class="cal-more">+${matchForDay.length - 3} more</div>` : '';
+
+      return `
+        <div class="${classes.join(' ')}" data-daykey="${key}">
+          <div class="cal-daynum">${cell.date.getDate()}</div>
+          ${matchForDay.length ? `<div class="cal-count">${matchForDay.length}</div>` : ''}
+          <div class="cal-chips">${chips}${more}</div>
+        </div>
+      `;
+    }).join('');
+
+    calMonthCount.textContent = monthMatchCount + (q ? ' matching' : '') + ' this month';
+
+    calDays.querySelectorAll('.cal-day').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        calSelectedKey = el.getAttribute('data-daykey');
+        renderCalendar();
+      });
+    });
+
+    renderCalDetail(allByDate, matchByDate, q);
+  }
+
+  function renderCalDetail(allByDate, matchByDate, q){
+    if(!calSelectedKey){
+      calDetailTitle.textContent = 'Select a date';
+      calDetailList.innerHTML = '<div class="cal-detail-empty">Click a day on the calendar to see its peripheral entries.</div>';
+      calViewAllBtn.style.display = 'none';
+      return;
+    }
+    const list = q ? (matchByDate[calSelectedKey] || []) : (allByDate[calSelectedKey] || []);
+    const [y, m, d] = calSelectedKey.split('-').map(Number);
+    const niceDate = new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    calDetailTitle.textContent = niceDate + ' — ' + list.length + (list.length === 1 ? ' entry' : ' entries');
+    calViewAllBtn.style.display = 'inline-block';
+
+    if(!list.length){
+      let msg = 'No peripheral entries for this date.';
+      if(isPastDateKey(calSelectedKey) || (calSelectedKey === todayKey() && todayConcludedNoEvent)){
+        msg = 'No Event This Day';
+      }else if(isFutureDateKey(calSelectedKey)){
+        msg = 'No peripherals form yet for this upcoming date.';
+      }
+      calDetailList.innerHTML = `<div class="cal-detail-empty">${msg}</div>`;
+      return;
+    }
+
+    calDetailList.innerHTML = list.map(e => `
+      <div class="cal-detail-row">
+        <div class="info">
+          <span class="ctrl">#${escapeHtml(e.controlNo || e.id)}</span>
+          <span class="meta">${escapeHtml(e.venue || '(no venue)')} · <span class="badge">${escapeHtml(eventLabel(e))}</span> · Filled by: ${escapeHtml(filledByLabel(e))}</span>
+        </div>
+        <div>
+          <button class="row-btn" data-view="${e.id}">View</button>
+          <button class="row-btn del" data-del="${e.id}">Delete</button>
+        </div>
+      </div>
+    `).join('');
+
+    calDetailList.querySelectorAll('[data-view]').forEach(btn=>{
+      btn.addEventListener('click', ()=> openModal(btn.getAttribute('data-view')));
+    });
+    calDetailList.querySelectorAll('[data-del]').forEach(btn=>{
+      btn.addEventListener('click', ()=> deleteEntry(btn.getAttribute('data-del')));
+    });
+  }
+
+  document.getElementById('calPrevBtn').addEventListener('click', ()=>{
+    calViewMonth--;
+    if(calViewMonth < 0){ calViewMonth = 11; calViewYear--; }
+    renderCalendar();
+  });
+  document.getElementById('calNextBtn').addEventListener('click', ()=>{
+    calViewMonth++;
+    if(calViewMonth > 11){ calViewMonth = 0; calViewYear++; }
+    renderCalendar();
+  });
+  document.getElementById('calTodayBtn').addEventListener('click', ()=>{
+    calViewYear = today.getFullYear();
+    calViewMonth = today.getMonth();
+    calSelectedKey = todayKey();
+    renderCalendar();
+  });
+  calSearchInput.addEventListener('input', renderCalendar);
+
+  calViewAllBtn.addEventListener('click', ()=>{
+    if(!calSelectedKey) return;
+    entriesViewDate = calSelectedKey;
+    document.getElementById('searchInput').value = '';
+    switchTab('entries');
+    render();
+  });
+
+  backToTodayBtn.addEventListener('click', ()=>{
+    entriesViewDate = null;
+    document.getElementById('searchInput').value = '';
+    render();
+  });
+
+  // ---- Section tabs: Peripheral Entries / Calendar / Register Employee / Peripheral Form ----
+  const entriesSection = document.getElementById('entriesSection');
+  const calendarSection = document.getElementById('calendarSection');
+  const registerSection = document.getElementById('registerSection');
+  const peripheralFormSection = document.getElementById('peripheralFormSection');
+  const controlNosSection = document.getElementById('controlNosSection');
+  const dangerZoneSection = document.getElementById('dangerZoneSection');
+  const tabEntriesBtn = document.getElementById('tabEntriesBtn');
+  const tabCalendarBtn = document.getElementById('tabCalendarBtn');
+  const tabRegisterBtn = document.getElementById('tabRegisterBtn');
+  const tabPeripheralFormBtn = document.getElementById('tabPeripheralFormBtn');
+  const tabControlNosBtn = document.getElementById('tabControlNosBtn');
+  const tabDangerZoneBtn = document.getElementById('tabDangerZoneBtn');
+
+  const sectionsByTab = {
+    entries: entriesSection,
+    calendar: calendarSection,
+    register: registerSection,
+    peripheralForm: peripheralFormSection,
+    controlNos: controlNosSection,
+    dangerZone: dangerZoneSection
+  };
+  const btnsByTab = {
+    entries: tabEntriesBtn,
+    calendar: tabCalendarBtn,
+    register: tabRegisterBtn,
+    peripheralForm: tabPeripheralFormBtn,
+    controlNos: tabControlNosBtn,
+    dangerZone: tabDangerZoneBtn
+  };
+
+  // Brief full-screen animated overlay shown while Admin is taken from the
+  // Control Numbers list into the Peripheral Form tab in "edit an existing
+  // Control No." mode (see the cn-edit-btn handler below). Purely visual —
+  // gives the jump between tabs a clear "you're being redirected" moment.
+  const pfRedirectOverlay = document.getElementById('pfRedirectOverlay');
+  function showPfRedirectOverlay(){
+    pfRedirectOverlay.classList.remove('hide');
+    pfRedirectOverlay.classList.add('show');
+    return new Promise(resolve => setTimeout(resolve, 900));
+  }
+  function hidePfRedirectOverlay(){
+    pfRedirectOverlay.classList.add('hide');
+    setTimeout(()=>{ pfRedirectOverlay.classList.remove('show','hide'); }, 250);
+  }
+
+  function switchTab(tab){
+    Object.keys(sectionsByTab).forEach(key=>{
+      sectionsByTab[key].style.display = (key === tab) ? 'block' : 'none';
+      btnsByTab[key].classList.toggle('active', key === tab);
+    });
+    if(tab === 'register') startEmployeeListener();
+    if(tab === 'calendar') renderCalendar();
+    if(tab === 'peripheralForm') loadPeripheralFormEditor();
+    if(tab === 'controlNos') startControlNosListener();
+    if(tab === 'dangerZone') refreshDangerZoneSummary();
+  }
+
+  tabEntriesBtn.addEventListener('click', ()=> switchTab('entries'));
+  tabCalendarBtn.addEventListener('click', ()=> switchTab('calendar'));
+  tabRegisterBtn.addEventListener('click', ()=> switchTab('register'));
+  tabPeripheralFormBtn.addEventListener('click', ()=> switchTab('peripheralForm'));
+  tabControlNosBtn.addEventListener('click', ()=> switchTab('controlNos'));
+  tabDangerZoneBtn.addEventListener('click', ()=> switchTab('dangerZone'));
+
+  // ---- Danger Zone: Delete All Data ----
+  // Wipes every collection that isn't the Employee accounts list: Entries,
+  // Control Numbers, saved Venue suggestions, and the Peripheral Items
+  // Template config doc. Employee accounts (auth + 'employees' collection)
+  // are never touched by this. Requires typing an exact confirmation phrase
+  // before the button even becomes clickable — this is irreversible.
+  const DZ_CONFIRM_PHRASE = 'DELETE ALL DATA';
+  const dzSummary = document.getElementById('dzSummary');
+  const dzConfirmInput = document.getElementById('dzConfirmInput');
+  const dzDeleteBtn = document.getElementById('dzDeleteBtn');
+  const dzStatusMsg = document.getElementById('dzStatusMsg');
+
+  async function refreshDangerZoneSummary(){
+    dzSummary.textContent = "Checking what's currently stored…";
+    try{
+      const [entriesSnap, cnSnap, venuesSnap, tplSnap, returnersSnap, receiversSnap] = await Promise.all([
+        getDocs(collection(db, 'entries')),
+        getDocs(collection(db, 'reservedControlNos')),
+        getDocs(collection(db, 'venues')),
+        getDoc(doc(db, 'config', 'peripheralItemsTemplate')),
+        getDocs(collection(db, 'returners')),
+        getDocs(collection(db, 'receivers'))
+      ]);
+      dzSummary.innerHTML = `Currently stored: <strong>${entriesSnap.size}</strong> entries, `
+        + `<strong>${cnSnap.size}</strong> control numbers, `
+        + `<strong>${venuesSnap.size}</strong> saved venues, `
+        + `<strong>${returnersSnap.size + receiversSnap.size}</strong> remembered Received/Returned By signatures, `
+        + `plus the Peripheral Items Template${tplSnap.exists() ? '' : ' (not set)'}. `
+        + `Employee accounts are not counted here and will not be deleted.`;
+    }catch(e){
+      dzSummary.textContent = 'Could not load current counts (' + (e.code || e.message) + ').';
+    }
+  }
+
+  dzConfirmInput.addEventListener('input', ()=>{
+    const match = dzConfirmInput.value === DZ_CONFIRM_PHRASE;
+    dzDeleteBtn.disabled = !match;
+    dzDeleteBtn.style.opacity = match ? '1' : '.5';
+    dzDeleteBtn.style.cursor = match ? 'pointer' : 'not-allowed';
+  });
+
+  // Styled final warning shown right before the irreversible delete runs.
+  // Resolves true only if "Yes, Delete Everything" is clicked; Cancel,
+  // the × button, or clicking outside the modal all resolve false.
+  const dzWarnModalOverlay = document.getElementById('dzWarnModalOverlay');
+  const dzWarnModalMsg = document.getElementById('dzWarnModalMsg');
+  const dzWarnYesBtn = document.getElementById('dzWarnYesBtn');
+  const dzWarnCancelBtn = document.getElementById('dzWarnCancelBtn');
+  const dzWarnCloseBtn = document.getElementById('dzWarnCloseBtn');
+
+  function showDzWarnModal(message){
+    return new Promise((resolve)=>{
+      dzWarnModalMsg.textContent = message;
+      dzWarnModalOverlay.classList.add('open');
+      function cleanup(result){
+        dzWarnModalOverlay.classList.remove('open');
+        dzWarnYesBtn.removeEventListener('click', onYes);
+        dzWarnCancelBtn.removeEventListener('click', onCancel);
+        dzWarnCloseBtn.removeEventListener('click', onCancel);
+        dzWarnModalOverlay.removeEventListener('click', onOverlayClick);
+        resolve(result);
+      }
+      function onYes(){ cleanup(true); }
+      function onCancel(){ cleanup(false); }
+      function onOverlayClick(e){ if(e.target === dzWarnModalOverlay) cleanup(false); }
+      dzWarnYesBtn.addEventListener('click', onYes);
+      dzWarnCancelBtn.addEventListener('click', onCancel);
+      dzWarnCloseBtn.addEventListener('click', onCancel);
+      dzWarnModalOverlay.addEventListener('click', onOverlayClick);
+    });
+  }
+
+  async function deleteAllDocsIn(collectionName){
+    const snap = await getDocs(collection(db, collectionName));
+    const docs = snap.docs;
+    // Firestore batched writes cap at 500 ops each, so chunk it.
+    for(let i = 0; i < docs.length; i += 450){
+      const chunk = docs.slice(i, i + 450);
+      const batch = writeBatch(db);
+      chunk.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+    }
+    return docs.length;
+  }
+
+  dzDeleteBtn.addEventListener('click', async ()=>{
+    if(dzConfirmInput.value !== DZ_CONFIRM_PHRASE) return;
+    const reallySure = await showDzWarnModal(
+      'This will permanently delete ALL Entries, Control Numbers, saved Venues, the Peripheral Items Template, and every remembered Received By / Returned By signature (so typing an old name afterward will NOT auto-fill their old signature — a fresh signature will be required). Employee accounts will NOT be touched. This cannot be undone. Proceed?'
+    );
+    if(!reallySure) return;
+    if(!auth.currentUser){
+      dzStatusMsg.style.color = '#b42318';
+      dzStatusMsg.textContent = 'Your session has expired — please sign in again.';
+      return;
+    }
+    openPwConfirmModal(runDeleteAllData, 'permanently delete ALL data');
+  });
+
+  async function runDeleteAllData(){
+    dzDeleteBtn.disabled = true;
+    dzConfirmInput.disabled = true;
+    dzStatusMsg.textContent = 'Deleting… please don\'t close this tab.';
+    dzStatusMsg.style.color = '#555';
+    try{
+      const [entriesCount, cnCount, venuesCount, returnersCount, receiversCount] = await Promise.all([
+        deleteAllDocsIn('entries'),
+        deleteAllDocsIn('reservedControlNos'),
+        deleteAllDocsIn('venues'),
+        // "returners"/"receivers" are where each person's last-used
+        // Team/Department, Contact No., and SIGNATURE get remembered by
+        // name so it can auto-fill next time (see fsRecordReturnerInfo /
+        // fsRecordReceiverInfo in peripheral-form.html) — these were never
+        // included here before, which is why an old signature kept coming
+        // back after "deleting everything": the entries were gone, but the
+        // name→signature record wasn't.
+        deleteAllDocsIn('returners'),
+        deleteAllDocsIn('receivers')
+      ]);
+      // Also wipe any leftover live co-fill sessions and the item template.
+      await deleteAllDocsIn('liveSessions').catch(()=>{});
+      await deleteDoc(doc(db, 'config', 'peripheralItemsTemplate')).catch(()=>{});
+
+      dzStatusMsg.style.color = '#1a7f37';
+      dzStatusMsg.textContent = `Done. Deleted ${entriesCount} entries, ${cnCount} control numbers, `
+        + `${venuesCount} saved venues, ${returnersCount + receiversCount} remembered signatures, the live session log, and the item template. `
+        + `Employee accounts were left untouched.`;
+      dzConfirmInput.value = '';
+      refreshDangerZoneSummary();
+    }catch(e){
+      dzStatusMsg.style.color = '#b42318';
+      dzStatusMsg.textContent = 'Failed partway through: ' + (e.code || e.message) + '. Re-check the summary above and try again — already-deleted items stay deleted.';
+    }finally{
+      dzConfirmInput.disabled = false;
+      dzDeleteBtn.disabled = (dzConfirmInput.value !== DZ_CONFIRM_PHRASE);
+    }
+  }
+
+  // ---- Peripheral Form (item list) editor ----
+  // Falls back to this exact list (matches peripheral-form.html's built-in
+  // default) whenever the template hasn't been customized/saved yet.
+  const PF_FALLBACK_ITEMS = [
+    {item:"[ LAPTOP ] , [ CHARGER ] , [ BAG ]", qty:"2 / 2 / 2"},
+    {item:"[ MOUSE ] X2", qty:"2"},
+    {item:"[ POS PRINTER ] , [ USB CABLE ] , [ POWER CABLE ]", qty:"2 / 2 / 2"},
+    {item:"[ DOCUMENT PRINTER ] , [ USB CABLE PRINTER ] , [ POWER CABLE PRINTER ]", qty:"1 / 1 / 1"},
+    {item:"[ DITO ROUTER ] , [ DITO CABLE ]", qty:"1 / 1"},
+    {item:"[ EXTENSION (WHITE)] X2", qty:"2"}
+  ];
+  let pfItems = [];
+  let pfLoaded = false;
+  // Set to a Control No. string while Admin is editing that specific
+  // still-unused reservation (opened via the "✏️ Edit" button in the
+  // Control Numbers list — see enterPfEditMode/exitPfEditMode below and
+  // the cn-edit-btn handler further down). null means the normal
+  // "fill this in, then generate a brand-new Control No." mode.
+  let pfEditingControlNo = null;
+  const pfItemsBody = document.getElementById('pfItemsBody');
+  const pfMeta = document.getElementById('pfMeta');
+  const pfSaveMsg = document.getElementById('pfSaveMsg');
+
+  // Counts the bracketed [ ITEM ] groups in a Peripheral Item field, so the
+  // matching Qty field knows how many "/"-separated slots it should have.
+  // Text with no brackets at all counts as a single item/slot.
+  function countBracketItems(text){
+    const matches = String(text || '').match(/\[[^\]]*\]/g);
+    return matches && matches.length ? matches.length : 1;
+  }
+  // If someone just types plain digits into a Qty field that covers more
+  // than one bracketed item, auto-expand it into "/"-separated slots:
+  //  - a single digit (e.g. "2") repeats into all slots — "2 / 2 / 2"
+  //  - digits matching the slot count (e.g. "212" for 3 slots) split one
+  //    digit per slot in order — "2 / 1 / 2"
+  // Anything else (wrong digit count, already has "/", non-numeric) is left
+  // untouched, since that means per-item quantities were already customized.
+  function autoExpandQty(value, count){
+    const v = String(value || '').trim();
+    if(count > 1 && /^\d+$/.test(v)){
+      if(v.length === count) return v.split('').join(' / ');
+      if(v.length === 1) return Array(count).fill(v).join(' / ');
+    }
+    return value;
+  }
+
+  function renderPfItems(){
+    pfItemsBody.innerHTML = '';
+    pfItems.forEach((row, i)=>{
+      const tr = document.createElement('tr');
+      if(row.locked){
+        tr.innerHTML = `
+          <td data-label="Peripheral Item"><div class="pf-locked-text">${escapeHtml(row.item)}</div></td>
+          <td data-label="Default Qty"><div class="pf-locked-text center">${escapeHtml(row.qty)}</div></td>
+          <td data-label="">
+            <div class="pf-row-actions">
+              <button type="button" class="pf-edit-btn" title="Edit this item">✏️</button>
+              <button type="button" class="pf-remove-btn" title="Remove item">×</button>
+            </div>
+          </td>
+        `;
+        tr.querySelector('.pf-edit-btn').addEventListener('click', ()=>{
+          pfItems[i].locked = false;
+          renderPfItems();
+        });
+      }else{
+        tr.innerHTML = `
+          <td data-label="Peripheral Item"><input type="text" placeholder="e.g. [ LAPTOP ] , [ CHARGER ] , [ BAG ]" value="${escapeAttr(row.item)}" data-field="item"></td>
+          <td data-label="Default Qty"><input type="text" placeholder="e.g. 2 / 2 / 2" value="${escapeAttr(row.qty)}" data-field="qty"></td>
+          <td data-label="">
+            <div class="pf-row-actions">
+              <button type="button" class="pf-edit-btn" title="Done editing">✓ Done</button>
+              <button type="button" class="pf-remove-btn" title="Remove item">×</button>
+            </div>
+          </td>
+        `;
+        tr.querySelectorAll('input').forEach(inp=>{
+          inp.addEventListener('input', ()=>{ pfItems[i][inp.dataset.field] = inp.value; });
+        });
+        const qtyInput = tr.querySelector('input[data-field="qty"]');
+        qtyInput.addEventListener('blur', ()=>{
+          const expanded = autoExpandQty(qtyInput.value, countBracketItems(pfItems[i].item));
+          if(expanded !== qtyInput.value){
+            qtyInput.value = expanded;
+            pfItems[i].qty = expanded;
+          }
+        });
+        qtyInput.addEventListener('keydown', (e)=>{
+          if(e.key === 'Enter'){ e.preventDefault(); qtyInput.blur(); qtyInput.focus(); }
+        });
+        tr.querySelector('.pf-edit-btn').addEventListener('click', ()=>{
+          pfItems[i].locked = true;
+          renderPfItems();
+        });
+      }
+      tr.querySelector('.pf-remove-btn').addEventListener('click', ()=>{
+        pfItems.splice(i, 1);
+        renderPfItems();
+      });
+      pfItemsBody.appendChild(tr);
+    });
+  }
+
+
+  async function loadPeripheralFormEditor(){
+    if(pfLoaded) return; // one fetch per visit to this console session
+    pfSaveMsg.textContent = '';
+    pfSaveMsg.className = 'pf-save-msg';
+    pfMeta.textContent = 'Loading…';
+    try{
+      const data = await window.fsGetItemsTemplate();
+      if(data && Array.isArray(data.items) && data.items.length){
+        pfItems = data.items.map(t => ({ item: t.item || '', qty: (t.qty === undefined || t.qty === null) ? '' : String(t.qty), locked:true }));
+        const when = data.updatedAt && data.updatedAt.toDate ? data.updatedAt.toDate().toLocaleString() : '';
+        pfMeta.textContent = 'Last updated' + (when ? ' ' + when : '') + (data.updatedBy ? ' by ' + data.updatedBy : '') + '.';
+      }else{
+        pfItems = PF_FALLBACK_ITEMS.map(t => ({...t, locked:true}));
+        pfMeta.textContent = 'Not yet customized — showing the built-in default list.';
+      }
+    }catch(e){
+      console.error('Could not load peripheral items template', e);
+      pfItems = PF_FALLBACK_ITEMS.map(t => ({...t, locked:true}));
+      pfMeta.textContent = 'Could not load the saved list — showing the built-in default list.';
+    }
+    pfLoaded = true;
+    renderPfItems();
+  }
+
+  // Paints a signature data-URL onto the Prepared By sig pad and locks it
+  // (since it's a stored signature, not one freshly drawn this session) —
+  // shared by enterPfEditMode and the Cancel-edit restore below. Passing
+  // an empty dataUrl just clears + unlocks the pad instead.
+  let pfSigRestoreToken = 0;
+  function restorePfSignature(dataUrl, predictedForName){
+    const myToken = ++pfSigRestoreToken; // bumps on every call so a slow,
+    // late-arriving image load from a PREVIOUS restorePfSignature() call
+    // (e.g. Cancel immediately followed by clicking Edit on another
+    // Control No.) can't draw itself onto the canvas after this newer
+    // call has already taken over — it just checks the token and no-ops.
+    const canvas = document.getElementById('pfPreparedSigCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pfPreparedSignature = dataUrl || '';
+    if(pfPreparedSignature){
+      const img = new Image();
+      img.onload = ()=>{
+        if(myToken !== pfSigRestoreToken) return; // superseded — ignore
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+      img.src = pfPreparedSignature;
+      lockPfSigPad(predictedForName || '');
+    }else{
+      unlockPfSigPad();
+    }
+  }
+
+  // Snapshot of whatever was sitting in the "create new" form right
+  // before Edit was clicked, so Cancel can put it back exactly — see
+  // enterPfEditMode/the Cancel handler below.
+  let pfPreEditSnapshot = null;
+
+  // Switches the Peripheral Form tab into "editing an existing, still-
+  // unused Control No." mode: loads that reservation's saved
+  // Venue/Prepared By/Team/Prepared Time/Event Type/Attachment/Signature/
+  // Items into the same fields normally used to create a new one, and
+  // flips the Update button to save back into THIS number instead of
+  // generating a new one (see the pfUpdateBtn handler below). Only ever
+  // called for a row whose status is still 'unused' (see the cn-edit-btn
+  // handler further down) — an already-used reservation never reaches
+  // here.
+  function enterPfEditMode(row){
+    pfPreEditSnapshot = {
+      items: pfItems.map(r => ({...r})),
+      venue: document.getElementById('pfVenue').value,
+      evMission: document.getElementById('pfEvMission').checked,
+      evPeoples: document.getElementById('pfEvPeoples').checked,
+      preparedBy: document.getElementById('pfPreparedBy').value,
+      team: document.getElementById('pfTeam').value,
+      preparedTime: document.getElementById('pfPreparedTime').value,
+      beforeAttachment: pfBeforeAttachment,
+      preparedSignature: pfPreparedSignature
+    };
+
+    pfEditingControlNo = row.id;
+    document.getElementById('pfEditBanner').style.display = 'flex';
+    document.getElementById('pfEditBannerCn').textContent = '#' + row.id;
+    document.getElementById('cnResultBox').style.display = 'none';
+    pfSaveMsg.textContent = '';
+    pfSaveMsg.className = 'pf-save-msg';
+
+    document.getElementById('pfVenue').value = row.venue || '';
+    document.getElementById('pfEvMission').checked = !!(row.eventType && row.eventType.medicalMission);
+    document.getElementById('pfEvPeoples').checked = !!(row.eventType && row.eventType.peoplesDay);
+    document.getElementById('pfPreparedBy').value = row.preparedBy || '';
+    document.getElementById('pfTeam').value = row.team || 'Information Technology (IT)';
+    document.getElementById('pfPreparedTime').value = parse12hTime(row.preparedTime);
+    applyPfAttachment(row.beforeAttachment || '');
+    restorePfSignature(row.preparedSignature || '', row.preparedBy || '');
+
+    pfItems = (Array.isArray(row.items) ? row.items : []).map(t => ({
+      item: t.item || '', qty: (t.qty === undefined || t.qty === null) ? '' : String(t.qty), locked:true
+    }));
+    renderPfItems();
+
+    document.getElementById('pfUpdateBtn').textContent = 'Save Changes to This Control No.';
+  }
+
+  function exitPfEditMode(){
+    pfEditingControlNo = null;
+    pfPreEditSnapshot = null;
+    document.getElementById('pfEditBanner').style.display = 'none';
+    document.getElementById('pfUpdateBtn').textContent = 'Update Peripheral Form / Generate Control No.';
+  }
+
+  document.getElementById('pfEditCancelBtn').addEventListener('click', ()=>{
+    const snap = pfPreEditSnapshot;
+    exitPfEditMode();
+    if(snap){
+      pfItems = snap.items;
+      renderPfItems();
+      document.getElementById('pfVenue').value = snap.venue;
+      document.getElementById('pfEvMission').checked = snap.evMission;
+      document.getElementById('pfEvPeoples').checked = snap.evPeoples;
+      document.getElementById('pfPreparedBy').value = snap.preparedBy;
+      document.getElementById('pfTeam').value = snap.team;
+      document.getElementById('pfPreparedTime').value = snap.preparedTime;
+      applyPfAttachment(snap.beforeAttachment);
+      restorePfSignature(snap.preparedSignature, snap.preparedBy);
+    }
+    pfSaveMsg.textContent = '';
+    pfSaveMsg.className = 'pf-save-msg';
+    document.getElementById('cnResultBox').style.display = 'none';
+  });
+
+  document.getElementById('pfAddItemBtn').addEventListener('click', ()=>{
+    pfItems.push({item:'[ LAPTOP ] , [ CHARGER ] , [ BAG ]', qty:'2 / 2 / 2', locked:false});
+    renderPfItems();
+  });
+
+  document.getElementById('pfRestoreDefaultsBtn').addEventListener('click', ()=>{
+    if(!confirm('Replace the current item list with the built-in default bracketed list? Any unsaved changes here will be lost — this only takes effect once you click "Update Peripheral Form / Generate Control No." below.')) return;
+    pfItems = PF_FALLBACK_ITEMS.map(t => ({...t, locked:true}));
+    pfSaveMsg.textContent = '';
+    pfSaveMsg.className = 'pf-save-msg';
+    renderPfItems();
+  });
+
+  // Clicking the button no longer saves right away — it first opens the
+  // Confirm Password modal (see openPwConfirmModal below). The actual save
+  // only runs once the CURRENTLY signed-in admin re-enters their own
+  // password.
+  document.getElementById('pfUpdateBtn').addEventListener('click', async ()=>{
+    pfSaveMsg.textContent = '';
+    pfSaveMsg.className = 'pf-save-msg';
+    document.getElementById('cnResultBox').style.display = 'none';
+    if(pfAttachmentBusy){
+      pfSaveMsg.textContent = 'Still processing the photo — please wait a moment and try again.';
+      pfSaveMsg.className = 'pf-save-msg err';
+      return;
+    }
+    const cleanItems = pfItems
+      .map(r => ({ item: (r.item || '').trim(), qty: (r.qty || '').trim() }))
+      .filter(r => r.item);
+    if(!cleanItems.length){
+      pfSaveMsg.textContent = 'Add at least one item before updating.';
+      pfSaveMsg.className = 'pf-save-msg err';
+      return;
+    }
+    if(!auth.currentUser){
+      pfSaveMsg.textContent = 'Your session has expired — please sign in again.';
+      pfSaveMsg.className = 'pf-save-msg err';
+      return;
+    }
+    openPwConfirmModal(() => runPeripheralFormSave(cleanItems), 'update the Peripheral Form / generate the Control No.');
+  });
+
+  // ---- Generic "Confirm Password" gate ----
+  // Reused for every action on this console that changes saved data
+  // (generating/updating a Control No., saving edits to an existing
+  // entry, etc). Re-checks the password of whoever is CURRENTLY signed
+  // in, so a device left signed in can't be used to save changes without
+  // knowing that admin's password. Call openPwConfirmModal(actionFn,
+  // purposeText) — actionFn only runs after a successful re-auth.
+  const cnConfirmModalOverlay = document.getElementById('cnConfirmModalOverlay');
+  const cnConfirmAdminEmailEl = document.getElementById('cnConfirmAdminEmail');
+  const cnConfirmPurposeEl = document.getElementById('cnConfirmPurpose');
+  const cnConfirmInput = document.getElementById('cnConfirmInput');
+  const cnConfirmError = document.getElementById('cnConfirmError');
+  const cnConfirmSubmitBtn = document.getElementById('cnConfirmSubmitBtn');
+  let pwConfirmPendingAction = null;
+
+  function openPwConfirmModal(actionFn, purposeText){
+    pwConfirmPendingAction = actionFn;
+    cnConfirmAdminEmailEl.textContent = (auth.currentUser && auth.currentUser.email) || window.currentAdminEmail || '';
+    cnConfirmPurposeEl.textContent = purposeText || 'save these changes';
+    cnConfirmInput.value = '';
+    cnConfirmError.style.display = 'none';
+    cnConfirmSubmitBtn.disabled = false;
+    cnConfirmSubmitBtn.textContent = 'Confirm';
+    cnConfirmModalOverlay.classList.add('open');
+    cnConfirmInput.focus();
+  }
+
+  function closeCnConfirmModal(){
+    cnConfirmModalOverlay.classList.remove('open');
+    cnConfirmInput.value = '';
+    pwConfirmPendingAction = null;
+  }
+
+  document.getElementById('cnConfirmCloseBtn').addEventListener('click', closeCnConfirmModal);
+  document.getElementById('cnConfirmCancelBtn').addEventListener('click', closeCnConfirmModal);
+  cnConfirmModalOverlay.addEventListener('click', (e)=>{ if(e.target === cnConfirmModalOverlay) closeCnConfirmModal(); });
+  cnConfirmInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') cnConfirmSubmitBtn.click(); });
+
+  cnConfirmSubmitBtn.addEventListener('click', async ()=>{
+    const password = cnConfirmInput.value;
+    if(!password){
+      cnConfirmError.textContent = 'Please enter your password.';
+      cnConfirmError.style.display = 'block';
+      return;
+    }
+    if(!pwConfirmPendingAction || !auth.currentUser) return;
+    cnConfirmError.style.display = 'none';
+    cnConfirmSubmitBtn.disabled = true;
+    cnConfirmSubmitBtn.textContent = 'Confirming…';
+    try{
+      const cred = EmailAuthProvider.credential(auth.currentUser.email, password);
+      await reauthenticateWithCredential(auth.currentUser, cred);
+      const action = pwConfirmPendingAction;
+      closeCnConfirmModal();
+      await action();
+    }catch(err){
+      const code = err && err.code || '';
+      cnConfirmError.textContent = code.includes('wrong-password') || code.includes('invalid-credential')
+        ? 'Incorrect password.'
+        : code.includes('too-many-requests')
+          ? 'Too many attempts. Please wait a moment and try again.'
+          : 'Could not confirm your password — check your connection and try again.';
+      cnConfirmError.style.display = 'block';
+    }finally{
+      cnConfirmSubmitBtn.disabled = false;
+      cnConfirmSubmitBtn.textContent = 'Confirm';
+    }
+  });
+
+  async function runPeripheralFormSave(cleanItems){
+    const btn = document.getElementById('pfUpdateBtn');
+    btn.disabled = true;
+    const originalLabel = btn.textContent;
+    const meta = {
+      venue: (document.getElementById('pfVenue').value || '').trim(),
+      eventType: {
+        medicalMission: document.getElementById('pfEvMission').checked,
+        peoplesDay: document.getElementById('pfEvPeoples').checked
+      },
+      preparedBy: (document.getElementById('pfPreparedBy').value || '').trim(),
+      team: (document.getElementById('pfTeam').value || '').trim(),
+      preparedTime: fmt12hTime(document.getElementById('pfPreparedTime').value),
+      beforeAttachment: pfBeforeAttachment || '',
+      preparedSignature: pfPreparedSignature || ''
+    };
+
+    if(pfEditingControlNo){
+      // ---- Edit mode: save changes back into THIS SAME Control No. ----
+      // Opened via the "✏️ Edit" button in the Control Numbers list, only
+      // ever for a still-unused number. Doesn't touch the reusable default
+      // item template (fsSaveItemsTemplate) — that's for future NEW
+      // numbers, not for retroactively editing one that's already
+      // reserved. No new Control No. is generated here.
+      const cn = pfEditingControlNo;
+      btn.textContent = 'Saving…';
+      try{
+        await window.fsUpdateReservedControlNo(cn, cleanItems, meta);
+        pfItems = cleanItems;
+        renderPfItems();
+        pfSaveMsg.textContent = '✓ Control No. ' + cn + ' was updated.';
+        pfSaveMsg.className = 'pf-save-msg ok';
+        exitPfEditMode();
+      }catch(e){
+        console.error('Could not save changes to Control No. ' + cn, e);
+        pfSaveMsg.textContent = (e && e.code === 'already-used')
+          ? ('Control No. ' + cn + ' was just claimed by someone and can no longer be edited. Your changes were not saved.')
+          : ('Could not save changes (' + ((e && (e.code || e.message)) || 'unknown error') + ').');
+        pfSaveMsg.className = 'pf-save-msg err';
+        if(e && e.code === 'already-used') exitPfEditMode();
+      }
+      btn.disabled = false;
+      btn.textContent = pfEditingControlNo ? originalLabel : 'Update Peripheral Form / Generate Control No.';
+      return;
+    }
+
+    // ---- Normal mode: save as the reusable default list, AND generate a
+    // brand-new Control No. with THIS exact item list, Venue, and Event
+    // Type attached to it — always done together. ----
+    btn.textContent = 'Updating…';
+    try{
+      await window.fsSaveItemsTemplate(cleanItems, window.currentAdminEmail || '');
+      console.log('[Peripheral Form] Generating Control No. with photo attached:', !!meta.beforeAttachment, meta.beforeAttachment ? (meta.beforeAttachment.length + ' chars') : '(none)', '| signature attached:', !!meta.preparedSignature);
+      const newCn = await window.fsGenerateControlNo(window.currentAdminEmail || '', cleanItems, meta);
+      pfItems = cleanItems;
+      renderPfItems();
+      pfMeta.textContent = 'Last updated just now' + (window.currentAdminEmail ? ' by ' + window.currentAdminEmail : '') + '.';
+      pfSaveMsg.textContent = '✓ Peripheral Form updated and a new Control No. was generated.';
+      pfSaveMsg.className = 'pf-save-msg ok';
+      document.getElementById('cnResultNumber').textContent = newCn;
+      document.getElementById('cnResultBox').style.display = 'block';
+      // Venue/Event Type/Prepared By/Prepared Time are specific to that
+      // occasion, not a reusable default like the item list — clear them
+      // so the next generation starts fresh. Team/Department stays put
+      // since it's a fixed default, not per-occasion.
+      document.getElementById('pfVenue').value = '';
+      document.getElementById('pfEvMission').checked = false;
+      document.getElementById('pfEvPeoples').checked = false;
+      document.getElementById('pfPreparedBy').value = '';
+      document.getElementById('pfPreparedTime').value = '';
+      applyPfAttachment('');
+      document.getElementById('pfPreparedSigCanvas').getContext('2d').clearRect(0, 0, 280, 90);
+      pfPreparedSignature = '';
+      unlockPfSigPad();
+    }catch(e){
+      console.error('Could not update peripheral form / generate control no', e);
+      pfSaveMsg.textContent = 'Could not save changes (' + ((e && (e.code || e.message)) || 'unknown error') + ').';
+      pfSaveMsg.className = 'pf-save-msg err';
+    }
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+
+  document.getElementById('cnResultCopyBtn').addEventListener('click', ()=>{
+    const cn = document.getElementById('cnResultNumber').textContent;
+    navigator.clipboard.writeText(cn).then(()=>{
+      const btn = document.getElementById('cnResultCopyBtn');
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(()=>{ btn.textContent = original; }, 1500);
+    }).catch(()=>{});
+  });
+
+  // ---- Control Numbers (history log) ----
+  let unsubControlNos = null;
+  function startControlNosListener(){
+    if(unsubControlNos) return; // listener already running
+    const q = query(collection(db, 'reservedControlNos'), orderBy('generatedAt', 'desc'));
+    unsubControlNos = onSnapshot(q, (snap)=>{
+      const rows = [];
+      snap.forEach(d => rows.push({ id: d.id, ...d.data() }));
+      allControlNos = rows;
+      renderControlNos(rows);
+      updatePfSuggestions();
+    }, (err)=>{
+      console.error('Control Numbers listener failed', err);
+    });
+  }
+
+  function fmtCnTimestamp(ts){
+    if(ts && ts.seconds) return new Date(ts.seconds * 1000).toLocaleString();
+    return '—';
+  }
+
+  function renderControlNos(rows){
+    const body = document.getElementById('cnListBody');
+    const empty = document.getElementById('cnEmptyState');
+    if(!rows.length){
+      body.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    body.innerHTML = rows.map(r => `
+      <tr>
+        <td class="cn-mono">${escapeHtml(r.id)}</td>
+        <td><span class="cn-status-pill ${r.status === 'used' ? 'used' : 'unused'}">${r.status === 'used' ? 'USED' : 'UNUSED'}</span></td>
+        <td>${escapeHtml(r.venue || '—')}</td>
+        <td>${escapeHtml(fmtCnTimestamp(r.generatedAt))}</td>
+        <td>${escapeHtml(fmtCnTimestamp(r.usedAt))}</td>
+        <td>
+          <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
+          ${r.status === 'used'
+            ? `<button type="button" class="cn-edit-btn" disabled title="Already used — no longer editable">🔒 Locked</button>`
+            : `<button type="button" class="cn-edit-btn" data-cn="${escapeAttr(r.id)}">✏️ Edit</button>`}
+        </td>
+      </tr>
+    `).join('');
+    body.querySelectorAll('.cn-copy-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const cn = btn.getAttribute('data-cn');
+        navigator.clipboard.writeText(cn).then(()=>{
+          const original = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(()=>{ btn.textContent = original; }, 1500);
+        }).catch(()=>{});
+      });
+    });
+    // Only the still-unused rows render an actual Edit button with a
+    // data-cn attribute — used/locked rows render a disabled "🔒 Locked"
+    // button instead (see renderControlNos above), so this selector never
+    // picks those up.
+    body.querySelectorAll('.cn-edit-btn[data-cn]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const cn = btn.getAttribute('data-cn');
+        // Editing happens right here in the Peripheral Form tab (same
+        // fields used to generate a Control No. in the first place) —
+        // this never opens peripheral-form.html, which is the employee-
+        // facing form for actually USING a Control No., not for Admin to
+        // reconfigure one. Admin can only edit a Control No. while it's
+        // still unused (see the disabled "🔒 Locked" button above for used
+        // ones), so there's nothing to bypass or unlock on that side.
+        const row = allControlNos.find(r => r.id === cn);
+        if(!row){
+          alert('Could not find this Control No. — try refreshing the list.');
+          return;
+        }
+        if(row.status === 'used'){
+          alert('This Control No. is already used and can no longer be edited.');
+          return;
+        }
+        await showPfRedirectOverlay();
+        await loadPeripheralFormEditor(); // no-op if the tab was already visited this session
+        switchTab('peripheralForm');
+        enterPfEditMode(row);
+        hidePfRedirectOverlay();
+      });
+    });
+  }
+
+  // ---- Register Employee ----
+  const registerForm = document.getElementById('registerForm');
+  const registerBtn = document.getElementById('registerBtn');
+  const errMsg = document.getElementById('errMsg');
+  const okMsg = document.getElementById('okMsg');
+
+  registerForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    errMsg.style.display = 'none';
+    okMsg.style.display = 'none';
+    registerBtn.disabled = true;
+    registerBtn.textContent = 'Creating…';
+    PDLoader.show();
+
+    const name = document.getElementById('empName').value.trim();
+    const email = document.getElementById('empEmail').value.trim();
+    const department = document.getElementById('empDepartment').value;
+    const staffId = document.getElementById('empStaffId').value.trim();
+    const password = document.getElementById('empPassword').value;
+    const staffDocId = staffId.toLowerCase();
+
+    try{
+      if(!staffDocId){
+        throw { code: 'invalid-staffid' };
+      }
+      const empRef = doc(db, 'employees', staffDocId);
+      const existing = await getDoc(empRef);
+      if(existing.exists()){
+        throw { code: 'staffid-in-use' };
+      }
+
+      const passwordHash = await hashPassword(password);
+
+      await setDoc(empRef, {
+        name, email, staffId, department,
+        passwordHash,
+        createdAt: serverTimestamp(),
+        createdBy: auth.currentUser ? auth.currentUser.email : ''
+      });
+
+      okMsg.textContent = `Account created for ${name} (Staff ID: ${staffId}). Share the Staff ID and password with them directly.`;
+      okMsg.style.display = 'block';
+      registerForm.reset();
+    }catch(err){
+      errMsg.textContent = friendlyError(err);
+      errMsg.style.display = 'block';
+    }finally{
+      PDLoader.hide();
+      registerBtn.disabled = false;
+      registerBtn.textContent = 'Create Account';
+    }
+  });
+
+  function friendlyError(err){
+    const code = err && err.code || '';
+    if(code.includes('staffid-in-use')) return 'That Staff ID is already registered.';
+    if(code.includes('invalid-staffid')) return 'Please enter a Staff ID.';
+    return 'Could not create the account (' + (code || 'unknown error') + ').';
+  }
+
+  // Splits a department string like "IT NORTH" or "Pharmacy Assistant SOUTH"
+  // into { team: "IT", branch: "NORTH" } so the Recently Registered table can
+  // show them as two separate columns instead of one long combined string.
+  function splitDepartment(dep){
+    const raw = String(dep || '').trim();
+    const m = raw.match(/^(.*?)\s+(NORTH|SOUTH)$/i);
+    if(m){
+      return { team: m[1].trim(), branch: m[2].toUpperCase() };
+    }
+    return { team: raw || '—', branch: '—' };
+  }
+
+  // Fixed team order (matches the dropdown above) so cards appear in a
+  // predictable order every time, instead of jumping around as new
+  // employees are registered. Any unexpected/legacy department value still
+  // gets its own card, just appended after the known teams.
+  const TEAM_ORDER = ['IT', 'BILLING', 'Pharmacy Assistant'];
+
+  // Search (by name) and branch filter (All / North / South) apply across
+  // every team card at once — one toolbar controls IT, BILLING, and
+  // Pharmacy Assistant together, instead of needing a separate search box
+  // per container.
+  let empSearchQuery = '';
+  let empBranchFilter = 'ALL';
+  let lastEmpDocs = [];
+
+  let unsubEmployees = null;
+  function startEmployeeListener(){
+    if(unsubEmployees) return;
+    // No limit here (search/filter needs to reach every employee, not just
+    // the most recently registered ones) — sorted newest-first within each
+    // branch group below.
+    const q = query(collection(db, 'employees'), orderBy('createdAt', 'desc'));
+    unsubEmployees = onSnapshot(q, (snap)=>{
+      lastEmpDocs = snap.docs;
+      renderEmployeeGroups();
+    });
+  }
+
+  function renderEmployeeGroups(){
+    const container = document.getElementById('empGroups');
+    const nameQuery = empSearchQuery.trim().toLowerCase();
+
+    const filteredDocs = lastEmpDocs.filter(d=>{
+      const emp = d.data();
+      if(nameQuery && !String(emp.name || '').toLowerCase().includes(nameQuery)) return false;
+      return true;
+    });
+
+    if(lastEmpDocs.length === 0){
+      container.innerHTML = '<div class="team-card"><table class="team-table"><tbody><tr class="empty-row"><td>No employees registered yet.</td></tr></tbody></table></div>';
+      return;
+    }
+    if(filteredDocs.length === 0){
+      container.innerHTML = '<div class="team-card"><table class="team-table"><tbody><tr class="empty-row"><td>No employees match your search/filter.</td></tr></tbody></table></div>';
+      return;
+    }
+
+    // Group the filtered employees by team, keeping each team's own list in
+    // its own separate container (not sharing rows with other teams).
+    const groups = new Map();
+    filteredDocs.forEach(d=>{
+      const emp = d.data();
+      const { team, branch } = splitDepartment(emp.department);
+      if(!groups.has(team)) groups.set(team, []);
+      groups.get(team).push({ id: d.id, emp, branch });
+    });
+
+    const orderedTeams = [
+      ...TEAM_ORDER.filter(t => groups.has(t)),
+      ...[...groups.keys()].filter(t => !TEAM_ORDER.includes(t))
+    ];
+
+    const showBranches = empBranchFilter === 'ALL' ? ['NORTH', 'SOUTH'] : [empBranchFilter];
+
+    const cardsHtml = orderedTeams.map(team=>{
+      const rows = groups.get(team);
+
+      // Within this team's own container, split further into NORTH / SOUTH
+      // sub-groups so employees from different branches never share the
+      // same list — North stays with North, South stays with South. Which
+      // branches actually render here is controlled by the North/South/All
+      // filter buttons above.
+      const branchGroups = new Map();
+      showBranches.forEach(b => branchGroups.set(b, []));
+      rows.forEach(row=>{
+        if(!branchGroups.has(row.branch)){
+          if(empBranchFilter !== 'ALL') return; // filtered out by branch
+          branchGroups.set(row.branch, []);
+        }
+        branchGroups.get(row.branch).push(row);
+      });
+
+      const teamTotal = [...branchGroups.values()].reduce((n, list) => n + list.length, 0);
+      if(teamTotal === 0) return ''; // nothing in this team matches the current filter/search
+
+      const branchesHtml = [...branchGroups.entries()].map(([branch, branchRows])=>{
+        if(branchRows.length === 0){
+          return `<div class="branch-block">
+            <div class="branch-head">${escapeHtml(branch)} <span class="branch-count">0</span></div>
+            <div class="branch-empty">No ${escapeHtml(branch)} employees${nameQuery ? ' match your search' : ' yet'}.</div>
+          </div>`;
+        }
+        const rowsHtml = branchRows.map(({ id, emp })=>{
+          const when = emp.createdAt && emp.createdAt.toDate ? emp.createdAt.toDate().toLocaleString() : '—';
+          return `<tr>
+            <td data-label="Name">${escapeHtml(emp.name)}</td>
+            <td data-label="Staff ID">${escapeHtml(emp.staffId)}</td>
+            <td data-label="Email">${escapeHtml(emp.email)}</td>
+            <td data-label="Registered">${when}</td>
+            <td data-label="Action">
+              <button type="button" class="row-btn" data-pw-emp="${id}" data-emp-name="${escapeAttr(emp.name)}" data-emp-staffid="${escapeAttr(emp.staffId)}">Change Password</button>
+              <button type="button" class="row-btn del" data-del-emp="${id}" data-emp-name="${escapeAttr(emp.name)}">Delete</button>
+            </td>
+          </tr>`;
+        }).join('');
+        return `<div class="branch-block">
+          <div class="branch-head">${escapeHtml(branch)} <span class="branch-count">${branchRows.length}</span></div>
+          <table class="team-table">
+            <thead><tr><th>Name</th><th>Staff ID</th><th>Email</th><th>Registered</th><th>Action</th></tr></thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>`;
+      }).join('');
+
+      return `<div class="team-card">
+        <div class="team-card-head">
+          <h3>${escapeHtml(team)}</h3>
+          <span class="team-count">${teamTotal}</span>
+        </div>
+        ${branchesHtml}
+      </div>`;
+    }).join('');
+
+    container.innerHTML = cardsHtml || '<div class="team-card"><table class="team-table"><tbody><tr class="empty-row"><td>No employees match your search/filter.</td></tr></tbody></table></div>';
+  }
+
+  document.getElementById('empSearchInput').addEventListener('input', (e)=>{
+    empSearchQuery = e.target.value;
+    renderEmployeeGroups();
+  });
+
+  document.getElementById('branchFilterGroup').addEventListener('click', (e)=>{
+    const btn = e.target.closest('[data-branch-filter]');
+    if(!btn) return;
+    empBranchFilter = btn.dataset.branchFilter;
+    document.querySelectorAll('.branch-filter-btn').forEach(b=>{
+      b.classList.toggle('active', b === btn);
+    });
+    renderEmployeeGroups();
+  });
+
+  // Delete Account — removes the employee's profile so they can no longer
+  // sign in / use the Peripherals Receiving form. Peripherals forms they
+  // already filled up and saved are untouched: each saved entry keeps its
+  // own copy of the filler's name/Staff ID/department, so "Filled by" on
+  // past entries still shows their name even after their account is deleted.
+  document.getElementById('empGroups').addEventListener('click', async (e)=>{
+    const pwBtn = e.target.closest('[data-pw-emp]');
+    if(pwBtn){
+      openPwModal(pwBtn.dataset.pwEmp, pwBtn.dataset.empName || 'this employee', pwBtn.dataset.empStaffid || '');
+      return;
+    }
+    const btn = e.target.closest('[data-del-emp]');
+    if(!btn) return;
+    const uid = btn.dataset.delEmp;
+    const name = btn.dataset.empName || 'this employee';
+    if(!confirm(`Delete the account for ${name}? They will no longer be able to sign in. Peripherals forms they already filled up will keep their name on record.`)){
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Deleting…';
+    PDLoader.show();
+    try{
+      await deleteDoc(doc(db, 'employees', uid));
+    }catch(err){
+      alert('Could not delete the account (' + (err.code || err.message) + ').');
+      btn.disabled = false;
+      btn.textContent = 'Delete';
+    }finally{
+      PDLoader.hide();
+    }
+  });
+
+  // ---- Change Password modal ----
+  // Admin-only: employees have no self-service way to change their own
+  // password. Only this console (behind the Admin auth guard above) can
+  // write a new passwordHash for an employee's Firestore doc.
+  const pwModalOverlay = document.getElementById('pwModalOverlay');
+  const pwModalInput = document.getElementById('pwModalInput');
+  const pwModalError = document.getElementById('pwModalError');
+  const pwModalSaveBtn = document.getElementById('pwModalSaveBtn');
+  let pwModalDocId = null;
+
+  function openPwModal(docId, name, staffId){
+    pwModalDocId = docId;
+    document.getElementById('pwModalEmpName').textContent = name;
+    document.getElementById('pwModalStaffId').textContent = staffId;
+    pwModalInput.value = '';
+    pwModalError.style.display = 'none';
+    pwModalSaveBtn.disabled = false;
+    pwModalSaveBtn.textContent = 'Save New Password';
+    pwModalOverlay.classList.add('open');
+    pwModalInput.focus();
+  }
+
+  function closePwModal(){
+    pwModalOverlay.classList.remove('open');
+    pwModalDocId = null;
+  }
+
+  document.getElementById('pwModalCloseBtn').addEventListener('click', closePwModal);
+  document.getElementById('pwModalCancelBtn').addEventListener('click', closePwModal);
+  pwModalOverlay.addEventListener('click', (e)=>{ if(e.target === pwModalOverlay) closePwModal(); });
+
+  pwModalSaveBtn.addEventListener('click', async ()=>{
+    const newPassword = pwModalInput.value;
+    if(!newPassword){
+      pwModalError.textContent = 'Please enter a new password.';
+      pwModalError.style.display = 'block';
+      return;
+    }
+    if(!pwModalDocId) return;
+    pwModalError.style.display = 'none';
+    pwModalSaveBtn.disabled = true;
+    pwModalSaveBtn.textContent = 'Saving…';
+    PDLoader.show();
+    try{
+      const passwordHash = await hashPassword(newPassword);
+      await setDoc(doc(db, 'employees', pwModalDocId), { passwordHash }, { merge: true });
+      closePwModal();
+    }catch(err){
+      pwModalError.textContent = 'Could not change the password (' + (err.code || err.message) + ').';
+      pwModalError.style.display = 'block';
+    }finally{
+      PDLoader.hide();
+      pwModalSaveBtn.disabled = false;
+      pwModalSaveBtn.textContent = 'Save New Password';
+    }
+  });
+</script>
+<script src="loader.js"></script>
+</body>
+</html>
