@@ -91,6 +91,71 @@
   .logout-btn:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.55);transform:translateY(-1px);}
   .logout-btn:active{transform:translateY(0);}
 
+  /* ---- Notification bell (topbar) ---- */
+  .notif-bell-btn{
+    border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.06);color:#fff;border-radius:9px;
+    padding:8px 12px;font-size:15px;cursor:pointer;line-height:1;position:relative;
+    transition:background .15s ease,border-color .15s ease,transform .15s ease;
+  }
+  .notif-bell-btn:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.55);}
+  .notif-bell-btn.is-on{background:rgba(95,217,138,0.20);border-color:rgba(95,217,138,0.55);}
+  .notif-bell-btn.is-off{opacity:0.7;}
+  .notif-bell-btn.is-muted{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.35);opacity:0.75;}
+  .notif-bell-btn .dot{
+    position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;
+    background:#5FD98A;border:1.5px solid var(--maroon);display:none;
+  }
+  .notif-bell-btn.is-on .dot{display:block;}
+
+  /* ---- New-save notification toasts ---- */
+  .pd-toast-stack{
+    position:fixed; top:16px; right:16px; z-index:99999;
+    display:flex; flex-direction:column; gap:10px;
+    width:360px; max-width:calc(100vw - 32px);
+    pointer-events:none;
+  }
+  @media (max-width:640px){
+    .pd-toast-stack{ top:0; left:0; right:0; width:100%; max-width:100%; padding:10px 10px 0; gap:8px; }
+  }
+  .pd-toast{
+    pointer-events:auto; cursor:pointer;
+    background:#fff; border:1px solid var(--line); border-left:4px solid var(--red);
+    border-radius:12px; box-shadow:0 12px 32px rgba(61,10,16,0.22);
+    padding:13px 14px; display:flex; gap:11px; align-items:flex-start;
+    animation:pdToastIn .28s cubic-bezier(.2,.8,.2,1);
+  }
+  .pd-toast.leaving{ animation:pdToastOut .18s ease-in forwards; }
+  @keyframes pdToastIn{ from{ transform:translateY(-16px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+  @keyframes pdToastOut{ from{ transform:translateY(0); opacity:1; } to{ transform:translateY(-10px) scale(.98); opacity:0; } }
+  .pd-toast-icon{
+    flex:none; width:34px;height:34px;border-radius:9px;
+    background:linear-gradient(135deg,var(--red),var(--red-dark));color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+  }
+  .pd-toast-body{flex:1;min-width:0;}
+  .pd-toast-title{font-weight:800;font-size:13px;color:var(--maroon);margin-bottom:2px;}
+  .pd-toast-msg{font-size:12.5px;color:var(--ink);line-height:1.4;overflow-wrap:anywhere;}
+  .pd-toast-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+  .pd-toast-close{
+    flex:none;border:none;background:transparent;color:var(--muted);
+    font-size:17px;line-height:1;cursor:pointer;padding:2px 4px;border-radius:5px;
+  }
+  .pd-toast-close:hover{color:var(--red);background:var(--paper);}
+
+  /* Inline "enable notifications" prompt banner */
+  .notif-prompt-banner{
+    display:none; align-items:center; gap:12px; flex-wrap:wrap;
+    background:#FBE7E9;border:1px solid #F3C2C6;color:var(--red-dark);
+    border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:13px;
+  }
+  .notif-prompt-banner.show{display:flex;}
+  .notif-prompt-banner button{
+    border:none;border-radius:7px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer;
+  }
+  .notif-prompt-enable{background:var(--red);color:#fff;}
+  .notif-prompt-enable:hover{background:var(--red-dark);}
+  .notif-prompt-dismiss{background:transparent;color:var(--red-dark);}
+
   /* Toolbar */
   .toolbar{
     display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;
@@ -590,6 +655,38 @@
   .cn-status-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:13px;font-weight:700;letter-spacing:.3px;}
   .cn-status-pill.unused{background:#E4F3E8;color:#1E7A34;}
   .cn-status-pill.used{background:#F0F0F0;color:var(--muted);}
+  .cn-status-pill.cancelled{background:#FBE7E9;color:var(--red-dark);}
+
+  /* ---- Collapsible Control No. containers (Unused/Used/Cancelled) ---- */
+  .cn-block{
+    border:1px solid var(--line);border-radius:12px;margin:22px 20px 0;overflow:hidden;
+    background:#fff;box-shadow:0 2px 8px rgba(110,22,32,0.04);
+  }
+  .cn-block-head{
+    display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
+    padding:16px 18px;cursor:pointer;user-select:none;
+  }
+  .cn-block-head:hover{background:#FBF6F5;}
+  .cn-block-title{flex:1;min-width:0;}
+  .cn-block-title h2{margin:0 0 6px;font-size:16px;color:var(--maroon);font-weight:800;}
+  .cn-block-title p{margin:0;font-size:13px;color:var(--muted);max-width:680px;line-height:1.6;}
+  .cn-block-title p strong{color:var(--ink);}
+  .cn-toggle-btn{
+    flex:none;border:1px solid var(--line);background:#fff;color:var(--maroon);
+    width:34px;height:34px;border-radius:9px;font-size:13px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .15s ease,border-color .15s ease,transform .2s ease;
+  }
+  .cn-toggle-btn:hover{background:#F6ECEC;border-color:var(--maroon);}
+  .cn-toggle-btn svg{width:15px;height:15px;transition:transform .2s ease;}
+  .cn-block.collapsed .cn-toggle-btn svg{transform:rotate(-90deg);}
+  .cn-block-body{
+    max-height:4000px;opacity:1;overflow:hidden;
+    transition:max-height .25s ease,opacity .2s ease,padding .2s ease;
+  }
+  .cn-block.collapsed .cn-block-body{max-height:0;opacity:0;}
+  .cn-block-body .pf-table{margin-top:0;}
+  .cn-block-body .pf-table:first-child{margin-top:6px;}
 
   /* Mobile: the item-name column has no room to breathe in a 3-column
      table on a phone (~360-400px wide), so text like
@@ -621,6 +718,13 @@
     padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;}
   .cn-edit-btn:hover{background:var(--red);color:#fff;}
   .cn-edit-btn:disabled{opacity:0.6;cursor:not-allowed;}
+  .cn-cancel-btn{border:1.5px solid #b42318;background:#fff;color:#b42318;border-radius:7px;
+    padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;margin-left:6px;}
+  .cn-cancel-btn:hover{background:#b42318;color:#fff;}
+  .cn-restore-btn{border:1.5px solid #1E7A34;background:#fff;color:#1E7A34;border-radius:7px;
+    padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;}
+  .cn-restore-btn:hover{background:#1E7A34;color:#fff;}
+  .cn-locked-tag{opacity:0.7;font-size:13px;font-weight:700;color:var(--muted);margin-right:6px;}
   .cn-mono{font-family:'Courier New',monospace;font-size:16.5px;font-weight:700;letter-spacing:1px;color:var(--maroon);}
   .cn-result-box{margin:0 20px 20px;background:#F6ECEC;border:1.5px dashed var(--maroon);border-radius:10px;padding:14px 16px;}
   .cn-result-label{font-size:14.5px;color:var(--muted);margin-bottom:8px;font-weight:600;}
@@ -734,13 +838,24 @@
 
   <div class="topbar">
     <div class="brand">
-      <img src="logo.png" alt="Planet Drugstore" class="brand-mark">
+      <a href="landing-page.html"><img src="logo.png" alt="Planet Drugstore" class="brand-mark"></a>
       <div class="brand-name">PLANET<span>DRUGSTORE</span></div>
     </div>
     <h1>IT Admin Console — Peripherals Entries</h1>
     <div class="who">Signed in as <strong id="whoEmail">…</strong></div>
+    <button class="notif-bell-btn is-off" id="notifBellBtn" title="Notify me when a peripheral form is saved">
+      🔔<span class="dot"></span>
+    </button>
     <button class="logout-btn" id="logoutBtn">🚪 Log Out</button>
   </div>
+
+  <div class="notif-prompt-banner" id="notifPromptBanner">
+    <span>🔔 Gusto mo bang bigyan ka ng notification tuwing may mag-save ng Peripheral Form?</span>
+    <button type="button" class="notif-prompt-enable" id="notifPromptEnableBtn">Enable</button>
+    <button type="button" class="notif-prompt-dismiss" id="notifPromptDismissBtn">Not now</button>
+  </div>
+
+  <div class="pd-toast-stack" id="pdToastStack"></div>
 
   <div class="main-tabs">
     <button id="tabEntriesBtn" class="active">📋 Peripheral Entries</button>
@@ -781,6 +896,7 @@
             <th>Venue</th>
             <th>Event</th>
             <th>Filled Up By</th>
+            <th>Received At</th>
             <th>Saved At</th>
             <th style="width:150px;">Actions</th>
           </tr>
@@ -988,13 +1104,90 @@
       <h2>Peripheral Control Numbers</h2>
       <p>Log of every Control No. generated so far, each with the item list it was created with. To generate a new one, go to the Peripheral Form tab and use "Update Peripheral Form / Generate Control No."</p>
     </div>
-    <table class="pf-table" style="margin-top:6px;">
-      <thead>
-        <tr><th style="width:140px;">Control No.</th><th style="width:120px;">Status</th><th>Venue</th><th>Generated</th><th>Used</th><th style="width:80px;"></th></tr>
-      </thead>
-      <tbody id="cnListBody"></tbody>
-    </table>
-    <div class="pf-meta" id="cnEmptyState" style="display:none;padding-bottom:20px;">No Control Numbers generated yet.</div>
+
+    <div class="cn-block" id="cnBlockUnused" data-cn-block="cnUnused">
+      <div class="cn-block-head" data-cn-toggle-head>
+        <div class="cn-block-title">
+          <h2>🟢 Unused Control Numbers</h2>
+          <p>Not yet claimed by anyone. Unused numbers older than 7 days are hidden here automatically (they're still safely on file — just no longer worth showing on this list).</p>
+        </div>
+        <button type="button" class="cn-toggle-btn" data-cn-toggle-btn aria-expanded="true" title="Minimize/Maximize">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="cn-block-body">
+        <table class="pf-table">
+          <thead>
+            <tr><th style="width:140px;">Control No.</th><th>Venue</th><th>Generated</th><th style="width:200px;"></th></tr>
+          </thead>
+          <tbody id="cnUnusedListBody"></tbody>
+        </table>
+        <div class="pf-meta" id="cnUnusedEmptyState" style="display:none;padding-bottom:20px;">No unused Control Numbers right now.</div>
+      </div>
+    </div>
+
+    <div class="cn-block" id="cnBlockLocked" data-cn-block="cnLocked">
+      <div class="cn-block-head" data-cn-toggle-head>
+        <div class="cn-block-title">
+          <h2>🔐 Locked Control Numbers</h2>
+          <p>Auto-locked because a full day passed without being used. Use "Restore" to send one back to Unused so it can be claimed again.</p>
+        </div>
+        <button type="button" class="cn-toggle-btn" data-cn-toggle-btn aria-expanded="true" title="Minimize/Maximize">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="cn-block-body">
+        <table class="pf-table">
+          <thead>
+            <tr><th style="width:140px;">Control No.</th><th>Venue</th><th>Generated</th><th>Locked</th><th>Reason</th><th style="width:120px;"></th></tr>
+          </thead>
+          <tbody id="cnLockedListBody"></tbody>
+        </table>
+        <div class="pf-meta" id="cnLockedEmptyState" style="display:none;padding-bottom:20px;">No auto-locked Control Numbers right now.</div>
+      </div>
+    </div>
+
+    <div class="cn-block" id="cnBlockUsed" data-cn-block="cnUsed">
+      <div class="cn-block-head" data-cn-toggle-head>
+        <div class="cn-block-title">
+          <h2>🔒 Used Control Numbers</h2>
+          <p>Already claimed and locked — carried over to a Peripheral Form.</p>
+        </div>
+        <button type="button" class="cn-toggle-btn" data-cn-toggle-btn aria-expanded="true" title="Minimize/Maximize">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="cn-block-body">
+        <table class="pf-table">
+          <thead>
+            <tr><th style="width:140px;">Control No.</th><th>Venue</th><th>Generated</th><th>Used</th><th>Used By</th><th style="width:140px;"></th></tr>
+          </thead>
+          <tbody id="cnUsedListBody"></tbody>
+        </table>
+        <div class="pf-meta" id="cnUsedEmptyState" style="display:none;padding-bottom:20px;">No Control Numbers have been used yet.</div>
+      </div>
+    </div>
+
+    <div class="cn-block" id="cnBlockCancelled" data-cn-block="cnCancelled">
+      <div class="cn-block-head" data-cn-toggle-head>
+        <div class="cn-block-title">
+          <h2>🚫 Cancelled Control Numbers</h2>
+          <p>Cancelled and locked — can no longer be edited or claimed. Use "Restore" to send one back to Unused so it can be used again.</p>
+        </div>
+        <button type="button" class="cn-toggle-btn" data-cn-toggle-btn aria-expanded="true" title="Minimize/Maximize">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="cn-block-body">
+        <table class="pf-table">
+          <thead>
+            <tr><th style="width:140px;">Control No.</th><th>Venue</th><th>Generated</th><th>Cancelled</th><th>Cancelled By</th><th style="width:120px;"></th></tr>
+          </thead>
+          <tbody id="cnCancelledListBody"></tbody>
+        </table>
+        <div class="pf-meta" id="cnCancelledEmptyState" style="display:none;padding-bottom:20px;">No cancelled Control Numbers right now.</div>
+      </div>
+    </div>
   </div>
 
   <div id="dangerZoneSection" style="display:none;">
@@ -1331,6 +1524,94 @@
     });
   };
 
+  // Cancels a Control No. — works on BOTH still-unused and already-used
+  // numbers (see the "Cancel" button on both rows in renderControlNos
+  // below). A cancelled number is locked: it can no longer be edited
+  // (unused case) or picked back up as a valid claim (used case). The
+  // previous status is saved on the doc so we know where it came from,
+  // though "Restore" below always sends it back to Unused regardless.
+  // Refuses (throws {code:'already-cancelled'}) if it's already
+  // cancelled, same race-condition guard pattern as fsUpdateReservedControlNo.
+  window.fsCancelControlNo = async function(controlNo, adminEmail){
+    const ref = doc(db, "reservedControlNos", String(controlNo));
+    return await runTransaction(db, async (tx) => {
+      const snap = await tx.get(ref);
+      if(!snap.exists()){
+        const err = new Error('Control No. not found'); err.code = 'not-found'; throw err;
+      }
+      const data = snap.data();
+      if(data.status === 'cancelled'){
+        const err = new Error('Control No. already cancelled'); err.code = 'already-cancelled'; throw err;
+      }
+      tx.set(ref, {
+        status: 'cancelled',
+        statusBeforeCancel: data.status || 'unused',
+        cancelledAt: serverTimestamp(),
+        cancelledBy: adminEmail || ''
+      }, { merge: true });
+      return true;
+    });
+  };
+
+  // Restores a cancelled Control No. — always sends it back to Unused
+  // (per how this console's Cancel/Restore flow is meant to work: once
+  // restored, the number is free to be claimed/edited again), clearing
+  // both the cancel fields AND any previous "used" claim info so a
+  // restored number that used to be claimed doesn't still show an old
+  // claimant. Refuses (throws {code:'not-cancelled'}) if the doc isn't
+  // actually in the 'cancelled' state anymore.
+  window.fsRestoreControlNo = async function(controlNo){
+    const ref = doc(db, "reservedControlNos", String(controlNo));
+    return await runTransaction(db, async (tx) => {
+      const snap = await tx.get(ref);
+      if(!snap.exists()){
+        const err = new Error('Control No. not found'); err.code = 'not-found'; throw err;
+      }
+      const data = snap.data();
+      if(data.status !== 'cancelled'){
+        const err = new Error('Control No. is not cancelled'); err.code = 'not-cancelled'; throw err;
+      }
+      tx.set(ref, {
+        status: 'unused',
+        statusBeforeCancel: null,
+        cancelledAt: null,
+        cancelledBy: null,
+        usedAt: null,
+        usedByName: null,
+        usedByStaffId: null
+      }, { merge: true });
+      return true;
+    });
+  };
+
+  // Restores an auto-LOCKED Control No. (locked by the scheduled Cloud
+  // Function after 24h unused — see functions/index.js) back to Unused,
+  // same idea as fsRestoreControlNo above but for status 'locked' instead
+  // of 'cancelled'. Resets generatedAt to now so it gets a fresh 24-hour
+  // window instead of getting immediately re-locked by the next scheduled
+  // run. Refuses (throws {code:'not-locked'}) if the doc isn't actually
+  // in the 'locked' state anymore.
+  window.fsRestoreLockedControlNo = async function(controlNo){
+    const ref = doc(db, "reservedControlNos", String(controlNo));
+    return await runTransaction(db, async (tx) => {
+      const snap = await tx.get(ref);
+      if(!snap.exists()){
+        const err = new Error('Control No. not found'); err.code = 'not-found'; throw err;
+      }
+      const data = snap.data();
+      if(data.status !== 'locked'){
+        const err = new Error('Control No. is not locked'); err.code = 'not-locked'; throw err;
+      }
+      tx.set(ref, {
+        status: 'unused',
+        generatedAt: serverTimestamp(),
+        lockedAt: null,
+        lockReason: null
+      }, { merge: true });
+      return true;
+    });
+  };
+
   // ---- Admin-only auth guard ----
   // Only real admin/IT-Logistics accounts (real email, via admin-login.html) may
   // reach this console. Employee Staff-ID accounts and signed-out visitors
@@ -1343,6 +1624,7 @@
     }
     document.getElementById('whoEmail').textContent = user.email;
     window.currentAdminEmail = user.email;
+    maybeShowNotifPrompt();
     loadEntries();
     startControlNosListener(); // start early too, so pfVenue/pfPreparedBy suggestions
                                 // are ready as soon as the Generate form is used —
@@ -1396,12 +1678,268 @@
   }
   setInterval(checkDayRollover, 60000);
 
+  // ---- New-save notifications ----
+  // Fires whenever a *new* peripheral entry shows up in the "entries"
+  // collection while this console tab is open (even if it's minimized or
+  // in the background) — from an employee's Peripheral Form save, or
+  // another admin's. Shows an on-screen toast every time, and — if the
+  // admin has granted permission — also a real browser/OS-level
+  // notification (the kind that appears at the top of the screen on
+  // mobile, or top-right on desktop, even while this tab isn't focused).
+  // Does NOT fire for the very first snapshot on page load (that would
+  // just notify about every entry already in the database).
+  const NOTIF_DISMISS_KEY = 'pd_notif_prompt_dismissed';
+  // Browsers never let JS revoke a 'granted' Notification permission —
+  // only the user can do that from browser site settings. So once granted,
+  // an in-app mute flag (persisted per-browser) is the actual on/off switch
+  // the IT admin gets. isNotifMuted() gates every toast/Notification below.
+  const NOTIF_MUTE_KEY = 'pd_notif_muted';
+  function isNotifMuted(){
+    try{ return localStorage.getItem(NOTIF_MUTE_KEY) === '1'; }catch(e){ return false; }
+  }
+  function setNotifMuted(muted){
+    try{ localStorage.setItem(NOTIF_MUTE_KEY, muted ? '1' : '0'); }catch(e){}
+  }
+  const toastStack = document.getElementById('pdToastStack');
+  const notifBellBtn = document.getElementById('notifBellBtn');
+  const notifPromptBanner = document.getElementById('notifPromptBanner');
+
+  function notifSupported(){
+    return typeof Notification !== 'undefined';
+  }
+  function updateBellUI(){
+    if(!notifSupported()){ notifBellBtn.style.display = 'none'; return; }
+    const perm = Notification.permission;
+    const muted = perm === 'granted' && isNotifMuted();
+    notifBellBtn.classList.toggle('is-on', perm === 'granted' && !muted);
+    notifBellBtn.classList.toggle('is-muted', muted);
+    notifBellBtn.classList.toggle('is-off', perm !== 'granted');
+    notifBellBtn.innerHTML = (muted ? '🔕' : '🔔') + '<span class="dot"></span>';
+    notifBellBtn.title = muted
+      ? 'Notifications paused — click to turn back on'
+      : (perm === 'granted'
+        ? 'Notifications are ON — click to pause them'
+        : (perm === 'denied'
+          ? 'Notifications are blocked — enable them in your browser\'s site settings'
+          : 'Click to enable notifications for new Peripheral Form saves'));
+  }
+  async function requestNotifPermission(){
+    if(!notifSupported()) return;
+    const before = Notification.permission;
+    // Already granted at the browser level — the bell now acts as the
+    // app's own pause/resume switch, since the browser prompt can't be
+    // shown again to "turn it off" from here.
+    if(before === 'granted'){
+      const nowMuted = !isNotifMuted();
+      setNotifMuted(nowMuted);
+      updateBellUI();
+      showBellStatusToast(nowMuted ? 'muted' : 'unmuted');
+      return;
+    }
+    if(before === 'default'){
+      try{ await Notification.requestPermission(); }catch(e){}
+    }
+    updateBellUI();
+    notifPromptBanner.classList.remove('show');
+    // Once permission is already 'granted' or 'denied', the browser will
+    // never show the permission popup again on click — updateBellUI()
+    // above then changes nothing on screen, which makes the button look
+    // unresponsive/dead. Show a small status toast every time instead, so
+    // clicking the bell always visibly does *something*.
+    showBellStatusToast(Notification.permission === 'granted' ? 'enabled' : (Notification.permission === 'denied' ? 'denied' : 'not-enabled'));
+  }
+  function showBellStatusToast(kind){
+    let title, body;
+    if(kind === 'unmuted'){
+      title = 'Notifications Resumed';
+      body = 'You\'ll get an alert here for new saves and Control No. claims while this tab is open.';
+    }else if(kind === 'muted'){
+      title = 'Notifications Paused';
+      body = 'Toasts and browser alerts are off for now. Click the bell again anytime to turn them back on.';
+    }else if(kind === 'enabled'){
+      title = 'Notifications Enabled';
+      body = 'You\'ll get an alert here for new saves and Control No. claims while this tab is open.';
+    }else if(kind === 'denied'){
+      title = 'Notifications Blocked';
+      body = 'Your browser is blocking notifications for this site. Enable them from your browser\'s site settings (the 🔒/ⓘ icon next to the address bar), then reload this page.';
+    }else{
+      title = 'Notifications Not Enabled';
+      body = 'Permission wasn\'t granted, so notifications stay off for now.';
+    }
+    const el = document.createElement('div');
+    el.className = 'pd-toast';
+    el.innerHTML = `
+      <div class="pd-toast-icon">🔔</div>
+      <div class="pd-toast-body">
+        <div class="pd-toast-title">${escapeHtml(title)}</div>
+        <div class="pd-toast-msg">${escapeHtml(body)}</div>
+      </div>
+      <button type="button" class="pd-toast-close" aria-label="Dismiss">✕</button>
+    `;
+    const dismiss = ()=>{
+      if(!el.parentNode) return;
+      el.classList.add('leaving');
+      setTimeout(()=> el.remove(), 200);
+    };
+    el.querySelector('.pd-toast-close').addEventListener('click', dismiss);
+    toastStack.prepend(el);
+    setTimeout(dismiss, 6000);
+    while(toastStack.children.length > 4){
+      toastStack.lastElementChild.remove();
+    }
+  }
+  notifBellBtn.addEventListener('click', requestNotifPermission);
+  document.getElementById('notifPromptEnableBtn').addEventListener('click', requestNotifPermission);
+  document.getElementById('notifPromptDismissBtn').addEventListener('click', ()=>{
+    notifPromptBanner.classList.remove('show');
+    try{ sessionStorage.setItem(NOTIF_DISMISS_KEY, '1'); }catch(e){}
+  });
+  function maybeShowNotifPrompt(){
+    if(!notifSupported()) return;
+    if(Notification.permission !== 'default') { updateBellUI(); return; }
+    let dismissed = false;
+    try{ dismissed = sessionStorage.getItem(NOTIF_DISMISS_KEY) === '1'; }catch(e){}
+    if(!dismissed) notifPromptBanner.classList.add('show');
+    updateBellUI();
+  }
+
+  function toastLabelForEntry(entry){
+    const host = entry.filledUpBy && entry.filledUpBy.name;
+    const dept = entry.filledUpBy && entry.filledUpBy.department;
+    const who = host ? (host + (dept ? ' (' + dept + ')' : '')) : 'An employee';
+    const venue = entry.venue || '(no venue)';
+    const ctrl = entry.controlNo || entry.id;
+    return {
+      title: 'New Peripheral Form Saved',
+      body: who + ' just saved a form — #' + ctrl + ' · ' + venue,
+      ctrl, venue
+    };
+  }
+
+  function showSaveToast(entry){
+    if(isNotifMuted()) return;
+    const info = toastLabelForEntry(entry);
+    const el = document.createElement('div');
+    el.className = 'pd-toast';
+    el.innerHTML = `
+      <div class="pd-toast-icon">🧰</div>
+      <div class="pd-toast-body">
+        <div class="pd-toast-title">${escapeHtml(info.title)}</div>
+        <div class="pd-toast-msg">${escapeHtml(info.body)}</div>
+        <div class="pd-toast-sub">Click to view · ${escapeHtml(fmtSavedAt(entry))}</div>
+      </div>
+      <button type="button" class="pd-toast-close" aria-label="Dismiss">✕</button>
+    `;
+    const dismiss = ()=>{
+      if(!el.parentNode) return;
+      el.classList.add('leaving');
+      setTimeout(()=> el.remove(), 200);
+    };
+    el.addEventListener('click', (e)=>{
+      if(e.target.closest('.pd-toast-close')){ dismiss(); return; }
+      switchTab('entries');
+      openModal(entry.id);
+      dismiss();
+    });
+    toastStack.prepend(el);
+    setTimeout(dismiss, 8000);
+    // Cap the stack so a burst of saves doesn't fill the whole screen.
+    while(toastStack.children.length > 4){
+      toastStack.lastElementChild.remove();
+    }
+  }
+
+  function showSaveNotification(entry){
+    if(!notifSupported() || Notification.permission !== 'granted' || isNotifMuted()) return;
+    const info = toastLabelForEntry(entry);
+    try{
+      const n = new Notification(info.title, {
+        body: info.body,
+        icon: 'logo-transparent.png',
+        tag: 'pd-entry-' + entry.id // replaces any still-showing notif for the same entry
+      });
+      n.onclick = ()=>{
+        window.focus();
+        switchTab('entries');
+        openModal(entry.id);
+        n.close();
+      };
+    }catch(e){ console.warn('Notification failed', e); }
+  }
+
+  // ---- Control No. "now in use" notifications ----
+  // Fires the moment an employee successfully taps "Load / Generate Form"
+  // on the Peripheral Form with a valid Control No. — i.e. the instant
+  // fsClaimReservedControlNo() (peripheral-form.html) flips that number's
+  // status to 'used'. Same toast + browser-notification treatment as the
+  // existing "New Peripheral Form Saved" notifications above, just for the
+  // earlier "someone started filling this up" moment instead of the final
+  // save. See startControlNosListener() below for where this is wired in.
+  function toastLabelForControlNoInUse(cn){
+    const name = cn.usedByName || '';
+    const staffId = cn.usedByStaffId || '';
+    const who = name ? (name + (staffId ? ' (Staff ID: ' + staffId + ')' : '')) : 'A staff member';
+    return {
+      title: 'Control No. Now In Use',
+      body: 'Control No. ' + cn.id + ' is now being used by ' + who,
+    };
+  }
+
+  function showInUseToast(cn){
+    if(isNotifMuted()) return;
+    const info = toastLabelForControlNoInUse(cn);
+    const el = document.createElement('div');
+    el.className = 'pd-toast';
+    el.innerHTML = `
+      <div class="pd-toast-icon">🟢</div>
+      <div class="pd-toast-body">
+        <div class="pd-toast-title">${escapeHtml(info.title)}</div>
+        <div class="pd-toast-msg">${escapeHtml(info.body)}</div>
+        <div class="pd-toast-sub">Click to view · ${escapeHtml(fmtCnTimestamp(cn.usedAt))}</div>
+      </div>
+      <button type="button" class="pd-toast-close" aria-label="Dismiss">✕</button>
+    `;
+    const dismiss = ()=>{
+      if(!el.parentNode) return;
+      el.classList.add('leaving');
+      setTimeout(()=> el.remove(), 200);
+    };
+    el.addEventListener('click', (e)=>{
+      if(e.target.closest('.pd-toast-close')){ dismiss(); return; }
+      switchTab('controlNos');
+      dismiss();
+    });
+    toastStack.prepend(el);
+    setTimeout(dismiss, 8000);
+    while(toastStack.children.length > 4){
+      toastStack.lastElementChild.remove();
+    }
+  }
+
+  function showInUseNotification(cn){
+    if(!notifSupported() || Notification.permission !== 'granted' || isNotifMuted()) return;
+    const info = toastLabelForControlNoInUse(cn);
+    try{
+      const n = new Notification(info.title, {
+        body: info.body,
+        icon: 'logo-transparent.png',
+        tag: 'pd-cn-inuse-' + cn.id // replaces any still-showing notif for the same Control No.
+      });
+      n.onclick = ()=>{
+        window.focus();
+        switchTab('controlNos');
+        n.close();
+      };
+    }catch(e){ console.warn('Notification failed', e); }
+  }
+
   // Live-updating: one onSnapshot listener for the whole "entries" collection,
   // kept open for the life of the console session. Any save/edit/delete —
   // from this admin, another admin, or an employee — pushes a fresh snapshot
   // here automatically, so the Entries/Calendar views update on their own
   // with no tab refresh needed.
   let unsubEntries = null;
+  let entriesFirstSnapshotSeen = false;
   function loadEntries(){
     if(unsubEntries) return; // listener already running
     loadingState.style.display = 'block';
@@ -1409,6 +1947,19 @@
     tableView.style.display = 'none';
     cardView.style.display = 'none';
     unsubEntries = onSnapshot(collection(db, 'entries'), (snap)=>{
+      // Newly-added docs, ignored on the very first snapshot (that's just
+      // the existing database loading, not a fresh save).
+      if(entriesFirstSnapshotSeen){
+        snap.docChanges().forEach(change=>{
+          if(change.type === 'added'){
+            const entry = { id: change.doc.id, ...change.doc.data() };
+            showSaveToast(entry);
+            showSaveNotification(entry);
+          }
+        });
+      }
+      entriesFirstSnapshotSeen = true;
+
       allEntries = [];
       snap.forEach(d => allEntries.push({ id: d.id, ...d.data() }));
       // newest first
@@ -1469,6 +2020,21 @@
       return new Date(entry.savedAt.seconds * 1000).toLocaleString();
     }
     return '—';
+  }
+
+  // Combines the "RECEIVED BEFORE USE" band's Date Received + Time fields
+  // (plain text, auto-stamped the moment the employee draws the "RECEIVED
+  // BY" signature — see SIGNATURE_DATE_MAP / dateReceived/timeReceived in
+  // peripheral-form.html) into one "date, time" string in the same style as
+  // fmtSavedAt, so it sits next to it looking consistent. Blank ('—') until
+  // that signature is actually drawn.
+  function fmtReceivedAt(entry){
+    const rcv = entry.receivedBeforeUse || {};
+    const date = (rcv.dateReceived || '').trim();
+    const time = (rcv.timeReceived || '').trim();
+    if(!date && !time) return '—';
+    if(date && time) return date + ', ' + time;
+    return date || time;
   }
 
   function matchesSearch(entry, q){
@@ -1552,6 +2118,7 @@
         <td>${escapeHtml(e.venue || '—')}</td>
         <td><span class="badge">${escapeHtml(eventLabel(e))}</span></td>
         <td>${escapeHtml(filledByLabel(e))}</td>
+        <td>${escapeHtml(fmtReceivedAt(e))}</td>
         <td>${escapeHtml(fmtSavedAt(e))}</td>
         <td>
           <button class="row-btn" data-view="${e.id}">View</button>
@@ -1567,6 +2134,7 @@
         <div class="venue">${escapeHtml(e.venue || '(no venue)')}</div>
         <div class="meta-line">${escapeHtml(e.date || '—')} · <span class="badge">${escapeHtml(eventLabel(e))}</span></div>
         <div class="meta-line">Filled by: ${escapeHtml(filledByLabel(e))}</div>
+        <div class="meta-line">Received: ${escapeHtml(fmtReceivedAt(e))}</div>
         <div class="meta-line">Saved: ${escapeHtml(fmtSavedAt(e))}</div>
         <div class="actions">
           <button class="row-btn" data-view="${e.id}">View</button>
@@ -2973,12 +3541,39 @@
 
   // ---- Control Numbers (history log) ----
   let unsubControlNos = null;
+  // Remembers each Control No.'s last-known status so we can tell "just got
+  // claimed" (unused/missing -> used) apart from any other field update on
+  // an already-used doc — same idea as entriesFirstSnapshotSeen below, just
+  // per-document instead of a single flag. Not reset on re-render.
+  const cnKnownStatus = new Map();
+  let cnFirstSnapshotSeen = false;
   function startControlNosListener(){
     if(unsubControlNos) return; // listener already running
     const q = query(collection(db, 'reservedControlNos'), orderBy('generatedAt', 'desc'));
     unsubControlNos = onSnapshot(q, (snap)=>{
+      // Skipped on the very first snapshot (that's just the existing
+      // database loading, not someone freshly claiming a number) — mirrors
+      // entriesFirstSnapshotSeen's guard for the save notifications.
+      if(cnFirstSnapshotSeen){
+        snap.docChanges().forEach(change=>{
+          if(change.type === 'added' || change.type === 'modified'){
+            const cn = { id: change.doc.id, ...change.doc.data() };
+            const wasUsed = cnKnownStatus.get(cn.id) === 'used';
+            if(cn.status === 'used' && !wasUsed){
+              showInUseToast(cn);
+              showInUseNotification(cn);
+            }
+          }
+        });
+      }
+
       const rows = [];
-      snap.forEach(d => rows.push({ id: d.id, ...d.data() }));
+      snap.forEach(d => {
+        const data = d.data();
+        cnKnownStatus.set(d.id, data.status);
+        rows.push({ id: d.id, ...data });
+      });
+      cnFirstSnapshotSeen = true;
       allControlNos = rows;
       renderControlNos(rows);
       updatePfSuggestions();
@@ -2992,31 +3587,129 @@
     return '—';
   }
 
+  const CN_UNUSED_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
   function renderControlNos(rows){
-    const body = document.getElementById('cnListBody');
-    const empty = document.getElementById('cnEmptyState');
-    if(!rows.length){
-      body.innerHTML = '';
-      empty.style.display = 'block';
-      return;
+    const now = Date.now();
+    const unused = [];
+    const used = [];
+    const cancelled = [];
+    const locked = [];
+    rows.forEach(r=>{
+      if(r.status === 'cancelled'){
+        cancelled.push(r);
+        return;
+      }
+      if(r.status === 'used'){
+        used.push(r);
+        return;
+      }
+      if(r.status === 'locked'){
+        // Auto-locked by the scheduled Cloud Function once a full day
+        // (24h) passed with the number still unused — see
+        // functions/index.js. Shown in its own section below with the
+        // reason, instead of being silently hidden.
+        locked.push(r);
+        return;
+      }
+      // Safety net only: numbers should normally get auto-locked by the
+      // Cloud Function well before 7 days (see CN_UNUSED_MAX_AGE_MS), but
+      // if that job is ever paused/misses one, still fall back to hiding
+      // very old stragglers here so the Unused list doesn't fill up with
+      // stale reservations. Still safely in Firestore either way.
+      const genMs = r.generatedAt && r.generatedAt.seconds ? r.generatedAt.seconds * 1000 : null;
+      if(genMs !== null && (now - genMs) > CN_UNUSED_MAX_AGE_MS) return;
+      unused.push(r);
+    });
+
+    const unusedBody = document.getElementById('cnUnusedListBody');
+    const unusedEmpty = document.getElementById('cnUnusedEmptyState');
+    if(!unused.length){
+      unusedBody.innerHTML = '';
+      unusedEmpty.style.display = 'block';
+    }else{
+      unusedEmpty.style.display = 'none';
+      unusedBody.innerHTML = unused.map(r => `
+        <tr>
+          <td class="cn-mono">${escapeHtml(r.id)}</td>
+          <td>${escapeHtml(r.venue || '—')}</td>
+          <td>${escapeHtml(fmtCnTimestamp(r.generatedAt))}</td>
+          <td>
+            <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
+            <button type="button" class="cn-edit-btn" data-cn="${escapeAttr(r.id)}">✏️ Edit</button>
+            <button type="button" class="cn-cancel-btn" data-cn="${escapeAttr(r.id)}">🚫 Cancel</button>
+          </td>
+        </tr>
+      `).join('');
     }
-    empty.style.display = 'none';
-    body.innerHTML = rows.map(r => `
-      <tr>
-        <td class="cn-mono">${escapeHtml(r.id)}</td>
-        <td><span class="cn-status-pill ${r.status === 'used' ? 'used' : 'unused'}">${r.status === 'used' ? 'USED' : 'UNUSED'}</span></td>
-        <td>${escapeHtml(r.venue || '—')}</td>
-        <td>${escapeHtml(fmtCnTimestamp(r.generatedAt))}</td>
-        <td>${escapeHtml(fmtCnTimestamp(r.usedAt))}</td>
-        <td>
-          <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
-          ${r.status === 'used'
-            ? `<button type="button" class="cn-edit-btn" disabled title="Already used — no longer editable">🔒 Locked</button>`
-            : `<button type="button" class="cn-edit-btn" data-cn="${escapeAttr(r.id)}">✏️ Edit</button>`}
-        </td>
-      </tr>
-    `).join('');
-    body.querySelectorAll('.cn-copy-btn').forEach(btn=>{
+
+    const lockedBody = document.getElementById('cnLockedListBody');
+    const lockedEmpty = document.getElementById('cnLockedEmptyState');
+    if(!locked.length){
+      lockedBody.innerHTML = '';
+      lockedEmpty.style.display = 'block';
+    }else{
+      lockedEmpty.style.display = 'none';
+      lockedBody.innerHTML = locked.map(r => `
+        <tr>
+          <td class="cn-mono">${escapeHtml(r.id)}</td>
+          <td>${escapeHtml(r.venue || '—')}</td>
+          <td>${escapeHtml(fmtCnTimestamp(r.generatedAt))}</td>
+          <td>${escapeHtml(fmtCnTimestamp(r.lockedAt))}</td>
+          <td>${escapeHtml(r.lockReason || 'Auto-locked — one day has passed and this control number was not used.')}</td>
+          <td>
+            <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
+            <button type="button" class="cn-restore-locked-btn" data-cn="${escapeAttr(r.id)}">↩️ Restore</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    const usedBody = document.getElementById('cnUsedListBody');
+    const usedEmpty = document.getElementById('cnUsedEmptyState');
+    if(!used.length){
+      usedBody.innerHTML = '';
+      usedEmpty.style.display = 'block';
+    }else{
+      usedEmpty.style.display = 'none';
+      usedBody.innerHTML = used.map(r => `
+        <tr>
+          <td class="cn-mono">${escapeHtml(r.id)}</td>
+          <td>${escapeHtml(r.venue || '—')}</td>
+          <td>${escapeHtml(fmtCnTimestamp(r.generatedAt))}</td>
+          <td>${escapeHtml(fmtCnTimestamp(r.usedAt))}</td>
+          <td>${r.usedByName ? escapeHtml(r.usedByName + (r.usedByStaffId ? ' (' + r.usedByStaffId + ')' : '')) : '—'}</td>
+          <td>
+            <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
+            <button type="button" class="cn-edit-btn" disabled title="Already used — no longer editable">🔒 Locked</button>
+            <button type="button" class="cn-cancel-btn" data-cn="${escapeAttr(r.id)}">🚫 Cancel</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    const cancelledBody = document.getElementById('cnCancelledListBody');
+    const cancelledEmpty = document.getElementById('cnCancelledEmptyState');
+    if(!cancelled.length){
+      cancelledBody.innerHTML = '';
+      cancelledEmpty.style.display = 'block';
+    }else{
+      cancelledEmpty.style.display = 'none';
+      cancelledBody.innerHTML = cancelled.map(r => `
+        <tr>
+          <td class="cn-mono">${escapeHtml(r.id)}</td>
+          <td>${escapeHtml(r.venue || '—')}</td>
+          <td>${escapeHtml(fmtCnTimestamp(r.generatedAt))}</td>
+          <td>${escapeHtml(fmtCnTimestamp(r.cancelledAt))}</td>
+          <td>${r.cancelledBy ? escapeHtml(r.cancelledBy) : '—'}</td>
+          <td>
+            <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
+            <button type="button" class="cn-restore-btn" data-cn="${escapeAttr(r.id)}">↩️ Restore</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('controlNosSection').querySelectorAll('.cn-copy-btn').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const cn = btn.getAttribute('data-cn');
         navigator.clipboard.writeText(cn).then(()=>{
@@ -3030,7 +3723,7 @@
     // data-cn attribute — used/locked rows render a disabled "🔒 Locked"
     // button instead (see renderControlNos above), so this selector never
     // picks those up.
-    body.querySelectorAll('.cn-edit-btn[data-cn]').forEach(btn=>{
+    document.getElementById('controlNosSection').querySelectorAll('.cn-edit-btn[data-cn]').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
         const cn = btn.getAttribute('data-cn');
         // Editing happens right here in the Peripheral Form tab (same
@@ -3054,6 +3747,99 @@
         switchTab('peripheralForm');
         enterPfEditMode(row);
         hidePfRedirectOverlay();
+      });
+    });
+
+    // "Cancel" — available on both Unused and Used rows. Locks the
+    // number (see fsCancelControlNo above) and moves it into the
+    // Cancelled Control Numbers list below. Re-confirms the admin's
+    // password first, same gate used for every other write on this tab.
+    document.getElementById('controlNosSection').querySelectorAll('.cn-cancel-btn[data-cn]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const cn = btn.getAttribute('data-cn');
+        const row = allControlNos.find(r => r.id === cn);
+        if(!row){
+          alert('Could not find this Control No. — try refreshing the list.');
+          return;
+        }
+        if(!confirm(`Cancel Control No. ${cn}? It will be locked and moved to the Cancelled list until restored.`)) return;
+        openPwConfirmModal(async ()=>{
+          PDLoader.show();
+          try{
+            await window.fsCancelControlNo(cn, (auth.currentUser && auth.currentUser.email) || window.currentAdminEmail || '');
+          }catch(e){
+            if(e && e.code === 'already-cancelled'){
+              alert('This Control No. was already cancelled.');
+            }else{
+              console.error('Cancel Control No. failed', e);
+              alert('Could not cancel this Control No. Please try again.');
+            }
+          }finally{
+            PDLoader.hide();
+          }
+        }, `cancel Control No. ${cn}`);
+      });
+    });
+
+    // "Restore" — available on Cancelled rows only. Unlocks the number
+    // and always sends it back to Unused (see fsRestoreControlNo above),
+    // clearing any old "used" claim info so it's a clean, reusable
+    // number again.
+    document.getElementById('controlNosSection').querySelectorAll('.cn-restore-btn[data-cn]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const cn = btn.getAttribute('data-cn');
+        const row = allControlNos.find(r => r.id === cn);
+        if(!row){
+          alert('Could not find this Control No. — try refreshing the list.');
+          return;
+        }
+        if(!confirm(`Restore Control No. ${cn}? It will move back to Unused and be usable again.`)) return;
+        openPwConfirmModal(async ()=>{
+          PDLoader.show();
+          try{
+            await window.fsRestoreControlNo(cn);
+          }catch(e){
+            if(e && e.code === 'not-cancelled'){
+              alert('This Control No. is no longer cancelled.');
+            }else{
+              console.error('Restore Control No. failed', e);
+              alert('Could not restore this Control No. Please try again.');
+            }
+          }finally{
+            PDLoader.hide();
+          }
+        }, `restore Control No. ${cn}`);
+      });
+    });
+
+    // "Restore" — available on auto-Locked rows only (see the 🔐 Locked
+    // section above). Sends the number back to Unused with a fresh
+    // generatedAt, so it isn't immediately re-locked by the next
+    // scheduled run — see fsRestoreLockedControlNo above.
+    document.getElementById('controlNosSection').querySelectorAll('.cn-restore-locked-btn[data-cn]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const cn = btn.getAttribute('data-cn');
+        const row = allControlNos.find(r => r.id === cn);
+        if(!row){
+          alert('Could not find this Control No. — try refreshing the list.');
+          return;
+        }
+        if(!confirm(`Restore Control No. ${cn}? It will move back to Unused and be usable again.`)) return;
+        openPwConfirmModal(async ()=>{
+          PDLoader.show();
+          try{
+            await window.fsRestoreLockedControlNo(cn);
+          }catch(e){
+            if(e && e.code === 'not-locked'){
+              alert('This Control No. is no longer locked.');
+            }else{
+              console.error('Restore Control No. failed', e);
+              alert('Could not restore this Control No. Please try again.');
+            }
+          }finally{
+            PDLoader.hide();
+          }
+        }, `restore Control No. ${cn}`);
       });
     });
   }
@@ -3328,6 +4114,43 @@
     pwModalOverlay.classList.remove('open');
     pwModalDocId = null;
   }
+
+  // ---- Control No. containers: maximize/minimize (collapse) ----
+  // Lets the admin fold away Unused/Used/Cancelled blocks they don't need
+  // to see right now so the tab doesn't get too long/cluttered. State is
+  // remembered per-browser via localStorage so it stays folded/open across
+  // reloads and future visits.
+  (function initCnBlockCollapse(){
+    const CN_COLLAPSE_KEY = 'pdCnBlockCollapse';
+    let collapseState = {};
+    try{ collapseState = JSON.parse(localStorage.getItem(CN_COLLAPSE_KEY) || '{}'); }catch(e){ collapseState = {}; }
+
+    function applyState(block){
+      const key = block.dataset.cnBlock;
+      const btn = block.querySelector('[data-cn-toggle-btn]');
+      const collapsed = !!collapseState[key];
+      block.classList.toggle('collapsed', collapsed);
+      if(btn) btn.setAttribute('aria-expanded', String(!collapsed));
+    }
+
+    function toggleBlock(block){
+      const key = block.dataset.cnBlock;
+      collapseState[key] = !collapseState[key];
+      try{ localStorage.setItem(CN_COLLAPSE_KEY, JSON.stringify(collapseState)); }catch(e){}
+      applyState(block);
+    }
+
+    document.querySelectorAll('.cn-block[data-cn-block]').forEach(applyState);
+
+    document.querySelectorAll('.cn-block[data-cn-block]').forEach(block=>{
+      const head = block.querySelector('[data-cn-toggle-head]');
+      if(!head) return;
+      head.addEventListener('click', (e)=>{
+        // Ignore clicks on links/buttons other than the toggle itself inside the head
+        toggleBlock(block);
+      });
+    });
+  })();
 
   document.getElementById('pwModalCloseBtn').addEventListener('click', closePwModal);
   document.getElementById('pwModalCancelBtn').addEventListener('click', closePwModal);

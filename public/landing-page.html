@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planet Drugstore — IT Peripherals Console</title>
+<link rel="icon" type="image/x-icon" href="logo-transparent.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --maroon:#6E1620;
+    --maroon-dark:#3D0A10;
+    --red:#d61f2c;
+    --red-dark:#a5151f;
+    --paper:#FAF6F5;
+    --line:#E6D5D6;
+    --ink:#2A1416;
+    --muted:#7A5B5D;
+    --good:#1f8a4c;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:#2a1013;
+    font-family:'Inter','Segoe UI',Roboto,Arial,sans-serif;
+    color:var(--paper);
+    padding:24px;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Plus Jakarta Sans','Inter',sans-serif;}
+
+  .stage{
+    max-width:1180px;margin:0 auto;
+    position:relative;
+    border-radius:26px;
+    overflow:hidden;
+    background:
+      radial-gradient(760px 420px at 82% 108%, rgba(214,31,44,0.55), transparent 60%),
+      radial-gradient(500px 300px at 100% 100%, rgba(214,31,44,0.35), transparent 65%),
+      linear-gradient(160deg, var(--maroon) 0%, var(--maroon-dark) 65%, #200609 100%);
+    box-shadow:0 30px 70px rgba(0,0,0,0.45);
+  }
+  .stage::before{
+    content:"";position:absolute;inset:0;border-radius:26px;
+    padding:1px;
+    background:linear-gradient(160deg, rgba(255,255,255,0.18), rgba(255,255,255,0) 40%);
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude;
+    pointer-events:none;
+  }
+
+  /* Nav */
+  .nav{
+    display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+    padding:22px 34px 10px;position:relative;z-index:2;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-mark{width:34px;height:34px;border-radius:9px;object-fit:cover;background:#fff;flex:none;}
+  .brand-name{font-weight:800;line-height:1.05;font-size:14px;letter-spacing:0.4px;}
+  .brand-name span{display:block;color:#FFB3B8;font-size:11px;letter-spacing:1.2px;font-weight:600;}
+
+  .nav-links{display:flex;align-items:center;gap:26px;flex-wrap:wrap;}
+  .nav-links a{
+    color:rgba(250,246,245,0.82);text-decoration:none;font-size:13.5px;font-weight:600;
+    display:flex;align-items:center;gap:6px;transition:color .15s ease;
+  }
+  .nav-links a:hover{color:#fff;}
+  .nav-links a .ic{font-size:14px;}
+
+  .nav-cta{
+    border:1px solid rgba(255,255,255,0.35);background:var(--red);color:#fff;
+    border-radius:9px;padding:9px 18px;font-size:13.5px;font-weight:700;cursor:pointer;
+    text-decoration:none;transition:background .15s ease,transform .15s ease;
+  }
+  .nav-cta:hover{background:var(--red-dark);transform:translateY(-1px);}
+
+  .welcome-badge{
+    display:flex;align-items:center;gap:10px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.16);
+    border-radius:999px;
+    padding:6px 16px 6px 6px;
+    backdrop-filter:blur(4px);
+  }
+  .welcome-avatar{
+    width:30px;height:30px;border-radius:50%;
+    background:linear-gradient(145deg, var(--red), var(--red-dark));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:12.5px;color:#fff;
+    flex:none;
+    box-shadow:0 4px 10px rgba(214,31,44,0.4);
+  }
+  .welcome-text{line-height:1.2;}
+  .welcome-text .wt-hi{
+    display:block;font-size:10.5px;letter-spacing:0.8px;text-transform:uppercase;
+    color:rgba(250,246,245,0.6);font-weight:600;
+  }
+  .welcome-text .wt-name{
+    display:block;font-size:13.5px;font-weight:700;color:#fff;
+    font-family:'Plus Jakarta Sans',sans-serif;
+  }
+  .welcome-dot{
+    width:8px;height:8px;border-radius:50%;background:var(--good);
+    box-shadow:0 0 8px 2px rgba(31,138,76,0.6);
+    margin-left:2px;flex:none;
+  }
+
+  /* Hero */
+  .hero{
+    display:grid;grid-template-columns:1.05fr 1fr;align-items:center;gap:20px;
+    padding:56px 34px 70px;position:relative;z-index:2;
+  }
+  @media (max-width:860px){
+    .hero{grid-template-columns:1fr;padding:36px 22px 50px;}
+  }
+
+  .kicker{font-size:14px;color:rgba(250,246,245,0.85);margin-bottom:14px;}
+  .kicker b{color:#FF8A90;font-weight:700;}
+
+  .headline{font-size:44px;line-height:1.12;font-weight:800;margin:0 0 18px;letter-spacing:-0.5px;}
+  .headline .accent{color:#FF6B72;display:block;}
+  @media (max-width:520px){ .headline{font-size:33px;} }
+
+  .subtext{font-size:15.5px;line-height:1.6;color:rgba(250,246,245,0.78);max-width:460px;margin-bottom:30px;}
+
+  .hero-ctas{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .btn-primary{
+    background:var(--red);color:#fff;border:none;border-radius:10px;padding:13px 24px;
+    font-size:14.5px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;
+    box-shadow:0 10px 24px rgba(214,31,44,0.35);transition:transform .15s ease,background .15s ease;
+  }
+  .btn-primary:hover{background:var(--red-dark);transform:translateY(-2px);}
+  .btn-ghost{
+    border:1.5px solid rgba(255,255,255,0.45);color:#fff;border-radius:10px;padding:12px 22px;
+    font-size:14.5px;font-weight:700;background:transparent;cursor:pointer;text-decoration:none;
+    display:inline-flex;align-items:center;gap:8px;transition:background .15s ease,transform .15s ease;
+  }
+  .btn-ghost:hover{background:rgba(255,255,255,0.1);transform:translateY(-2px);}
+
+  .trust-row{display:flex;gap:22px;margin-top:36px;flex-wrap:wrap;}
+  .trust-row div{font-size:12px;color:rgba(250,246,245,0.6);}
+  .trust-row strong{display:block;font-size:20px;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;}
+
+  /* Planet visual */
+  .planet-stage{
+    position:relative;
+    height:420px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  @media (max-width:860px){ .planet-stage{height:300px;} }
+
+  .orbit{
+    position:absolute;border-radius:50%;
+    border:1px dashed rgba(255,255,255,0.18);
+  }
+  .orbit-1{width:300px;height:300px;animation:spin 22s linear infinite;}
+  .orbit-2{width:380px;height:380px;border-color:rgba(255,255,255,0.10);animation:spin 34s linear infinite reverse;}
+  @media (max-width:860px){ .orbit-1{width:210px;height:210px;} .orbit-2{width:270px;height:270px;} }
+
+  .orbit-dot{
+    position:absolute;top:-6px;left:50%;transform:translateX(-50%);
+    width:11px;height:11px;border-radius:50%;
+    background:var(--red);box-shadow:0 0 14px 3px rgba(214,31,44,0.7);
+  }
+  .orbit-2 .orbit-dot{background:#fff;width:7px;height:7px;box-shadow:0 0 10px 3px rgba(255,255,255,0.55);}
+
+  .planet-glow{
+    position:absolute;width:230px;height:230px;border-radius:50%;
+    background:radial-gradient(circle at 38% 32%, rgba(255,150,150,0.55), rgba(214,31,44,0.25) 55%, transparent 75%);
+    filter:blur(6px);
+    animation:pulse 3.2s ease-in-out infinite;
+  }
+  @media (max-width:860px){ .planet-glow{width:170px;height:170px;} }
+
+  .planet-ring{
+    width:190px;height:190px;border-radius:50%;
+    background:#fff;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;z-index:2;
+    box-shadow:0 0 0 6px rgba(255,255,255,0.08), 0 20px 50px rgba(0,0,0,0.4);
+    animation:float 4.5s ease-in-out infinite;
+  }
+  @media (max-width:860px){ .planet-ring{width:140px;height:140px;} }
+
+  .planet-ring img{
+    width:70%;height:70%;object-fit:contain;
+  }
+
+  .planet-tilt-ring{
+    position:absolute;width:280px;height:100px;
+    border:2px solid rgba(255,255,255,0.28);
+    border-radius:50%;
+    transform:rotate(-18deg);
+    z-index:1;
+  }
+  @media (max-width:860px){ .planet-tilt-ring{width:210px;height:75px;} }
+
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  @keyframes pulse{ 0%,100%{ transform:scale(1); opacity:0.9; } 50%{ transform:scale(1.08); opacity:1; } }
+  @keyframes float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <div class="nav">
+    <div class="brand">
+      <img src="logo.png" alt="Planet Drugstore" class="brand-mark">
+      <div class="brand-name">PLANET<span>DRUGSTORE PERIPHERALS</span></div>
+    </div>
+    <div class="welcome-badge">
+      <div class="welcome-avatar">IT</div>
+      <div class="welcome-text">
+        <span class="wt-hi">Welcome back</span>
+        <span class="wt-name">IT ADMIN</span>
+      </div>
+      <span class="welcome-dot"></span>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-text">
+      <div class="kicker">Introducing <b>Planet Drugstore IT Console</b></div>
+      <h1 class="headline">Track every<span class="accent">Peripheral,</span>the smarter way</h1>
+      <p class="subtext">
+        One console for peripheral entries, control numbers, employee registration, and scheduling — built for Planet Drugstore's IT team to move faster and stay organized, event by event
+      </p>
+      <div class="hero-ctas">
+        <!-- <a href="peripheral-form.html" class="btn-primary">🧰 Open Peripheral Form</a> -->
+        <a href="admin-console.html#entries" class="btn-ghost">▶ View Entries</a>
+      </div>
+      <div class="trust-row">
+        <div><strong>2</strong>Branches Covered</div>
+        <div><strong>100%</strong>Digital Records</div>
+        <div><strong>24/7</strong>Console Access</div>
+      </div>
+    </div>
+
+    <div class="planet-stage">
+      <div class="planet-glow"></div>
+      <div class="orbit orbit-2"><span class="orbit-dot"></span></div>
+      <div class="orbit orbit-1"><span class="orbit-dot"></span></div>
+      <div class="planet-tilt-ring"></div>
+      <div class="planet-ring">
+        <img src="logo-transparent.png" alt="Planet Drugstore logo">
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
