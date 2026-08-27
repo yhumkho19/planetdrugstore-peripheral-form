@@ -711,19 +711,33 @@
     .pf-table .pf-locked-text.center{text-align:left;}
     .pf-table .pf-row-actions{justify-content:flex-end;padding-top:4px;}
   }
+  .cn-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
   .cn-copy-btn{border:1.5px solid var(--line);background:#fff;color:var(--maroon);border-radius:7px;
-    padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;margin-right:6px;}
+    padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
   .cn-copy-btn:hover{background:#F6ECEC;border-color:var(--maroon);}
   .cn-edit-btn{border:1.5px solid var(--red);background:#fff;color:var(--red);border-radius:7px;
-    padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;}
+    padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
   .cn-edit-btn:hover{background:var(--red);color:#fff;}
   .cn-edit-btn:disabled{opacity:0.6;cursor:not-allowed;}
   .cn-cancel-btn{border:1.5px solid #b42318;background:#fff;color:#b42318;border-radius:7px;
-    padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;margin-left:6px;}
+    padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
   .cn-cancel-btn:hover{background:#b42318;color:#fff;}
   .cn-restore-btn{border:1.5px solid #1E7A34;background:#fff;color:#1E7A34;border-radius:7px;
-    padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;}
+    padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
   .cn-restore-btn:hover{background:#1E7A34;color:#fff;}
+  .cn-restore-locked-btn{border:1.5px solid #1E7A34;background:#fff;color:#1E7A34;border-radius:7px;
+    padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
+  .cn-restore-locked-btn:hover{background:#1E7A34;color:#fff;}
+  .cn-delete-btn{border:1.5px solid #b42318;background:#b42318;color:#fff;border-radius:7px;
+    padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
+  .cn-delete-btn:hover{background:#8f1c13;border-color:#8f1c13;}
+  @media (max-width:700px){
+    .cn-actions{gap:8px;}
+    .cn-actions .cn-copy-btn,.cn-actions .cn-edit-btn,.cn-actions .cn-cancel-btn,
+    .cn-actions .cn-restore-btn,.cn-actions .cn-restore-locked-btn,.cn-actions .cn-delete-btn{
+      flex:1 1 calc(50% - 4px);text-align:center;
+    }
+  }
   .cn-locked-tag{opacity:0.7;font-size:13px;font-weight:700;color:var(--muted);margin-right:6px;}
   .cn-mono{font-family:'Courier New',monospace;font-size:16.5px;font-weight:700;letter-spacing:1px;color:var(--maroon);}
   .cn-result-box{margin:0 20px 20px;background:#F6ECEC;border:1.5px dashed var(--maroon);border-radius:10px;padding:14px 16px;}
@@ -1050,6 +1064,10 @@
         <label for="pfPreparedTime">Prepared Time</label>
         <input type="time" id="pfPreparedTime">
       </div>
+      <div class="field">
+        <label for="pfUsableDate">Usable Date <span style="font-weight:400;color:var(--muted);">(Control No. can only be loaded on this day)</span></label>
+        <input type="date" id="pfUsableDate">
+      </div>
     </div>
     <div class="pf-event-row" style="padding-left:20px;">
       <label><input type="checkbox" id="pfEvMission"> Medical Mission</label>
@@ -1118,7 +1136,7 @@
       <div class="cn-block-body">
         <table class="pf-table">
           <thead>
-            <tr><th style="width:140px;">Control No.</th><th>Venue</th><th>Generated</th><th style="width:200px;"></th></tr>
+            <tr><th style="width:140px;">Control No.</th><th>Venue</th><th>Generated</th><th style="width:290px;"></th></tr>
           </thead>
           <tbody id="cnUnusedListBody"></tbody>
         </table>
@@ -1160,7 +1178,7 @@
       <div class="cn-block-body">
         <table class="pf-table">
           <thead>
-            <tr><th style="width:140px;">Control No.</th><th>Venue</th><th>Generated</th><th>Used</th><th>Used By</th><th style="width:140px;"></th></tr>
+            <tr><th style="width:140px;">Control No.</th><th>Venue</th><th>Generated</th><th>Used</th><th>Used By</th><th style="width:290px;"></th></tr>
           </thead>
           <tbody id="cnUsedListBody"></tbody>
         </table>
@@ -1308,6 +1326,28 @@
       <div style="display:flex;gap:8px;">
         <button class="btn ghost" id="dzWarnCancelBtn">Cancel</button>
         <button class="btn red" id="dzWarnYesBtn">Yes, Delete Everything</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- After generating a Control No., ask (in a centered modal, not a
+     native confirm/alert) whether to start another one. Yes clears the
+     per-occasion fields for the next form; No leaves everything as-is. -->
+<div class="modal-overlay" id="pfAnotherModalOverlay">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-head">
+      <h2>Make Another Peripheral Form?</h2>
+      <button class="close-btn" id="pfAnotherCloseBtn">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px 22px;">
+      <p style="font-size:13.5px;color:var(--ink);line-height:1.6;margin:0;">Control No. <strong id="pfAnotherCnLabel"></strong> was generated. Do you want to clear this form to start preparing another one?</p>
+    </div>
+    <div class="modal-foot">
+      <span></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn ghost" id="pfAnotherNoBtn">No, Keep As Is</button>
+        <button class="btn" id="pfAnotherYesBtn">Yes, Make Another</button>
       </div>
     </div>
   </div>
@@ -1476,6 +1516,7 @@
           preparedBy: (meta && meta.preparedBy) || '',
           team: (meta && meta.team) || 'Information Technology (IT)',
           preparedTime: (meta && meta.preparedTime) || '',
+          usableDate: (meta && meta.usableDate) || '',
           beforeAttachment: (meta && meta.beforeAttachment) || '',
           preparedSignature: (meta && meta.preparedSignature) || ''
         });
@@ -1517,6 +1558,7 @@
         preparedBy: (meta && meta.preparedBy) || '',
         team: (meta && meta.team) || 'Information Technology (IT)',
         preparedTime: (meta && meta.preparedTime) || '',
+        usableDate: (meta && meta.usableDate) || '',
         beforeAttachment: (meta && meta.beforeAttachment) || '',
         preparedSignature: (meta && meta.preparedSignature) || ''
       }, { merge: true });
@@ -1610,6 +1652,16 @@
       }, { merge: true });
       return true;
     });
+  };
+
+  // Permanently deletes a reservedControlNos doc — unlike Cancel (which
+  // just locks the number and keeps it visible in the Cancelled list),
+  // this removes the record entirely and cannot be undone. Available on
+  // Unused and Used rows (see the "🗑️ Delete" button in renderControlNos
+  // below), gated behind the same confirm() + admin password re-check as
+  // Cancel/Restore.
+  window.fsDeleteControlNo = async function(controlNo){
+    await deleteDoc(doc(db, "reservedControlNos", String(controlNo)));
   };
 
   // ---- Admin-only auth guard ----
@@ -3035,6 +3087,38 @@
     });
   }
 
+  // Styled prompt shown after a Control No. is generated, replacing the
+  // native browser alert/confirm. Resolves true only if "Yes, Make
+  // Another" is clicked; No, the × button, or clicking outside all
+  // resolve false.
+  const pfAnotherModalOverlay = document.getElementById('pfAnotherModalOverlay');
+  const pfAnotherCnLabel = document.getElementById('pfAnotherCnLabel');
+  const pfAnotherYesBtn = document.getElementById('pfAnotherYesBtn');
+  const pfAnotherNoBtn = document.getElementById('pfAnotherNoBtn');
+  const pfAnotherCloseBtn = document.getElementById('pfAnotherCloseBtn');
+
+  function showPfAnotherModal(cn){
+    return new Promise((resolve)=>{
+      pfAnotherCnLabel.textContent = cn;
+      pfAnotherModalOverlay.classList.add('open');
+      function cleanup(result){
+        pfAnotherModalOverlay.classList.remove('open');
+        pfAnotherYesBtn.removeEventListener('click', onYes);
+        pfAnotherNoBtn.removeEventListener('click', onNo);
+        pfAnotherCloseBtn.removeEventListener('click', onNo);
+        pfAnotherModalOverlay.removeEventListener('click', onOverlayClick);
+        resolve(result);
+      }
+      function onYes(){ cleanup(true); }
+      function onNo(){ cleanup(false); }
+      function onOverlayClick(e){ if(e.target === pfAnotherModalOverlay) cleanup(false); }
+      pfAnotherYesBtn.addEventListener('click', onYes);
+      pfAnotherNoBtn.addEventListener('click', onNo);
+      pfAnotherCloseBtn.addEventListener('click', onNo);
+      pfAnotherModalOverlay.addEventListener('click', onOverlayClick);
+    });
+  }
+
   async function deleteAllDocsIn(collectionName){
     const snap = await getDocs(collection(db, collectionName));
     const docs = snap.docs;
@@ -3280,6 +3364,7 @@
       preparedBy: document.getElementById('pfPreparedBy').value,
       team: document.getElementById('pfTeam').value,
       preparedTime: document.getElementById('pfPreparedTime').value,
+      usableDate: document.getElementById('pfUsableDate').value,
       beforeAttachment: pfBeforeAttachment,
       preparedSignature: pfPreparedSignature
     };
@@ -3297,6 +3382,7 @@
     document.getElementById('pfPreparedBy').value = row.preparedBy || '';
     document.getElementById('pfTeam').value = row.team || 'Information Technology (IT)';
     document.getElementById('pfPreparedTime').value = parse12hTime(row.preparedTime);
+    document.getElementById('pfUsableDate').value = row.usableDate || '';
     applyPfAttachment(row.beforeAttachment || '');
     restorePfSignature(row.preparedSignature || '', row.preparedBy || '');
 
@@ -3327,6 +3413,7 @@
       document.getElementById('pfPreparedBy').value = snap.preparedBy;
       document.getElementById('pfTeam').value = snap.team;
       document.getElementById('pfPreparedTime').value = snap.preparedTime;
+      document.getElementById('pfUsableDate').value = snap.usableDate || '';
       applyPfAttachment(snap.beforeAttachment);
       restorePfSignature(snap.preparedSignature, snap.preparedBy);
     }
@@ -3459,6 +3546,7 @@
       preparedBy: (document.getElementById('pfPreparedBy').value || '').trim(),
       team: (document.getElementById('pfTeam').value || '').trim(),
       preparedTime: fmt12hTime(document.getElementById('pfPreparedTime').value),
+      usableDate: document.getElementById('pfUsableDate').value || '',
       beforeAttachment: pfBeforeAttachment || '',
       preparedSignature: pfPreparedSignature || ''
     };
@@ -3507,19 +3595,29 @@
       pfSaveMsg.className = 'pf-save-msg ok';
       document.getElementById('cnResultNumber').textContent = newCn;
       document.getElementById('cnResultBox').style.display = 'block';
-      // Venue/Event Type/Prepared By/Prepared Time are specific to that
-      // occasion, not a reusable default like the item list — clear them
-      // so the next generation starts fresh. Team/Department stays put
-      // since it's a fixed default, not per-occasion.
-      document.getElementById('pfVenue').value = '';
-      document.getElementById('pfEvMission').checked = false;
-      document.getElementById('pfEvPeoples').checked = false;
-      document.getElementById('pfPreparedBy').value = '';
-      document.getElementById('pfPreparedTime').value = '';
-      applyPfAttachment('');
-      document.getElementById('pfPreparedSigCanvas').getContext('2d').clearRect(0, 0, 280, 90);
-      pfPreparedSignature = '';
-      unlockPfSigPad();
+      // Ask (via a centered modal, not a native confirm) whether to clear
+      // the form for another occasion. Only clear on "Yes" — otherwise
+      // leave Venue/Event Type/Prepared By/etc. exactly as they were.
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+      const makeAnother = await showPfAnotherModal(newCn);
+      if(makeAnother){
+        // Venue/Event Type/Prepared By/Prepared Time are specific to that
+        // occasion, not a reusable default like the item list — clear them
+        // so the next generation starts fresh. Team/Department stays put
+        // since it's a fixed default, not per-occasion.
+        document.getElementById('pfVenue').value = '';
+        document.getElementById('pfEvMission').checked = false;
+        document.getElementById('pfEvPeoples').checked = false;
+        document.getElementById('pfPreparedBy').value = '';
+        document.getElementById('pfPreparedTime').value = '';
+        document.getElementById('pfUsableDate').value = '';
+        applyPfAttachment('');
+        document.getElementById('pfPreparedSigCanvas').getContext('2d').clearRect(0, 0, 280, 90);
+        pfPreparedSignature = '';
+        unlockPfSigPad();
+      }
+      return;
     }catch(e){
       console.error('Could not update peripheral form / generate control no', e);
       pfSaveMsg.textContent = 'Could not save changes (' + ((e && (e.code || e.message)) || 'unknown error') + ').';
@@ -3586,6 +3684,17 @@
     if(ts && ts.seconds) return new Date(ts.seconds * 1000).toLocaleString();
     return '—';
   }
+  // Formats a plain YYYY-MM-DD string (from <input type="date">, as stored
+  // on the reservedControlNos doc's usableDate field) into M/D/YYYY for
+  // display — parsed manually instead of via `new Date(iso)` so it isn't
+  // shifted a day off by local-timezone parsing of a date-only ISO string.
+  function fmtIsoDateDisplay(iso){
+    if(!iso) return '';
+    const parts = String(iso).split('-');
+    if(parts.length !== 3) return iso;
+    const [y, m, d] = parts;
+    return parseInt(m, 10) + '/' + parseInt(d, 10) + '/' + y;
+  }
 
   const CN_UNUSED_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
   function renderControlNos(rows){
@@ -3630,13 +3739,16 @@
       unusedEmpty.style.display = 'none';
       unusedBody.innerHTML = unused.map(r => `
         <tr>
-          <td class="cn-mono">${escapeHtml(r.id)}</td>
+          <td class="cn-mono">${escapeHtml(r.id)}${r.usableDate ? '<br><span style="font-weight:400;font-size:11px;color:var(--muted);">Usable: ' + escapeHtml(fmtIsoDateDisplay(r.usableDate)) + '</span>' : ''}</td>
           <td>${escapeHtml(r.venue || '—')}</td>
           <td>${escapeHtml(fmtCnTimestamp(r.generatedAt))}</td>
           <td>
-            <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
-            <button type="button" class="cn-edit-btn" data-cn="${escapeAttr(r.id)}">✏️ Edit</button>
-            <button type="button" class="cn-cancel-btn" data-cn="${escapeAttr(r.id)}">🚫 Cancel</button>
+            <div class="cn-actions">
+              <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
+              <button type="button" class="cn-edit-btn" data-cn="${escapeAttr(r.id)}">✏️ Edit</button>
+              <button type="button" class="cn-cancel-btn" data-cn="${escapeAttr(r.id)}">🚫 Cancel</button>
+              <button type="button" class="cn-delete-btn" data-cn="${escapeAttr(r.id)}">🗑️ Delete</button>
+            </div>
           </td>
         </tr>
       `).join('');
@@ -3657,8 +3769,10 @@
           <td>${escapeHtml(fmtCnTimestamp(r.lockedAt))}</td>
           <td>${escapeHtml(r.lockReason || 'Auto-locked — one day has passed and this control number was not used.')}</td>
           <td>
-            <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
-            <button type="button" class="cn-restore-locked-btn" data-cn="${escapeAttr(r.id)}">↩️ Restore</button>
+            <div class="cn-actions">
+              <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
+              <button type="button" class="cn-restore-locked-btn" data-cn="${escapeAttr(r.id)}">↩️ Restore</button>
+            </div>
           </td>
         </tr>
       `).join('');
@@ -3679,9 +3793,12 @@
           <td>${escapeHtml(fmtCnTimestamp(r.usedAt))}</td>
           <td>${r.usedByName ? escapeHtml(r.usedByName + (r.usedByStaffId ? ' (' + r.usedByStaffId + ')' : '')) : '—'}</td>
           <td>
-            <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
-            <button type="button" class="cn-edit-btn" disabled title="Already used — no longer editable">🔒 Locked</button>
-            <button type="button" class="cn-cancel-btn" data-cn="${escapeAttr(r.id)}">🚫 Cancel</button>
+            <div class="cn-actions">
+              <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
+              <button type="button" class="cn-edit-btn" disabled title="Already used — no longer editable">🔒 Locked</button>
+              <button type="button" class="cn-cancel-btn" data-cn="${escapeAttr(r.id)}">🚫 Cancel</button>
+              <button type="button" class="cn-delete-btn" data-cn="${escapeAttr(r.id)}">🗑️ Delete</button>
+            </div>
           </td>
         </tr>
       `).join('');
@@ -3702,8 +3819,10 @@
           <td>${escapeHtml(fmtCnTimestamp(r.cancelledAt))}</td>
           <td>${r.cancelledBy ? escapeHtml(r.cancelledBy) : '—'}</td>
           <td>
-            <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
-            <button type="button" class="cn-restore-btn" data-cn="${escapeAttr(r.id)}">↩️ Restore</button>
+            <div class="cn-actions">
+              <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
+              <button type="button" class="cn-restore-btn" data-cn="${escapeAttr(r.id)}">↩️ Restore</button>
+            </div>
           </td>
         </tr>
       `).join('');
@@ -3840,6 +3959,33 @@
             PDLoader.hide();
           }
         }, `restore Control No. ${cn}`);
+      });
+    });
+    // "Delete" — available on Unused and Used rows. Unlike Cancel, this
+    // permanently removes the reservedControlNos doc (see fsDeleteControlNo
+    // above) — it will no longer appear anywhere, including the Cancelled
+    // list. Confirms twice: a plain confirm() spelling out that this can't
+    // be undone, then the usual admin password re-check.
+    document.getElementById('controlNosSection').querySelectorAll('.cn-delete-btn[data-cn]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const cn = btn.getAttribute('data-cn');
+        const row = allControlNos.find(r => r.id === cn);
+        if(!row){
+          alert('Could not find this Control No. — try refreshing the list.');
+          return;
+        }
+        if(!confirm(`Permanently delete Control No. ${cn}? This cannot be undone — it will not appear in the Cancelled list either.`)) return;
+        openPwConfirmModal(async ()=>{
+          PDLoader.show();
+          try{
+            await window.fsDeleteControlNo(cn);
+          }catch(e){
+            console.error('Delete Control No. failed', e);
+            alert('Could not delete this Control No. Please try again.');
+          }finally{
+            PDLoader.hide();
+          }
+        }, `permanently delete Control No. ${cn}`);
       });
     });
   }

@@ -1,30 +1,32 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // "Admin" = signed in through Firebase Auth with a real email
-    // (not the @staff.planetdrugstore.local pseudo-emails used internally).
     function isAdmin() {
       return request.auth != null
         && request.auth.token.email != null
         && !request.auth.token.email.matches('.*@staff[.]planetdrugstore[.]local$');
     }
 
-    // Employees are NOT Firebase Auth users in this app — their "login" is
-    // just a client-side check against a passwordHash field in this
-    // collection (see employee-login.html / peripheral-form.html). Because
-    // of that, Firestore rules have no way to tell a real logged-in
-    // employee apart from anyone else calling this same doc path, so the
-    // per-document read has to stay open for the login check to work at all.
     match /employees/{staffId} {
       allow get: if true;
       allow list: if isAdmin();
-      allow write: if isAdmin();
+
+      // Self-signup: no Firebase Auth session exists for employees, so this
+      // has to stay open — but guarded so it can only CREATE a brand-new
+      // Staff ID (can't overwrite someone else's existing account this way)
+      // and must include the expected fields.
+      allow create: if !exists(/databases/$(database)/documents/employees/$(staffId))
+                    && request.resource.data.staffId is string
+                    && request.resource.data.name is string
+                    && request.resource.data.email is string
+                    && request.resource.data.department is string
+                    && request.resource.data.passwordHash is string;
+
+      // Changing/deleting an account (Change Password modal, Delete Account
+      // button) stays Admin-only.
+      allow update, delete: if isAdmin();
     }
 
-    // Same story as above: peripheral-form.html writes here using the
-    // employee's local-storage session, not a Firebase Auth token, so these
-    // have to stay open to both roles too.
     match /entries/{entryId} {
       allow read, write: if true;
     }
@@ -43,15 +45,10 @@ service cloud.firestore {
     match /venues/{id} {
       allow read, write: if true;
     }
-
-    // Read needed by both roles (peripheral-form.html loads the template);
-    // only Admin should be able to change it.
     match /config/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
-
-    // Admin-console-only.
     match /preparers/{id} {
       allow read, write: if isAdmin();
     }

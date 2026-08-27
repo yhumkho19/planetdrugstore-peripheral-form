@@ -216,10 +216,10 @@
       <div class="brand-name">PLANET<span>DRUGSTORE PERIPHERALS</span></div>
     </div>
     <div class="welcome-badge">
-      <div class="welcome-avatar">IT</div>
+      <div class="welcome-avatar" id="welcomeAvatar">IT</div>
       <div class="welcome-text">
         <span class="wt-hi">Welcome back</span>
-        <span class="wt-name">IT ADMIN</span>
+        <span class="wt-name" id="welcomeName">Loading…</span>
       </div>
       <span class="welcome-dot"></span>
     </div>
@@ -234,7 +234,7 @@
       </p>
       <div class="hero-ctas">
         <!-- <a href="peripheral-form.html" class="btn-primary">🧰 Open Peripheral Form</a> -->
-        <a href="admin-console.html#entries" class="btn-ghost">▶ View Entries</a>
+        <a href="peripheral-form.html" class="btn-ghost">▶ Peripheral Form</a>
         <button class="btn-ghost" id="OnLogout">🚪 Log Out</button>
       </div>
       <div class="trust-row">
@@ -263,35 +263,46 @@
 <script src="loader.js"></script>
 <script type="module">
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import {
-    getAuth, onAuthStateChanged, signOut, setPersistence,
-    indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence,
-    EmailAuthProvider, reauthenticateWithCredential
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  // Employees are authenticated via a custom Firestore-based system (see
+  // employee-login.html) — "signed in" is just a session record kept in
+  // localStorage/sessionStorage. No Firebase Auth is used for employees,
+  // so this page reads that session directly instead of Firebase Auth.
+  const SESSION_KEY = 'pd_employee_session';
+  const REMEMBER_KEY = 'pd_remembered_staffId';
 
-  const STAFF_DOMAIN = 'staff.planetdrugstore.local';
+  function readSession(){
+    try{
+      const raw = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  }
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
-    authDomain: "planetdrugstore-peripher-d24c0.firebaseapp.com",
-    projectId: "planetdrugstore-peripher-d24c0",
-    storageBucket: "planetdrugstore-peripher-d24c0.firebasestorage.app",
-    messagingSenderId: "115454971026",
-    appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
-  };
+  function initials(text){
+    if(!text) return 'PD';
+    const words = text.trim().split(/\s+/).filter(Boolean);
+    if(words.length === 1) return words[0].slice(0, 2).toUpperCase();
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
 
-  const app = initializeApp(firebaseConfig);
-  const db = initializeFirestore(app, {
-    experimentalForceLongPolling: true,
-    useFetchStreams: false
-  });
-  const auth = getAuth(app);
+  const session = readSession();
+  if(!session){
+    // No active session — bounce back to login.
+    window.location.replace('employee-login.html');
+  } else {
+    const welcomeName = document.getElementById('welcomeName');
+    const welcomeAvatar = document.getElementById('welcomeAvatar');
+    // Role/team display — e.g. "IT North", "Billing South" — comes from
+    // the employee's `department` field saved at login/registration.
+    const label = session.department || session.name || 'Planet Drugstore Associate Employee';
+    welcomeName.textContent = label.toUpperCase();
+    welcomeAvatar.textContent = initials(session.department || session.name);
+  }
 
-  document.getElementById('OnLogout').addEventListener('click', async ()=>{
-    await signOut(auth);
-    window.location.href = 'admin-login.html';
+  document.getElementById('OnLogout').addEventListener('click', ()=>{
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(REMEMBER_KEY);
+    window.location.href = 'employee-login.html';
   });
 </script>
 

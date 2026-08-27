@@ -222,7 +222,7 @@
   .ack{padding:12px 24px 4px;font-size:12px;color:var(--muted);display:flex;gap:24px;flex-wrap:wrap;}
   .ack div{flex:1;min-width:260px;text-align:center;font-style:italic;}
 
-  .sign-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:0 24px 20px;}
+  .sign-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0;padding:0 24px 20px;}
   .sign-block{border-left:1px solid var(--line);padding:10px 14px;}
   .sign-block:first-child{border-left:none;}
   .sign-block h4{margin:0 0 10px;color:var(--maroon);font-size:12px;text-align:center;letter-spacing:0.3px;}
@@ -976,6 +976,32 @@
     }
   };
 
+  // Live list of every "Received By" / "Returned By" name any employee has
+  // ever recorded, most-recently-used first — powers the name autocomplete
+  // dropdowns so typing "J" can list every J name, and typing "Ja" narrows
+  // that further, without retyping the whole name. Same one-listener-for-
+  // the-life-of-the-form idea as fsListenVenues above.
+  function listenPersonDirectory(collectionName, callback){
+    return onSnapshot(collection(db, collectionName), (snap)=>{
+      const list = [];
+      snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+      list.sort((a, b)=>{
+        const ta = a.lastUsedAt && a.lastUsedAt.toMillis ? a.lastUsedAt.toMillis() : 0;
+        const tb = b.lastUsedAt && b.lastUsedAt.toMillis ? b.lastUsedAt.toMillis() : 0;
+        return tb - ta;
+      });
+      callback(list);
+    }, (err)=>{
+      console.error('Person directory listener error (' + collectionName + ')', err);
+    });
+  }
+  window.fsListenReceivers = function(callback){
+    return listenPersonDirectory("receivers", callback);
+  };
+  window.fsListenReturners = function(callback){
+    return listenPersonDirectory("returners", callback);
+  };
+
   // Pulls every entry the signed-in employee has a hand in: entries they
   // personally saved (HOST — filledUpBy.uid matches), and entries someone
   // else saved after this employee joined the fill-up live (JOINER —
@@ -1213,10 +1239,11 @@
 <!-- Received By modal — opened via the button beside Control No. Holds the
      REAL, authoritative fields for "Received By" (same ids used by
      save/collect logic: dateReceived, timeReceived, s2name, teamReceived,
-     contactReceived, receivedAttachment) — same shape as the "RETURNED
-     AFTER USE" band below. The Name field here mirrors down into the
-     "RECEIVED BY" block in the sign-grid (see syncReceivedByMirror()), but
-     the actual Signature pad lives ONLY in that sign-grid block, not here. -->
+     contactReceived, receivedAttachment, s2sigCanvas) — same shape as the
+     "RETURNED AFTER USE" band below. Received By no longer has a mirror
+     block in the printed sign-grid at the bottom (removed since this modal
+     is already the authoritative place to view/sign it) — everything for
+     Received By lives only here now. -->
 <div id="receivedByOverlay" class="collab-overlay">
   <div class="rb-modal-box" id="receivedByModalBox">
     <div class="rb-modal-head">
@@ -1228,7 +1255,12 @@
         <div class="field"><label>Date Received</label><input type="text" id="dateReceived"></div>
         <div class="field"><label>Time</label><input type="text" id="timeReceived"></div>
       </div>
-      <div class="field-row"><div class="field"><label>Received By (Name)</label><input type="text" id="s2name" autocomplete="off"></div></div>
+      <div class="field-row"><div class="field"><label>Received By (Name)</label>
+        <div class="venue-wrap">
+          <input type="text" id="s2name" autocomplete="off">
+          <div class="venue-suggest" id="s2nameSuggest"></div>
+        </div>
+      </div></div>
       <div class="field-row"><div class="field"><label>Team / Department</label><input type="text" id="teamReceived"></div></div>
       <div class="field-row"><div class="field"><label>Contact No.</label><input type="text" id="contactReceived"></div></div>
       <div class="band-attach">
@@ -1246,7 +1278,16 @@
           </div>
         </div>
       </div>
-      <div class="rb-modal-hint">Auto-fills based on your name if you've filled up this form before. Sign in the "RECEIVED BY" box at the bottom of the form — once signed, the signature can no longer be edited there.</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Signature</label>
+          <div class="sig-pad-wrap">
+            <canvas class="sig-canvas" id="s2sigCanvas" width="280" height="90"></canvas>
+            <button type="button" class="sig-clear" data-canvas="s2sigCanvas">Clear</button>
+          </div>
+        </div>
+      </div>
+      <div class="rb-modal-hint">Auto-fills based on your name if you've filled up this form before. Once signed, the signature can no longer be edited here.</div>
     </div>
   </div>
 </div>
@@ -1399,7 +1440,12 @@
         <div class="field"><label>Date Returned</label><input type="text" id="dateReturned"></div>
         <div class="field"><label>Time</label><input type="text" id="timeReturned"></div>
       </div>
-      <div class="field-row"><div class="field"><label>Returned By (Name)</label><input type="text" id="returnedBy"></div></div>
+      <div class="field-row"><div class="field"><label>Returned By (Name)</label>
+        <div class="venue-wrap">
+          <input type="text" id="returnedBy">
+          <div class="venue-suggest" id="returnedBySuggest"></div>
+        </div>
+      </div></div>
       <div class="field-row"><div class="field"><label>Team / Department</label><input type="text" id="teamReturned"></div></div>
       <div class="field-row"><div class="field"><label>Contact No.</label><input type="text" id="contactReturned"></div></div>
       <div class="band-attach">
@@ -1472,17 +1518,6 @@
         </div>
       </div>
       <div class="sline"><label>Date / Time</label><input type="text" id="pbDateTime" readonly></div>
-    </div>
-    <div class="sign-block">
-      <h4>RECEIVED BY</h4>
-      <div class="sline"><label>Name</label><input type="text" id="s2nameMirror" readonly></div>
-      <div class="sline"><label>Signature</label>
-        <div class="sig-pad-wrap">
-          <canvas class="sig-canvas" id="s2sigCanvas" width="280" height="90"></canvas>
-          <button type="button" class="sig-clear" data-canvas="s2sigCanvas">Clear</button>
-        </div>
-      </div>
-      <div class="sline"><label>Date / Time</label><input type="text" id="s2dt" readonly></div>
     </div>
     <div class="sign-block">
       <h4>RETURNED BY</h4>
@@ -1767,6 +1802,26 @@ function nowDateStr(){
   const dd = String(d.getDate()).padStart(2,'0');
   return mm + '/' + dd + '/' + d.getFullYear();
 }
+// Today's date as YYYY-MM-DD (local time), matching the format Admin's
+// <input type="date"> (pfUsableDate) stores on the reservedControlNos doc,
+// so the Usable Date restriction check in handleLoadFormClick can compare
+// them directly as plain strings.
+function todayIsoDateStr(){
+  const d = new Date();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return d.getFullYear() + '-' + mm + '-' + dd;
+}
+// Formats a stored YYYY-MM-DD usableDate for the blocked-entry error
+// message, e.g. "8/26/2026" — parsed manually (not `new Date(iso)`) so a
+// date-only ISO string never gets shifted a day off by local-timezone
+// parsing.
+function fmtIsoDateForMessage(iso){
+  const parts = String(iso).split('-');
+  if(parts.length !== 3) return iso;
+  const [y, m, d] = parts;
+  return parseInt(m, 10) + '/' + parseInt(d, 10) + '/' + y;
+}
 function nowTimeStr(){
   const d = new Date();
   let h = d.getHours();
@@ -1814,33 +1869,28 @@ function syncReturnedByMirror(){
   const t = (timeEl && timeEl.value) || '';
   dtEl.value = (d || t) ? (d + ' ' + t).trim() : '';
 }
-// "RECEIVED BY" Name/Date-Time (in the sign-grid) are read-only mirrors —
-// the real Name/Date Received/Time fields live in the Received By modal
+// "RECEIVED BY" Name/Date-Time/Signature (in the sign-grid) are all
+// read-only mirrors — the real Name/Date Received/Time fields AND the
+// live signature pad (s2sigCanvas) now live only in the Received By modal
 // (opened via the button beside Control No.), same idea as "RETURNED BY"
-// mirroring "Returned By (Name)" + "Date Returned"/"Time" from its band.
-// Only Signature is NOT mirrored — it lives directly in the sign-grid
-// block itself (s2sigCanvas), just like RETURNED BY's s3sigCanvas. Call
-// this any time the modal's Name/Date Received/Time fields change so the
-// mirror down below stays current.
+// mirroring "Returned By (Name)" + "Date Returned"/"Time" from its band,
+// except RETURNED BY's s3sigCanvas still lives directly in the sign-grid.
+// Call this any time the modal's Name/Date Received/Time fields OR the
+// s2sigCanvas signature change, so the mirror down below stays current
+// (used for the on-screen sign-grid AND for printing, since the modal
+// itself is hidden unless open).
 function syncReceivedByMirror(){
-  const nameEl = document.getElementById('s2nameMirror');
-  const dtEl = document.getElementById('s2dt');
-  const srcName = document.getElementById('s2name');
-  const dateEl = document.getElementById('dateReceived');
-  const timeEl = document.getElementById('timeReceived');
-  if(nameEl && srcName) nameEl.value = srcName.value || '';
-  if(dtEl){
-    const d = (dateEl && dateEl.value) || '';
-    const t = (timeEl && timeEl.value) || '';
-    dtEl.value = (d || t) ? (d + ' ' + t).trim() : '';
-  }
+  // "RECEIVED BY" no longer has an on-screen mirror in the sign-grid (it
+  // already lives fully in the Received By modal), so this is now a no-op.
+  // Kept as a function (instead of deleted) since several call sites still
+  // call it after a Received By field/signature changes.
 }
 // Maps each signature pad to the date/time field it stamps. "Prepared By"
 // no longer has a live pad here — IT/Admin signs it in the admin console
 // when generating the Control No., and it just carries over (see
 // preparedSignature below), so it isn't in this map at all.
 const SIG_AUTOFILL = {
-  s2sigCanvas: { dt:'s2dt', pairDate:'dateReceived', pairTime:'timeReceived' }, // RECEIVED BY (before use)
+  s2sigCanvas: { pairDate:'dateReceived', pairTime:'timeReceived' }, // RECEIVED BY (before use)
   s3sigCanvas: { dt:'s3dt', pairDate:'dateReturned', pairTime:'timeReturned' }, // RETURNED BY
 };
 function autofillOnSign(canvasId){
@@ -1850,7 +1900,16 @@ function autofillOnSign(canvasId){
   if(cfg.dt) changed = autofillIfEmpty(cfg.dt, nowDateStr() + ' ' + nowTimeStr()) || changed;
   if(cfg.pairDate) changed = autofillIfEmpty(cfg.pairDate, nowDateStr()) || changed;
   if(cfg.pairTime) changed = autofillIfEmpty(cfg.pairTime, nowTimeStr()) || changed;
-  if(changed) scheduleLiveSync();
+  // Signing autofills Date/Time straight from here without ever touching
+  // the field's own `focus` listener (see the dateReturned/dateReceived
+  // IIFEs below) — so if the employee signs the pad before tapping the
+  // date/time field, that listener never runs and the stamp was never
+  // locked. Lock it here too whenever this path is the one that set it.
+  if(changed){
+    if(cfg.pairDate) lockValueField(document.getElementById(cfg.pairDate));
+    if(cfg.pairTime) lockValueField(document.getElementById(cfg.pairTime));
+    scheduleLiveSync();
+  }
 }
 
 // ---- Signature pads ----
@@ -1911,6 +1970,7 @@ document.querySelectorAll('.sig-clear').forEach(btn=>{
     const canvas = document.getElementById(btn.dataset.canvas);
     if(!canvas || canvas.classList.contains('sig-locked')) return;
     canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+    if(canvas.id === 's2sigCanvas') syncReceivedByMirror();
     scheduleLiveSync();
   });
 });
@@ -2193,7 +2253,9 @@ function handleLiveSnapshot(controlNo, data){
       hideCollabOverlay();
       unlockForm(controlNo);
       applyFields(data.fields);
+      relockFilledStampFields();
       applySignatures(data.signatures);
+      retagPredictedForCurrentNames();
       if(data.attachments){
         applyAttachment(data.attachments.before || '', 'beforeAttachImg', 'beforeAttachPreview', v=>beforeAttachment=v);
         applyAttachment(data.attachments.after || '', 'afterAttachImg', 'afterAttachPreview', v=>afterAttachment=v);
@@ -3056,15 +3118,16 @@ function applyDatabaseRecordToForm(rec){
     teamReturned: (rec.returnedAfterUse && rec.returnedAfterUse.teamReturned) || '',
     contactReturned: (rec.returnedAfterUse && rec.returnedAfterUse.contactReturned) || '',
     s2name: (rec.signatures && rec.signatures.receivedBy && rec.signatures.receivedBy.name) || '',
-    s2dt: (rec.signatures && rec.signatures.receivedBy && rec.signatures.receivedBy.dateTime) || '',
     s3name: (rec.signatures && rec.signatures.returnedBy && rec.signatures.returnedBy.name) || '',
     s3dt: (rec.signatures && rec.signatures.returnedBy && rec.signatures.returnedBy.dateTime) || ''
   };
   applyFields(fields);
+  relockFilledStampFields();
   applySignatures({
     s2sigCanvas: (rec.signatures && rec.signatures.receivedBy && rec.signatures.receivedBy.signatureImage) || '',
     s3sigCanvas: (rec.signatures && rec.signatures.returnedBy && rec.signatures.returnedBy.signatureImage) || ''
   });
+  retagPredictedForCurrentNames();
   applyAttachment((rec.releasedBeforeUse && rec.releasedBeforeUse.attachment) || '', 'beforeAttachImg', 'beforeAttachPreview', v=>beforeAttachment=v);
   applyAttachment((rec.receivedBeforeUse && rec.receivedBeforeUse.attachment) || '', 'receivedAttachImg', 'receivedAttachPreview', v=>receivedAttachment=v);
   applyAttachment((rec.returnedAfterUse && rec.returnedAfterUse.attachment) || '', 'afterAttachImg', 'afterAttachPreview', v=>afterAttachment=v);
@@ -3120,6 +3183,29 @@ async function handleLoadFormClick(){
       errEl.textContent = 'Can\'t verify the Control No. right now (no connection). Please try again.';
       errEl.classList.add('show');
       return;
+    }
+
+    // Admin can optionally restrict a Control No. to a specific "Usable
+    // Date" when generating it (see pfUsableDate in admin-console.html).
+    // Check that BEFORE claiming — a plain read, not part of the atomic
+    // claim transaction below, so a number blocked here is left completely
+    // untouched (still 'unused') and can simply be tried again on its
+    // correct date instead of being burned by this attempt.
+    if(window.fsCheckReservedControlNo){
+      let precheck = null;
+      try{
+        precheck = await window.fsCheckReservedControlNo(raw);
+      }catch(precheckErr){
+        console.error('Usable Date pre-check failed', precheckErr);
+      }
+      if(precheck && precheck.usableDate && precheck.status === 'unused'){
+        const todayIso = todayIsoDateStr();
+        if(precheck.usableDate !== todayIso){
+          errEl.textContent = 'Control No. ' + raw + ' is only usable on ' + fmtIsoDateForMessage(precheck.usableDate) + ' — it can\'t be loaded on any other date. Please wait until that date, or get a new Control No. from Admin.';
+          errEl.classList.add('show');
+          return;
+        }
+      }
     }
 
     // A Control No. is meant for ONE use — see the "you'll need a new
@@ -3327,7 +3413,7 @@ function buildDatabaseRecord(){
       receivedBy: {
         role: 'User / Team',
         name: f.s2name || '',
-        dateTime: f.s2dt || '',
+        dateTime: (f.dateReceived || f.timeReceived) ? ((f.dateReceived || '') + ' ' + (f.timeReceived || '')).trim() : '',
         signatureImage: sigs.s2sigCanvas || ''
       },
       returnedBy: {
@@ -3467,7 +3553,9 @@ async function loadForm(){
     if(raw){
       const payload = JSON.parse(raw);
       applyFields(payload.fields);
+      relockFilledStampFields();
       applySignatures(payload.signatures);
+      retagPredictedForCurrentNames();
       if(payload.attachments){
         applyAttachment(payload.attachments.before, 'beforeAttachImg', 'beforeAttachPreview', v=>beforeAttachment=v);
         applyAttachment(payload.attachments.after, 'afterAttachImg', 'afterAttachPreview', v=>afterAttachment=v);
@@ -3613,17 +3701,83 @@ syncReceivedByMirror();
   if(el) el.addEventListener('input', syncReturnedByMirror);
 });
 
+// Locks a plain text field (readonly) after a value gets auto-filled into
+// it — Date/Time stamps and predicted Team/Department + Contact No. all use
+// this, so none of them can be typed over afterward (prevents an employee
+// from quietly backdating a return/receipt or editing in a different
+// department/contact than what's actually on file). Unlocked only where a
+// specific reason calls for it — e.g. the name it was predicted for changes.
+function lockValueField(el){
+  if(!el) return;
+  el.readOnly = true;
+}
+function unlockValueField(el){
+  if(!el) return;
+  el.readOnly = false;
+}
+
+// applyFields() only restores values, never the readOnly lock state, so any
+// path that repopulates the form from saved data (local-draft restore on
+// refresh, reopening a saved entry, or a joiner receiving the host's live
+// snapshot) needs to re-lock these stamp fields whenever they already carry
+// a value — otherwise a hard refresh (Ctrl+Shift+R) silently unlocks
+// Date/Time Returned, Date/Time Received, and the predicted Team/Contact
+// fields, letting an employee edit a timestamp or department that was
+// already locked in.
+function relockFilledStampFields(){
+  ['dateReturned','timeReturned','dateReceived','timeReceived','teamReturned','contactReturned','teamReceived','contactReceived'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && el.value) lockValueField(el);
+  });
+}
+
+// Tags Team/Department, Contact No., and a drawn signature as "belonging
+// to" whoever's name is currently in Returned By / Received By, right
+// after those fields get restored from saved data (a reloaded local
+// draft, a reopened saved entry, or a joiner's live snapshot). Restoring
+// only copies values, never the `dataset.predictedFor` tag the "name
+// changed, clear what was predicted for the old name" listeners below
+// depend on — without this, editing a wrong name after a refresh (or on a
+// reopened entry) leaves the old department/contact/signature stuck,
+// since those listeners have no way to tell they came from that name.
+function retagPredictedForCurrentNames(){
+  const returnedName = (document.getElementById('returnedBy') || {}).value;
+  const teamReturnedEl = document.getElementById('teamReturned');
+  const contactReturnedEl = document.getElementById('contactReturned');
+  const s3sigCanvasEl = document.getElementById('s3sigCanvas');
+  if(returnedName && returnedName.trim()){
+    const name = returnedName.trim();
+    if(teamReturnedEl && teamReturnedEl.value.trim()) teamReturnedEl.dataset.predictedFor = name;
+    if(contactReturnedEl && contactReturnedEl.value.trim()) contactReturnedEl.dataset.predictedFor = name;
+    if(s3sigCanvasEl && !isCanvasBlank(s3sigCanvasEl)) lockSignaturePad('s3sigCanvas', name);
+  }
+  const receivedName = (document.getElementById('s2name') || {}).value;
+  const teamReceivedEl = document.getElementById('teamReceived');
+  const contactReceivedEl = document.getElementById('contactReceived');
+  const s2sigCanvasEl = document.getElementById('s2sigCanvas');
+  if(receivedName && receivedName.trim()){
+    const name = receivedName.trim();
+    if(teamReceivedEl && teamReceivedEl.value.trim()) teamReceivedEl.dataset.predictedFor = name;
+    if(contactReceivedEl && contactReceivedEl.value.trim()) contactReceivedEl.dataset.predictedFor = name;
+    if(s2sigCanvasEl && !isCanvasBlank(s2sigCanvasEl)) lockSignaturePad('s2sigCanvas', name);
+  }
+}
+
 // Date Returned / Time: stamp both the moment the employee taps into the
 // "Date Returned" field, instead of only when they later sign — so the
 // timestamp reflects when the return was actually being recorded, not
-// whenever the signature happened to get drawn.
+// whenever the signature happened to get drawn. Locked right after
+// stamping so the actual date/time can't be edited afterward.
 (function(){
   const dateReturnedEl = document.getElementById('dateReturned');
+  const timeReturnedEl = document.getElementById('timeReturned');
   if(!dateReturnedEl) return;
   dateReturnedEl.addEventListener('focus', ()=>{
     const changed1 = autofillIfEmpty('dateReturned', nowDateStr());
     const changed2 = autofillIfEmpty('timeReturned', nowTimeStr());
     if(changed1 || changed2){
+      lockValueField(dateReturnedEl);
+      lockValueField(timeReturnedEl);
       syncReturnedByMirror();
       scheduleLiveSync();
     }
@@ -3632,18 +3786,24 @@ syncReceivedByMirror();
 
 // Date Received / Time: stamp both the moment the employee taps into the
 // "Date Received" field, instead of only when they later sign — same idea
-// as Date Returned below.
+// as Date Returned below. Locked right after stamping, same reason.
 (function(){
   const dateReceivedEl = document.getElementById('dateReceived');
+  const timeReceivedEl = document.getElementById('timeReceived');
   if(!dateReceivedEl) return;
   dateReceivedEl.addEventListener('focus', ()=>{
     const changed1 = autofillIfEmpty('dateReceived', nowDateStr());
     const changed2 = autofillIfEmpty('timeReceived', nowTimeStr());
     if(changed1 || changed2){
+      lockValueField(dateReceivedEl);
+      lockValueField(timeReceivedEl);
       scheduleLiveSync();
     }
   }, { once:true });
 })();
+
+
+
 
 // Team/Department + Contact No. + Signature auto-predict: once a "Returned
 // By" name that's been used before (by anyone, on any device) is entered,
@@ -3653,7 +3813,11 @@ syncReceivedByMirror();
 // signature is locked (can't be drawn over or cleared), since it isn't a
 // fresh signature drawn this session — it unlocks automatically only if the
 // Returned By name is then changed to someone else. Team/Department and
-// Contact No. still respect anything already typed in.
+// Contact No. still respect anything already typed in — and, like the
+// signature, get cleared out the moment the name changes away from (or is
+// erased from) whoever they were predicted for, since a predicted value
+// only makes sense for the name it came from; a value the employee typed
+// in by hand is never touched.
 (function(){
   const returnedByEl = document.getElementById('returnedBy');
   const teamReturnedEl = document.getElementById('teamReturned');
@@ -3675,10 +3839,14 @@ syncReceivedByMirror();
       let changed = false;
       if(info.department && !teamReturnedEl.value.trim()){
         teamReturnedEl.value = info.department;
+        teamReturnedEl.dataset.predictedFor = name;
+        lockValueField(teamReturnedEl);
         changed = true;
       }
       if(info.contact && !contactReturnedEl.value.trim()){
         contactReturnedEl.value = info.contact;
+        contactReturnedEl.dataset.predictedFor = name;
+        lockValueField(contactReturnedEl);
         changed = true;
       }
       if(info.signature && isCanvasBlank(s3sigCanvasEl) && !sigDrawingNow['s3sigCanvas']){
@@ -3697,16 +3865,34 @@ syncReceivedByMirror();
   contactReturnedEl.addEventListener('focus', tryPredict);
   s3sigCanvasEl.addEventListener('pointerenter', tryPredict);
 
-  // If the Returned By name changes away from whoever the currently-shown
-  // signature was predicted for, that signature no longer belongs here —
-  // unlock and clear the pad so it's ready for the new name (either a fresh
-  // prediction, or the new person signing by hand).
+  // Once the employee edits a predicted Team/Department or Contact No. by
+  // hand, it's no longer "the prediction" — stop tracking it as one so a
+  // later name change won't wipe out what they just typed themselves.
+  teamReturnedEl.addEventListener('input', ()=>{ delete teamReturnedEl.dataset.predictedFor; });
+  contactReturnedEl.addEventListener('input', ()=>{ delete contactReturnedEl.dataset.predictedFor; });
+
+  // If the Returned By name changes away from (or is erased from) whoever
+  // the currently-shown signature/department/contact were predicted for,
+  // none of those still belong here — clear each one that was predicted
+  // (never a manually-typed value) so nothing stale is left behind, ready
+  // for a fresh prediction or manual entry for the new name.
   returnedByEl.addEventListener('input', ()=>{
+    const name = returnedByEl.value.trim();
     const canvas = s3sigCanvasEl;
-    if(!canvas.classList.contains('sig-locked')) return;
-    if(returnedByEl.value.trim() === (canvas.dataset.predictedFor || '')) return;
-    canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
-    unlockSignaturePad('s3sigCanvas');
+    if(canvas.classList.contains('sig-locked') && name !== (canvas.dataset.predictedFor || '')){
+      canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+      unlockSignaturePad('s3sigCanvas');
+    }
+    if(teamReturnedEl.dataset.predictedFor && name !== teamReturnedEl.dataset.predictedFor){
+      teamReturnedEl.value = '';
+      delete teamReturnedEl.dataset.predictedFor;
+      unlockValueField(teamReturnedEl);
+    }
+    if(contactReturnedEl.dataset.predictedFor && name !== contactReturnedEl.dataset.predictedFor){
+      contactReturnedEl.value = '';
+      delete contactReturnedEl.dataset.predictedFor;
+      unlockValueField(contactReturnedEl);
+    }
   });
 })();
 
@@ -3718,7 +3904,9 @@ syncReceivedByMirror();
 // be drawn over or cleared), since it isn't a fresh signature drawn this
 // session — it unlocks automatically only if the Received By name is then
 // changed to someone else. Team/Department and Contact No. still respect
-// anything already typed in.
+// anything already typed in — and, like the signature, get cleared out the
+// moment the name changes away from (or is erased from) whoever they were
+// predicted for; a value the employee typed in by hand is never touched.
 (function(){
   const receivedByEl = document.getElementById('s2name');
   const teamReceivedEl = document.getElementById('teamReceived');
@@ -3740,10 +3928,14 @@ syncReceivedByMirror();
       let changed = false;
       if(info.department && !teamReceivedEl.value.trim()){
         teamReceivedEl.value = info.department;
+        teamReceivedEl.dataset.predictedFor = name;
+        lockValueField(teamReceivedEl);
         changed = true;
       }
       if(info.contact && !contactReceivedEl.value.trim()){
         contactReceivedEl.value = info.contact;
+        contactReceivedEl.dataset.predictedFor = name;
+        lockValueField(contactReceivedEl);
         changed = true;
       }
       if(info.signature && isCanvasBlank(s2sigCanvasEl) && !sigDrawingNow['s2sigCanvas']){
@@ -3763,17 +3955,35 @@ syncReceivedByMirror();
   contactReceivedEl.addEventListener('focus', tryPredict);
   s2sigCanvasEl.addEventListener('pointerenter', tryPredict);
 
-  // If the Received By name changes away from whoever the currently-shown
-  // signature was predicted for, that signature no longer belongs here —
-  // unlock and clear the pad so it's ready for the new name (either a
-  // fresh prediction, or the new person signing by hand).
+  // Once the employee edits a predicted Team/Department or Contact No. by
+  // hand, it's no longer "the prediction" — stop tracking it as one so a
+  // later name change won't wipe out what they just typed themselves.
+  teamReceivedEl.addEventListener('input', ()=>{ delete teamReceivedEl.dataset.predictedFor; });
+  contactReceivedEl.addEventListener('input', ()=>{ delete contactReceivedEl.dataset.predictedFor; });
+
+  // If the Received By name changes away from (or is erased from) whoever
+  // the currently-shown signature/department/contact were predicted for,
+  // none of those still belong here — clear each one that was predicted
+  // (never a manually-typed value) so nothing stale is left behind, ready
+  // for a fresh prediction or manual entry for the new name.
   receivedByEl.addEventListener('input', ()=>{
+    const name = receivedByEl.value.trim();
     const canvas = s2sigCanvasEl;
-    if(!canvas.classList.contains('sig-locked')) return;
-    if(receivedByEl.value.trim() === (canvas.dataset.predictedFor || '')) return;
-    canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
-    unlockSignaturePad('s2sigCanvas');
-    syncReceivedByMirror();
+    if(canvas.classList.contains('sig-locked') && name !== (canvas.dataset.predictedFor || '')){
+      canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+      unlockSignaturePad('s2sigCanvas');
+      syncReceivedByMirror();
+    }
+    if(teamReceivedEl.dataset.predictedFor && name !== teamReceivedEl.dataset.predictedFor){
+      teamReceivedEl.value = '';
+      delete teamReceivedEl.dataset.predictedFor;
+      unlockValueField(teamReceivedEl);
+    }
+    if(contactReceivedEl.dataset.predictedFor && name !== contactReceivedEl.dataset.predictedFor){
+      contactReceivedEl.value = '';
+      delete contactReceivedEl.dataset.predictedFor;
+      unlockValueField(contactReceivedEl);
+    }
   });
 })();
 
@@ -3799,10 +4009,11 @@ function maybeRecordReceiverInfo(){
 })();
 
 // Received By modal — opened via the button beside Control No. Just shows
-// and hides the overlay; the fields inside (s2name/s2sigCanvas/s2dt) are
-// the real, live form fields, so nothing else needs to happen on open —
-// any edits made here flow straight into the mirror below via
-// syncReceivedByMirror() (see the listeners set up above).
+// and hides the overlay; the fields inside (s2name/s2sigCanvas/dateReceived/
+// timeReceived) are the real, live form fields — including the signature
+// pad itself — so nothing else needs to happen on open. There's no longer
+// a "Received By" block in the sign-grid at the bottom to mirror into;
+// everything for Received By is captured and shown here in the modal.
 function showReceivedByModal(){
   document.getElementById('receivedByOverlay').classList.add('show');
 }
@@ -3903,6 +4114,91 @@ document.getElementById('receivedByOverlay').addEventListener('click', (e)=>{
     }
   });
 })();
+
+// Received By / Returned By name fields: dropdown of previously-used names
+// pulled from the shared "receivers"/"returners" directories, narrowing as
+// the employee types — e.g. "J" lists every name starting with J, then "Ja"
+// narrows that further — so a name doesn't have to be typed out in full.
+// Picking a suggestion just fills the field like typing it would; the
+// existing Team/Department/Contact/Signature auto-predict (bound to each
+// field's blur) still fires normally once the employee moves on from it.
+function setupPersonNameAutocomplete(inputEl, suggestBox, listenerName){
+  if(!inputEl || !suggestBox) return;
+
+  let nameList = []; // [{name, lastUsedAt}], from the shared directory
+  let activeIdx = -1;
+
+  (function startListening(){
+    if(window[listenerName]){
+      window[listenerName]((list)=>{ nameList = list; });
+    }else{
+      setTimeout(startListening, 200);
+    }
+  })();
+
+  function hideSuggestions(){
+    suggestBox.classList.remove('show');
+    suggestBox.innerHTML = '';
+    activeIdx = -1;
+  }
+
+  function updateActive(items){
+    items.forEach((it, i)=> it.classList.toggle('active', i === activeIdx));
+  }
+
+  function renderSuggestions(){
+    const typed = inputEl.value.trim();
+    if(!typed){ hideSuggestions(); return; }
+    const typedLower = typed.toLowerCase();
+    const matches = nameList
+      .filter(v => v.name && v.name.toLowerCase().startsWith(typedLower) && v.name.toLowerCase() !== typedLower)
+      .slice(0, 6);
+    if(!matches.length){ hideSuggestions(); return; }
+    activeIdx = -1;
+    suggestBox.innerHTML = matches.map(v =>
+      `<div class="venue-suggest-item" data-name="${v.name.replace(/"/g,'&quot;')}"><span>${v.name}</span></div>`
+    ).join('');
+    suggestBox.classList.add('show');
+    suggestBox.querySelectorAll('.venue-suggest-item').forEach(item=>{
+      // mousedown (not click) fires before the input's blur, so the
+      // selection registers before the dropdown gets hidden on blur.
+      item.addEventListener('mousedown', (e)=>{
+        e.preventDefault();
+        inputEl.value = item.dataset.name;
+        hideSuggestions();
+        inputEl.dispatchEvent(new Event('input', { bubbles:true }));
+      });
+    });
+  }
+
+  inputEl.addEventListener('input', renderSuggestions);
+  inputEl.addEventListener('focus', renderSuggestions);
+  inputEl.addEventListener('blur', ()=> setTimeout(hideSuggestions, 120));
+  inputEl.addEventListener('keydown', (e)=>{
+    const items = suggestBox.querySelectorAll('.venue-suggest-item');
+    if(!items.length) return;
+    if(e.key === 'ArrowDown'){
+      e.preventDefault();
+      activeIdx = Math.min(activeIdx + 1, items.length - 1);
+      updateActive(items);
+    }else if(e.key === 'ArrowUp'){
+      e.preventDefault();
+      activeIdx = Math.max(activeIdx - 1, 0);
+      updateActive(items);
+    }else if(e.key === 'Enter'){
+      if(activeIdx >= 0){
+        e.preventDefault();
+        inputEl.value = items[activeIdx].dataset.name;
+        hideSuggestions();
+        inputEl.dispatchEvent(new Event('input', { bubbles:true }));
+      }
+    }else if(e.key === 'Escape'){
+      hideSuggestions();
+    }
+  });
+}
+setupPersonNameAutocomplete(document.getElementById('s2name'), document.getElementById('s2nameSuggest'), 'fsListenReceivers');
+setupPersonNameAutocomplete(document.getElementById('returnedBy'), document.getElementById('returnedBySuggest'), 'fsListenReturners');
 
 function initControlNoIfNeeded(){
   const existing = document.getElementById('controlNo').value;

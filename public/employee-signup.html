@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create Account — Planet Drugstore Peripherals</title>
+<link rel="icon" type="image/x-icon" href="logo-transparent.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --maroon:#6E1620;
+    --maroon-dark:#3D0A10;
+    --maroon-deep:#1D0306;
+    --red:#d61f2c;
+    --red-dark:#a5151f;
+    --gold:#C88A2E;
+    --gold-soft:#E3B564;
+    --paper:#FBF5F4;
+    --line:#E8D7D8;
+    --ink:#2A1416;
+    --muted:#8C6B6E;
+    --good:#1f8a4c;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family:'Inter',-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    background:var(--paper);
+  }
+
+  .stage{min-height:100vh;display:grid;grid-template-columns:1.05fr 1fr;}
+  @media (max-width:900px){ .stage{grid-template-columns:1fr;} }
+
+  /* ---------- Left: brand panel ---------- */
+  .panel-brand{
+    position:relative;overflow:hidden;color:#fff;
+    padding:52px 52px 40px;
+    display:flex;flex-direction:column;justify-content:space-between;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(214,31,44,0.28), transparent 42%),
+      radial-gradient(circle at 88% 88%, rgba(200,138,46,0.20), transparent 50%),
+      linear-gradient(165deg, var(--maroon-dark) 0%, var(--maroon-deep) 100%);
+  }
+  @media (max-width:900px){ .panel-brand{padding:34px 28px 26px;} }
+
+  .brand-row{display:flex;align-items:center;gap:12px;}
+  .brand-mark{width:44px;height:44px;border-radius:10px;object-fit:cover;flex:none;display:block;}
+  .brand-word{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.5px;line-height:1.15;}
+  .brand-word span{display:block;color:var(--red);}
+
+  .live-pill{
+    display:inline-flex;align-items:center;gap:7px;margin-top:26px;
+    font-size:10.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+    color:rgba(255,255,255,0.75);background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.14);padding:6px 12px;border-radius:999px;
+  }
+  .live-dot{width:6px;height:6px;border-radius:50%;background:#5FD98A;flex:none;
+    box-shadow:0 0 0 rgba(95,217,138,0.5);animation:pulseDot 1.8s ease-out infinite;}
+  @keyframes pulseDot{
+    0%{box-shadow:0 0 0 0 rgba(95,217,138,0.55);}
+    70%{box-shadow:0 0 0 8px rgba(95,217,138,0);}
+    100%{box-shadow:0 0 0 0 rgba(95,217,138,0);}
+  }
+
+  .panel-heading{margin-top:26px;}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;
+    letter-spacing:1.6px;text-transform:uppercase;color:var(--gold-soft);
+    background:rgba(255,255,255,0.07);padding:6px 12px;border-radius:999px;
+    border:1px solid rgba(255,255,255,0.15);margin-bottom:18px;
+  }
+  .panel-heading h1{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-0.3px;
+    font-size:clamp(26px,3vw,36px);line-height:1.14;margin:0 0 14px;
+  }
+  .panel-heading p{font-size:16px;line-height:1.65;color:rgba(255,255,255,0.72);max-width:460px;margin:0;}
+
+  .feature-list{list-style:none;margin:80px 0 0;padding:0;display:flex;flex-direction:column;gap:14px;}
+  @media (max-width:900px){ .feature-list{display:none;} }
+  .feature-list li{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;color:rgba(255,255,255,0.78);line-height:1.45;}
+  .feature-list .dot{width:6px;height:6px;border-radius:50%;background:var(--gold-soft);flex:none;margin-top:6px;}
+
+  .panel-foot{font-size:11.5px;color:rgba(255,255,255,0.4);letter-spacing:0.3px;margin-top:28px;}
+
+  /* ---------- Right: form panel ---------- */
+  .panel-form{display:flex;align-items:center;justify-content:center;padding:44px 24px;}
+  .form-card{width:100%;max-width:400px;}
+
+  .access-pill{
+    display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;
+    letter-spacing:1.2px;text-transform:uppercase;color:var(--red-dark);
+    background:#FBE7E9;border:1px solid #F3C2C6;padding:5px 11px;border-radius:999px;margin-bottom:20px;
+  }
+  .form-card h2{font-family:'Space Grotesk',sans-serif;font-size:25px;font-weight:700;
+    margin:0 0 6px;color:var(--ink);letter-spacing:-0.2px;}
+  .form-card .sub{font-size:13px;color:var(--muted);margin:0 0 26px;line-height:1.5;}
+
+  .lfield{margin-bottom:16px;}
+  .lfield label{display:block;font-size:11px;font-weight:600;color:var(--ink);letter-spacing:0.3px;margin-bottom:7px;}
+  .input-wrap{position:relative;}
+  .lfield input,.lfield select{
+    width:100%;padding:13px 14px;font-size:14.5px;border:1.5px solid var(--line);
+    border-radius:10px;background:#fff;color:var(--ink);font-family:inherit;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .lfield select{cursor:pointer;}
+  .lfield input:focus,.lfield select:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 4px rgba(214,31,44,0.10);}
+  .lfield .hint{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4;}
+  .pw-wrap input{padding-right:54px;}
+  .pw-toggle{
+    position:absolute;right:6px;top:50%;transform:translateY(-50%);
+    border:none;background:transparent;color:var(--muted);cursor:pointer;
+    font-size:10.5px;font-weight:700;letter-spacing:0.4px;padding:7px 9px;border-radius:7px;
+  }
+  .pw-toggle:hover{background:var(--paper);color:var(--maroon);}
+
+  .two-col{display:flex;gap:12px;}
+  .two-col .lfield{flex:1;min-width:0;}
+
+  .signup-btn{
+    width:100%;border:none;border-radius:10px;padding:14px;font-size:14.5px;font-weight:700;
+    cursor:pointer;color:#fff;letter-spacing:0.2px;font-family:inherit;margin-top:4px;
+    background:linear-gradient(135deg,var(--red),var(--red-dark));
+    box-shadow:0 12px 26px rgba(214,31,44,0.28);
+    transition:transform .15s,box-shadow .15s,opacity .15s;
+  }
+  .signup-btn:hover{transform:translateY(-1px);box-shadow:0 16px 32px rgba(214,31,44,0.34);}
+  .signup-btn:active{transform:translateY(0);}
+  .signup-btn:disabled{opacity:0.65;cursor:default;transform:none;}
+
+  .signup-msg{
+    margin-top:16px;font-size:12.5px;padding:11px 13px;border-radius:9px;display:none;line-height:1.5;
+  }
+  .signup-msg.err{background:#FBE7E9;border:1px solid #F3C2C6;color:var(--red-dark);}
+  .signup-msg.ok{background:#e6f5ea;border:1px solid #bfe6cb;color:var(--good);}
+
+  .form-foot{text-align:center;margin-top:24px;font-size:12px;color:var(--muted);}
+  .form-foot a{color:var(--red);text-decoration:none;font-weight:700;}
+  .form-foot a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="panel-brand">
+    <div>
+      <div class="brand-row">
+        <img src="logo.png" alt="Planet Drugstore" class="brand-mark">
+        <div class="brand-word">PLANET<span>DRUGSTORE</span></div>
+      </div>
+      <div class="live-pill"><span class="live-dot"></span> Updates in real time</div>
+
+      <div class="panel-heading">
+        <div class="eyebrow">Staff Access</div>
+        <h1>Create your own account</h1>
+        <p>Set up your Staff ID and password yourself — no need to wait on IT/Admin to register you.</p>
+      </div>
+
+      <ul class="feature-list">
+        <li><span class="dot"></span> Takes less than a minute</li>
+        <li><span class="dot"></span> Your account appears instantly in the Admin's employee list</li>
+        <li><span class="dot"></span> Sign in right after with the Staff ID and password you choose</li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="panel-foot">Planet Drugstore &middot; Peripherals Receiving Form</div>
+    </div>
+  </div>
+
+  <div class="panel-form">
+    <div class="form-card">
+      <div class="access-pill">Staff Access</div>
+      <h2>Create your account</h2>
+      <p class="sub">For the Peripherals Receiving Form. Already have an account? <a href="employee-login.html" style="color:var(--red);font-weight:700;text-decoration:none;">Sign in instead</a>.</p>
+
+      <form id="signupForm" autocomplete="on">
+        <div class="lfield">
+          <label for="empName">Full Name</label>
+          <input type="text" id="empName" placeholder="Juan Dela Cruz" required autocomplete="name">
+        </div>
+        <div class="lfield">
+          <label for="empEmail">Email</label>
+          <input type="email" id="empEmail" placeholder="juan.delacruz@planetdrugstore.com" required autocomplete="email">
+        </div>
+        <div class="lfield">
+          <label for="empDepartment">Department</label>
+          <select id="empDepartment" required>
+            <option value="" disabled selected>Select department</option>
+            <option value="IT NORTH">IT NORTH</option>
+            <option value="IT SOUTH">IT SOUTH</option>
+            <option value="BILLING NORTH">BILLING NORTH</option>
+            <option value="BILLING SOUTH">BILLING SOUTH</option>
+            <option value="Pharmacy Assistant NORTH">Pharmacy Assistant NORTH</option>
+            <option value="Pharmacy Assistant SOUTH">Pharmacy Assistant SOUTH</option>
+          </select>
+        </div>
+        <div class="lfield">
+          <label for="empStaffId">Staff ID</label>
+          <input type="text" id="empStaffId" placeholder="e.g. 10234" required autocomplete="username">
+          <div class="hint">Use your own Staff ID number. You'll use this to sign in.</div>
+        </div>
+        <div class="two-col">
+          <div class="lfield">
+            <label for="empPassword">Password</label>
+            <div class="input-wrap pw-wrap">
+              <input type="password" id="empPassword" placeholder="At least 6 characters" required minlength="6" autocomplete="new-password">
+              <button type="button" class="pw-toggle" id="pwToggle1">SHOW</button>
+            </div>
+          </div>
+          <div class="lfield">
+            <label for="empPassword2">Confirm Password</label>
+            <div class="input-wrap pw-wrap">
+              <input type="password" id="empPassword2" placeholder="Re-type password" required minlength="6" autocomplete="new-password">
+              <button type="button" class="pw-toggle" id="pwToggle2">SHOW</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="signup-btn" id="signupBtn">Create Account</button>
+        <div class="signup-msg err" id="errMsg"></div>
+        <div class="signup-msg ok" id="okMsg"></div>
+      </form>
+
+      <div class="form-foot">Already registered? <a href="employee-login.html">Sign in here &rarr;</a></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    initializeFirestore, doc, getDoc, setDoc, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // Same Firebase project as the rest of the system, and the same
+  // 'employees' collection / doc-shape the Admin Console's Register
+  // Employee form and employee-login.html already use — so an account
+  // created here shows up in the Admin Console's employee list right away
+  // (it's on a live onSnapshot listener) and can log in immediately after.
+  const firebaseConfig = {
+    apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
+    authDomain: "planetdrugstore-peripher-d24c0.firebaseapp.com",
+    projectId: "planetdrugstore-peripher-d24c0",
+    storageBucket: "planetdrugstore-peripher-d24c0.firebasestorage.app",
+    messagingSenderId: "115454971026",
+    appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = initializeFirestore(app, {
+    experimentalForceLongPolling: true,
+    useFetchStreams: false
+  });
+
+  async function hashPassword(pw){
+    const enc = new TextEncoder().encode(pw);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // Show/Hide for both password fields
+  function wireToggle(btnId, inputId){
+    const btn = document.getElementById(btnId);
+    const input = document.getElementById(inputId);
+    btn.addEventListener('click', ()=>{
+      const showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      btn.textContent = showing ? 'SHOW' : 'HIDE';
+    });
+  }
+  wireToggle('pwToggle1', 'empPassword');
+  wireToggle('pwToggle2', 'empPassword2');
+
+  const signupForm = document.getElementById('signupForm');
+  const signupBtn = document.getElementById('signupBtn');
+  const errMsg = document.getElementById('errMsg');
+  const okMsg = document.getElementById('okMsg');
+
+  signupForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    errMsg.style.display = 'none';
+    okMsg.style.display = 'none';
+    signupBtn.disabled = true;
+    signupBtn.textContent = 'Creating…';
+    if(window.PDLoader) PDLoader.show();
+
+    const name = document.getElementById('empName').value.trim();
+    const email = document.getElementById('empEmail').value.trim();
+    const department = document.getElementById('empDepartment').value;
+    const staffId = document.getElementById('empStaffId').value.trim();
+    const password = document.getElementById('empPassword').value;
+    const password2 = document.getElementById('empPassword2').value;
+    const staffDocId = staffId.toLowerCase();
+
+    try{
+      if(!staffDocId){
+        throw { code: 'invalid-staffid' };
+      }
+      if(password !== password2){
+        throw { code: 'password-mismatch' };
+      }
+
+      const empRef = doc(db, 'employees', staffDocId);
+      const existing = await getDoc(empRef);
+      if(existing.exists()){
+        throw { code: 'staffid-in-use' };
+      }
+
+      const passwordHash = await hashPassword(password);
+
+      await setDoc(empRef, {
+        name, email, staffId, department,
+        passwordHash,
+        createdAt: serverTimestamp(),
+        createdBy: 'self-signup'
+      });
+
+      okMsg.textContent = `Account created, ${name}! Redirecting you to sign in…`;
+      okMsg.style.display = 'block';
+      signupForm.reset();
+
+      setTimeout(()=>{
+        window.location.href = 'employee-login.html?registered=1&staffId=' + encodeURIComponent(staffId);
+      }, 1100);
+    }catch(err){
+      if(window.PDLoader) PDLoader.hide();
+      errMsg.textContent = friendlyError(err);
+      errMsg.style.display = 'block';
+      signupBtn.disabled = false;
+      signupBtn.textContent = 'Create Account';
+    }
+  });
+
+  function friendlyError(err){
+    const code = err && err.code || '';
+    if(code.includes('staffid-in-use')) return 'That Staff ID is already registered. If it\'s yours, go to Sign In instead.';
+    if(code.includes('invalid-staffid')) return 'Please enter a Staff ID.';
+    if(code.includes('password-mismatch')) return 'Passwords do not match — please re-type them.';
+    return 'Could not create the account (' + (code || 'unknown error') + '). Please try again.';
+  }
+</script>
+<script src="loader.js"></script>
+</body>
+</html>
