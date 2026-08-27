@@ -22,18 +22,29 @@
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
+  html{width:100%;overflow-x:hidden;}
   body{
     background:#2a1013;
     font-family:'Inter','Segoe UI',Roboto,Arial,sans-serif;
     color:var(--paper);
+    min-height:100vh;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     padding:24px;
     -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  @media (max-width:600px){
+    body{padding:12px;}
   }
   h1,h2,h3{font-family:'Plus Jakarta Sans','Inter',sans-serif;}
 
   .stage{
-    max-width:3000px;margin:0 auto;
-    position:absolute;inset:0;
+    width:100%;
+    max-width:1400px;margin:0 auto;
+    position:relative;
     border-radius:26px;
     overflow:hidden;
     background:
@@ -41,6 +52,9 @@
       radial-gradient(500px 300px at 100% 100%, rgba(214,31,44,0.35), transparent 65%),
       linear-gradient(160deg, var(--maroon) 0%, var(--maroon-dark) 65%, #200609 100%);
     box-shadow:0 30px 70px rgba(0,0,0,0.45);
+  }
+  @media (max-width:600px){
+    .stage{border-radius:18px;}
   }
   .stage::before{
     content:"";position:absolute;inset:0;border-radius:26px;
@@ -55,6 +69,14 @@
   .nav{
     display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
     padding:22px 34px 10px;position:relative;z-index:2;
+  }
+  @media (max-width:600px){
+    .nav{padding:18px 18px 8px;gap:12px;}
+    .welcome-badge{padding:6px 12px 6px 6px;}
+  }
+  @media (max-width:380px){
+    .brand-name{font-size:12.5px;}
+    .brand-name span{font-size:9.5px;}
   }
   .brand{display:flex;align-items:center;gap:10px;}
   .brand-mark{width:34px;height:34px;border-radius:9px;object-fit:cover;background:#fff;flex:none;}
@@ -115,6 +137,9 @@
   @media (max-width:860px){
     .hero{grid-template-columns:1fr;padding:36px 22px 50px;}
   }
+  @media (max-width:480px){
+    .hero{padding:28px 16px 40px;gap:8px;}
+  }
 
   .kicker{font-size:14px;color:rgba(250,246,245,0.85);margin-bottom:14px;}
   .kicker b{color:#FF8A90;font-weight:700;}
@@ -122,8 +147,10 @@
   .headline{font-size:44px;line-height:1.12;font-weight:800;margin:0 0 18px;letter-spacing:-0.5px;}
   .headline .accent{color:#FF6B72;display:block;}
   @media (max-width:520px){ .headline{font-size:33px;} }
+  @media (max-width:380px){ .headline{font-size:27px;} }
 
   .subtext{font-size:15.5px;line-height:1.6;color:rgba(250,246,245,0.78);max-width:460px;margin-bottom:30px;}
+  @media (max-width:480px){ .subtext{font-size:14px;margin-bottom:22px;} }
 
   .hero-ctas{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
   .btn-primary{
@@ -142,6 +169,10 @@
   .trust-row{display:flex;gap:22px;margin-top:36px;flex-wrap:wrap;}
   .trust-row div{font-size:12px;color:rgba(250,246,245,0.6);}
   .trust-row strong{display:block;font-size:20px;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;}
+  @media (max-width:480px){
+    .trust-row{gap:16px;margin-top:24px;}
+    .trust-row strong{font-size:17px;}
+  }
 
   /* Planet visual */
   .planet-stage{
@@ -150,25 +181,39 @@
     display:flex;align-items:center;justify-content:center;
   }
   @media (max-width:860px){ .planet-stage{height:300px;} }
+  @media (max-width:480px){ .planet-stage{height:240px;transform:scale(0.85);} }
+  @media (max-width:380px){ .planet-stage{height:200px;transform:scale(0.68);} }
 
-  .orbit{
-    position:absolute;border-radius:50%;
-    /* border:1px dashed rgba(255,255,255,0.18); */
-  }
-  .orbit-1{width:100px;height:280px;animation:spin 5s linear infinite}
-  .orbit-2{width:200px;height:320px;animation:spin 6s linear infinite reverse;}
-  .orbit-3{width:300px;height:360px;animation:spin 7s linear infinite;}
-  .orbit-4{width:400px;height:400px;animation:spin 8s linear infinite reverse;}
-  .orbit-5{width:500px;height:440px;animation:spin 9s linear infinite;}
-  .orbit-6{width:600px;height:480px;animation:spin 10s linear infinite reverse;}
-  /* @media (max-width:860px){ .orbit-1{width:210px;height:210px;} .orbit-2{width:270px;height:270px;} } */
+  .orbit-layer{ position:absolute; inset:0; }
+  .orbit-back{ z-index:1; }
+  .orbit-front{ z-index:4; }
+  .planet-glow{ z-index:0; }
 
-  /* .orbit-dot{
-    position:absolute;top:-6px;left:50%;transform:translateX(-50%);
-    width:11px;height:11px;border-radius:50%;
-    background:var(--red);box-shadow:0 0 14px 3px rgba(214,31,44,0.7);
+  .orbit-letter{
+    position:absolute;
+    top:50%;left:50%;
+    width:28px;height:28px;
+    margin:-14px 0 0 -14px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-weight:800;font-size:13px;color:#fff;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.22);
+    border-radius:50%;
+    text-shadow:0 0 6px rgba(214,31,44,0.7);
+    box-shadow:0 0 10px rgba(214,31,44,0.3);
+    backdrop-filter:blur(2px);
+    will-change:transform;
+    transition:background .4s ease, box-shadow .4s ease, border-color .4s ease;
+    pointer-events:none;
   }
-  .orbit-2 .orbit-dot{background:#fff;width:7px;height:7px;box-shadow:0 0 10px 3px rgba(255,255,255,0.55);} */
+  @media (max-width:860px){ .orbit-letter{width:22px;height:22px;margin:-11px 0 0 -11px;font-size:11px;} }
+
+  .planet-stage.ringing .orbit-letter{
+    background:rgba(255,255,255,0.16);
+    border-color:rgba(255,255,255,0.5);
+    box-shadow:0 0 16px rgba(255,255,255,0.4);
+  }
 
   .planet-glow{
     position:absolute;width:230px;height:230px;border-radius:50%;
@@ -180,7 +225,7 @@
 
   .planet-ring{
     width:190px;height:190px;border-radius:50%;
-    background:#fff;
+    /* background:#fff; */
     display:flex;align-items:center;justify-content:center;
     position:relative;z-index:2;
     box-shadow:0 0 0 6px rgba(255,255,255,0.08), 0 20px 50px rgba(0,0,0,0.4);
@@ -244,17 +289,19 @@
       </div>
     </div>  
 
-    <div class="planet-stage">
+    <div class="planet-stage" id="planetStage">
       <div class="planet-glow"></div>
-      <div class="orbit orbit-1">Ⓣ<span class="orbit-dot"></span></div>
-      <div class="orbit orbit-2">Ⓔ<span class="orbit-dot"></span></div>  
-      <div class="orbit orbit-3">Ⓝ<span class="orbit-dot"></span></div>
-      <div class="orbit orbit-4">Ⓐ<span class="orbit-dot"></span></div>
-      <div class="orbit orbit-5">Ⓛ<span class="orbit-dot"></span></div>
-      <div class="orbit orbit-6">Ⓟ<span class="orbit-dot"></span></div>  
-      <div class="planet-tilt-ring"></div>
+      <div class="orbit-layer orbit-back" id="orbitBack"></div>
       <div class="planet-ring">
-        <img src="logo-transparent.png" alt="Planet Drugstore logo">
+        <img src="logo-transparent-pds.png" alt="Planet Drugstore logo">
+      </div>
+      <div class="orbit-layer orbit-front" id="orbitFront">
+        <span class="orbit-letter">T</span>
+        <span class="orbit-letter">E</span>
+        <span class="orbit-letter">N</span>
+        <span class="orbit-letter">A</span>
+        <span class="orbit-letter">L</span>
+        <span class="orbit-letter">P</span>
       </div>
     </div>
   </div>
@@ -297,6 +344,111 @@
     welcomeName.textContent = label.toUpperCase();
     welcomeAvatar.textContent = initials(session.department || session.name);
   }
+
+  // Planet orbit letters — spell PLANET while drifting around the logo,
+  // and snap into a single tilted Saturn-style ring on hover.
+  (function initPlanetOrbit(){
+    const stage = document.getElementById('planetStage');
+    const orbitBack = document.getElementById('orbitBack');
+    const orbitFront = document.getElementById('orbitFront');
+    if(!stage || !orbitBack || !orbitFront) return;
+
+    const letters = Array.from(orbitFront.querySelectorAll('.orbit-letter'));
+    const n = letters.length;
+
+    // Free-floating orbit state (before hover) — staggered radii/speeds
+    // so the letters drift around the logo at different rates. Radii
+    // start well outside the planet circle (~95px) so letters never
+    // get swallowed behind the logo while orbiting.
+    const orbitState = letters.map((el, i) => ({
+      el,
+      radius: 125 + i * 22,
+      flatten: 0.85,
+      speed: (0.35 + i * 0.06) * (i % 2 === 0 ? 1 : -1),
+      angle: (360 / n) * i
+    }));
+
+    let ringMode = false;
+    let rafId = null;
+    let ringAngle = 0;
+    const ringOrder = [5, 4, 3, 2, 1, 0]; // indices of P,L,A,N,E,T in `letters`
+    const ringRadius = 150;
+    const ringFlatten = 0.42;   // thin tilted ellipse, like a Saturn ring
+    const ringSpeed = 0.6;      // deg per frame while spinning
+    const ringTilt = -20;       // tilt the ring's long axis, like the sketch
+
+    // Position + depth (scale/opacity) + back/front layer swap in one place,
+    // shared by the free drift and the spinning ring.
+    function placeLetter(el, x, y, radius, flatten, extraRotateDeg){
+      const depth = y / (radius * flatten);            // -1 back .. +1 front
+      const scale = 0.8 + (depth + 1) / 2 * 0.3;         // 0.8 (back) -> 1.1 (front)
+      const opacity = 0.45 + (depth + 1) / 2 * 0.55;     // 0.45 (back) -> 1.0 (front)
+      const rot = extraRotateDeg ? ` rotate(${extraRotateDeg}deg)` : '';
+      el.style.transform = `translate(${x}px, ${y}px) scale(${scale})${rot}`;
+      el.style.opacity = opacity;
+
+      const wantFront = y >= 0;
+      if(wantFront && el.parentElement !== orbitFront){
+        orbitFront.appendChild(el);
+      } else if(!wantFront && el.parentElement !== orbitBack){
+        orbitBack.appendChild(el);
+      }
+    }
+
+    function drift(){
+      if(ringMode) return;
+      orbitState.forEach(cfg => {
+        cfg.angle += cfg.speed;
+        const rad = cfg.angle * Math.PI / 180;
+        const x = Math.cos(rad) * cfg.radius;
+        const y = Math.sin(rad) * cfg.radius * cfg.flatten;
+        placeLetter(cfg.el, x, y, cfg.radius, cfg.flatten);
+      });
+      rafId = requestAnimationFrame(drift);
+    }
+
+    // While hovered: letters lock into even PLANET spacing around a
+    // tilted ellipse and keep spinning together, like a rotating ring
+    // that dips behind the logo and swings back in front.
+    function spinRing(){
+      if(!ringMode) return;
+      ringAngle += ringSpeed;
+      const tiltRad = ringTilt * Math.PI / 180;
+      ringOrder.forEach((letterIndex, slot) => {
+        const baseDeg = (360 / n) * slot;
+        const rad = (baseDeg + ringAngle + ringTilt) * Math.PI / 180;
+        const ex = Math.cos(rad) * ringRadius;
+        const ey = Math.sin(rad) * ringRadius * ringFlatten;
+        // rotate around the tilt so the ellipse's long axis matches ringTilt
+        const x = ex * Math.cos(tiltRad) - ey * Math.sin(tiltRad);
+        const y = ex * Math.sin(tiltRad) + ey * Math.cos(tiltRad);
+        placeLetter(letters[letterIndex], x, y, ringRadius, ringFlatten);
+      });
+      rafId = requestAnimationFrame(spinRing);
+    }
+
+    function formRing(){
+      ringMode = true;
+      stage.classList.add('ringing');
+      if(rafId) cancelAnimationFrame(rafId);
+      spinRing();
+    }
+
+    function breakRing(){
+      ringMode = false;
+      stage.classList.remove('ringing');
+      letters.forEach(el => { el.style.transform = ''; el.style.opacity = ''; });
+      drift();
+    }
+
+    stage.addEventListener('mouseenter', formRing);
+    stage.addEventListener('mouseleave', breakRing);
+    stage.addEventListener('touchstart', () => {
+      ringMode ? breakRing() : formRing();
+    }, { passive: true });
+
+    drift();
+  })();
 
   document.getElementById('OnLogout').addEventListener('click', ()=>{
     localStorage.removeItem(SESSION_KEY);
