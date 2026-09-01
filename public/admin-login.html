@@ -237,6 +237,14 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
+  // Event Schedule has its own fixed account — this login page is shared
+  // by IT Admin and the Event Schedule team; we branch on the signed-in
+  // email to decide which landing page to send them to.
+  const EVENT_SCHEDULE_EMAIL = 'eventschedule@planetdrugstore.ph';
+  function isEventScheduleUser(user){
+    return (user && user.email || '').toLowerCase() === EVENT_SCHEDULE_EMAIL;
+  }
+
   const loginForm = document.getElementById('loginForm');
   const loginBtn = document.getElementById('loginBtn');
   const loginError = document.getElementById('loginError');
@@ -264,10 +272,16 @@
 
   await setPersistence(auth, browserLocalPersistence).catch(()=>{});
 
-  // Already signed in (e.g. came back to this page)? Skip straight to the console.
-  onAuthStateChanged(auth, (user)=>{
-    if(user) window.location.replace('admin-console.html');
-  });
+  // Already signed in (e.g. came back to this page)? Skip straight to the
+  // right landing page for that account. We wait for authStateReady()
+  // instead of reacting to every onAuthStateChanged fire — a live listener
+  // here can trigger on a transient/stale state while the session is still
+  // being restored from storage, which was bouncing people back and forth
+  // between this page and the landing page in a loop.
+  await auth.authStateReady();
+  if(auth.currentUser){
+    window.location.replace(isEventScheduleUser(auth.currentUser) ? 'event-schedule-landing.html' : 'admin-console.html');
+  }
 
   loginForm.addEventListener('submit', async (e)=>{
     e.preventDefault();
@@ -287,7 +301,7 @@
       }else{
         localStorage.removeItem(REMEMBER_KEY);
       }
-      window.location.href = 'landing-page.html';
+      window.location.href = isEventScheduleUser(auth.currentUser) ? 'event-schedule-landing.html' : 'landing-page.html';
     }catch(err){
       PDLoader.hide();
       loginError.textContent = friendlyAuthError(err);

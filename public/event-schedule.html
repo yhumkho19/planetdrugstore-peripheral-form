@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deployment Roster — Medical &amp; People's Day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F4F5F1;
+    --surface: #FFFFFF;
+    --ink: #1B231F;
+    --ink-muted: #6B756F;
+    --ink-faint: #9AA39D;
+    --border: #DADFD9;
+    --south: #096a07;
+    --south-soft: #E4F2EE;
+    --north: #A6540A;
+    --north-soft: #F6E9DC;
+    --other: #445; 
+    --other-soft: #E7E9F2;
+    --danger: #B3261E;
+    --danger-soft: #FBEAE8;
+    --ok: #1E7B4D;
+    --ok-soft: #E7F5EC;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', Arial, sans-serif;
+    font-size: 14px;
+  }
+  body { padding: 28px clamp(16px, 4vw, 48px) 60px; }
+
+  /* ---------- Header ---------- */
+  .page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-head h1 {
+    font-family: 'Newsreader', serif;
+    font-weight: 600;
+    font-size: 28px;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .page-head p {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: 13.5px;
+  }
+  .stats {
+    display: flex;
+    gap: 18px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+  }
+  .stats .stat { text-align: right; }
+  .stats .stat .num {
+    display: block;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.1;
+  }
+  .stats .stat.warn .num { color: var(--danger); }
+  .stats .stat.good .num { color: var(--ok); }
+  .stats .stat .cap {
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 10.5px;
+  }
+
+  /* ---------- Toolbar ---------- */
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 16px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+    transition: border-color .12s ease, background .12s ease;
+  }
+  .btn:hover { border-color: var(--ink-faint); }
+  .btn:focus-visible { outline: 2px solid var(--south); outline-offset: 2px; }
+  .btn.primary {
+    background: var(--south);
+    border-color: var(--south);
+    color: #fff;
+  }
+  .btn.primary:hover { background: #0b5346; }
+  .btn.danger-outline { color: var(--danger); }
+  .btn.danger-outline:hover { border-color: var(--danger); background: var(--danger-soft); }
+
+  /* ---------- Grid ---------- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 16px;
+  }
+
+  /* ---------- Card ---------- */
+  .site-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+  }
+  .accent-bar { width: 5px; flex-shrink: 0; background: var(--other); }
+  .site-card[data-region="south"] .accent-bar { background: var(--south); }
+  .site-card[data-region="north"] .accent-bar { background: var(--north); }
+
+  .card-inner { flex: 1; padding: 16px 16px 12px; min-width: 0; }
+
+  .remove-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-faint);
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .remove-btn:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+
+  .region-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    padding-right: 26px;
+  }
+  .region-line select, .region-line input.customText {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--surface);
+    color: var(--ink-muted);
+    padding: 3px 6px;
+  }
+  .site-card[data-region="south"] .region-line select.regionSelect { color: var(--south); border-color: var(--south-soft); background: var(--south-soft); }
+  .site-card[data-region="north"] .region-line select.regionSelect { color: var(--north); border-color: var(--north-soft); background: var(--north-soft); }
+  .region-line .sep { color: var(--ink-faint); font-size: 12px; }
+
+  .locationInput {
+    display: block;
+    width: 100%;
+    font-family: 'Newsreader', serif;
+    font-size: 19px;
+    font-weight: 600;
+    border: none;
+    border-bottom: 1px solid transparent;
+    background: transparent;
+    padding: 2px 26px 4px 0;
+    margin-bottom: 10px;
+    color: var(--ink);
+  }
+  .locationInput::placeholder { color: var(--ink-faint); font-weight: 500; }
+  .locationInput:focus { outline: none; border-bottom-color: var(--ink-faint); }
+
+  .schedule-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .schedule-row .field {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 5px 8px;
+  }
+  .schedule-row label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-faint);
+    margin-bottom: 2px;
+  }
+  .schedule-row input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink);
+    padding: 0;
+  }
+  .schedule-row input:focus { outline: none; }
+
+  .staff-grid { border-top: 1px solid var(--border); padding-top: 8px; }
+  .staff-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    border-bottom: 1px dotted var(--border);
+  }
+  .staff-row:last-child { border-bottom: none; }
+  .staff-row .role-label {
+    width: 118px;
+    flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
+  }
+  .staff-row input.nameInput {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    border-bottom: 1px solid transparent;
+    background: transparent;
+    font-size: 13.5px;
+    padding: 2px 2px;
+    color: var(--ink);
+  }
+  .staff-row input.nameInput:focus { outline: none; border-bottom-color: var(--south); }
+  .staff-row input.nameInput::placeholder { color: var(--ink-faint); }
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--danger);
+  }
+  .status-dot.filled { background: var(--ok); }
+
+  .attach-row {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .attach-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 3px;
+    border: 1px dashed var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    cursor: pointer;
+    color: var(--ink-faint);
+    font-size: 15px;
+  }
+  .attach-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .attach-text {
+    font-size: 12px;
+    color: var(--ink-muted);
+    cursor: pointer;
+    flex: 1;
+  }
+  .attach-text .fname { color: var(--ink); font-weight: 500; }
+  .attach-clear {
+    font-size: 11.5px;
+    color: var(--danger);
+    cursor: pointer;
+    background: none;
+    border: none;
+    text-decoration: underline;
+    padding: 0;
+    display: none;
+  }
+  .attach-row.has-photo .attach-clear { display: inline; }
+  input[type="file"].hiddenFile { display: none; }
+
+  @media print {
+    .toolbar, .stats, .remove-btn, .attach-clear { display: none !important; }
+    body { background: #fff; padding: 0 10px; }
+    .site-card { break-inside: avoid; border-color: #999; }
+    .staff-row input.nameInput, .locationInput { border-bottom: none; }
+  }
+  @media (max-width: 460px) {
+    .schedule-row { flex-direction: column; }
+    .staff-row .role-label { width: 96px; font-size: 9.5px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <div>
+    <h1>Deployment Roster</h1>
+    <p>Medical &amp; Dental Mission — staff assignment per site</p>
+  </div>
+  <div class="stats">
+    <div class="stat">
+      <span class="num" id="statSites">0</span>
+      <span class="cap">Sites</span>
+    </div>
+    <div class="stat warn">
+      <span class="num" id="statUnfilled">0</span>
+      <span class="cap">Unfilled roles</span>
+    </div>
+    <div class="stat good">
+      <span class="num" id="statReady">0</span>
+      <span class="cap">Fully staffed</span>
+    </div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <button class="btn primary" id="addCardBtn">+ Add site</button>
+  <button class="btn" id="saveBtn">Save</button>
+  <button class="btn" id="printBtn">Print / Export PDF</button>
+  <button class="btn danger-outline" id="resetBtn">Reset all</button>
+</div>
+
+<div id="datalistContainer" style="display:none" aria-hidden="true"></div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const STORAGE_KEY = "medicalMissionCardsV2";
+const SITE_HISTORY_KEY = "medicalMissionSiteHistoryV1";
+const ROLE_HISTORY_KEY = "medicalMissionRoleHistoryV1";
+
+const ROLE_LABELS = [
+  "PHARMACIST",
+  "PICKER",
+  "ENCODER/PICKER",
+  "ENCODER/PICKER",
+  "BILLING",
+  "IT SPECIALIST"
+];
+
+function blankCard() {
+  return {
+    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+    region: "south",
+    regionCustom: "",
+    mission: "medical",
+    location: "",
+    date: "",
+    time: "7:00AM - ONWARDS",
+    staff: ROLE_LABELS.map(label => ({ label, name: "" })),
+    photo: null,
+    photoName: ""
+  };
+}
+
+function migrateOld(oldCard) {
+  const area = (oldCard.area || "").toUpperCase();
+  const region = area.includes("NORTH") ? "north" : "south";
+  const mission = area.includes("PEOPLE") ? "peoples_day" : "medical";
+  return {
+    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+    region, regionCustom: "",
+    mission,
+    location: oldCard.location || "",
+    date: oldCard.date || "",
+    time: oldCard.time || "7:00AM - ONWARDS",
+    staff: oldCard.staff || ROLE_LABELS.map(label => ({ label, name: "" })),
+    photo: oldCard.photo || null,
+    photoName: ""
+  };
+}
+
+function loadCards() {
+  const savedV2 = localStorage.getItem(STORAGE_KEY);
+  if (savedV2) {
+    try { return JSON.parse(savedV2); } catch (e) {}
+  }
+  const savedV1 = localStorage.getItem("medicalMissionCards");
+  if (savedV1) {
+    try { return JSON.parse(savedV1).map(migrateOld); } catch (e) {}
+  }
+  return Array.from({ length: 6 }, blankCard);
+}
+
+let cards = loadCards();
+
+// Normalize any pre-existing entries to uppercase so old data matches the
+// new auto-uppercase behavior right away.
+cards.forEach(c => {
+  c.location = (c.location || "").toUpperCase();
+  c.staff.forEach(s => { s.name = (s.name || "").toUpperCase(); });
+});
+
+function saveCards() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+}
+
+// ---------- Site name / role name suggestion history ----------
+// siteHistory: every site name ever entered (for the Site name field).
+// roleHistory: names used per role label (e.g. "PHARMACIST" -> [names...]),
+// so each role only suggests names that have actually been assigned to it.
+let siteHistory = new Set(JSON.parse(localStorage.getItem(SITE_HISTORY_KEY) || "[]"));
+let roleHistory = JSON.parse(localStorage.getItem(ROLE_HISTORY_KEY) || "{}");
+
+// Seed history from whatever is already saved, so suggestions are
+// available immediately, not just going forward.
+cards.forEach(c => {
+  if (c.location.trim()) siteHistory.add(c.location.trim());
+  c.staff.forEach(s => {
+    if (!s.name.trim()) return;
+    if (!roleHistory[s.label]) roleHistory[s.label] = [];
+    if (!roleHistory[s.label].includes(s.name.trim())) roleHistory[s.label].push(s.name.trim());
+  });
+});
+
+function saveSiteHistory() {
+  localStorage.setItem(SITE_HISTORY_KEY, JSON.stringify([...siteHistory]));
+}
+function saveRoleHistory() {
+  localStorage.setItem(ROLE_HISTORY_KEY, JSON.stringify(roleHistory));
+}
+function addSiteHistory(value) {
+  const val = (value || "").trim();
+  if (!val || siteHistory.has(val)) return;
+  siteHistory.add(val);
+  saveSiteHistory();
+  renderDatalists();
+}
+function addRoleHistory(label, value) {
+  const val = (value || "").trim();
+  if (!val) return;
+  if (!roleHistory[label]) roleHistory[label] = [];
+  if (roleHistory[label].includes(val)) return;
+  roleHistory[label].push(val);
+  saveRoleHistory();
+  renderDatalists();
+}
+
+function slug(str) {
+  return (str || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function renderDatalists() {
+  const container = document.getElementById("datalistContainer");
+  let html = `<datalist id="siteNameList">${[...siteHistory].sort().map(v => `<option value="${escapeAttr(v)}">`).join("")}</datalist>`;
+  Object.keys(roleHistory).forEach(label => {
+    html += `<datalist id="roleNameList-${slug(label)}">${roleHistory[label].slice().sort().map(v => `<option value="${escapeAttr(v)}">`).join("")}</datalist>`;
+  });
+  container.innerHTML = html;
+}
+
+// Keeps what the user is typing uppercase without jumping the caret around.
+function uppercaseInPlace(el) {
+  const start = el.selectionStart, end = el.selectionEnd;
+  el.value = el.value.toUpperCase();
+  el.setSelectionRange(start, end);
+}
+
+function regionLabel(card) {
+  if (card.region === "south") return "South Caloocan";
+  if (card.region === "north") return "North Caloocan";
+  return card.regionCustom || "Custom area";
+}
+function missionLabel(card) {
+  if (card.mission === "peoples_day") return "People's Day";
+  return "Medical Mission";
+}
+
+function updateStats() {
+  document.getElementById("statSites").textContent = cards.length;
+  let unfilled = 0, ready = 0;
+  cards.forEach(c => {
+    const empty = c.staff.filter(s => !s.name.trim()).length;
+    unfilled += empty;
+    if (empty === 0) ready++;
+  });
+  document.getElementById("statUnfilled").textContent = unfilled;
+  document.getElementById("statReady").textContent = ready;
+}
+
+function render() {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  cards.forEach((card, idx) => {
+    const cardEl = document.createElement("div");
+    cardEl.className = "site-card";
+    cardEl.dataset.region = card.region;
+
+    cardEl.innerHTML = `
+      <div class="accent-bar"></div>
+      <div class="card-inner">
+        <button class="remove-btn" title="Alisin ang site na ito">×</button>
+
+        <div class="region-line">
+          <select class="regionSelect">
+            <option value="south" ${card.region === "south" ? "selected" : ""}>South Caloocan</option>
+            <option value="north" ${card.region === "north" ? "selected" : ""}>North Caloocan</option>
+            <option value="other" ${card.region === "other" ? "selected" : ""}>Custom…</option>
+          </select>
+          ${card.region === "other" ? `<input type="text" class="customText regionCustomInput" placeholder="Area name" value="${escapeAttr(card.regionCustom)}">` : ""}
+          <span class="sep">—</span>
+          <select class="missionSelect">
+            <option value="medical" ${card.mission === "medical" ? "selected" : ""}>Medical Mission</option>
+            <option value="peoples_day" ${card.mission === "peoples_day" ? "selected" : ""}>People's Day</option>
+          </select>
+        </div>
+
+        <input type="text" class="locationInput" list="siteNameList" placeholder="Site name — e.g. Brgy. 91 Hall" value="${escapeAttr(card.location)}">
+
+        <div class="schedule-row">
+          <div class="field">
+            <label>Date</label>
+            <input type="date" class="dateInput" value="${escapeAttr(card.date)}">
+          </div>
+          <div class="field">
+            <label>Time</label>
+            <input type="text" class="timeInput" placeholder="7:00AM - ONWARDS" value="${escapeAttr(card.time)}">
+          </div>
+        </div>
+
+        <div class="staff-grid">
+          ${card.staff.map((s, sIdx) => `
+            <div class="staff-row">
+              <span class="role-label">${s.label}</span>
+              <input type="text" class="nameInput" list="roleNameList-${slug(s.label)}" data-sidx="${sIdx}" placeholder="Assign staff name" value="${escapeAttr(s.name)}">
+              <span class="status-dot ${s.name.trim() ? "filled" : ""}"></span>
+            </div>
+          `).join("")}
+        </div>
+
+        <div class="attach-row ${card.photo ? "has-photo" : ""}">
+          <div class="attach-thumb">${card.photo ? `<img src="${card.photo}" alt="">` : "📎"}</div>
+          <div class="attach-text">${card.photo ? `<span class="fname">${escapeHtml(card.photoName || "Photo attached")}</span>` : "Attach site photo"}</div>
+          <button class="attach-clear" type="button">Remove</button>
+          <input type="file" accept="image/*" class="hiddenFile">
+        </div>
+      </div>
+    `;
+
+    // ---- Events ----
+    cardEl.querySelector(".remove-btn").addEventListener("click", () => {
+      if (confirm("Alisin ang site na ito sa listahan?")) {
+        cards.splice(idx, 1);
+        saveCards();
+        render();
+      }
+    });
+
+    cardEl.querySelector(".regionSelect").addEventListener("change", e => {
+      cards[idx].region = e.target.value;
+      saveCards(); render();
+    });
+    const regionCustomInput = cardEl.querySelector(".regionCustomInput");
+    if (regionCustomInput) regionCustomInput.addEventListener("input", e => {
+      cards[idx].regionCustom = e.target.value; saveCards();
+    });
+
+    cardEl.querySelector(".missionSelect").addEventListener("change", e => {
+      cards[idx].mission = e.target.value;
+      saveCards(); render();
+    });
+
+    const locationInput = cardEl.querySelector(".locationInput");
+    locationInput.addEventListener("input", e => {
+      uppercaseInPlace(e.target);
+      cards[idx].location = e.target.value; saveCards();
+    });
+    locationInput.addEventListener("change", e => {
+      addSiteHistory(e.target.value);
+    });
+    cardEl.querySelector(".dateInput").addEventListener("input", e => {
+      cards[idx].date = e.target.value; saveCards();
+    });
+    cardEl.querySelector(".timeInput").addEventListener("input", e => {
+      cards[idx].time = e.target.value; saveCards();
+    });
+
+    cardEl.querySelectorAll(".nameInput").forEach(inp => {
+      inp.addEventListener("input", e => {
+        uppercaseInPlace(e.target);
+        const sIdx = parseInt(e.target.dataset.sidx, 10);
+        cards[idx].staff[sIdx].name = e.target.value;
+        const dot = e.target.parentElement.querySelector(".status-dot");
+        dot.classList.toggle("filled", e.target.value.trim().length > 0);
+        saveCards();
+        updateStats();
+      });
+      inp.addEventListener("change", e => {
+        const sIdx = parseInt(e.target.dataset.sidx, 10);
+        addRoleHistory(cards[idx].staff[sIdx].label, e.target.value);
+      });
+    });
+
+    const fileInput = cardEl.querySelector(".hiddenFile");
+    const thumb = cardEl.querySelector(".attach-thumb");
+    const attachText = cardEl.querySelector(".attach-text");
+    const attachRow = cardEl.querySelector(".attach-row");
+    thumb.addEventListener("click", () => fileInput.click());
+    attachText.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        cards[idx].photo = ev.target.result;
+        cards[idx].photoName = file.name;
+        saveCards();
+        render();
+      };
+      reader.readAsDataURL(file);
+    });
+    cardEl.querySelector(".attach-clear").addEventListener("click", () => {
+      cards[idx].photo = null;
+      cards[idx].photoName = "";
+      saveCards();
+      render();
+    });
+
+    grid.appendChild(cardEl);
+  });
+
+  updateStats();
+}
+
+function escapeAttr(str) {
+  return (str || "").replace(/"/g, "&quot;");
+}
+function escapeHtml(str) {
+  return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+document.getElementById("addCardBtn").addEventListener("click", () => {
+  cards.push(blankCard());
+  saveCards();
+  render();
+});
+
+document.getElementById("saveBtn").addEventListener("click", () => {
+  saveCards();
+  alert("Na-save na ang mga entry sa browser mo.");
+});
+
+document.getElementById("printBtn").addEventListener("click", () => window.print());
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (confirm("I-reset lahat ng data? Hindi na ito mababawi.")) {
+    cards = Array.from({ length: 6 }, blankCard);
+    saveCards();
+    render();
+  }
+});
+
+renderDatalists();
+render();
+</script>
+
+</body>
+</html>
