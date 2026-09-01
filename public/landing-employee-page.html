@@ -252,10 +252,10 @@
       <div class="brand-name">PLANET<span>DRUGSTORE PERIPHERALS</span></div>
     </div>
     <div class="welcome-badge">
-      <div class="welcome-avatar">IT</div>
+      <div class="welcome-avatar" id="welcomeAvatar">IT</div>
       <div class="welcome-text">
         <span class="wt-hi">Welcome back</span>
-        <span class="wt-name">IT ADMIN</span>
+        <span class="wt-name" id="welcomeName">IT ADMIN</span>
       </div>
       <span class="welcome-dot"></span>
     </div>
@@ -270,8 +270,9 @@
       </p>
       <div class="hero-ctas">
         <!-- <a href="peripheral-form.html" class="btn-primary">🧰 Open Peripheral Form</a> -->
-        <a href="admin-console.html#entries" class="btn-ghost">▶ View Entries</a>
-        <button class="btn-ghost" id="OnLogout">🚪 Log Out</button>
+        <!-- <a href="event-schedule.html" class="btn-primary">📅 Go to Event Schedule</a> -->
+        <a href="peripheral-form.html" class="btn-ghost">🧰 Go to Peripheral Form</a>
+        <button class="btn-ghost" id="OnLogout">🚪 Log Out</button> 
       </div>
       <div class="trust-row">
         <div><strong>2</strong>Branches Covered</div>
@@ -327,9 +328,28 @@
   });
   const auth = getAuth(app);
 
+  // Fill the welcome badge with the signed-in employee's own name/role
+  // (from employee-login.html's session), instead of the old hardcoded
+  // "IT ADMIN" placeholder.
+  (function fillWelcomeBadge(){
+    try{
+      const raw = localStorage.getItem('pdEmployeeSession') || sessionStorage.getItem('pdEmployeeSession');
+      const session = raw ? JSON.parse(raw) : null;
+      if(session){
+        const name = session.name || session.staffId || 'Employee';
+        const role = session.department || 'Employee';
+        document.getElementById('welcomeName').textContent = role.toUpperCase();
+        document.getElementById('welcomeAvatar').textContent =
+          name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase() || 'EM';
+      }
+    }catch(e){ /* keep default badge if session is missing/unreadable */ }
+  })();
+
   document.getElementById('OnLogout').addEventListener('click', async ()=>{
-    await signOut(auth);
-    window.location.href = 'admin-login.html';
+    localStorage.removeItem('pdEmployeeSession');
+    sessionStorage.removeItem('pdEmployeeSession');
+    await signOut(auth).catch(()=>{});
+    window.location.href = 'employee-login.html';
   });
 
   // Planet orbit letters — spell PLANET while drifting around the logo,

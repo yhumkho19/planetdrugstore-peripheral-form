@@ -200,6 +200,15 @@
           </select>
         </div>
         <div class="lfield">
+          <label for="empBranch">Branch</label>
+          <select id="empBranch" required>
+            <option value="" disabled selected>Select branch</option>
+            <option value="south">South</option>
+            <option value="north">North</option>
+          </select>
+          <div class="hint">Determines which site schedule you'll see once it's sent out.</div>
+        </div>
+        <div class="lfield">
           <label for="empStaffId">Staff ID</label>
           <input type="text" id="empStaffId" placeholder="e.g. 10234" required autocomplete="username">
           <div class="hint">Use your own Staff ID number. You'll use this to sign in.</div>
@@ -292,6 +301,7 @@
     const name = document.getElementById('empName').value.trim();
     const email = document.getElementById('empEmail').value.trim();
     const department = document.getElementById('empDepartment').value;
+    const branch = document.getElementById('empBranch').value;
     const staffId = document.getElementById('empStaffId').value.trim();
     const password = document.getElementById('empPassword').value;
     const password2 = document.getElementById('empPassword2').value;
@@ -314,7 +324,7 @@
       const passwordHash = await hashPassword(password);
 
       await setDoc(empRef, {
-        name, email, staffId, department,
+        name, email, staffId, department, branch,
         passwordHash,
         createdAt: serverTimestamp(),
         createdBy: 'self-signup'

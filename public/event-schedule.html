@@ -1,35 +1,41 @@
 <!DOCTYPE html>
-<html lang="tl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Deployment Roster — Medical &amp; People's Day</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #F4F5F1;
-    --surface: #FFFFFF;
-    --ink: #1B231F;
-    --ink-muted: #6B756F;
-    --ink-faint: #9AA39D;
-    --border: #DADFD9;
-    --south: #096a07;
-    --south-soft: #E4F2EE;
-    --north: #A6540A;
-    --north-soft: #F6E9DC;
-    --other: #445; 
-    --other-soft: #E7E9F2;
-    --danger: #B3261E;
-    --danger-soft: #FBEAE8;
+    --bg: #F2EEE3;
+    --surface: #FFFDF8;
+    --surface-dim: #EAE2CC;
+    --ink: #211F1A;
+    --ink-muted: #6E6656;
+    --ink-faint: #A79E8A;
+    --border: #DBD2B9;
+    --south: #0F6E5C;
+    --south-soft: #DFEEE8;
+    --north: #B5560C;
+    --north-soft: #F5E5D0;
+    --other: #4B4A66;
+    --other-soft: #E7E6F0;
+    --danger: #BF3B2C;
+    --danger-soft: #F9E7E1;
     --ok: #1E7B4D;
-    --ok-soft: #E7F5EC;
+    --ok-soft: #E2F1E8;
+    --stamp: #B5342A;
+    --stamp-ink: #FBF2E9;
   }
   * { box-sizing: border-box; }
   html, body {
     margin: 0;
     padding: 0;
     background: var(--bg);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(33,31,26,0.05) 1px, transparent 0);
+    background-size: 22px 22px;
     color: var(--ink);
     font-family: 'IBM Plex Sans', Arial, sans-serif;
     font-size: 14px;
@@ -43,14 +49,15 @@
     align-items: flex-end;
     flex-wrap: wrap;
     gap: 16px;
-    margin-bottom: 22px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--ink);
   }
   .page-head h1 {
-    font-family: 'Newsreader', serif;
+    font-family: 'Fraunces', serif;
+    font-optical-sizing: auto;
     font-weight: 600;
-    font-size: 28px;
+    font-size: 32px;
     margin: 0 0 4px;
     letter-spacing: -0.01em;
   }
@@ -61,15 +68,18 @@
   }
   .stats {
     display: flex;
-    gap: 18px;
+    gap: 20px;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12.5px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 10px 16px;
   }
   .stats .stat { text-align: right; }
   .stats .stat .num {
     display: block;
-    font-size: 20px;
-    font-weight: 500;
+    font-size: 22px;
+    font-weight: 600;
     line-height: 1.1;
   }
   .stats .stat.warn .num { color: var(--danger); }
@@ -78,60 +88,108 @@
     color: var(--ink-faint);
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    font-size: 10.5px;
+    font-size: 10px;
   }
 
   /* ---------- Toolbar ---------- */
   .toolbar {
     display: flex;
     gap: 10px;
-    margin-bottom: 22px;
+    margin-bottom: 24px;
     flex-wrap: wrap;
   }
+  .region-filter {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 7px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-muted);
+  }
+  .filter-btn:hover { border-color: var(--ink-faint); color: var(--ink); }
+  .filter-btn.active { color: #fff; border-color: transparent; }
+  .filter-btn.active[data-filter="all"] { background: var(--ink); }
+  .filter-btn.active[data-filter="south"] { background: var(--south); }
+  .filter-btn.active[data-filter="north"] { background: var(--north); }
   .btn {
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 13px;
     font-weight: 500;
-    padding: 9px 16px;
-    border-radius: 3px;
+    padding: 10px 18px;
+    border-radius: 2px;
     cursor: pointer;
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--ink);
     background: var(--surface);
     color: var(--ink);
-    transition: border-color .12s ease, background .12s ease;
+    box-shadow: 2px 2px 0 var(--ink);
+    transition: transform .08s ease, box-shadow .08s ease;
   }
-  .btn:hover { border-color: var(--ink-faint); }
+  .btn:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
   .btn:focus-visible { outline: 2px solid var(--south); outline-offset: 2px; }
   .btn.primary {
     background: var(--south);
     border-color: var(--south);
     color: #fff;
+    box-shadow: 2px 2px 0 #0a4a3e;
   }
-  .btn.primary:hover { background: #0b5346; }
-  .btn.danger-outline { color: var(--danger); }
-  .btn.danger-outline:hover { border-color: var(--danger); background: var(--danger-soft); }
+  .btn.primary:hover { box-shadow: 1px 1px 0 #0a4a3e; }
+  .btn.danger-outline { color: var(--danger); border-color: var(--danger); box-shadow: 2px 2px 0 var(--danger); }
+  .btn.danger-outline:hover { background: var(--danger-soft); }
 
   /* ---------- Grid ---------- */
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-    gap: 16px;
+    gap: 22px 18px;
+    margin-top: 8px;
   }
 
   /* ---------- Card ---------- */
   .site-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 4px;
     display: flex;
-    overflow: hidden;
+    overflow: visible;
     position: relative;
+    box-shadow: 3px 3px 0 rgba(33,31,26,0.07);
   }
   .accent-bar { width: 5px; flex-shrink: 0; background: var(--other); }
   .site-card[data-region="south"] .accent-bar { background: var(--south); }
   .site-card[data-region="north"] .accent-bar { background: var(--north); }
 
-  .card-inner { flex: 1; padding: 16px 16px 12px; min-width: 0; }
+  .ticket-number {
+    position: absolute;
+    top: -12px;
+    left: 14px;
+    background: var(--stamp);
+    color: var(--stamp-ink);
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    padding: 3px 8px;
+    transform: rotate(-2deg);
+    box-shadow: 1px 1px 0 rgba(33,31,26,0.35);
+    z-index: 2;
+  }
+
+  .card-inner { flex: 1; padding: 22px 16px 12px; min-width: 0; }
+
+  .perforation {
+    border-top: 1.5px dashed var(--border);
+    margin: 14px 0;
+  }
 
   .remove-btn {
     position: absolute;
@@ -156,50 +214,53 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
     padding-right: 26px;
+    flex-wrap: wrap;
   }
   .region-line select, .region-line input.customText {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 11.5px;
+    font-size: 11px;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     border: 1px solid var(--border);
-    border-radius: 3px;
+    border-radius: 20px;
     background: var(--surface);
     color: var(--ink-muted);
-    padding: 3px 6px;
+    padding: 3px 10px;
   }
-  .site-card[data-region="south"] .region-line select.regionSelect { color: var(--south); border-color: var(--south-soft); background: var(--south-soft); }
-  .site-card[data-region="north"] .region-line select.regionSelect { color: var(--north); border-color: var(--north-soft); background: var(--north-soft); }
+  .site-card[data-region="south"] .region-line select.regionSelect { color: var(--south); border-color: var(--south); background: var(--south-soft); }
+  .site-card[data-region="north"] .region-line select.regionSelect { color: var(--north); border-color: var(--north); background: var(--north-soft); }
   .region-line .sep { color: var(--ink-faint); font-size: 12px; }
 
   .locationInput {
     display: block;
     width: 100%;
-    font-family: 'Newsreader', serif;
-    font-size: 19px;
+    font-family: 'Fraunces', serif;
+    font-optical-sizing: auto;
+    font-size: 21px;
     font-weight: 600;
     border: none;
-    border-bottom: 1px solid transparent;
+    border-bottom: 1.5px solid var(--border);
     background: transparent;
-    padding: 2px 26px 4px 0;
-    margin-bottom: 10px;
+    padding: 2px 26px 6px 0;
+    margin-bottom: 14px;
     color: var(--ink);
   }
   .locationInput::placeholder { color: var(--ink-faint); font-weight: 500; }
-  .locationInput:focus { outline: none; border-bottom-color: var(--ink-faint); }
+  .locationInput:focus { outline: none; border-bottom-color: var(--ink); }
 
   .schedule-row {
     display: flex;
     gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 4px;
   }
   .schedule-row .field {
     flex: 1;
     border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 5px 8px;
+    background: var(--surface-dim);
+    padding: 5px 9px;
   }
   .schedule-row label {
     display: block;
@@ -207,7 +268,7 @@
     font-size: 9.5px;
     text-transform: uppercase;
     letter-spacing: 0.07em;
-    color: var(--ink-faint);
+    color: var(--ink-muted);
     margin-bottom: 2px;
   }
   .schedule-row input {
@@ -221,24 +282,146 @@
   }
   .schedule-row input:focus { outline: none; }
 
-  .staff-grid { border-top: 1px solid var(--border); padding-top: 8px; }
+  .date-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .date-wrap .dateInput { padding-right: 18px; }
+  .date-wrap .calendarBtn {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+    padding: 0 2px;
+    color: var(--ink-faint);
+  }
+  .date-wrap .calendarBtn:hover { color: var(--ink); }
+  .date-wrap .dateNative {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    left: 0;
+    top: 0;
+    border: none;
+  }
+
+  .time-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .time-wrap .timeInput { padding-right: 18px; }
+  .time-wrap .clockBtn {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+    padding: 0 2px;
+    color: var(--ink-faint);
+  }
+  .time-wrap .clockBtn:hover { color: var(--ink); }
+  .time-wrap .timeNative {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    left: 0;
+    top: 0;
+    border: none;
+  }
+
+  .staff-grid { padding-top: 2px; }
   .staff-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 0;
+    padding: 6px 0;
     border-bottom: 1px dotted var(--border);
   }
   .staff-row:last-child { border-bottom: none; }
   .staff-row .role-label {
-    width: 118px;
+    width: 122px;
     flex-shrink: 0;
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 10.5px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--ink-muted);
+  }
+  .staff-row.dragging { opacity: 0.35; }
+  .staff-row.drag-over { background: var(--south-soft); }
+  .drag-handle {
+    flex-shrink: 0;
+    width: 14px;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--ink-faint);
+    cursor: grab;
+    user-select: none;
+  }
+  .drag-handle:active { cursor: grabbing; }
+  .staff-row select.roleSelect {
+    width: 122px;
+    flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--ink-muted);
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 2px 0;
+    cursor: pointer;
+  }
+  .staff-row select.roleSelect:focus { outline: none; color: var(--ink); }
+  .removeFieldBtn {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--ink-faint);
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .removeFieldBtn:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+  .addFieldBtn {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 7px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--ink-faint);
+    color: var(--ink-muted);
+    background: transparent;
+    border: 1.5px dashed var(--border);
+    border-radius: 2px;
+    cursor: pointer;
   }
+  .addFieldBtn:hover { border-color: var(--south); color: var(--south); background: var(--south-soft); }
   .staff-row input.nameInput {
     flex: 1;
     min-width: 0;
@@ -246,24 +429,26 @@
     border-bottom: 1px solid transparent;
     background: transparent;
     font-size: 13.5px;
+    font-weight: 500;
     padding: 2px 2px;
     color: var(--ink);
   }
   .staff-row input.nameInput:focus { outline: none; border-bottom-color: var(--south); }
-  .staff-row input.nameInput::placeholder { color: var(--ink-faint); }
+  .staff-row input.nameInput::placeholder { color: var(--ink-faint); font-weight: 400; }
   .status-dot {
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     flex-shrink: 0;
     background: var(--danger);
+    box-shadow: 0 0 0 2px var(--danger-soft);
   }
-  .status-dot.filled { background: var(--ok); }
+  .status-dot.filled { background: var(--ok); box-shadow: 0 0 0 2px var(--ok-soft); }
 
   .attach-row {
-    margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1.5px dashed var(--border);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -272,7 +457,7 @@
     width: 40px;
     height: 40px;
     border-radius: 3px;
-    border: 1px dashed var(--border);
+    border: 1px dashed var(--ink-faint);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -281,6 +466,7 @@
     cursor: pointer;
     color: var(--ink-faint);
     font-size: 15px;
+    background: var(--surface-dim);
   }
   .attach-thumb img { width: 100%; height: 100%; object-fit: cover; }
   .attach-text {
@@ -306,21 +492,82 @@
   @media print {
     .toolbar, .stats, .remove-btn, .attach-clear { display: none !important; }
     body { background: #fff; padding: 0 10px; }
-    .site-card { break-inside: avoid; border-color: #999; }
+    .site-card { break-inside: avoid; border-color: #999; box-shadow: none; }
     .staff-row input.nameInput, .locationInput { border-bottom: none; }
+    .ticket-number { box-shadow: none; }
   }
   @media (max-width: 460px) {
+    body { padding: 26px 14px 48px; }
+    .page-head { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .stats { width: 100%; justify-content: space-between; gap: 10px; }
+    .toolbar { gap: 8px; }
+    .toolbar .btn { flex: 1 1 auto; text-align: center; padding: 9px 10px; }
+    .grid { grid-template-columns: 1fr; margin-top: 6px; }
+    .region-line { flex-wrap: wrap; padding-right: 30px; }
     .schedule-row { flex-direction: column; }
-    .staff-row .role-label { width: 96px; font-size: 9.5px; }
+    .staff-row .role-label,
+    .staff-row select.roleSelect { width: 92px; font-size: 9.5px; }
+    .staff-row { flex-wrap: wrap; }
   }
+  @media (max-width: 340px) {
+    .stats { font-size: 11px; }
+    .page-head h1 { font-size: 24px; }
+  }
+
+  /* ---------- Modal (replaces native alert/confirm popups) ---------- */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(33,31,26,0.42);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    width: 100%; max-width: 380px;
+    background: var(--surface);
+    border: 1.5px solid var(--ink);
+    box-shadow: 6px 6px 0 rgba(33,31,26,0.15);
+    padding: 24px 22px 20px;
+  }
+  .modal-box p {
+    margin: 0 0 20px;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--ink);
+    white-space: pre-line;
+  }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+  .modal-actions button {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 16px;
+    border: 1.5px solid var(--ink);
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .modal-actions button:hover { background: var(--surface-dim); }
+  .modal-actions button.primary {
+    background: var(--ink);
+    color: var(--surface);
+  }
+  .modal-actions button.primary:hover { opacity: 0.88; }
 </style>
 </head>
 <body>
 
+<div class="modal-overlay" id="appModal">
+  <div class="modal-box">
+    <p id="appModalMessage"></p>
+    <div class="modal-actions" id="appModalActions"></div>
+  </div>
+</div>
+
 <div class="page-head">
   <div>
     <h1>Deployment Roster</h1>
-    <p>Medical &amp; Dental Mission — staff assignment per site</p>
+    <p>Medical &amp; Dental Mission — isang ticket kada site, staff assignment tracker</p>
   </div>
   <div class="stats">
     <div class="stat">
@@ -338,9 +585,15 @@
   </div>
 </div>
 
+<div class="region-filter" id="regionFilter">
+  <button type="button" class="filter-btn active" data-filter="all">All</button>
+  <button type="button" class="filter-btn" data-filter="south">South Caloocan</button>
+  <button type="button" class="filter-btn" data-filter="north">North Caloocan</button>
+</div>
+
 <div class="toolbar">
   <button class="btn primary" id="addCardBtn">+ Add site</button>
-  <button class="btn" id="saveBtn">Save</button>
+  <button class="btn" id="saveBtn">Send</button>
   <button class="btn" id="printBtn">Print / Export PDF</button>
   <button class="btn danger-outline" id="resetBtn">Reset all</button>
 </div>
@@ -349,7 +602,89 @@
 
 <div class="grid" id="grid"></div>
 
-<script>
+<script type="module">
+// ---------- In-page modal (replaces native alert()/confirm()) ----------
+const appModal = document.getElementById("appModal");
+const appModalMessage = document.getElementById("appModalMessage");
+const appModalActions = document.getElementById("appModalActions");
+
+function closeModal() {
+  appModal.classList.remove("open");
+  appModalActions.innerHTML = "";
+}
+
+function showAlert(message) {
+  return new Promise(resolve => {
+    appModalMessage.textContent = message;
+    appModalActions.innerHTML = "";
+    const okBtn = document.createElement("button");
+    okBtn.className = "primary";
+    okBtn.textContent = "OK";
+    okBtn.addEventListener("click", () => { closeModal(); resolve(); });
+    appModalActions.appendChild(okBtn);
+    appModal.classList.add("open");
+    okBtn.focus();
+  });
+}
+
+function showConfirm(message) {
+  return new Promise(resolve => {
+    appModalMessage.textContent = message;
+    appModalActions.innerHTML = "";
+    const cancelBtn = document.createElement("button");
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.addEventListener("click", () => { closeModal(); resolve(false); });
+    const okBtn = document.createElement("button");
+    okBtn.className = "primary";
+    okBtn.textContent = "Confirm";
+    okBtn.addEventListener("click", () => { closeModal(); resolve(true); });
+    appModalActions.appendChild(cancelBtn);
+    appModalActions.appendChild(okBtn);
+    appModal.classList.add("open");
+    okBtn.focus();
+  });
+}
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  initializeFirestore, doc, setDoc, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// Same Firebase project as employee-signup.html / landing-employee-page.html,
+// used here so "Send" can publish the roster for employees to read.
+const firebaseConfig = {
+  apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
+  authDomain: "planetdrugstore-peripher-d24c0.firebaseapp.com",
+  projectId: "planetdrugstore-peripher-d24c0",
+  storageBucket: "planetdrugstore-peripher-d24c0.firebasestorage.app",
+  messagingSenderId: "115454971026",
+  appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = initializeFirestore(fbApp, {
+  experimentalForceLongPolling: true,
+  useFetchStreams: false
+});
+// Single shared doc that "Send" overwrites and employees read live.
+const scheduleDocRef = doc(db, "eventSchedule", "current");
+
+// The logged-in employee's session, expected to be set by employee-login.html
+// after a successful sign-in, shaped like:
+//   { staffId, name, department, branch }  where branch is "south" or "north"
+// (branch comes from the Branch field added to employee-signup.html).
+// If employee-login.html stores this under a different key/shape, update
+// this function to match — that's the only place session lookup happens.
+function getEmployeeSession() {
+  try {
+    const raw = sessionStorage.getItem("pdEmployeeSession") || localStorage.getItem("pdEmployeeSession");
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (!s || (s.branch !== "south" && s.branch !== "north")) return null;
+    return s;
+  } catch (e) { return null; }
+}
+const employeeSession = getEmployeeSession();
+
 const STORAGE_KEY = "medicalMissionCardsV2";
 const SITE_HISTORY_KEY = "medicalMissionSiteHistoryV1";
 const ROLE_HISTORY_KEY = "medicalMissionRoleHistoryV1";
@@ -363,6 +698,17 @@ const ROLE_LABELS = [
   "IT SPECIALIST"
 ];
 
+// Choices offered in each role field's dropdown.
+const ROLE_OPTIONS = ["PHARMACIST", "PICKER", "ENCODER", "BILLING", "IT SPECIALIST"];
+
+// Builds <option> tags for a role dropdown, making sure whatever label the
+// row currently has is included (and selected) even if it's not one of the
+// standard ROLE_OPTIONS (e.g. older "ENCODER/PICKER" entries).
+function roleOptionsHtml(current) {
+  const opts = ROLE_OPTIONS.includes(current) ? ROLE_OPTIONS : [current, ...ROLE_OPTIONS];
+  return opts.map(r => `<option value="${escapeAttr(r)}" ${r === current ? "selected" : ""}>${escapeHtml(r)}</option>`).join("");
+}
+
 function blankCard() {
   return {
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
@@ -371,7 +717,7 @@ function blankCard() {
     mission: "medical",
     location: "",
     date: "",
-    time: "7:00AM - ONWARDS",
+    time: "",
     staff: ROLE_LABELS.map(label => ({ label, name: "" })),
     photo: null,
     photoName: ""
@@ -388,7 +734,7 @@ function migrateOld(oldCard) {
     mission,
     location: oldCard.location || "",
     date: oldCard.date || "",
-    time: oldCard.time || "7:00AM - ONWARDS",
+    time: oldCard.time || "",
     staff: oldCard.staff || ROLE_LABELS.map(label => ({ label, name: "" })),
     photo: oldCard.photo || null,
     photoName: ""
@@ -408,6 +754,7 @@ function loadCards() {
 }
 
 let cards = loadCards();
+let currentFilter = "all";
 
 // Normalize any pre-existing entries to uppercase so old data matches the
 // new auto-uppercase behavior right away.
@@ -481,6 +828,164 @@ function uppercaseInPlace(el) {
   el.setSelectionRange(start, end);
 }
 
+// Auto-appends " - ONWARDS" to the time field as the user types, and removes
+// it again if the field is cleared back to empty. Keeps the caret in place.
+const TIME_SUFFIX = " - ONWARDS";
+function autoSuffixOnwards(el) {
+  const caret = el.selectionStart;
+  let base = el.value.replace(/\s*-\s*ONWARDS\s*$/i, "");
+  base = base.replace(/[^0-9]/g, "");
+  el.value = base.length > 0 ? base + TIME_SUFFIX : base;
+  const pos = Math.min(caret, base.length);
+  el.setSelectionRange(pos, pos);
+}
+
+// ---- Date masking helpers (MMDDYYYY digits <-> "January 31, 2026") ----
+function isoToDigits(iso) {
+  if (!iso) return "";
+  const parts = iso.split("-");
+  if (parts.length !== 3) return "";
+  const [y, m, d] = parts;
+  if (!y || !m || !d) return "";
+  return m + d + y;
+}
+function digitsToIso(raw) {
+  if (raw.length < 8) return "";
+  const mm = raw.slice(0, 2), dd = raw.slice(2, 4), yyyy = raw.slice(4, 8);
+  return `${yyyy}-${mm}-${dd}`;
+}
+function maskDigits(raw) {
+  const mm = raw.slice(0, 2), dd = raw.slice(2, 4), yyyy = raw.slice(4, 8);
+  let out = mm;
+  if (dd) out += "/" + dd;
+  if (yyyy) out += "/" + yyyy;
+  return out;
+}
+function formatDateDisplay(iso) {
+  if (!iso) return "";
+  const parts = iso.split("-").map(Number);
+  if (parts.length !== 3) return "";
+  const [y, m, d] = parts;
+  const dt = new Date(y, m - 1, d);
+  if (isNaN(dt.getTime())) return "";
+  return dt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+// Rebuilds the visible dateInput value from a raw MMDDYYYY digit buffer and
+// returns the resulting ISO date (or "" while incomplete).
+function renderDateField(el, raw) {
+  const iso = digitsToIso(raw);
+  el.value = iso ? formatDateDisplay(iso) : maskDigits(raw);
+  el.dataset.raw = raw;
+  return iso;
+}
+
+// Blocks any keystroke that isn't a digit or a navigation/editing key —
+// used to keep TIME and DATE fields number-only.
+function digitsOnlyKeydown(e) {
+  if (e.metaKey || e.ctrlKey || e.key === "Tab") return;
+  const allowed = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Home", "End", "Enter", "Escape"];
+  if (allowed.includes(e.key)) return;
+  if (!/^[0-9]$/.test(e.key)) {
+    e.preventDefault();
+  }
+}
+
+// Converts a native <input type="time"> value ("HH:MM", 24h) into the
+// field's display format, e.g. "07:00" -> "7:00AM".
+function formatTimeFrom24(hhmm) {
+  if (!hhmm) return "";
+  const [hStr, mStr] = hhmm.split(":");
+  let h = parseInt(hStr, 10);
+  if (isNaN(h)) return "";
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${mStr}${ampm}`;
+}
+
+// ---- Time masking helpers (typed digits -> "7:00AM", auto-completed) ----
+// Splits a typed digit buffer into hour/minute digits. Only "1" followed by
+// 0/1/2 is treated as a two-digit hour (10, 11, 12); any other first digit
+// (2-9) is a complete hour on its own, e.g. "7" -> hour "7" immediately.
+function parseTimeRaw(raw) {
+  if (!raw) return { hourDigits: "", minuteDigits: "" };
+  let hourDigits, rest;
+  if (raw[0] === "1" && raw.length >= 2 && /[012]/.test(raw[1])) {
+    hourDigits = raw.slice(0, 2);
+    rest = raw.slice(2);
+  } else {
+    hourDigits = raw.slice(0, 1);
+    rest = raw.slice(1);
+  }
+  const minuteDigits = rest.slice(0, 2);
+  return { hourDigits, minuteDigits };
+}
+// Builds the "H:MMAM" text from split digit parts, defaulting minutes to
+// "00" until the user types them.
+function formatTimeParts(hourDigits, minuteDigits, ampm) {
+  if (!hourDigits) return "";
+  let h = parseInt(hourDigits, 10);
+  if (h === 0) h = 12;
+  if (h > 12) h = 12;
+  let mDisplay;
+  if (minuteDigits.length === 0) mDisplay = "00";
+  else if (minuteDigits.length === 1) mDisplay = minuteDigits;
+  else {
+    let m = parseInt(minuteDigits, 10);
+    if (m > 59) m = 59;
+    mDisplay = String(m).padStart(2, "0");
+  }
+  return `${h}:${mDisplay}${ampm}`;
+}
+// Rebuilds the visible TIME input value (plus the " - ONWARDS" suffix) from
+// a raw digit buffer and an AM/PM flag, e.g. raw="7" ampm="AM" ->
+// "7:00AM - ONWARDS". Stores the buffer back on the element for next keystroke.
+function renderTimeField(el, raw, ampm) {
+  const { hourDigits, minuteDigits } = parseTimeRaw(raw);
+  const base = formatTimeParts(hourDigits, minuteDigits, ampm);
+  el.value = base ? base + TIME_SUFFIX : "";
+  el.dataset.raw = raw;
+  el.dataset.ampm = ampm;
+  return el.value;
+}
+// Extracts a raw digit buffer + AM/PM flag back out of a previously
+// formatted time string, e.g. "7:00AM - ONWARDS" -> {raw:"700", ampm:"AM"}.
+function timeToRawAmpm(str) {
+  const m = (str || "").match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!m) return { raw: "", ampm: "AM" };
+  return { raw: m[1] + m[2], ampm: m[3].toUpperCase() };
+}
+// Keydown handler for a TIME field: digits build the raw buffer (auto-
+// formatting to "H:MMAM/PM" after every keystroke), A/P toggles AM-PM, and
+// Backspace/Delete remove the last digit typed.
+function timeInputKeydown(el, idx) {
+  return e => {
+    if (e.metaKey || e.ctrlKey || e.key === "Tab") return;
+    let raw = el.dataset.raw || "";
+    let ampm = el.dataset.ampm || "AM";
+    const key = e.key;
+    if (key === "Backspace" || key === "Delete") {
+      e.preventDefault();
+      raw = raw.slice(0, -1);
+    } else if (/^[0-9]$/.test(key)) {
+      e.preventDefault();
+      if (raw.length < 4) raw += key;
+    } else if (/^[aApP]$/.test(key)) {
+      e.preventDefault();
+      if (!raw) return;
+      ampm = key.toLowerCase() === "a" ? "AM" : "PM";
+    } else if (["ArrowLeft", "ArrowRight", "Home", "End", "Enter", "Escape"].includes(key)) {
+      return;
+    } else {
+      e.preventDefault();
+      return;
+    }
+    renderTimeField(el, raw, ampm);
+    cards[idx].time = el.value;
+    saveCards();
+  };
+}
+
 function regionLabel(card) {
   if (card.region === "south") return "South Caloocan";
   if (card.region === "north") return "North Caloocan";
@@ -508,14 +1013,17 @@ function render() {
   grid.innerHTML = "";
 
   cards.forEach((card, idx) => {
+    if (currentFilter !== "all" && card.region !== currentFilter) return;
+
     const cardEl = document.createElement("div");
     cardEl.className = "site-card";
     cardEl.dataset.region = card.region;
 
     cardEl.innerHTML = `
+      <div class="ticket-number">#${String(idx + 1).padStart(2, "0")}</div>
       <div class="accent-bar"></div>
       <div class="card-inner">
-        <button class="remove-btn" title="Alisin ang site na ito">×</button>
+        <button class="remove-btn" title="Remove this site">×</button>
 
         <div class="region-line">
           <select class="regionSelect">
@@ -524,7 +1032,7 @@ function render() {
             <option value="other" ${card.region === "other" ? "selected" : ""}>Custom…</option>
           </select>
           ${card.region === "other" ? `<input type="text" class="customText regionCustomInput" placeholder="Area name" value="${escapeAttr(card.regionCustom)}">` : ""}
-          <span class="sep">—</span>
+          <span class="sep">·</span>
           <select class="missionSelect">
             <option value="medical" ${card.mission === "medical" ? "selected" : ""}>Medical Mission</option>
             <option value="peoples_day" ${card.mission === "peoples_day" ? "selected" : ""}>People's Day</option>
@@ -536,23 +1044,38 @@ function render() {
         <div class="schedule-row">
           <div class="field">
             <label>Date</label>
-            <input type="date" class="dateInput" value="${escapeAttr(card.date)}">
+            <div class="date-wrap">
+              <input type="text" inputmode="numeric" class="dateInput" placeholder="MM/DD/YYYY" autocomplete="off" value="${escapeAttr(formatDateDisplay(card.date))}" data-raw="${escapeAttr(isoToDigits(card.date))}">
+              <button type="button" class="calendarBtn" title="Choose date" tabindex="-1">📅</button>
+              <input type="date" class="dateNative" tabindex="-1" value="${escapeAttr(card.date)}">
+            </div>
           </div>
           <div class="field">
             <label>Time</label>
-            <input type="text" class="timeInput" placeholder="7:00AM - ONWARDS" value="${escapeAttr(card.time)}">
+            <div class="time-wrap">
+              <input type="text" inputmode="numeric" class="timeInput" placeholder="7:00AM" value="${escapeAttr(card.time)}">
+              <button type="button" class="clockBtn" title="Choose time" tabindex="-1">🕐</button>
+              <input type="time" class="timeNative" tabindex="-1">
+            </div>
           </div>
         </div>
 
+        <div class="perforation"></div>
+
         <div class="staff-grid">
           ${card.staff.map((s, sIdx) => `
-            <div class="staff-row">
-              <span class="role-label">${s.label}</span>
+            <div class="staff-row" data-sidx="${sIdx}">
+              <span class="drag-handle" draggable="true" title="Hold to reposition">⠿</span>
+              <select class="roleSelect" data-sidx="${sIdx}">
+                ${roleOptionsHtml(s.label)}
+              </select>
               <input type="text" class="nameInput" list="roleNameList-${slug(s.label)}" data-sidx="${sIdx}" placeholder="Assign staff name" value="${escapeAttr(s.name)}">
               <span class="status-dot ${s.name.trim() ? "filled" : ""}"></span>
+              <button type="button" class="removeFieldBtn" data-sidx="${sIdx}" title="Remove field">×</button>
             </div>
           `).join("")}
         </div>
+        <button type="button" class="addFieldBtn">+ Add field</button>
 
         <div class="attach-row ${card.photo ? "has-photo" : ""}">
           <div class="attach-thumb">${card.photo ? `<img src="${card.photo}" alt="">` : "📎"}</div>
@@ -564,8 +1087,8 @@ function render() {
     `;
 
     // ---- Events ----
-    cardEl.querySelector(".remove-btn").addEventListener("click", () => {
-      if (confirm("Alisin ang site na ito sa listahan?")) {
+    cardEl.querySelector(".remove-btn").addEventListener("click", async () => {
+      if (await showConfirm("Remove this site from the list?")) {
         cards.splice(idx, 1);
         saveCards();
         render();
@@ -594,11 +1117,72 @@ function render() {
     locationInput.addEventListener("change", e => {
       addSiteHistory(e.target.value);
     });
-    cardEl.querySelector(".dateInput").addEventListener("input", e => {
-      cards[idx].date = e.target.value; saveCards();
+    const dateInputEl = cardEl.querySelector(".dateInput");
+    const dateNativeEl = cardEl.querySelector(".dateNative");
+    dateInputEl.addEventListener("keydown", e => {
+      if (e.metaKey || e.ctrlKey || e.key === "Tab") return;
+      e.preventDefault();
+      let raw = dateInputEl.dataset.raw || "";
+      if (e.key === "Backspace" || e.key === "Delete") {
+        raw = raw.slice(0, -1);
+      } else if (/^[0-9]$/.test(e.key)) {
+        if (raw.length < 8) raw += e.key;
+      } else {
+        return;
+      }
+      const iso = renderDateField(dateInputEl, raw);
+      cards[idx].date = iso;
+      dateNativeEl.value = iso;
+      saveCards();
     });
-    cardEl.querySelector(".timeInput").addEventListener("input", e => {
-      cards[idx].time = e.target.value; saveCards();
+    dateInputEl.addEventListener("paste", e => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData("text");
+      const raw = text.replace(/[^0-9]/g, "").slice(0, 8);
+      const iso = renderDateField(dateInputEl, raw);
+      cards[idx].date = iso;
+      dateNativeEl.value = iso;
+      saveCards();
+    });
+    cardEl.querySelector(".calendarBtn").addEventListener("click", () => {
+      if (dateNativeEl.showPicker) dateNativeEl.showPicker();
+      else dateNativeEl.click();
+    });
+    dateNativeEl.addEventListener("change", e => {
+      const iso = e.target.value;
+      renderDateField(dateInputEl, isoToDigits(iso));
+      cards[idx].date = iso;
+      saveCards();
+    });
+
+    const timeInputEl = cardEl.querySelector(".timeInput");
+    const timeNativeEl = cardEl.querySelector(".timeNative");
+    {
+      const initial = timeToRawAmpm(card.time);
+      timeInputEl.dataset.raw = initial.raw;
+      timeInputEl.dataset.ampm = initial.ampm;
+    }
+    timeInputEl.addEventListener("keydown", timeInputKeydown(timeInputEl, idx));
+    timeInputEl.addEventListener("paste", e => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData("text");
+      const digits = text.replace(/[^0-9]/g, "").slice(0, 4);
+      const ampmMatch = text.match(/[AP]M?/i);
+      const ampm = ampmMatch ? (ampmMatch[0][0].toUpperCase() === "A" ? "AM" : "PM") : (timeInputEl.dataset.ampm || "AM");
+      renderTimeField(timeInputEl, digits, ampm);
+      cards[idx].time = timeInputEl.value;
+      saveCards();
+    });
+    cardEl.querySelector(".clockBtn").addEventListener("click", () => {
+      if (timeNativeEl.showPicker) timeNativeEl.showPicker();
+      else timeNativeEl.click();
+    });
+    timeNativeEl.addEventListener("change", e => {
+      const base = formatTimeFrom24(e.target.value);
+      const parsed = timeToRawAmpm(base);
+      renderTimeField(timeInputEl, parsed.raw, parsed.ampm);
+      cards[idx].time = timeInputEl.value;
+      saveCards();
     });
 
     cardEl.querySelectorAll(".nameInput").forEach(inp => {
@@ -614,6 +1198,63 @@ function render() {
       inp.addEventListener("change", e => {
         const sIdx = parseInt(e.target.dataset.sidx, 10);
         addRoleHistory(cards[idx].staff[sIdx].label, e.target.value);
+      });
+    });
+
+    cardEl.querySelectorAll(".roleSelect").forEach(sel => {
+      sel.addEventListener("change", e => {
+        const sIdx = parseInt(e.target.dataset.sidx, 10);
+        cards[idx].staff[sIdx].label = e.target.value;
+        saveCards();
+        render();
+      });
+    });
+
+    cardEl.querySelectorAll(".removeFieldBtn").forEach(btn => {
+      btn.addEventListener("click", e => {
+        const sIdx = parseInt(e.target.dataset.sidx, 10);
+        cards[idx].staff.splice(sIdx, 1);
+        saveCards();
+        render();
+      });
+    });
+
+    const addFieldBtn = cardEl.querySelector(".addFieldBtn");
+    if (addFieldBtn) addFieldBtn.addEventListener("click", () => {
+      cards[idx].staff.push({ label: ROLE_OPTIONS[0], name: "" });
+      saveCards();
+      render();
+    });
+
+    // ---- Drag-to-reorder roles (grab the 6-dot handle, drop on target row) ----
+    cardEl.querySelectorAll(".staff-row").forEach(row => {
+      row.addEventListener("dragover", e => {
+        e.preventDefault();
+        row.classList.add("drag-over");
+      });
+      row.addEventListener("dragleave", () => row.classList.remove("drag-over"));
+      row.addEventListener("drop", e => {
+        e.preventDefault();
+        row.classList.remove("drag-over");
+        const fromIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+        const toIdx = parseInt(row.dataset.sidx, 10);
+        if (isNaN(fromIdx) || fromIdx === toIdx) return;
+        const staffArr = cards[idx].staff;
+        const [moved] = staffArr.splice(fromIdx, 1);
+        staffArr.splice(toIdx, 0, moved);
+        saveCards();
+        render();
+      });
+    });
+    cardEl.querySelectorAll(".drag-handle").forEach(handle => {
+      handle.addEventListener("dragstart", e => {
+        const row = handle.closest(".staff-row");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", row.dataset.sidx);
+        row.classList.add("dragging");
+      });
+      handle.addEventListener("dragend", () => {
+        cardEl.querySelectorAll(".staff-row").forEach(r => r.classList.remove("dragging", "drag-over"));
       });
     });
 
@@ -648,6 +1289,68 @@ function render() {
   updateStats();
 }
 
+// Read-only view shown to a logged-in employee: only sites matching their
+// own branch (south/north), no editing controls.
+function renderEmployeeSchedule(scheduleCards, branch) {
+  const branchLabel = branch === "south" ? "South Caloocan" : "North Caloocan";
+  const headSub = document.querySelector(".page-head p");
+  if (headSub) headSub.textContent = `Deployment schedule for ${branchLabel} only.`;
+
+  const filtered = (scheduleCards || []).filter(c => c.region === branch);
+
+  document.getElementById("statSites").textContent = filtered.length;
+  let unfilled = 0, ready = 0;
+  filtered.forEach(c => {
+    const empty = (c.staff || []).filter(s => !(s.name || "").trim()).length;
+    unfilled += empty;
+    if (empty === 0) ready++;
+  });
+  document.getElementById("statUnfilled").textContent = unfilled;
+  document.getElementById("statReady").textContent = ready;
+
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  if (!filtered.length) {
+    grid.innerHTML = `<p style="color:var(--ink-muted);font-size:13.5px;">No schedule has been sent yet for ${branchLabel}.</p>`;
+    return;
+  }
+
+  filtered.forEach((card, idx) => {
+    const cardEl = document.createElement("div");
+    cardEl.className = "site-card";
+    cardEl.dataset.region = card.region;
+    cardEl.innerHTML = `
+      <div class="ticket-number">#${String(idx + 1).padStart(2, "0")}</div>
+      <div class="accent-bar"></div>
+      <div class="card-inner">
+        <div class="region-line"><span class="sep">${escapeHtml(regionLabel(card))} · ${escapeHtml(missionLabel(card))}</span></div>
+        <div class="locationInput" style="border:none;padding:0;">${escapeHtml(card.location || "Unnamed site")}</div>
+        <div class="schedule-row">
+          <div class="field">
+            <label>Date</label>
+            <div>${escapeHtml(formatDateDisplay(card.date) || "—")}</div>
+          </div>
+          <div class="field">
+            <label>Time</label>
+            <div>${escapeHtml(card.time || "—")}</div>
+          </div>
+        </div>
+        <div class="perforation"></div>
+        <div class="staff-grid">
+          ${(card.staff || []).map(s => `
+            <div class="staff-row">
+              <span style="min-width:120px;color:var(--ink-muted);font-size:12px;">${escapeHtml(s.label)}</span>
+              <strong>${escapeHtml(s.name) || "—"}</strong>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+    grid.appendChild(cardEl);
+  });
+}
+
 function escapeAttr(str) {
   return (str || "").replace(/"/g, "&quot;");
 }
@@ -655,29 +1358,68 @@ function escapeHtml(str) {
   return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+document.querySelectorAll("#regionFilter .filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentFilter = btn.dataset.filter;
+    document.querySelectorAll("#regionFilter .filter-btn").forEach(b => b.classList.toggle("active", b === btn));
+    render();
+  });
+});
+
 document.getElementById("addCardBtn").addEventListener("click", () => {
   cards.push(blankCard());
   saveCards();
   render();
 });
 
-document.getElementById("saveBtn").addEventListener("click", () => {
+document.getElementById("saveBtn").addEventListener("click", async () => {
   saveCards();
-  alert("Na-save na ang mga entry sa browser mo.");
+  const sendBtn = document.getElementById("saveBtn");
+  const originalLabel = sendBtn.textContent;
+  sendBtn.disabled = true;
+  sendBtn.textContent = "Sending…";
+  try {
+    // Strip photo data URLs before sending — they're large base64 blobs
+    // employees don't need in order to see their site/date/time/role assignment.
+    const payload = cards.map(({ photo, photoName, ...rest }) => rest);
+    await setDoc(scheduleDocRef, {
+      cards: payload,
+      sentAt: serverTimestamp(),
+      sentBy: "admin"
+    });
+    await showAlert("Schedule sent to employees. South will only see South, North will only see North.");
+  } catch (err) {
+    await showAlert("Saved to your browser, but not sent online: " + err.message);
+  } finally {
+    sendBtn.disabled = false;
+    sendBtn.textContent = originalLabel;
+  }
 });
 
 document.getElementById("printBtn").addEventListener("click", () => window.print());
 
-document.getElementById("resetBtn").addEventListener("click", () => {
-  if (confirm("I-reset lahat ng data? Hindi na ito mababawi.")) {
+document.getElementById("resetBtn").addEventListener("click", async () => {
+  if (await showConfirm("Reset all data? This cannot be undone.")) {
     cards = Array.from({ length: 6 }, blankCard);
     saveCards();
     render();
   }
 });
 
-renderDatalists();
-render();
+if (employeeSession) {
+  // Employee mode: hide the admin editing toolbar/filters and show a
+  // live, read-only view scoped to their own branch.
+  document.querySelector(".toolbar").style.display = "none";
+  document.getElementById("regionFilter").style.display = "none";
+  onSnapshot(scheduleDocRef, snap => {
+    const data = snap.exists() ? snap.data() : { cards: [] };
+    renderEmployeeSchedule(data.cards || [], employeeSession.branch);
+  });
+} else {
+  // Admin/manager mode: full editable dashboard, as before.
+  renderDatalists();
+  render();
+}
 </script>
 
 </body>

@@ -236,7 +236,7 @@
   // document in the "employees" collection (doc ID = lowercased Staff ID)
   // holding a SHA-256 password hash. "Signed in" is just a small session
   // record kept in localStorage/sessionStorage (see SESSION_KEY below).
-  const SESSION_KEY = 'pd_employee_session';
+  const SESSION_KEY = 'pdEmployeeSession';
 
   async function hashPassword(pw){
     const enc = new TextEncoder().encode(pw);
@@ -278,7 +278,7 @@
 
   // Already signed in as an employee? Skip straight to the form.
   if(readSession()){
-    window.location.replace('peripheral-form.html');
+    window.location.replace('landing-employee-page.html');
   }
 
   // Bounced back here because an Admin deleted this account.
@@ -312,6 +312,7 @@
         name: profile.name || '',
         email: profile.email || '',
         department: profile.department || '',
+        branch: profile.branch || '',
         signedInAt: Date.now()
       };
 

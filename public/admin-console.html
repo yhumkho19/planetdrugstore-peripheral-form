@@ -68,7 +68,95 @@
     -webkit-font-smoothing:antialiased;
   }
   h1,h2,h3,h4,h5,h6{font-family:'Plus Jakarta Sans','Inter',sans-serif;}
-  .wrap{max-width:1200px;margin:0 auto;}
+  .wrap{max-width:1400px;margin:0 auto;display:flex;align-items:flex-start;gap:22px;}
+
+  /* ================= Left Sidebar Navigation ================= */
+  .sidebar{
+    position:sticky;top:20px;flex:none;width:250px;
+    display:flex;flex-direction:column;gap:18px;
+    background:linear-gradient(165deg,var(--maroon) 0%,var(--maroon-dark) 100%);
+    border-radius:18px;padding:20px 14px;color:#fff;
+    max-height:calc(100vh - 40px);
+    box-shadow:0 14px 34px rgba(61,10,16,0.22);
+  }
+  .sidebar-brand{
+    display:flex;align-items:center;gap:12px;
+    padding:2px 6px 16px;border-bottom:1px solid rgba(255,255,255,0.16);
+  }
+  .sidebar-close-btn{
+    display:none;margin-left:auto;flex:none;border:none;background:rgba(255,255,255,0.08);
+    color:#fff;width:30px;height:30px;border-radius:8px;font-size:16px;cursor:pointer;
+    align-items:center;justify-content:center;
+  }
+  .sidebar-nav-label{
+    font-size:10.5px;font-weight:800;letter-spacing:1.2px;color:rgba(255,255,255,0.45);
+    text-transform:uppercase;padding:2px 12px;margin-top:2px;
+  }
+  .main-tabs{
+    display:flex;flex-direction:column;gap:3px;
+    background:transparent;border:none;padding:0;box-shadow:none;
+    flex:1;overflow-y:auto;
+  }
+  .main-tabs::-webkit-scrollbar{width:5px;}
+  .main-tabs::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2);border-radius:4px;}
+  .main-tabs button{
+    display:flex;align-items:center;gap:11px;width:100%;text-align:left;
+    border:none;background:transparent;color:rgba(255,255,255,0.8);border-radius:11px;
+    padding:11px 13px;font-size:14px;font-weight:700;cursor:pointer;
+    transition:background .18s ease,color .18s ease,transform .12s ease;
+  }
+  .main-tabs button .tab-icon{flex:none;width:20px;text-align:center;font-size:16px;}
+  .main-tabs button .tab-label{flex:1;line-height:1.25;}
+  .main-tabs button.active{
+    background:#fff;color:var(--maroon);
+    box-shadow:0 8px 18px rgba(0,0,0,0.18);
+  }
+  .main-tabs button:hover:not(.active){background:rgba(255,255,255,0.12);color:#fff;}
+  .main-tabs button:active{transform:scale(0.98);}
+  .main-tabs button.danger-tab{color:#FFC9C4;margin-top:8px;border-top:1px solid rgba(255,255,255,0.16);border-radius:0;padding-top:15px;}
+  .main-tabs button.danger-tab:hover:not(.active){background:rgba(214,31,44,0.28);color:#fff;}
+  .main-tabs button.danger-tab.active{background:#fff;color:#b42318;box-shadow:0 8px 18px rgba(0,0,0,0.18);}
+
+  .sidebar-footer{
+    border-top:1px solid rgba(255,255,255,0.16);padding-top:14px;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .sidebar-footer .who{font-size:12px;color:rgba(255,255,255,0.65);line-height:1.4;padding:0 2px;}
+  .sidebar-footer .who strong{display:block;color:#fff;font-size:13px;word-break:break-all;}
+  .sidebar-footer-actions{display:flex;gap:8px;}
+  .sidebar-footer-actions .logout-btn{flex:1;justify-content:center;}
+
+  .content-area{flex:1;min-width:0;}
+  .content-topbar{
+    display:flex;align-items:center;gap:12px;margin-bottom:18px;
+  }
+  .content-topbar h1{
+    font-size:21px;margin:0;font-weight:800;color:var(--maroon);letter-spacing:0.2px;
+  }
+  .sidebar-toggle-btn{
+    display:none;flex:none;align-items:center;justify-content:center;
+    width:40px;height:40px;border-radius:10px;border:1px solid var(--line);
+    background:#fff;color:var(--maroon);font-size:18px;cursor:pointer;
+  }
+  .sidebar-backdrop{
+    display:none;position:fixed;inset:0;background:rgba(41, 2, 2, 0.5);z-index:1000;
+    border:none;padding:0;margin:0;cursor:pointer;
+  }
+  .sidebar-backdrop.show{display:block;}
+
+  @media (max-width:900px){
+    .wrap{display:block;}
+    .sidebar{
+      position:fixed;top:0;left:0;z-index:1001;height:100vh;max-height:100vh;
+      width:270px;border-radius:0;
+      transform:translateX(-104%);transition:transform .25s ease;
+    }
+    .sidebar.open{transform:translateX(0);}
+    .sidebar-close-btn{display:flex;}
+    .sidebar-toggle-btn{display:inline-flex;}
+    .content-topbar{margin-bottom:14px;}
+    .content-topbar h1{font-size:17px;}
+  }
 
   /* Top bar */
   .topbar{
@@ -400,8 +488,6 @@
     .toggle-group button{flex:1;padding:8px 10px;}
     .btn{padding:10px 14px;font-size:14px;}
     .count-pill{flex-basis:100%;text-align:center;}
-    .main-tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;}
-    .main-tabs button{flex:none;padding:9px 14px;font-size:14px;}
     .card-grid{grid-template-columns:1fr;}
     .modal-overlay{padding:0;align-items:stretch;}
     .modal{max-width:100%;width:100%;min-height:100%;border-radius:0;}
@@ -427,25 +513,6 @@
     padding:14px 22px;border-top:1px solid var(--line);background:var(--paper);flex-wrap:wrap;
   }
   .modal-status{font-size:14px;color:var(--muted);}
-
-  /* Main section tabs (Entries / Register Employee) */
-  .main-tabs{
-    display:inline-flex;gap:4px;margin-bottom:18px;padding:5px;
-    background:#fff;border:1px solid var(--line);border-radius:14px;
-    box-shadow:0 1px 3px rgba(42,20,22,0.05);
-  }
-  .main-tabs button{
-    border:none;background:transparent;color:var(--muted);border-radius:10px;
-    padding:9px 18px;font-size:14.5px;font-weight:700;cursor:pointer;
-    display:inline-flex;align-items:center;gap:7px;
-    transition:background .18s ease,color .18s ease,box-shadow .18s ease,transform .15s ease;
-  }
-  .main-tabs button.active{
-    background:linear-gradient(135deg,var(--maroon),var(--maroon-dark));
-    color:#fff;box-shadow:0 6px 16px rgba(110,22,32,0.28);
-  }
-  .main-tabs button:hover:not(.active){background:#F6ECEC;color:var(--maroon);}
-  .main-tabs button:active{transform:translateY(1px);}
 
   /* Register Employee section */
   .reg-row{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
@@ -731,15 +798,66 @@
   .cn-delete-btn{border:1.5px solid #b42318;background:#b42318;color:#fff;border-radius:7px;
     padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
   .cn-delete-btn:hover{background:#8f1c13;border-color:#8f1c13;}
+  .cn-tag-btn{border:1.5px solid #8a6d1f;background:#fff;color:#8a6d1f;border-radius:7px;
+    padding:5px 10px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
+  .cn-tag-btn:hover{background:#8a6d1f;color:#fff;}
+  .cn-tag-btn.has-tag{background:#FFF4DC;border-color:#B8860B;color:#8a6d1f;}
   @media (max-width:700px){
     .cn-actions{gap:8px;}
     .cn-actions .cn-copy-btn,.cn-actions .cn-edit-btn,.cn-actions .cn-cancel-btn,
-    .cn-actions .cn-restore-btn,.cn-actions .cn-restore-locked-btn,.cn-actions .cn-delete-btn{
+    .cn-actions .cn-restore-btn,.cn-actions .cn-restore-locked-btn,.cn-actions .cn-delete-btn,
+    .cn-actions .cn-tag-btn{
       flex:1 1 calc(50% - 4px);text-align:center;
     }
   }
   .cn-locked-tag{opacity:0.7;font-size:13px;font-weight:700;color:var(--muted);margin-right:6px;}
   .cn-mono{font-family:'Courier New',monospace;font-size:16.5px;font-weight:700;letter-spacing:1px;color:var(--maroon);}
+  .cn-tag-label{display:inline-block;margin-top:3px;font-size:11px;font-weight:700;letter-spacing:0.2px;
+    color:#8a6d1f;background:#FFF4DC;border:1px solid #E9D08A;border-radius:5px;padding:1px 7px;}
+
+  /* ---- Mission Tag modal (preview-only — opens from the 🏷️ Tag button) ---- */
+  .mm-branch-toggle{display:flex;gap:10px;margin-bottom:16px;}
+  #mmModalOverlay .field label{font-size:15.5px;}
+  #mmModalOverlay .field input{font-size:18px;padding:12px 14px;}
+  .mm-branch-btn{
+    flex:1;border-radius:9px;padding:11px 10px;font-size:14.5px;font-weight:800;letter-spacing:0.3px;
+    cursor:pointer;transition:transform .12s ease,box-shadow .12s ease;
+  }
+  .mm-branch-btn.mm-north{border:2px solid #E36414;background:#fff;color:#E36414;}
+  .mm-branch-btn.mm-north.active{background:#E36414;color:#fff;box-shadow:0 4px 12px rgba(227,100,20,0.35);}
+  .mm-branch-btn.mm-south{border:2px solid #2E7D32;background:#fff;color:#2E7D32;}
+  .mm-branch-btn.mm-south.active{background:#2E7D32;color:#fff;box-shadow:0 4px 12px rgba(46,125,50,0.35);}
+  .mm-branch-btn:not(.active):hover{transform:translateY(-1px);}
+
+  .mm-preview{
+    margin-top:18px;background:#fff;border:2px solid #222;border-radius:6px;
+    padding:26px 20px;text-align:center;
+  }
+  .mm-preview-title{
+    font-family:'Plus Jakarta Sans',sans-serif;font-size:34px;font-weight:800;letter-spacing:1px;
+    display:inline-block;border-bottom:3px solid currentColor;padding-bottom:4px;margin-bottom:12px;
+  }
+  .mm-preview.branch-north .mm-preview-title,
+  .mm-preview.branch-north .mm-preview-sub,
+  .mm-preview.branch-north .mm-preview-venue{color:#E36414;}
+  .mm-preview.branch-south .mm-preview-title,
+  .mm-preview.branch-south .mm-preview-sub,
+  .mm-preview.branch-south .mm-preview-venue{color:#2E7D32;}
+  .mm-preview-sub{font-size:18px;font-weight:800;letter-spacing:0.3px;margin-bottom:6px;}
+  .mm-preview-venue{font-size:15px;font-weight:800;line-height:1.4;margin-bottom:14px;}
+  .mm-preview-spm{
+    display:inline-block;font-size:14.5px;font-weight:800;border-radius:20px;
+    padding:7px 18px;margin-bottom:12px;
+  }
+  .mm-preview.branch-north .mm-preview-spm{color:#E36414;border:2px solid #E36414;}
+  .mm-preview.branch-south .mm-preview-spm{color:#2E7D32;border:2px solid #7BC97F;}
+  .mm-preview-date{font-size:13.5px;font-weight:700;color:var(--ink);}
+  .mm-preview.branch-north .mm-preview-date{color:#E36414;}
+  .mm-preview.branch-south .mm-preview-date{color:#2E7D32;}
+  .mm-preview-cn{font-size:12.5px;font-weight:700;margin-top:2px;}
+  .mm-preview.branch-north .mm-preview-cn{color:#E36414;}
+  .mm-preview.branch-south .mm-preview-cn{color:#2E7D32;}
+  .mm-hint{font-size:12px;color:var(--muted);margin-top:8px;text-align:center;}
   .cn-result-box{margin:0 20px 20px;background:#F6ECEC;border:1.5px dashed var(--maroon);border-radius:10px;padding:14px 16px;}
   .cn-result-label{font-size:14.5px;color:var(--muted);margin-bottom:8px;font-weight:600;}
   .cn-result-row{display:flex;align-items:center;gap:12px;}
@@ -838,6 +956,138 @@
     .cal-day{min-height:64px;padding:4px 5px;}
     .cal-chips{display:none;}
   }
+
+  /* ---- Peripheral Form redesign (scoped to #peripheralFormSection only —
+     the Control Numbers history lists below reuse .pf-table/.field and
+     must keep their original plain look, so every rule here is prefixed
+     with the section id to win on specificity without touching them). ---- */
+  #peripheralFormSection{
+    --gold:#C9A227; --gold-dark:#9A7B18;
+    background:linear-gradient(180deg,#fff 0%,var(--paper) 100%);
+  }
+  #peripheralFormSection .pf-edit-banner{
+    background:linear-gradient(135deg,var(--maroon),var(--maroon-dark));
+    border-radius:0;box-shadow:0 3px 12px rgba(110,22,32,0.25);
+  }
+  #peripheralFormSection .pf-head{
+    padding:26px 26px 10px;position:relative;
+  }
+  #peripheralFormSection .pf-head::before{
+    content:'';position:absolute;left:26px;top:0;width:52px;height:4px;border-radius:0 0 4px 4px;
+    background:linear-gradient(90deg,var(--red),var(--gold));
+  }
+  #peripheralFormSection .pf-head h2{
+    display:flex;align-items:center;gap:10px;font-size:22px;letter-spacing:0.1px;
+  }
+  #peripheralFormSection .pf-head h2::before{content:'🧰';font-size:20px;}
+  #peripheralFormSection .pf-head-note{
+    border-radius:12px;transition:box-shadow .2s ease,border-color .2s ease;
+  }
+  #peripheralFormSection .pf-head-note:hover{box-shadow:0 4px 14px rgba(110,22,32,0.10);}
+
+  #peripheralFormSection .pf-meta-fields{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:16px 18px;padding:18px 26px 6px;align-items:start;
+    background:#fff;margin:0 26px;border-radius:16px;
+    border:1px solid var(--line);box-shadow:0 6px 24px rgba(110,22,32,0.06);
+    position:relative;top:10px;
+  }
+  #peripheralFormSection .pf-meta-fields .field{min-width:0;flex:none;margin-bottom:18px;}
+  #peripheralFormSection .pf-meta-fields .field label{
+    font-size:12px;color:var(--maroon);display:flex;align-items:center;gap:5px;
+  }
+  #peripheralFormSection .pf-meta-fields .field input,
+  #peripheralFormSection .pf-meta-fields .field select{
+    border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;
+    background:var(--paper);transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+  }
+  #peripheralFormSection .pf-meta-fields .field input:hover,
+  #peripheralFormSection .pf-meta-fields .field select:hover{border-color:#D9B7B9;}
+  #peripheralFormSection .pf-meta-fields .field input:focus,
+  #peripheralFormSection .pf-meta-fields .field select:focus{
+    border-color:var(--red);background:#fff;box-shadow:0 0 0 4px rgba(214,31,44,0.10);
+  }
+  #peripheralFormSection .pf-meta-fields .field input[readonly]{background:#F1ECE9;}
+  #peripheralFormSection #pfSpm1,
+  #peripheralFormSection #pfSpm2{font-weight:700;letter-spacing:0.4px;color:var(--maroon);}
+
+  #peripheralFormSection .pf-event-row{
+    margin:14px 26px 0;padding:6px;background:#fff;border:1px solid var(--line);
+    border-radius:14px;gap:8px;box-shadow:0 4px 14px rgba(110,22,32,0.05);
+  }
+  #peripheralFormSection .pf-event-row label{
+    flex:1;justify-content:center;padding:10px 14px;border-radius:10px;
+    border:1.5px solid transparent;transition:background .15s ease,border-color .15s ease,color .15s ease;
+  }
+  #peripheralFormSection .pf-event-row label:hover{background:#FBF3F1;}
+  #peripheralFormSection .pf-event-row label:has(input:checked){
+    background:linear-gradient(135deg,var(--maroon),var(--maroon-dark));
+    color:#fff;border-color:var(--maroon);box-shadow:0 4px 12px rgba(110,22,32,0.25);
+  }
+  #peripheralFormSection .pf-event-row input[type=checkbox]{accent-color:#fff;}
+
+  #peripheralFormSection .pf-attach-section{
+    margin:16px 26px 0;padding:16px 18px;background:#fff;border:1px solid var(--line);
+    border-radius:14px;box-shadow:0 4px 14px rgba(110,22,32,0.05);
+  }
+
+  #peripheralFormSection .pf-meta{
+    margin:16px 26px 0;padding:10px 16px;background:#F5EAEA;border-radius:10px;
+    color:var(--maroon);font-weight:600;
+  }
+
+  #peripheralFormSection .pf-table{
+    margin:16px 26px 0;width:calc(100% - 52px);border-radius:14px;overflow:hidden;
+    box-shadow:0 6px 20px rgba(110,22,32,0.07);border:1px solid var(--line);border-collapse:separate;
+    border-spacing:0;
+  }
+  #peripheralFormSection .pf-table th:first-child{border-top-left-radius:14px;}
+  #peripheralFormSection .pf-table th:last-child{border-top-right-radius:14px;}
+  #peripheralFormSection .pf-table tbody tr:nth-child(even) td{background:#FBF7F5;}
+  #peripheralFormSection .pf-table tbody tr:hover td{background:#F6ECEC;}
+  #peripheralFormSection .pf-table td{transition:background .15s ease;}
+  #peripheralFormSection .pf-table input[type=text]{border-radius:9px;}
+
+  #peripheralFormSection .pf-actions{
+    display:flex;flex-wrap:wrap;gap:10px;margin:20px 26px 0;padding:16px 18px;
+    background:rgba(255,255,255,0.85);backdrop-filter:blur(6px);
+    border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 22px rgba(110,22,32,0.08);
+    position:sticky;bottom:10px;z-index:2;
+  }
+  #peripheralFormSection .pf-actions .btn{border-radius:11px;padding:12px 20px;font-size:15px;}
+  #peripheralFormSection #pfUpdateBtn{flex:1 1 260px;box-shadow:0 6px 16px rgba(110,22,32,0.25);}
+  #peripheralFormSection #pfMakeTagBtn{
+    border-color:var(--gold);color:var(--gold-dark);background:#FFFBEF;
+  }
+  #peripheralFormSection #pfMakeTagBtn:hover{
+    background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border-color:var(--gold-dark);
+  }
+
+  #peripheralFormSection .pf-save-msg{margin:0 26px;padding:0 0 4px;}
+
+  #peripheralFormSection .cn-result-box{
+    margin:12px 26px 24px;padding:20px 22px;border-radius:16px;
+    background:linear-gradient(135deg,#E6F5EA,#D3EEDC);
+    border:1.5px solid #9FDBB4;box-shadow:0 8px 24px rgba(30,122,52,0.12);
+  }
+  #peripheralFormSection .cn-result-label{color:#1E7A34;font-weight:800;font-size:13.5px;text-transform:uppercase;letter-spacing:0.4px;}
+  #peripheralFormSection .cn-result-number{font-size:26px;letter-spacing:1px;}
+  #peripheralFormSection .cn-result-row{margin-top:8px;}
+  #peripheralFormSection .cn-copy-btn{
+    border-radius:10px;background:#1E7A34;color:#fff;border-color:#1E7A34;padding:8px 16px;
+  }
+  #peripheralFormSection .cn-copy-btn:hover{background:#155C27;}
+
+  @media (max-width:700px){
+    #peripheralFormSection .pf-meta-fields,
+    #peripheralFormSection .pf-event-row,
+    #peripheralFormSection .pf-attach-section,
+    #peripheralFormSection .pf-meta,
+    #peripheralFormSection .pf-table,
+    #peripheralFormSection .pf-actions,
+    #peripheralFormSection .cn-result-box{margin-left:14px;margin-right:14px;width:auto;}
+    #peripheralFormSection .pf-actions{position:static;}
+  }
 </style>
 </head>
 <body>
@@ -850,35 +1100,50 @@
 
 <div class="wrap">
 
-  <div class="topbar">
-    <div class="brand">
+  <button class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Close menu"></button>
+
+  <aside class="sidebar" id="appSidebar">
+    <div class="sidebar-brand">
       <a href="landing-page.html"><img src="logo.png" alt="Planet Drugstore" class="brand-mark"></a>
       <div class="brand-name">PLANET<span>DRUGSTORE</span></div>
+      <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close menu">&times;</button>
     </div>
-    <h1>IT Admin Console — Peripherals Entries</h1>
-    <div class="who">Signed in as <strong id="whoEmail">…</strong></div>
-    <button class="notif-bell-btn is-off" id="notifBellBtn" title="Notify me when a peripheral form is saved">
-      🔔<span class="dot"></span>
-    </button>
-    <button class="logout-btn" id="logoutBtn">🚪 Log Out</button>
-  </div>
 
-  <div class="notif-prompt-banner" id="notifPromptBanner">
-    <span>🔔 Gusto mo bang bigyan ka ng notification tuwing may mag-save ng Peripheral Form?</span>
-    <button type="button" class="notif-prompt-enable" id="notifPromptEnableBtn">Enable</button>
-    <button type="button" class="notif-prompt-dismiss" id="notifPromptDismissBtn">Not now</button>
-  </div>
+    <div class="sidebar-nav-label">Menu</div>
+    <nav class="main-tabs">
+      <button id="tabEntriesBtn" class="active"><span class="tab-icon">📋</span><span class="tab-label">Peripheral Entries</span></button>
+      <button id="tabCalendarBtn"><span class="tab-icon">📅</span><span class="tab-label">Calendar</span></button>
+      <button id="tabRegisterBtn"><span class="tab-icon">👤</span><span class="tab-label">Register Employee</span></button>
+      <button id="tabPeripheralFormBtn"><span class="tab-icon">🧰</span><span class="tab-label">Peripheral Form</span></button>
+      <button id="tabControlNosBtn"><span class="tab-icon">🔑</span><span class="tab-label">Control Numbers (Used &amp; Unused)</span></button>
+      <button id="tabDangerZoneBtn" class="danger-tab"><span class="tab-icon">⚠️</span><span class="tab-label">Delete All Data</span></button>
+    </nav>
 
-  <div class="pd-toast-stack" id="pdToastStack"></div>
+    <div class="sidebar-footer">
+      <div class="who">Signed in as<br><strong id="whoEmail">…</strong></div>
+      <div class="sidebar-footer-actions">
+        <button class="notif-bell-btn is-off" id="notifBellBtn" title="Notify me when a peripheral form is saved">
+          🔔<span class="dot"></span>
+        </button>
+        <button class="logout-btn" id="logoutBtn">🚪 Log Out</button>
+      </div>
+    </div>
+  </aside>
 
-  <div class="main-tabs">
-    <button id="tabEntriesBtn" class="active">📋 Peripheral Entries</button>
-    <button id="tabCalendarBtn">📅 Calendar</button>
-    <button id="tabRegisterBtn">👤 Register Employee</button>
-    <button id="tabPeripheralFormBtn">🧰 Peripheral Form</button>
-    <button id="tabControlNosBtn">🔑 Control Numbers (USED & UNUSED)</button>
-    <button id="tabDangerZoneBtn" style="color:#b42318;">⚠️ DELETE ALL DATA</button>
-  </div>
+  <div class="content-area">
+
+    <div class="content-topbar">
+      <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Open menu">☰</button>
+      <h1 id="pageTitle">IT Admin Console — Peripherals Entries</h1>
+    </div>
+
+    <div class="notif-prompt-banner" id="notifPromptBanner">
+      <span>🔔 Gusto mo bang bigyan ka ng notification tuwing may mag-save ng Peripheral Form?</span>
+      <button type="button" class="notif-prompt-enable" id="notifPromptEnableBtn">Enable</button>
+      <button type="button" class="notif-prompt-dismiss" id="notifPromptDismissBtn">Not now</button>
+    </div>
+
+    <div class="pd-toast-stack" id="pdToastStack"></div>
 
   <div id="entriesSection">
     <div class="entries-scope-bar" id="entriesScopeBar">
@@ -1068,6 +1333,14 @@
         <label for="pfUsableDate">Usable Date <span style="font-weight:400;color:var(--muted);">(Control No. can only be loaded on this day)</span></label>
         <input type="date" id="pfUsableDate">
       </div>
+      <div class="field">
+        <label for="pfSpm1">SPM 1 <span style="font-weight:400;color:var(--muted);">(number only)</span></label>
+        <input type="text" inputmode="numeric" id="pfSpm1" placeholder="e.g. 213">
+      </div>
+      <div class="field">
+        <label for="pfSpm2">SPM 2 <span style="font-weight:400;color:var(--muted);">(number only)</span></label>
+        <input type="text" inputmode="numeric" id="pfSpm2" placeholder="e.g. 214">
+      </div>
     </div>
     <div class="pf-event-row" style="padding-left:20px;">
       <label><input type="checkbox" id="pfEvMission"> Medical Mission</label>
@@ -1106,6 +1379,7 @@
       <button type="button" class="btn ghost" id="pfAddItemBtn">+ Add Item</button>
       <button type="button" class="btn ghost" id="pfRestoreDefaultsBtn">↺ Restore Default Items</button>
       <button type="button" class="btn" id="pfUpdateBtn">Update Peripheral Form / Generate Control No.</button>
+      <button type="button" class="btn ghost" id="pfMakeTagBtn">🏷️ Make a Tag</button>
     </div>
     <div class="pf-save-msg" id="pfSaveMsg"></div>
     <div class="cn-result-box" id="cnResultBox" style="display:none;">
@@ -1224,6 +1498,7 @@
     </div>
   </div>
 
+  </div>
 </div>
 
 <!-- Attachment Lightbox (click a photo to maximize it) -->
@@ -1274,6 +1549,71 @@
       <div style="display:flex;gap:8px;">
         <button class="btn ghost" id="pwModalCancelBtn">Cancel</button>
         <button class="btn red" id="pwModalSaveBtn">Save New Password</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mission Tag modal — opens from the 🏷️ Tag button on a Control No. row.
+     Venue and Control No. are auto-filled (read-only) from that row; the
+     admin only picks North/South and types the two SPM codes + date. This
+     is a live PREVIEW ONLY — nothing here is saved to Firestore and there
+     is no image export, it just mirrors the North(orange)/South(green)
+     mission-tag layout the admin uses on the reference tarpaulin design. -->
+<div class="modal-overlay" id="mmModalOverlay">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-head">
+      <h2>🏷️ Mission Tag — <span id="mmModalCnLabel"></span></h2>
+      <button class="close-btn" id="mmModalCloseBtn">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px 22px;">
+      <p style="font-size:13px;color:var(--muted);margin:0 0 16px;">
+        Preview only — pick the branch and fill in the SPM codes and date. Venue and Control No. are already filled in from this row.
+      </p>
+
+      <div class="mm-branch-toggle">
+        <button type="button" class="mm-branch-btn mm-north active" id="mmBranchNorthBtn" data-branch="north">🟧 NORTH</button>
+        <button type="button" class="mm-branch-btn mm-south" id="mmBranchSouthBtn" data-branch="south">🟩 SOUTH</button>
+      </div>
+
+      <div class="field">
+        <label for="mmVenueInput">Venue</label>
+        <input type="text" id="mmVenueInput" readonly>
+      </div>
+      <div class="field">
+        <label for="mmCnInput">Control No.</label>
+        <input type="text" id="mmCnInput" readonly>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div class="field" style="flex:1;">
+          <label for="mmSpm1Input">SPM 1 <span style="font-weight:400;color:var(--muted);">(number only)</span></label>
+          <input type="text" inputmode="numeric" id="mmSpm1Input" placeholder="e.g. 213">
+        </div>
+        <div class="field" style="flex:1;">
+          <label for="mmSpm2Input">SPM 2 <span style="font-weight:400;color:var(--muted);">(number only)</span></label>
+          <input type="text" inputmode="numeric" id="mmSpm2Input" placeholder="e.g. 214">
+        </div>
+      </div>
+      <div class="field">
+        <label for="mmDateInput">Date <span style="font-weight:400;color:var(--muted);">(from Usable Date — locked)</span></label>
+        <input type="date" id="mmDateInput" readonly style="background:#F3F1EC;color:var(--muted);cursor:not-allowed;">
+      </div>
+
+      <div class="mm-preview branch-north" id="mmPreview">
+        <div class="mm-preview-title" id="mmPreviewTitle">NORTH</div>
+        <div class="mm-preview-sub" id="mmPreviewSub">MEDICAL MISSION</div>
+        <div class="mm-preview-venue" id="mmPreviewVenue">—</div>
+        <div class="mm-preview-spm" id="mmPreviewSpm">SPM — | SPM —</div>
+        <div class="mm-preview-date" id="mmPreviewDate">—</div>
+        <div class="mm-preview-cn" id="mmPreviewCn">CN: —</div>
+      </div>
+      <div class="mm-hint">Preview only — this isn't saved anywhere.</div>
+    </div>
+    <div class="modal-foot">
+      <span></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn ghost" id="mmModalCloseFootBtn">Close</button>
+        <button class="btn red" id="mmPrintBtn">🖨️ Print</button>
       </div>
     </div>
   </div>
@@ -1353,11 +1693,36 @@
   </div>
 </div>
 
+<!-- Generic notice/confirm modal — replaces native window.alert() and
+     window.confirm() everywhere in this console, so messages never show
+     the browser's own "planetdrugstore-peripher-....web.app says" chrome
+     and instead match the rest of this console's look. Reused for both
+     plain one-button notices (showAppAlert) and yes/no confirmations
+     (showAppConfirm); see the two functions further down for wiring. -->
+<div class="modal-overlay" id="appNoticeModalOverlay">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-head">
+      <h2 id="appNoticeModalTitle">Notice</h2>
+      <button class="close-btn" id="appNoticeCloseBtn">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px 22px;">
+      <p style="font-size:13.5px;color:var(--ink);line-height:1.6;margin:0;white-space:pre-line;" id="appNoticeModalMsg"></p>
+    </div>
+    <div class="modal-foot">
+      <span></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn ghost" id="appNoticeCancelBtn">Cancel</button>
+        <button class="btn" id="appNoticeOkBtn">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
     initializeFirestore, collection, getDocs, doc, getDoc, setDoc, deleteDoc, writeBatch,
-    query, orderBy, onSnapshot, serverTimestamp, runTransaction
+    query, orderBy, onSnapshot, serverTimestamp, runTransaction, deleteField
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     getAuth, onAuthStateChanged, signOut, setPersistence,
@@ -1518,7 +1883,9 @@
           preparedTime: (meta && meta.preparedTime) || '',
           usableDate: (meta && meta.usableDate) || '',
           beforeAttachment: (meta && meta.beforeAttachment) || '',
-          preparedSignature: (meta && meta.preparedSignature) || ''
+          preparedSignature: (meta && meta.preparedSignature) || '',
+          spm1: (meta && meta.spm1) || '',
+          spm2: (meta && meta.spm2) || ''
         });
         return candidate;
       }
@@ -1560,7 +1927,9 @@
         preparedTime: (meta && meta.preparedTime) || '',
         usableDate: (meta && meta.usableDate) || '',
         beforeAttachment: (meta && meta.beforeAttachment) || '',
-        preparedSignature: (meta && meta.preparedSignature) || ''
+        preparedSignature: (meta && meta.preparedSignature) || '',
+        spm1: (meta && meta.spm1) || '',
+        spm2: (meta && meta.spm2) || ''
       }, { merge: true });
       return true;
     });
@@ -1662,6 +2031,19 @@
   // Cancel/Restore.
   window.fsDeleteControlNo = async function(controlNo){
     await deleteDoc(doc(db, "reservedControlNos", String(controlNo)));
+  };
+
+  // Sets (or clears) a free-text label ("tag") on a reservedControlNos doc —
+  // purely for Admin's own organization/reference (e.g. which mission/venue
+  // batch a number belongs to). Doesn't touch status/lock/used fields, so it
+  // works the same on Unused and Used rows (see the "🏷️ Tag" button in
+  // renderControlNos below). Passing an empty string removes the tag field
+  // entirely instead of storing "".
+  window.fsTagControlNo = async function(controlNo, tagText){
+    const trimmed = (tagText || '').trim();
+    await setDoc(doc(db, "reservedControlNos", String(controlNo)), {
+      tag: trimmed === '' ? deleteField() : trimmed
+    }, { merge: true });
   };
 
   // ---- Admin-only auth guard ----
@@ -2235,7 +2617,7 @@
   async function deleteEntry(id){
     const entry = allEntries.find(e=>e.id === id);
     const label = entry ? (entry.controlNo || id) : id;
-    const ok = confirm('Are you sure you want to delete entry #' + label + '? This cannot be undone.');
+    const ok = await showAppConfirm('Are you sure you want to delete entry #' + label + '? This cannot be undone.', {title:'Delete Entry', okLabel:'Delete', danger:true});
     if(!ok) return;
     PDLoader.show();
     try{
@@ -2247,7 +2629,7 @@
       }
     }catch(e){
       console.error('Delete failed', e);
-      alert('Could not delete (' + (e.code || e.message) + ').');
+      await showAppAlert('Could not delete (' + (e.code || e.message) + ').', 'Delete Failed');
     }finally{
       PDLoader.hide();
     }
@@ -2607,7 +2989,7 @@
         applyPfAttachment(dataUrl);
       }catch(err){
         console.error('Attachment processing failed', err);
-        alert('Could not process the image. Please try a different photo.');
+        await showAppAlert('Could not process the image. Please try a different photo.', 'Photo Error');
       }finally{
         pfAttachmentBusy = false;
       }
@@ -2996,16 +3378,28 @@
     setTimeout(()=>{ pfRedirectOverlay.classList.remove('show','hide'); }, 250);
   }
 
+  const pageTitlesByTab = {
+    entries: 'IT Admin Console — Peripherals Entries',
+    calendar: 'IT Admin Console — Calendar',
+    register: 'IT Admin Console — Register Employee',
+    peripheralForm: 'IT Admin Console — Peripheral Form',
+    controlNos: 'IT Admin Console — Control Numbers',
+    dangerZone: 'IT Admin Console — Danger Zone'
+  };
+  const pageTitleEl = document.getElementById('pageTitle');
+
   function switchTab(tab){
     Object.keys(sectionsByTab).forEach(key=>{
       sectionsByTab[key].style.display = (key === tab) ? 'block' : 'none';
       btnsByTab[key].classList.toggle('active', key === tab);
     });
+    if(pageTitleEl && pageTitlesByTab[tab]) pageTitleEl.textContent = pageTitlesByTab[tab];
     if(tab === 'register') startEmployeeListener();
     if(tab === 'calendar') renderCalendar();
     if(tab === 'peripheralForm') loadPeripheralFormEditor();
     if(tab === 'controlNos') startControlNosListener();
     if(tab === 'dangerZone') refreshDangerZoneSummary();
+    closeSidebar();
   }
 
   tabEntriesBtn.addEventListener('click', ()=> switchTab('entries'));
@@ -3014,6 +3408,23 @@
   tabPeripheralFormBtn.addEventListener('click', ()=> switchTab('peripheralForm'));
   tabControlNosBtn.addEventListener('click', ()=> switchTab('controlNos'));
   tabDangerZoneBtn.addEventListener('click', ()=> switchTab('dangerZone'));
+
+  // ---- Sidebar: mobile open/close drawer ----
+  const appSidebar = document.getElementById('appSidebar');
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+  const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+  const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+  function openSidebar(){
+    appSidebar.classList.add('open');
+    sidebarBackdrop.classList.add('show');
+  }
+  function closeSidebar(){
+    appSidebar.classList.remove('open');
+    sidebarBackdrop.classList.remove('show');
+  }
+  if(sidebarToggleBtn) sidebarToggleBtn.addEventListener('click', openSidebar);
+  if(sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', closeSidebar);
+  if(sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeSidebar);
 
   // ---- Danger Zone: Delete All Data ----
   // Wipes every collection that isn't the Employee accounts list: Entries,
@@ -3116,6 +3527,75 @@
       pfAnotherNoBtn.addEventListener('click', onNo);
       pfAnotherCloseBtn.addEventListener('click', onNo);
       pfAnotherModalOverlay.addEventListener('click', onOverlayClick);
+    });
+  }
+
+  // Generic styled replacements for window.alert()/window.confirm(), used
+  // everywhere in this file instead of the native browser dialogs (which
+  // show as "planetdrugstore-peripher-....web.app says" and can't be
+  // restyled). Both share the appNoticeModalOverlay markup above.
+  const appNoticeModalOverlay = document.getElementById('appNoticeModalOverlay');
+  const appNoticeModalTitle = document.getElementById('appNoticeModalTitle');
+  const appNoticeModalMsg = document.getElementById('appNoticeModalMsg');
+  const appNoticeCancelBtn = document.getElementById('appNoticeCancelBtn');
+  const appNoticeOkBtn = document.getElementById('appNoticeOkBtn');
+  const appNoticeCloseBtn = document.getElementById('appNoticeCloseBtn');
+
+  // Replacement for window.alert(message). Single "OK" button (Cancel is
+  // hidden); resolves with no value once dismissed, by any means.
+  function showAppAlert(message, title){
+    return new Promise((resolve)=>{
+      appNoticeModalTitle.textContent = title || 'Notice';
+      appNoticeModalMsg.textContent = message;
+      appNoticeCancelBtn.style.display = 'none';
+      appNoticeOkBtn.textContent = 'OK';
+      appNoticeOkBtn.className = 'btn';
+      appNoticeModalOverlay.classList.add('open');
+      function cleanup(){
+        appNoticeModalOverlay.classList.remove('open');
+        appNoticeCancelBtn.style.display = '';
+        appNoticeOkBtn.removeEventListener('click', onOk);
+        appNoticeCloseBtn.removeEventListener('click', onOk);
+        appNoticeModalOverlay.removeEventListener('click', onOverlayClick);
+        resolve();
+      }
+      function onOk(){ cleanup(); }
+      function onOverlayClick(e){ if(e.target === appNoticeModalOverlay) cleanup(); }
+      appNoticeOkBtn.addEventListener('click', onOk);
+      appNoticeCloseBtn.addEventListener('click', onOk);
+      appNoticeModalOverlay.addEventListener('click', onOverlayClick);
+    });
+  }
+
+  // Replacement for window.confirm(message). Cancel + Confirm buttons;
+  // resolves true only when Confirm is clicked — Cancel, the × button, or
+  // clicking outside the modal all resolve false, matching confirm()'s
+  // own semantics. opts: {title, okLabel, cancelLabel, danger}.
+  function showAppConfirm(message, opts){
+    opts = opts || {};
+    return new Promise((resolve)=>{
+      appNoticeModalTitle.textContent = opts.title || 'Please Confirm';
+      appNoticeModalMsg.textContent = message;
+      appNoticeCancelBtn.style.display = '';
+      appNoticeCancelBtn.textContent = opts.cancelLabel || 'Cancel';
+      appNoticeOkBtn.textContent = opts.okLabel || 'Confirm';
+      appNoticeOkBtn.className = opts.danger ? 'btn red' : 'btn';
+      appNoticeModalOverlay.classList.add('open');
+      function cleanup(result){
+        appNoticeModalOverlay.classList.remove('open');
+        appNoticeOkBtn.removeEventListener('click', onYes);
+        appNoticeCancelBtn.removeEventListener('click', onNo);
+        appNoticeCloseBtn.removeEventListener('click', onNo);
+        appNoticeModalOverlay.removeEventListener('click', onOverlayClick);
+        resolve(result);
+      }
+      function onYes(){ cleanup(true); }
+      function onNo(){ cleanup(false); }
+      function onOverlayClick(e){ if(e.target === appNoticeModalOverlay) cleanup(false); }
+      appNoticeOkBtn.addEventListener('click', onYes);
+      appNoticeCancelBtn.addEventListener('click', onNo);
+      appNoticeCloseBtn.addEventListener('click', onNo);
+      appNoticeModalOverlay.addEventListener('click', onOverlayClick);
     });
   }
 
@@ -3365,6 +3845,8 @@
       team: document.getElementById('pfTeam').value,
       preparedTime: document.getElementById('pfPreparedTime').value,
       usableDate: document.getElementById('pfUsableDate').value,
+      spm1: document.getElementById('pfSpm1').value,
+      spm2: document.getElementById('pfSpm2').value,
       beforeAttachment: pfBeforeAttachment,
       preparedSignature: pfPreparedSignature
     };
@@ -3383,6 +3865,8 @@
     document.getElementById('pfTeam').value = row.team || 'Information Technology (IT)';
     document.getElementById('pfPreparedTime').value = parse12hTime(row.preparedTime);
     document.getElementById('pfUsableDate').value = row.usableDate || '';
+    document.getElementById('pfSpm1').value = row.spm1 || '';
+    document.getElementById('pfSpm2').value = row.spm2 || '';
     applyPfAttachment(row.beforeAttachment || '');
     restorePfSignature(row.preparedSignature || '', row.preparedBy || '');
 
@@ -3414,6 +3898,8 @@
       document.getElementById('pfTeam').value = snap.team;
       document.getElementById('pfPreparedTime').value = snap.preparedTime;
       document.getElementById('pfUsableDate').value = snap.usableDate || '';
+      document.getElementById('pfSpm1').value = snap.spm1 || '';
+      document.getElementById('pfSpm2').value = snap.spm2 || '';
       applyPfAttachment(snap.beforeAttachment);
       restorePfSignature(snap.preparedSignature, snap.preparedBy);
     }
@@ -3427,8 +3913,8 @@
     renderPfItems();
   });
 
-  document.getElementById('pfRestoreDefaultsBtn').addEventListener('click', ()=>{
-    if(!confirm('Replace the current item list with the built-in default bracketed list? Any unsaved changes here will be lost — this only takes effect once you click "Update Peripheral Form / Generate Control No." below.')) return;
+  document.getElementById('pfRestoreDefaultsBtn').addEventListener('click', async ()=>{
+    if(!(await showAppConfirm('Replace the current item list with the built-in default bracketed list? Any unsaved changes here will be lost — this only takes effect once you click "Update Peripheral Form / Generate Control No." below.', {title:'Restore Default Items', okLabel:'Replace'}))) return;
     pfItems = PF_FALLBACK_ITEMS.map(t => ({...t, locked:true}));
     pfSaveMsg.textContent = '';
     pfSaveMsg.className = 'pf-save-msg';
@@ -3612,6 +4098,8 @@
         document.getElementById('pfPreparedBy').value = '';
         document.getElementById('pfPreparedTime').value = '';
         document.getElementById('pfUsableDate').value = '';
+        document.getElementById('pfSpm1').value = '';
+        document.getElementById('pfSpm2').value = '';
         applyPfAttachment('');
         document.getElementById('pfPreparedSigCanvas').getContext('2d').clearRect(0, 0, 280, 90);
         pfPreparedSignature = '';
@@ -3635,6 +4123,32 @@
       btn.textContent = 'Copied!';
       setTimeout(()=>{ btn.textContent = original; }, 1500);
     }).catch(()=>{});
+  });
+
+  // "🏷️ Make a Tag" — sits beside "Update Peripheral Form / Generate
+  // Control No.". Opens the same Mission Tag preview modal as the 🏷️ Tag
+  // button on a Control No. row (see openMissionTagModal above), but reads
+  // the Control No. straight off this form instead of a row's data-*
+  // attributes: pfEditingControlNo when editing an existing reservation, or
+  // the just-generated cnResultNumber right after a save. Venue, Usable
+  // Date, and Event Type also come from the form fields as currently
+  // filled in. If neither is available yet (nothing saved/generated this
+  // visit), nudges the admin to generate a Control No. first instead of
+  // opening the modal with a blank CN.
+  document.getElementById('pfMakeTagBtn').addEventListener('click', async ()=>{
+    const cnResultBox = document.getElementById('cnResultBox');
+    const cn = pfEditingControlNo
+      || (cnResultBox.style.display !== 'none' ? document.getElementById('cnResultNumber').textContent.trim() : '');
+    if(!cn){
+      await showAppAlert('Generate or open a Control No. first — click "Update Peripheral Form / Generate Control No." above, then "Make a Tag".', 'Notice');
+      return;
+    }
+    const venue = document.getElementById('pfVenue').value || '';
+    const usableDate = document.getElementById('pfUsableDate').value || '';
+    const mmType = document.getElementById('pfEvPeoples').checked ? 'pd' : 'mm';
+    const spm1 = document.getElementById('pfSpm1').value || '';
+    const spm2 = document.getElementById('pfSpm2').value || '';
+    openMissionTagModal(cn, venue, usableDate, mmType, spm1, spm2);
   });
 
   // ---- Control Numbers (history log) ----
@@ -3739,13 +4253,14 @@
       unusedEmpty.style.display = 'none';
       unusedBody.innerHTML = unused.map(r => `
         <tr>
-          <td class="cn-mono">${escapeHtml(r.id)}${r.usableDate ? '<br><span style="font-weight:400;font-size:11px;color:var(--muted);">Usable: ' + escapeHtml(fmtIsoDateDisplay(r.usableDate)) + '</span>' : ''}</td>
+          <td class="cn-mono">${escapeHtml(r.id)}${r.usableDate ? '<br><span style="font-weight:400;font-size:11px;color:var(--muted);">Usable: ' + escapeHtml(fmtIsoDateDisplay(r.usableDate)) + '</span>' : ''}${r.tag ? '<br><span class="cn-tag-label">🏷️ ' + escapeHtml(r.tag) + '</span>' : ''}</td>
           <td>${escapeHtml(r.venue || '—')}</td>
           <td>${escapeHtml(fmtCnTimestamp(r.generatedAt))}</td>
           <td>
             <div class="cn-actions">
               <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
               <button type="button" class="cn-edit-btn" data-cn="${escapeAttr(r.id)}">✏️ Edit</button>
+              <button type="button" class="cn-tag-btn${r.tag ? ' has-tag' : ''}" data-cn="${escapeAttr(r.id)}" data-tag="${escapeAttr(r.tag || '')}" data-venue="${escapeAttr(r.venue || '')}" data-usable-date="${escapeAttr(r.usableDate || '')}" data-mm="${escapeAttr((r.eventType && r.eventType.peoplesDay) ? 'pd' : 'mm')}" data-spm1="${escapeAttr(r.spm1 || '')}" data-spm2="${escapeAttr(r.spm2 || '')}">🏷️ Tag</button>
               <button type="button" class="cn-cancel-btn" data-cn="${escapeAttr(r.id)}">🚫 Cancel</button>
               <button type="button" class="cn-delete-btn" data-cn="${escapeAttr(r.id)}">🗑️ Delete</button>
             </div>
@@ -3787,7 +4302,7 @@
       usedEmpty.style.display = 'none';
       usedBody.innerHTML = used.map(r => `
         <tr>
-          <td class="cn-mono">${escapeHtml(r.id)}</td>
+          <td class="cn-mono">${escapeHtml(r.id)}${r.tag ? '<br><span class="cn-tag-label">🏷️ ' + escapeHtml(r.tag) + '</span>' : ''}</td>
           <td>${escapeHtml(r.venue || '—')}</td>
           <td>${escapeHtml(fmtCnTimestamp(r.generatedAt))}</td>
           <td>${escapeHtml(fmtCnTimestamp(r.usedAt))}</td>
@@ -3796,6 +4311,7 @@
             <div class="cn-actions">
               <button type="button" class="cn-copy-btn" data-cn="${escapeAttr(r.id)}">Copy</button>
               <button type="button" class="cn-edit-btn" disabled title="Already used — no longer editable">🔒 Locked</button>
+              <button type="button" class="cn-tag-btn${r.tag ? ' has-tag' : ''}" data-cn="${escapeAttr(r.id)}" data-tag="${escapeAttr(r.tag || '')}" data-venue="${escapeAttr(r.venue || '')}" data-usable-date="${escapeAttr(r.usableDate || '')}" data-mm="${escapeAttr((r.eventType && r.eventType.peoplesDay) ? 'pd' : 'mm')}" data-spm1="${escapeAttr(r.spm1 || '')}" data-spm2="${escapeAttr(r.spm2 || '')}">🏷️ Tag</button>
               <button type="button" class="cn-cancel-btn" data-cn="${escapeAttr(r.id)}">🚫 Cancel</button>
               <button type="button" class="cn-delete-btn" data-cn="${escapeAttr(r.id)}">🗑️ Delete</button>
             </div>
@@ -3854,11 +4370,11 @@
         // ones), so there's nothing to bypass or unlock on that side.
         const row = allControlNos.find(r => r.id === cn);
         if(!row){
-          alert('Could not find this Control No. — try refreshing the list.');
+          await showAppAlert('Could not find this Control No. — try refreshing the list.', 'Not Found');
           return;
         }
         if(row.status === 'used'){
-          alert('This Control No. is already used and can no longer be edited.');
+          await showAppAlert('This Control No. is already used and can no longer be edited.', 'Notice');
           return;
         }
         await showPfRedirectOverlay();
@@ -3874,24 +4390,24 @@
     // Cancelled Control Numbers list below. Re-confirms the admin's
     // password first, same gate used for every other write on this tab.
     document.getElementById('controlNosSection').querySelectorAll('.cn-cancel-btn[data-cn]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
+      btn.addEventListener('click', async ()=>{
         const cn = btn.getAttribute('data-cn');
         const row = allControlNos.find(r => r.id === cn);
         if(!row){
-          alert('Could not find this Control No. — try refreshing the list.');
+          await showAppAlert('Could not find this Control No. — try refreshing the list.', 'Not Found');
           return;
         }
-        if(!confirm(`Cancel Control No. ${cn}? It will be locked and moved to the Cancelled list until restored.`)) return;
+        if(!(await showAppConfirm(`Cancel Control No. ${cn}? It will be locked and moved to the Cancelled list until restored.`, {title:'Cancel Control No.', okLabel:'Cancel Control No.'}))) return;
         openPwConfirmModal(async ()=>{
           PDLoader.show();
           try{
             await window.fsCancelControlNo(cn, (auth.currentUser && auth.currentUser.email) || window.currentAdminEmail || '');
           }catch(e){
             if(e && e.code === 'already-cancelled'){
-              alert('This Control No. was already cancelled.');
+              await showAppAlert('This Control No. was already cancelled.', 'Notice');
             }else{
               console.error('Cancel Control No. failed', e);
-              alert('Could not cancel this Control No. Please try again.');
+              await showAppAlert('Could not cancel this Control No. Please try again.', 'Error');
             }
           }finally{
             PDLoader.hide();
@@ -3905,24 +4421,24 @@
     // clearing any old "used" claim info so it's a clean, reusable
     // number again.
     document.getElementById('controlNosSection').querySelectorAll('.cn-restore-btn[data-cn]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
+      btn.addEventListener('click', async ()=>{
         const cn = btn.getAttribute('data-cn');
         const row = allControlNos.find(r => r.id === cn);
         if(!row){
-          alert('Could not find this Control No. — try refreshing the list.');
+          await showAppAlert('Could not find this Control No. — try refreshing the list.', 'Not Found');
           return;
         }
-        if(!confirm(`Restore Control No. ${cn}? It will move back to Unused and be usable again.`)) return;
+        if(!(await showAppConfirm(`Restore Control No. ${cn}? It will move back to Unused and be usable again.`, {title:'Restore Control No.', okLabel:'Restore'}))) return;
         openPwConfirmModal(async ()=>{
           PDLoader.show();
           try{
             await window.fsRestoreControlNo(cn);
           }catch(e){
             if(e && e.code === 'not-cancelled'){
-              alert('This Control No. is no longer cancelled.');
+              await showAppAlert('This Control No. is no longer cancelled.', 'Notice');
             }else{
               console.error('Restore Control No. failed', e);
-              alert('Could not restore this Control No. Please try again.');
+              await showAppAlert('Could not restore this Control No. Please try again.', 'Error');
             }
           }finally{
             PDLoader.hide();
@@ -3936,24 +4452,24 @@
     // generatedAt, so it isn't immediately re-locked by the next
     // scheduled run — see fsRestoreLockedControlNo above.
     document.getElementById('controlNosSection').querySelectorAll('.cn-restore-locked-btn[data-cn]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
+      btn.addEventListener('click', async ()=>{
         const cn = btn.getAttribute('data-cn');
         const row = allControlNos.find(r => r.id === cn);
         if(!row){
-          alert('Could not find this Control No. — try refreshing the list.');
+          await showAppAlert('Could not find this Control No. — try refreshing the list.', 'Not Found');
           return;
         }
-        if(!confirm(`Restore Control No. ${cn}? It will move back to Unused and be usable again.`)) return;
+        if(!(await showAppConfirm(`Restore Control No. ${cn}? It will move back to Unused and be usable again.`, {title:'Restore Control No.', okLabel:'Restore'}))) return;
         openPwConfirmModal(async ()=>{
           PDLoader.show();
           try{
             await window.fsRestoreLockedControlNo(cn);
           }catch(e){
             if(e && e.code === 'not-locked'){
-              alert('This Control No. is no longer locked.');
+              await showAppAlert('This Control No. is no longer locked.', 'Notice');
             }else{
               console.error('Restore Control No. failed', e);
-              alert('Could not restore this Control No. Please try again.');
+              await showAppAlert('Could not restore this Control No. Please try again.', 'Error');
             }
           }finally{
             PDLoader.hide();
@@ -3961,27 +4477,44 @@
         }, `restore Control No. ${cn}`);
       });
     });
+    // "Tag" — available on Unused and Used rows. Opens the Mission Tag
+    // preview modal (see openMissionTagModal below): Venue and Control No.
+    // come straight from this row, the admin just picks North/South and
+    // fills in the two SPM codes + date. Preview-only — nothing here is
+    // saved back to Firestore.
+    document.getElementById('controlNosSection').querySelectorAll('.cn-tag-btn[data-cn]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const cn = btn.getAttribute('data-cn');
+        const venue = btn.getAttribute('data-venue') || '';
+        const usableDate = btn.getAttribute('data-usable-date') || '';
+        const mmType = btn.getAttribute('data-mm') || 'mm';
+        const spm1 = btn.getAttribute('data-spm1') || '';
+        const spm2 = btn.getAttribute('data-spm2') || '';
+        openMissionTagModal(cn, venue, usableDate, mmType, spm1, spm2);
+      });
+    });
+
     // "Delete" — available on Unused and Used rows. Unlike Cancel, this
     // permanently removes the reservedControlNos doc (see fsDeleteControlNo
     // above) — it will no longer appear anywhere, including the Cancelled
-    // list. Confirms twice: a plain confirm() spelling out that this can't
+    // list. Confirms twice: a styled modal spelling out that this can't
     // be undone, then the usual admin password re-check.
     document.getElementById('controlNosSection').querySelectorAll('.cn-delete-btn[data-cn]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
+      btn.addEventListener('click', async ()=>{
         const cn = btn.getAttribute('data-cn');
         const row = allControlNos.find(r => r.id === cn);
         if(!row){
-          alert('Could not find this Control No. — try refreshing the list.');
+          await showAppAlert('Could not find this Control No. — try refreshing the list.', 'Not Found');
           return;
         }
-        if(!confirm(`Permanently delete Control No. ${cn}? This cannot be undone — it will not appear in the Cancelled list either.`)) return;
+        if(!(await showAppConfirm(`Permanently delete Control No. ${cn}? This cannot be undone — it will not appear in the Cancelled list either.`, {title:'Permanently Delete', okLabel:'Delete Permanently', danger:true}))) return;
         openPwConfirmModal(async ()=>{
           PDLoader.show();
           try{
             await window.fsDeleteControlNo(cn);
           }catch(e){
             console.error('Delete Control No. failed', e);
-            alert('Could not delete this Control No. Please try again.');
+            await showAppAlert('Could not delete this Control No. Please try again.', 'Error');
           }finally{
             PDLoader.hide();
           }
@@ -4217,7 +4750,7 @@
     if(!btn) return;
     const uid = btn.dataset.delEmp;
     const name = btn.dataset.empName || 'this employee';
-    if(!confirm(`Delete the account for ${name}? They will no longer be able to sign in. Peripherals forms they already filled up will keep their name on record.`)){
+    if(!(await showAppConfirm(`Delete the account for ${name}? They will no longer be able to sign in. Peripherals forms they already filled up will keep their name on record.`, {title:'Delete Account', okLabel:'Delete', danger:true}))){
       return;
     }
     btn.disabled = true;
@@ -4226,7 +4759,7 @@
     try{
       await deleteDoc(doc(db, 'employees', uid));
     }catch(err){
-      alert('Could not delete the account (' + (err.code || err.message) + ').');
+      await showAppAlert('Could not delete the account (' + (err.code || err.message) + ').', 'Delete Failed');
       btn.disabled = false;
       btn.textContent = 'Delete';
     }finally{
@@ -4260,6 +4793,147 @@
     pwModalOverlay.classList.remove('open');
     pwModalDocId = null;
   }
+
+  // ---- Mission Tag modal (preview-only) ----
+  // Opened from the 🏷️ Tag button on a Control No. row. Venue and Control
+  // No. are read-only, filled in from that row's data. The admin picks
+  // North (orange) or South (green) and types the two SPM codes + date;
+  // the preview card below updates live. Nothing here writes to Firestore.
+  const mmModalOverlay = document.getElementById('mmModalOverlay');
+  const mmVenueInput = document.getElementById('mmVenueInput');
+  const mmCnInput = document.getElementById('mmCnInput');
+  const mmSpm1Input = document.getElementById('mmSpm1Input');
+  const mmSpm2Input = document.getElementById('mmSpm2Input');
+  const mmDateInput = document.getElementById('mmDateInput');
+  const mmBranchNorthBtn = document.getElementById('mmBranchNorthBtn');
+  const mmBranchSouthBtn = document.getElementById('mmBranchSouthBtn');
+  const mmPreview = document.getElementById('mmPreview');
+  const mmPreviewTitle = document.getElementById('mmPreviewTitle');
+  const mmPreviewVenue = document.getElementById('mmPreviewVenue');
+  const mmPreviewSpm = document.getElementById('mmPreviewSpm');
+  const mmPreviewDate = document.getElementById('mmPreviewDate');
+  const mmPreviewCn = document.getElementById('mmPreviewCn');
+  const mmPreviewSub = document.getElementById('mmPreviewSub');
+  let mmBranch = 'north';
+
+  function todayIsoDate(){
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${mm}-${dd}`;
+  }
+
+  // Formats a YYYY-MM-DD input value into "MONTH D, YYYY" for the preview
+  // (parsed manually, same reasoning as fmtIsoDateDisplay above — avoids a
+  // local-timezone off-by-one-day shift from `new Date(iso)`).
+  function fmtMissionDate(iso){
+    if(!iso) return '—';
+    const parts = String(iso).split('-');
+    if(parts.length !== 3) return iso;
+    const [y, m, d] = parts;
+    const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+    const mi = parseInt(m, 10) - 1;
+    return (months[mi] || m) + ' ' + parseInt(d, 10) + ', ' + y;
+  }
+
+  function setMmBranch(branch){
+    mmBranch = branch;
+    mmBranchNorthBtn.classList.toggle('active', branch === 'north');
+    mmBranchSouthBtn.classList.toggle('active', branch === 'south');
+    mmPreview.classList.toggle('branch-north', branch === 'north');
+    mmPreview.classList.toggle('branch-south', branch === 'south');
+    mmPreviewTitle.textContent = branch === 'north' ? 'NORTH' : 'SOUTH';
+  }
+
+  // Admin only types the number now (e.g. "213") — this always prepends
+  // "SPM " for the preview, and also strips a leading "SPM" if someone
+  // types it out of habit, so the preview never shows "SPM SPM 213".
+  function formatSpm(raw){
+    const v = raw.trim();
+    if(!v) return 'SPM —';
+    const cleaned = v.replace(/^spm\s*/i, '').trim();
+    return cleaned ? 'SPM ' + cleaned : 'SPM —';
+  }
+
+  function updateMmPreview(){
+    mmPreviewVenue.textContent = mmVenueInput.value.trim() || '—';
+    mmPreviewSpm.textContent = formatSpm(mmSpm1Input.value) + ' | ' + formatSpm(mmSpm2Input.value);
+    mmPreviewDate.textContent = fmtMissionDate(mmDateInput.value);
+    mmPreviewCn.textContent = 'CN: ' + (mmCnInput.value.trim() || '—');
+  }
+
+  function openMissionTagModal(cn, venue, usableDate, mmType, spm1, spm2){
+    document.getElementById('mmModalCnLabel').textContent = cn;
+    mmCnInput.value = cn;
+    mmVenueInput.value = (venue || '').toUpperCase();
+    mmSpm1Input.value = spm1 || '';
+    mmSpm2Input.value = spm2 || '';
+    // Auto-fill from this Control No.'s Usable Date; fall back to today
+    // only if that row has no usable date saved on it.
+    mmDateInput.value = usableDate || todayIsoDate();
+    // Subtitle reflects whichever Event Type was picked on the Peripheral
+    // Form for this Control No. (Medical Mission or People's Day).
+    mmPreviewSub.textContent = mmType === 'pd' ? "PEOPLE'S DAY" : 'MEDICAL MISSION';
+    setMmBranch('north');
+    updateMmPreview();
+    mmModalOverlay.classList.add('open');
+  }
+
+  function closeMissionTagModal(){
+    mmModalOverlay.classList.remove('open');
+  }
+
+  mmBranchNorthBtn.addEventListener('click', ()=>{ setMmBranch('north'); updateMmPreview(); });
+  mmBranchSouthBtn.addEventListener('click', ()=>{ setMmBranch('south'); updateMmPreview(); });
+  [mmSpm1Input, mmSpm2Input, mmDateInput].forEach(el=>{
+    el.addEventListener('input', updateMmPreview);
+  });
+  document.getElementById('mmModalCloseBtn').addEventListener('click', closeMissionTagModal);
+  document.getElementById('mmModalCloseFootBtn').addEventListener('click', closeMissionTagModal);
+  mmModalOverlay.addEventListener('click', (e)=>{ if(e.target === mmModalOverlay) closeMissionTagModal(); });
+
+  // ---- Mission Tag: Print ----
+  // Opens a small popup window containing just the preview card (re-styled
+  // standalone, since it's a popup with no access to the admin console's
+  // full stylesheet) and triggers the browser's print dialog on it. The
+  // popup closes itself right after printing/cancelling.
+  async function printMissionTag(){
+    const isNorth = mmPreview.classList.contains('branch-north');
+    const accent = isNorth ? '#E36414' : '#2E7D32';
+    const spmBorder = isNorth ? '#E36414' : '#7BC97F';
+    const w = window.open('', '_blank', 'width=460,height=640');
+    if(!w){ await showAppAlert('Please allow pop-ups to print the Mission Tag.', 'Pop-up Blocked'); return; }
+    w.document.write(`<!doctype html><html><head><title>Mission Tag — ${escapeHtml(mmCnInput.value)}</title>
+<meta charset="utf-8">
+<style>
+  @page{ margin:20px; }
+  body{ font-family:'Plus Jakarta Sans',Arial,sans-serif; margin:0; padding:24px; display:flex; justify-content:center; }
+  .mm-preview{ width:320px; background:#fff; border:2px solid #222; border-radius:6px; padding:26px 20px; text-align:center; }
+  .mm-preview-title{ font-size:34px; font-weight:800; letter-spacing:1px; display:inline-block; border-bottom:3px solid ${accent}; padding-bottom:4px; margin-bottom:12px; color:${accent}; }
+  .mm-preview-sub{ font-size:18px; font-weight:800; letter-spacing:0.3px; margin-bottom:6px; color:${accent}; }
+  .mm-preview-venue{ font-size:15px; font-weight:800; line-height:1.4; margin-bottom:14px; color:${accent}; }
+  .mm-preview-spm{ display:inline-block; font-size:14.5px; font-weight:800; border-radius:20px; padding:7px 18px; margin-bottom:12px; color:${accent}; border:2px solid ${spmBorder}; }
+  .mm-preview-date{ font-size:13.5px; font-weight:700; color:${accent}; }
+  .mm-preview-cn{ font-size:12.5px; font-weight:700; margin-top:2px; color:${accent}; }
+</style></head><body>
+  <div class="mm-preview">
+    <div class="mm-preview-title">${escapeHtml(mmPreviewTitle.textContent)}</div>
+    <div class="mm-preview-sub">MEDICAL MISSION</div>
+    <div class="mm-preview-venue">${escapeHtml(mmPreviewVenue.textContent)}</div>
+    <div class="mm-preview-spm">${escapeHtml(mmPreviewSpm.textContent)}</div>
+    <div class="mm-preview-date">${escapeHtml(mmPreviewDate.textContent)}</div>
+    <div class="mm-preview-cn">${escapeHtml(mmPreviewCn.textContent)}</div>
+  </div>
+
+`);
+    w.document.close();
+    w.onload = function(){
+      w.focus();
+      w.print();
+    };
+    w.onafterprint = function(){ w.close(); };
+  }
+  document.getElementById('mmPrintBtn').addEventListener('click', printMissionTag);
 
   // ---- Control No. containers: maximize/minimize (collapse) ----
   // Lets the admin fold away Unused/Used/Cancelled blocks they don't need

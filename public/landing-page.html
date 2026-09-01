@@ -333,7 +333,8 @@
   });
 
   // Planet orbit letters — spell PLANET while drifting around the logo,
-  // and snap into a single tilted Saturn-style ring on hover.
+  // and smoothly glide into a single tilted Saturn-style ring on hover
+  // (and glide back out again on mouseleave), instead of snapping there.
   (function initPlanetOrbit(){
     const stage = document.getElementById('planetStage');
     const orbitBack = document.getElementById('orbitBack');
@@ -355,7 +356,14 @@
       angle: (360 / n) * i
     }));
 
-    let ringMode = false;
+    // Last on-screen position/depth we actually rendered for each letter —
+    // kept current by applyLetterStyle(). This is what lets a transition
+    // start from wherever a letter really is right now (mid-drift, mid-ring,
+    // even mid-transition) instead of assuming it's already at some fixed
+    // spot.
+    const currentPos = letters.map(() => ({ x:0, y:0, scale:1, opacity:1 }));
+
+    let mode = 'drift'; // 'drift' | 'ring' | 'transitioning'
     let rafId = null;
     let ringAngle = 0;
     const ringOrder = [5, 4, 3, 2, 1, 0]; // indices of P,L,A,N,E,T in `letters`
@@ -363,15 +371,19 @@
     const ringFlatten = 0.42;   // thin tilted ellipse, like a Saturn ring
     const ringSpeed = 0.6;      // deg per frame while spinning
     const ringTilt = -20;       // tilt the ring's long axis, like the sketch
+    const TRANSITION_MS = 450;  // how long the glide into/out of ring form takes
 
-    // Position + depth (scale/opacity) + back/front layer swap in one place,
-    // shared by the free drift and the spinning ring.
-    function placeLetter(el, x, y, radius, flatten, extraRotateDeg){
-      const depth = y / (radius * flatten);            // -1 back .. +1 front
-      const scale = 0.8 + (depth + 1) / 2 * 0.3;         // 0.8 (back) -> 1.1 (front)
-      const opacity = 0.45 + (depth + 1) / 2 * 0.55;     // 0.45 (back) -> 1.0 (front)
-      const rot = extraRotateDeg ? ` rotate(${extraRotateDeg}deg)` : '';
-      el.style.transform = `translate(${x}px, ${y}px) scale(${scale})${rot}`;
+    function easeInOutCubic(t){
+      return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
+    }
+
+    // Applies position/depth/layer to a letter (by its index in `letters`)
+    // and remembers it in currentPos so a later transition can start from
+    // exactly here — shared by drift, the spinning ring, and the tween
+    // between them.
+    function applyLetterStyle(idx, x, y, scale, opacity){
+      const el = letters[idx];
+      el.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
       el.style.opacity = opacity;
 
       const wantFront = y >= 0;
@@ -380,16 +392,47 @@
       } else if(!wantFront && el.parentElement !== orbitBack){
         orbitBack.appendChild(el);
       }
+      currentPos[idx] = { x, y, scale, opacity };
+    }
+
+    // Where a letter belongs right now in the free drift orbit.
+    function driftTarget(cfg){
+      const rad = cfg.angle * Math.PI / 180;
+      const x = Math.cos(rad) * cfg.radius;
+      const y = Math.sin(rad) * cfg.radius * cfg.flatten;
+      const depth = y / (cfg.radius * cfg.flatten);
+      return {
+        x, y,
+        scale: 0.8 + (depth + 1) / 2 * 0.3,
+        opacity: 0.45 + (depth + 1) / 2 * 0.55
+      };
+    }
+
+    // Where a letter belongs right now in the spinning ring, given the
+    // ring's current rotation angle.
+    function ringTargetFor(letterIndex, angle){
+      const slot = ringOrder.indexOf(letterIndex);
+      const baseDeg = (360 / n) * slot;
+      const tiltRad = ringTilt * Math.PI / 180;
+      const rad = (baseDeg + angle + ringTilt) * Math.PI / 180;
+      const ex = Math.cos(rad) * ringRadius;
+      const ey = Math.sin(rad) * ringRadius * ringFlatten;
+      const x = ex * Math.cos(tiltRad) - ey * Math.sin(tiltRad);
+      const y = ex * Math.sin(tiltRad) + ey * Math.cos(tiltRad);
+      const depth = y / (ringRadius * ringFlatten);
+      return {
+        x, y,
+        scale: 0.8 + (depth + 1) / 2 * 0.3,
+        opacity: 0.45 + (depth + 1) / 2 * 0.55
+      };
     }
 
     function drift(){
-      if(ringMode) return;
-      orbitState.forEach(cfg => {
+      if(mode !== 'drift') return;
+      orbitState.forEach((cfg, i) => {
         cfg.angle += cfg.speed;
-        const rad = cfg.angle * Math.PI / 180;
-        const x = Math.cos(rad) * cfg.radius;
-        const y = Math.sin(rad) * cfg.radius * cfg.flatten;
-        placeLetter(cfg.el, x, y, cfg.radius, cfg.flatten);
+        const t = driftTarget(cfg);
+        applyLetterStyle(i, t.x, t.y, t.scale, t.opacity);
       });
       rafId = requestAnimationFrame(drift);
     }
@@ -398,40 +441,69 @@
     // tilted ellipse and keep spinning together, like a rotating ring
     // that dips behind the logo and swings back in front.
     function spinRing(){
-      if(!ringMode) return;
+      if(mode !== 'ring') return;
       ringAngle += ringSpeed;
-      const tiltRad = ringTilt * Math.PI / 180;
-      ringOrder.forEach((letterIndex, slot) => {
-        const baseDeg = (360 / n) * slot;
-        const rad = (baseDeg + ringAngle + ringTilt) * Math.PI / 180;
-        const ex = Math.cos(rad) * ringRadius;
-        const ey = Math.sin(rad) * ringRadius * ringFlatten;
-        // rotate around the tilt so the ellipse's long axis matches ringTilt
-        const x = ex * Math.cos(tiltRad) - ey * Math.sin(tiltRad);
-        const y = ex * Math.sin(tiltRad) + ey * Math.cos(tiltRad);
-        placeLetter(letters[letterIndex], x, y, ringRadius, ringFlatten);
+      ringOrder.forEach(letterIndex => {
+        const t = ringTargetFor(letterIndex, ringAngle);
+        applyLetterStyle(letterIndex, t.x, t.y, t.scale, t.opacity);
       });
       rafId = requestAnimationFrame(spinRing);
     }
 
-    function formRing(){
-      ringMode = true;
-      stage.classList.add('ringing');
+    // Smoothly glides every letter from wherever it currently sits to the
+    // spot `getTarget(i)` says it should end up, then hands off to
+    // `onDone` (which starts the continuous drift/ring loop). This is what
+    // makes the letters travel into place instead of teleporting there.
+    function transitionTo(getTarget, onDone){
+      mode = 'transitioning';
       if(rafId) cancelAnimationFrame(rafId);
-      spinRing();
+      const starts = letters.map((_, i) => Object.assign({}, currentPos[i]));
+      const startTime = performance.now();
+      function step(now){
+        const progress = Math.min(1, (now - startTime) / TRANSITION_MS);
+        const e = easeInOutCubic(progress);
+        letters.forEach((_, i) => {
+          const s = starts[i];
+          const target = getTarget(i);
+          applyLetterStyle(
+            i,
+            s.x + (target.x - s.x) * e,
+            s.y + (target.y - s.y) * e,
+            s.scale + (target.scale - s.scale) * e,
+            s.opacity + (target.opacity - s.opacity) * e
+          );
+        });
+        if(progress < 1){
+          rafId = requestAnimationFrame(step);
+        }else{
+          onDone();
+        }
+      }
+      rafId = requestAnimationFrame(step);
+    }
+
+    function formRing(){
+      if(mode === 'ring') return;
+      stage.classList.add('ringing');
+      transitionTo(
+        i => ringTargetFor(i, ringAngle),
+        () => { mode = 'ring'; spinRing(); }
+      );
     }
 
     function breakRing(){
-      ringMode = false;
+      if(mode === 'drift') return;
       stage.classList.remove('ringing');
-      letters.forEach(el => { el.style.transform = ''; el.style.opacity = ''; });
-      drift();
+      transitionTo(
+        i => driftTarget(orbitState[i]),
+        () => { mode = 'drift'; drift(); }
+      );
     }
 
     stage.addEventListener('mouseenter', formRing);
     stage.addEventListener('mouseleave', breakRing);
     stage.addEventListener('touchstart', () => {
-      ringMode ? breakRing() : formRing();
+      stage.classList.contains('ringing') ? breakRing() : formRing();
     }, { passive: true });
 
     drift();

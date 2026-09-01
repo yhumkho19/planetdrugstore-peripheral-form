@@ -10,20 +10,12 @@ service cloud.firestore {
     match /employees/{staffId} {
       allow get: if true;
       allow list: if isAdmin();
-
-      // Self-signup: no Firebase Auth session exists for employees, so this
-      // has to stay open — but guarded so it can only CREATE a brand-new
-      // Staff ID (can't overwrite someone else's existing account this way)
-      // and must include the expected fields.
       allow create: if !exists(/databases/$(database)/documents/employees/$(staffId))
                     && request.resource.data.staffId is string
                     && request.resource.data.name is string
                     && request.resource.data.email is string
                     && request.resource.data.department is string
                     && request.resource.data.passwordHash is string;
-
-      // Changing/deleting an account (Change Password modal, Delete Account
-      // button) stays Admin-only.
       allow update, delete: if isAdmin();
     }
 
@@ -51,6 +43,9 @@ service cloud.firestore {
     }
     match /preparers/{id} {
       allow read, write: if isAdmin();
+    }
+    match /eventSchedule/{docId} {
+      allow read, write: if true;
     }
   }
 }
