@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaderboard — Deployment Roster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F2EEE3;
+    --surface: #FFFDF8;
+    --surface-dim: #EAE2CC;
+    --ink: #211F1A;
+    --ink-muted: #6E6656;
+    --ink-faint: #A79E8A;
+    --border: #DBD2B9;
+    --south: #0F6E5C;
+    --south-soft: #DFEEE8;
+    --north: #B5560C;
+    --north-soft: #F5E5D0;
+    --other: #4B4A66;
+    --other-soft: #E7E6F0;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    background-image: radial-gradient(circle at 1px 1px, rgba(33,31,26,0.05) 1px, transparent 0);
+    background-size: 22px 22px;
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', Arial, sans-serif;
+    font-size: 14px;
+  }
+  body { padding: 28px clamp(16px, 4vw, 48px) 60px; }
+
+  .page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .page-head h1 {
+    font-family: 'Fraunces', serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: 30px;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .page-head p { margin: 0; color: var(--ink-muted); font-size: 13.5px; }
+
+  .back-link {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--ink);
+    padding: 9px 16px;
+    border: 1.5px solid var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
+    background: var(--surface);
+    transition: transform .08s ease, box-shadow .08s ease;
+    white-space: nowrap;
+  }
+  .back-link:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+
+  /* ---------- Leaderboard ---------- */
+  .leaderboard-wrap {
+    border: 1.5px solid var(--ink);
+    background: var(--surface);
+    padding: 20px 20px 24px;
+  }
+  .leaderboard-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: 0.01em;
+    margin: 0 0 4px;
+    text-transform: uppercase;
+  }
+  .leaderboard-sub { margin: 0 0 18px; color: var(--ink-muted); font-size: 12.5px; }
+  .leaderboard-empty { margin: 0; color: var(--ink-faint); font-size: 13.5px; font-style: italic; }
+
+  .podium {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .podium-card {
+    border: 1.5px solid var(--border);
+    background: var(--surface-dim);
+    padding: 16px 14px;
+    text-align: center;
+    position: relative;
+  }
+  .podium-card.place-1 { border-color: #C9A227; background: #FBF3D9; }
+  .podium-card.place-2 { border-color: #9AA0A6; background: #F0F1F2; }
+  .podium-card.place-3 { border-color: #B5651D; background: #F6E7DA; }
+  .podium-badge { font-size: 32px; line-height: 1; margin-bottom: 6px; }
+  .podium-name { font-weight: 600; font-size: 14.5px; margin-bottom: 8px; word-break: break-word; }
+  .podium-meta { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+  }
+  .tag-south { background: var(--south-soft); color: var(--south); }
+  .tag-north { background: var(--north-soft); color: var(--north); }
+  .tag-other { background: var(--other-soft); color: var(--other); }
+  .tag-role { background: var(--surface); color: var(--ink-muted); border-color: var(--border); }
+  .podium-count { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--ink-muted); }
+
+  .dept-boards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    padding-top: 18px;
+    border-top: 1.5px solid var(--border);
+  }
+  .dept-board-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+  .dept-list { list-style: none; margin: 0; padding: 0; }
+  .dept-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .dept-row:last-child { border-bottom: none; }
+  .dept-rank { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-faint); min-width: 20px; }
+  .dept-name { flex: 1; font-weight: 500; word-break: break-word; }
+  .dept-count { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-muted); }
+  .dept-empty { color: var(--ink-faint); font-size: 12.5px; font-style: italic; padding: 4px 0; }
+
+  .loading-note { color: var(--ink-faint); font-size: 13px; font-style: italic; }
+
+  @media (max-width: 460px) {
+    .podium { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+    .leaderboard-wrap { padding: 16px 14px 18px; }
+    .page-head { align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <div>
+    <h1>🏆 Leaderboard</h1>
+    <p>Most-participate employees — Medical &amp; Dental Mission, South &amp; North Caloocan</p>
+  </div>
+  <a class="back-link" href="event-schedule.html">← Back to Roster</a>
+</div>
+
+<div id="leaderboardSection">
+  <div class="leaderboard-wrap">
+    <p class="loading-note">Loading leaderboard…</p>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  initializeFirestore, doc, collection, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// Same Firebase project as event-schedule.html / admin-console.html, so the
+// leaderboard reflects the exact same live schedule + employee data.
+const firebaseConfig = {
+  apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
+  authDomain: "planetdrugstore-peripher-d24c0.firebaseapp.com",
+  projectId: "planetdrugstore-peripher-d24c0",
+  storageBucket: "planetdrugstore-peripher-d24c0.firebasestorage.app",
+  messagingSenderId: "115454971026",
+  appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = initializeFirestore(fbApp, {
+  experimentalForceLongPolling: true,
+  useFetchStreams: false
+});
+const scheduleDocRef = doc(db, "eventSchedule", "current");
+const employeesCollRef = collection(db, "employees");
+
+function escapeHtml(str) {
+  return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Splits a department string like "IT NORTH" or "Pharmacy Assistant SOUTH"
+// into { team: "IT", branch: "NORTH" }, same convention as admin-console.html.
+function splitDepartmentClient(dep) {
+  const raw = String(dep || "").trim();
+  const m = raw.match(/^(.*?)\s+(NORTH|SOUTH)$/i);
+  if (m) return { team: m[1].trim(), branch: m[2].toUpperCase() };
+  return { team: raw || "—", branch: "—" };
+}
+
+let employeesMap = new Map();
+let lastScheduleCards = [];
+
+// Maps a role-slot label (e.g. "IT SPECIALIST", "PHARMACIST", "BILLING")
+// to one of the leaderboard's three dept boards. This is what a person
+// actually signed up as for that slot, which can differ from their fixed
+// account department (e.g. a Pharmacy-department employee who volunteers
+// for an IT SPECIALIST slot should still show up on the IT board).
+function labelToTeam(label) {
+  const up = String(label || "").toUpperCase();
+  if (up.includes("IT")) return "IT";
+  if (up.includes("BILLING")) return "BILLING";
+  if (up === "PHARMACIST") return "PHARMACIST";
+  return "Pharmacy Assistant"; // PICKER, ENCODER, ENCODER/PICKER, etc.
+}
+
+// Counts, per staffId, how many role slots (across every site/date, both
+// branches) that person has personally signed themselves up for. Only
+// self-claimed slots count (slot.filledByStaffId) — names an admin typed in
+// manually don't have a staffId and aren't attributable to a participant.
+// Also tracks a per-team breakdown (based on the role label of each slot
+// actually filled) so the dept boards reflect what the person signed up
+// as, not just their registered account department.
+function computeParticipation(allCards) {
+  const counts = new Map();
+  const teamCounts = new Map(); // team -> Map(staffId -> { count, name })
+  (allCards || []).forEach(card => {
+    (card.staff || []).forEach(s => {
+      const sid = (s.filledByStaffId || "").trim();
+      if (!sid) return;
+      const key = sid.toLowerCase();
+
+      const entry = counts.get(key) || { count: 0, name: s.name || "" };
+      entry.count += 1;
+      if ((s.name || "").trim()) entry.name = s.name;
+      counts.set(key, entry);
+
+      const team = labelToTeam(s.label);
+      if (!teamCounts.has(team)) teamCounts.set(team, new Map());
+      const tMap = teamCounts.get(team);
+      const tEntry = tMap.get(key) || { count: 0, name: s.name || "" };
+      tEntry.count += 1;
+      if ((s.name || "").trim()) tEntry.name = s.name;
+      tMap.set(key, tEntry);
+    });
+  });
+  return { counts, teamCounts };
+}
+
+function leaderboardBranchTag(branch) {
+  const upper = String(branch || "").toUpperCase();
+  if (upper === "SOUTH") return `<span class="tag tag-south">South</span>`;
+  if (upper === "NORTH") return `<span class="tag tag-north">North</span>`;
+  return `<span class="tag tag-other">—</span>`;
+}
+
+function podiumCardHtml(row, place) {
+  const badge = place === 1 ? "🥇" : place === 2 ? "🥈" : "🥉";
+  return `
+    <div class="podium-card place-${place}">
+      <div class="podium-badge">${badge}</div>
+      <div class="podium-name">${escapeHtml(row.name)}</div>
+      <div class="podium-meta">
+        ${leaderboardBranchTag(row.branch)}
+        <span class="tag tag-role">${escapeHtml(row.team)}</span>
+      </div>
+      <div class="podium-count">${row.count} sign-up${row.count === 1 ? "" : "s"}</div>
+    </div>
+  `;
+}
+
+function deptBoardHtml(deptLabel, rows) {
+  const items = rows.length
+    ? rows.map((row, i) => `
+        <li class="dept-row">
+          <span class="dept-rank">#${i + 1}</span>
+          <span class="dept-name">${escapeHtml(row.name)}</span>
+          ${leaderboardBranchTag(row.branch)}
+          <span class="dept-count">${row.count}</span>
+        </li>
+      `).join("")
+    : `<li class="dept-empty">Wala pang data.</li>`;
+  return `
+    <div class="dept-board">
+      <div class="dept-board-title">${escapeHtml(deptLabel)}</div>
+      <ul class="dept-list">${items}</ul>
+    </div>
+  `;
+}
+
+function renderLeaderboard() {
+  const section = document.getElementById("leaderboardSection");
+  const { counts, teamCounts } = computeParticipation(lastScheduleCards);
+
+  function rowFor(staffId, info) {
+    const emp = employeesMap.get(staffId);
+    // Branch tag still comes from the employee's account (South/North
+    // Caloocan is a fixed attribute of the person, not of a single slot).
+    const { branch } = emp ? splitDepartmentClient(emp.department) : { branch: "—" };
+    return {
+      staffId,
+      name: (emp && emp.name) || info.name || staffId.toUpperCase(),
+      count: info.count,
+      branch
+    };
+  }
+
+  const rows = [...counts.entries()]
+    .map(([staffId, info]) => ({ ...rowFor(staffId, info), team: (() => {
+      const emp = employeesMap.get(staffId);
+      return emp ? splitDepartmentClient(emp.department).team : "—";
+    })() }))
+    .sort((a, b) => b.count - a.count);
+
+  if (!rows.length) {
+    section.innerHTML = `
+      <div class="leaderboard-wrap">
+        <h2 class="leaderboard-title">🏆 Most Participate Employee</h2>
+        <p class="leaderboard-empty">Wala pang sumasali. Maging una — mag sign up sa mga bakanteng slot sa Deployment Roster!</p>
+      </div>
+    `;
+    return;
+  }
+
+  const top3 = rows.slice(0, 3);
+  const podiumHtml = top3.map((row, i) => podiumCardHtml(row, i + 1)).join("");
+
+  // Dept boards: ranked by the slots each person actually signed up for
+  // under that role (via teamCounts), not by their fixed account department.
+  const DEPTS = ["IT", "BILLING", "PHARMACIST", "Pharmacy Assistant"];
+  const deptBoardsHtml = DEPTS.map(dept => {
+    const tMap = teamCounts.get(dept) || new Map();
+    const deptRows = [...tMap.entries()]
+      .map(([staffId, info]) => rowFor(staffId, info))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3);
+    return deptBoardHtml(dept, deptRows);
+  }).join("");
+
+  section.innerHTML = `
+    <div class="leaderboard-wrap">
+      <h2 class="leaderboard-title">🏆 Most Participate Employee</h2>
+      <p class="leaderboard-sub">Batay sa bilang ng slot na personal na sinign-up-an, South &amp; North Caloocan.</p>
+      <div class="podium">${podiumHtml}</div>
+      <div class="dept-boards">${deptBoardsHtml}</div>
+    </div>
+  `;
+}
+
+onSnapshot(employeesCollRef, snap => {
+  const map = new Map();
+  snap.forEach(d => map.set(d.id, d.data() || {}));
+  employeesMap = map;
+  renderLeaderboard();
+});
+
+onSnapshot(scheduleDocRef, snap => {
+  const data = snap.exists() ? snap.data() : { cards: [] };
+  lastScheduleCards = Array.isArray(data.cards) ? data.cards : [];
+  renderLeaderboard();
+});
+</script>
+</body>
+</html>

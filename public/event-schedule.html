@@ -149,11 +149,141 @@
 
   /* ---------- Grid ---------- */
   .grid {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin-top: 8px;
+  }
+  .bracket-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
     gap: 22px 18px;
-    margin-top: 8px;
   }
+
+  /* ---------- Date bracket (admin) ---------- */
+  .bracket-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .bracket-date {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+  }
+  .bracket-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-faint);
+    background: var(--surface-dim);
+    border: 1px solid var(--border);
+    padding: 3px 9px;
+    border-radius: 12px;
+  }
+  .bracket-add-btn {
+    font-size: 12px;
+    padding: 6px 12px;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .bracket-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .bracket-actions .btn {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  /* ---------- Date tabs (employee) ---------- */
+  .date-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+  .date-tab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-muted);
+  }
+  .date-tab:hover { border-color: var(--ink-faint); color: var(--ink); }
+  .date-tab.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .date-tab { display: inline-flex; align-items: center; gap: 7px; }
+  .date-tab.has-open:not(.active) { border-color: var(--danger); color: var(--danger); }
+  .tab-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    background: var(--danger-soft);
+    color: var(--danger);
+  }
+  .date-tab.active .tab-badge { background: rgba(255,255,255,0.18); color: #fff; }
+  .tab-badge.ok { background: var(--ok-soft); color: var(--ok); }
+  .date-tab.active .tab-badge.ok { background: rgba(255,255,255,0.18); color: #fff; }
+
+  .card-status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 3px 9px;
+    border-radius: 20px;
+    margin-left: auto;
+  }
+  .card-status.warn { background: var(--danger-soft); color: var(--danger); }
+  .card-status.ok { background: var(--ok-soft); color: var(--ok); }
+
+  .claim-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1.5px solid var(--south);
+    background: var(--south-soft);
+    color: var(--south);
+    cursor: pointer;
+  }
+  .claim-btn:hover { background: var(--south); color: #fff; }
+  .claim-btn:disabled { opacity: 0.6; cursor: default; }
+  .claim-btn.blocked {
+    border-color: var(--border);
+    background: var(--surface-dim);
+    color: var(--ink-faint);
+  }
+  .claim-btn.blocked:hover { background: var(--surface-dim); color: var(--ink-faint); }
+  .unclaim-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    color: var(--danger);
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 8px;
+  }
+  .unclaim-btn:disabled { opacity: 0.6; cursor: default; }
 
   /* ---------- Card ---------- */
   .site-card {
@@ -502,7 +632,10 @@
     .stats { width: 100%; justify-content: space-between; gap: 10px; }
     .toolbar { gap: 8px; }
     .toolbar .btn { flex: 1 1 auto; text-align: center; padding: 9px 10px; }
-    .grid { grid-template-columns: 1fr; margin-top: 6px; }
+    .grid { margin-top: 6px; }
+    .bracket-grid { grid-template-columns: 1fr; }
+    .bracket-head { gap: 8px; }
+    .bracket-add-btn { margin-left: 0; }
     .region-line { flex-wrap: wrap; padding-right: 30px; }
     .schedule-row { flex-direction: column; }
     .staff-row .role-label,
@@ -553,6 +686,131 @@
     color: var(--surface);
   }
   .modal-actions button.primary:hover { opacity: 0.88; }
+
+  /* ---------- Leaderboard (employee side) ---------- */
+  #leaderboardSection { display: none; }
+  .leaderboard-wrap {
+    margin-bottom: 22px;
+    border: 1.5px solid var(--ink);
+    background: var(--surface);
+    padding: 18px 18px 20px;
+  }
+  .leaderboard-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: 0.01em;
+    margin: 0 0 4px;
+    text-transform: uppercase;
+  }
+  .leaderboard-sub {
+    margin: 0 0 16px;
+    color: var(--ink-muted);
+    font-size: 12px;
+  }
+  .leaderboard-empty {
+    margin: 0;
+    color: var(--ink-faint);
+    font-size: 13px;
+    font-style: italic;
+  }
+  .podium {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .podium-card {
+    border: 1.5px solid var(--border);
+    background: var(--surface-dim);
+    padding: 14px 12px;
+    text-align: center;
+    position: relative;
+  }
+  .podium-card.place-1 { border-color: #C9A227; background: #FBF3D9; }
+  .podium-card.place-2 { border-color: #9AA0A6; background: #F0F1F2; }
+  .podium-card.place-3 { border-color: #B5651D; background: #F6E7DA; }
+  .podium-badge { font-size: 30px; line-height: 1; margin-bottom: 6px; }
+  .podium-name {
+    font-weight: 600;
+    font-size: 13.5px;
+    margin-bottom: 8px;
+    word-break: break-word;
+  }
+  .podium-meta {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+  }
+  .tag-south { background: var(--south-soft); color: var(--south); }
+  .tag-north { background: var(--north-soft); color: var(--north); }
+  .tag-other { background: var(--other-soft); color: var(--other); }
+  .tag-role { background: var(--surface); color: var(--ink-muted); border-color: var(--border); }
+  .podium-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+  }
+  .dept-boards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    padding-top: 16px;
+    border-top: 1.5px solid var(--border);
+  }
+  .dept-board-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+  .dept-list { list-style: none; margin: 0; padding: 0; }
+  .dept-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+  }
+  .dept-row:last-child { border-bottom: none; }
+  .dept-rank {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    min-width: 20px;
+  }
+  .dept-name { flex: 1; font-weight: 500; word-break: break-word; }
+  .dept-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+  }
+  .dept-empty {
+    color: var(--ink-faint);
+    font-size: 12px;
+    font-style: italic;
+    padding: 4px 0;
+  }
+  @media (max-width: 460px) {
+    .podium { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+    .leaderboard-wrap { padding: 14px 14px 16px; }
+  }
 </style>
 </head>
 <body>
@@ -583,7 +841,11 @@
       <span class="cap">Fully staffed</span>
     </div>
   </div>
+  <a class="btn" id="leaderboardBtn" href="leaderboard.html" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;">🏆 Leaderboard</a>
 </div>
+
+
+<div id="leaderboardSection"></div>
 
 <div class="region-filter" id="regionFilter">
   <button type="button" class="filter-btn active" data-filter="all">All</button>
@@ -592,8 +854,10 @@
 </div>
 
 <div class="toolbar">
-  <button class="btn primary" id="addCardBtn">+ Add site</button>
+  <button class="btn primary" id="addDateBtn">+ Add date event</button>
+  <button class="btn" id="addCardBtn">+ Add site</button>
   <button class="btn" id="saveBtn">Send</button>
+  <button class="btn" id="updateAllBtn">Update All</button>
   <button class="btn" id="printBtn">Print / Export PDF</button>
   <button class="btn danger-outline" id="resetBtn">Reset all</button>
 </div>
@@ -645,9 +909,39 @@ function showConfirm(message) {
   });
 }
 
+// Prompts for a single date, used to create a new date-event bracket (or
+// edit an existing one's date, when a different confirmBtnLabel is passed).
+// Resolves to the chosen ISO date string, or null if cancelled/empty.
+function showDatePrompt(message, defaultIso, confirmBtnLabel) {
+  return new Promise(resolve => {
+    appModalMessage.innerHTML = `
+      <div style="margin-bottom:14px;">${escapeHtml(message)}</div>
+      <input type="date" id="datePromptInput" value="${escapeAttr(defaultIso || "")}"
+        style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:14px;padding:9px 10px;border:1px solid var(--border);background:var(--surface-dim);color:var(--ink);">
+    `;
+    appModalActions.innerHTML = "";
+    const cancelBtn = document.createElement("button");
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.addEventListener("click", () => { closeModal(); resolve(null); });
+    const okBtn = document.createElement("button");
+    okBtn.className = "primary";
+    okBtn.textContent = confirmBtnLabel || "Create bracket";
+    okBtn.addEventListener("click", () => {
+      const input = document.getElementById("datePromptInput");
+      const val = input ? input.value : "";
+      closeModal();
+      resolve(val || null);
+    });
+    appModalActions.appendChild(cancelBtn);
+    appModalActions.appendChild(okBtn);
+    appModal.classList.add("open");
+    setTimeout(() => document.getElementById("datePromptInput") && document.getElementById("datePromptInput").focus(), 30);
+  });
+}
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  initializeFirestore, doc, setDoc, onSnapshot, serverTimestamp
+  initializeFirestore, doc, collection, setDoc, getDoc, onSnapshot, serverTimestamp, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Same Firebase project as employee-signup.html / landing-employee-page.html,
@@ -667,6 +961,10 @@ const db = initializeFirestore(fbApp, {
 });
 // Single shared doc that "Send" overwrites and employees read live.
 const scheduleDocRef = doc(db, "eventSchedule", "current");
+// Same "employees" collection admin-console.html registers accounts into
+// (doc id = staffId.toLowerCase(), fields include name/department), read
+// here only to resolve each participant's branch + team for the leaderboard.
+const employeesCollRef = collection(db, "employees");
 
 // The logged-in employee's session, expected to be set by employee-login.html
 // after a successful sign-in, shaped like:
@@ -717,7 +1015,7 @@ function blankCard() {
     mission: "medical",
     location: "",
     date: "",
-    time: "",
+    time: "7:00PM - ONWARDS",
     staff: ROLE_LABELS.map(label => ({ label, name: "" })),
     photo: null,
     photoName: ""
@@ -755,6 +1053,11 @@ function loadCards() {
 
 let cards = loadCards();
 let currentFilter = "all";
+// Which date bracket the logged-in employee currently has selected.
+let employeeSelectedDate = null;
+// Which date bracket the admin currently has open. undefined = not yet
+// chosen (defaults to the first/earliest bracket once render() runs).
+let adminSelectedDate;
 
 // Normalize any pre-existing entries to uppercase so old data matches the
 // new auto-uppercase behavior right away.
@@ -1008,19 +1311,169 @@ function updateStats() {
   document.getElementById("statReady").textContent = ready;
 }
 
+// Groups an array of {card, idx} entries into date brackets, sorted
+// chronologically with cards that have no date pushed to the end.
+function groupCardsByDate(items) {
+  const groups = new Map();
+  items.forEach(item => {
+    const key = item.card.date || "";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  });
+  const keys = [...groups.keys()].sort((a, b) => {
+    if (a === "" && b === "") return 0;
+    if (a === "") return 1;
+    if (b === "") return -1;
+    return a < b ? -1 : a > b ? 1 : 0;
+  });
+  return keys.map(key => ({ date: key, items: groups.get(key) }));
+}
+
+// Counts how many staff slots are still unfilled across a date bracket's
+// items. Works for both {card, idx} (admin) and {card} (employee) entries.
+function bracketOpenCount(items) {
+  let unfilled = 0;
+  items.forEach(({ card }) => {
+    unfilled += (card.staff || []).filter(s => !(s.name || "").trim()).length;
+  });
+  return unfilled;
+}
+
+// Recomputes one date tab's "X open"/"✓ full" badge in place, right after
+// a staff name is typed — so the count goes down the moment the field is
+// filled instead of waiting for the tab to be clicked again.
+function updateTabBadge(dateKey) {
+  const tab = document.querySelector(`.date-tabs .date-tab[data-datekey="${escapeAttr(dateKey || "")}"]`);
+  if (!tab) return;
+  const matching = cards.filter(c => (c.date || "") === (dateKey || ""));
+  const openCount = bracketOpenCount(matching.map(card => ({ card })));
+  tab.classList.toggle("has-open", openCount > 0);
+  const badge = tab.querySelector(".tab-badge");
+  if (badge) {
+    if (openCount > 0) {
+      badge.className = "tab-badge";
+      badge.textContent = `${openCount} open`;
+    } else {
+      badge.className = "tab-badge ok";
+      badge.textContent = "✓ full";
+    }
+  }
+}
+
 function render() {
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
 
+  const visible = [];
   cards.forEach((card, idx) => {
     if (currentFilter !== "all" && card.region !== currentFilter) return;
+    visible.push({ card, idx });
+  });
 
-    const cardEl = document.createElement("div");
-    cardEl.className = "site-card";
-    cardEl.dataset.region = card.region;
+  if (!visible.length) {
+    grid.innerHTML = `<p style="color:var(--ink-muted);font-size:13.5px;">Walang site — pindutin ang “+ Add date event” o “+ Add site” para magsimula.</p>`;
+    updateStats();
+    return;
+  }
 
-    cardEl.innerHTML = `
-      <div class="ticket-number">#${String(idx + 1).padStart(2, "0")}</div>
+  const groups = groupCardsByDate(visible);
+
+  // Keep the previously-selected date bracket open if it still exists;
+  // otherwise default to the first (earliest) one. This keeps every date's
+  // sites tucked behind its own tab instead of stacking all brackets at
+  // once, which used to get cluttered fast as more dates were added.
+  if (!groups.some(g => g.date === adminSelectedDate)) {
+    adminSelectedDate = groups[0].date;
+  }
+
+  const tabs = document.createElement("div");
+  tabs.className = "date-tabs";
+  groups.forEach(group => {
+    const tab = document.createElement("button");
+    tab.type = "button";
+    const openCount = bracketOpenCount(group.items);
+    tab.className = "date-tab" + (group.date === adminSelectedDate ? " active" : "") + (openCount > 0 ? " has-open" : "");
+    tab.dataset.datekey = group.date || "";
+    const label = group.date ? formatDateDisplay(group.date) : "Unscheduled";
+    tab.innerHTML = `${escapeHtml(label)} (${group.items.length})` +
+      (openCount > 0
+        ? `<span class="tab-badge">${openCount} open</span>`
+        : `<span class="tab-badge ok">✓ full</span>`);
+    tab.addEventListener("click", () => {
+      adminSelectedDate = group.date;
+      render();
+    });
+    tabs.appendChild(tab);
+  });
+  grid.appendChild(tabs);
+
+  const activeGroup = groups.find(g => g.date === adminSelectedDate) || groups[0];
+  let ticketCounter = 0;
+
+  {
+    const group = activeGroup;
+    const bracket = document.createElement("div");
+    bracket.className = "date-bracket";
+    const dateLabel = group.date ? formatDateDisplay(group.date) : "Unscheduled";
+    bracket.innerHTML = `
+      <div class="bracket-head">
+        <span class="bracket-date">${escapeHtml(dateLabel)}</span>
+        <span class="bracket-count">${group.items.length} site${group.items.length === 1 ? "" : "s"}</span>
+        <div class="bracket-actions">
+          <button type="button" class="btn bracket-edit-date-btn">✎ Edit date</button>
+          <button type="button" class="btn danger-outline bracket-delete-btn">Delete event</button>
+          <button type="button" class="btn bracket-update-btn">Update</button>
+          <button type="button" class="btn bracket-add-btn">+ Add site</button>
+        </div>
+      </div>
+      <div class="bracket-grid"></div>
+    `;
+    bracket.querySelector(".bracket-add-btn").addEventListener("click", () => {
+      const nc = blankCard();
+      nc.date = group.date;
+      cards.push(nc);
+      saveCards();
+      render();
+    });
+    bracket.querySelector(".bracket-edit-date-btn").addEventListener("click", async () => {
+      const newIso = await showDatePrompt("Piliin ang bagong petsa para sa event na ito:", group.date, "Save date");
+      if (newIso === null) return;
+      // Re-date every card that currently belongs to this bracket (matched
+      // by date, not by the possibly-filtered group.items) so nothing gets
+      // left behind under the old date.
+      cards.forEach(c => { if ((c.date || "") === (group.date || "")) c.date = newIso; });
+      adminSelectedDate = newIso;
+      saveCards();
+      render();
+    });
+    bracket.querySelector(".bracket-delete-btn").addEventListener("click", async () => {
+      const wholeGroupCount = cards.filter(c => (c.date || "") === (group.date || "")).length;
+      const ok = await showConfirm(
+        `Delete "${dateLabel}"? This will remove all ${wholeGroupCount} site${wholeGroupCount === 1 ? "" : "s"} under this event date. This cannot be undone.`
+      );
+      if (!ok) return;
+      const deletedDate = group.date;
+      cards = cards.filter(c => (c.date || "") !== (group.date || ""));
+      if (adminSelectedDate === group.date) adminSelectedDate = undefined;
+      saveCards();
+      render();
+      deleteDateFromRemote(deletedDate);
+    });
+    bracket.querySelector(".bracket-update-btn").addEventListener("click", e => {
+      saveCards();
+      updateDateOnRemote(group.date, dateLabel, e.currentTarget);
+    });
+    const bracketGrid = bracket.querySelector(".bracket-grid");
+
+    group.items.forEach(({ card, idx }) => {
+      ticketCounter++;
+
+      const cardEl = document.createElement("div");
+      cardEl.className = "site-card";
+      cardEl.dataset.region = card.region;
+
+      cardEl.innerHTML = `
+      <div class="ticket-number">#${String(ticketCounter).padStart(2, "0")}</div>
       <div class="accent-bar"></div>
       <div class="card-inner">
         <button class="remove-btn" title="Remove this site">×</button>
@@ -1069,7 +1522,7 @@ function render() {
               <select class="roleSelect" data-sidx="${sIdx}">
                 ${roleOptionsHtml(s.label)}
               </select>
-              <input type="text" class="nameInput" list="roleNameList-${slug(s.label)}" data-sidx="${sIdx}" placeholder="Assign staff name" value="${escapeAttr(s.name)}">
+              <input type="text" class="nameInput" list="roleNameList-${slug(s.label)}" data-card-id="${escapeAttr(card.id)}" data-sidx="${sIdx}" placeholder="Assign staff name" value="${escapeAttr(s.name)}">
               <span class="status-dot ${s.name.trim() ? "filled" : ""}"></span>
               <button type="button" class="removeFieldBtn" data-sidx="${sIdx}" title="Remove field">×</button>
             </div>
@@ -1089,9 +1542,11 @@ function render() {
     // ---- Events ----
     cardEl.querySelector(".remove-btn").addEventListener("click", async () => {
       if (await showConfirm("Remove this site from the list?")) {
+        const removedId = card.id;
         cards.splice(idx, 1);
         saveCards();
         render();
+        deleteSiteFromRemote(removedId);
       }
     });
 
@@ -1190,10 +1645,12 @@ function render() {
         uppercaseInPlace(e.target);
         const sIdx = parseInt(e.target.dataset.sidx, 10);
         cards[idx].staff[sIdx].name = e.target.value;
+        cards[idx].staff[sIdx]._touched = true;
         const dot = e.target.parentElement.querySelector(".status-dot");
         dot.classList.toggle("filled", e.target.value.trim().length > 0);
         saveCards();
         updateStats();
+        updateTabBadge(group.date);
       });
       inp.addEventListener("change", e => {
         const sIdx = parseInt(e.target.dataset.sidx, 10);
@@ -1283,8 +1740,11 @@ function render() {
       render();
     });
 
-    grid.appendChild(cardEl);
-  });
+      bracketGrid.appendChild(cardEl);
+    });
+
+    grid.appendChild(bracket);
+  }
 
   updateStats();
 }
@@ -1316,7 +1776,42 @@ function renderEmployeeSchedule(scheduleCards, branch) {
     return;
   }
 
-  filtered.forEach((card, idx) => {
+  // Group this employee's sites into date brackets, so they pick a date
+  // up top and only see that date's available event bracket below.
+  const groups = groupCardsByDate(filtered.map(card => ({ card })));
+
+  // Keep the previously-selected date if it's still around; otherwise
+  // default to the first (earliest) bracket.
+  if (!groups.some(g => g.date === employeeSelectedDate)) {
+    employeeSelectedDate = groups[0].date;
+  }
+
+  const tabs = document.createElement("div");
+  tabs.className = "date-tabs";
+  groups.forEach(group => {
+    const tab = document.createElement("button");
+    tab.type = "button";
+    const openCount = bracketOpenCount(group.items);
+    tab.className = "date-tab" + (group.date === employeeSelectedDate ? " active" : "") + (openCount > 0 ? " has-open" : "");
+    const label = group.date ? formatDateDisplay(group.date) : "Unscheduled";
+    tab.innerHTML = `${escapeHtml(label)} (${group.items.length})` +
+      (openCount > 0
+        ? `<span class="tab-badge">${openCount} open</span>`
+        : `<span class="tab-badge ok">✓ full</span>`);
+    tab.addEventListener("click", () => {
+      employeeSelectedDate = group.date;
+      renderEmployeeSchedule(scheduleCards, branch);
+    });
+    tabs.appendChild(tab);
+  });
+  grid.appendChild(tabs);
+
+  const activeGroup = groups.find(g => g.date === employeeSelectedDate) || groups[0];
+  const bracketGrid = document.createElement("div");
+  bracketGrid.className = "bracket-grid";
+  grid.appendChild(bracketGrid);
+
+  activeGroup.items.forEach(({ card }, idx) => {
     const cardEl = document.createElement("div");
     cardEl.className = "site-card";
     cardEl.dataset.region = card.region;
@@ -1324,7 +1819,15 @@ function renderEmployeeSchedule(scheduleCards, branch) {
       <div class="ticket-number">#${String(idx + 1).padStart(2, "0")}</div>
       <div class="accent-bar"></div>
       <div class="card-inner">
-        <div class="region-line"><span class="sep">${escapeHtml(regionLabel(card))} · ${escapeHtml(missionLabel(card))}</span></div>
+        <div class="region-line">
+          <span class="sep">${escapeHtml(regionLabel(card))} · ${escapeHtml(missionLabel(card))}</span>
+          ${(() => {
+            const openHere = (card.staff || []).filter(s => !(s.name || "").trim()).length;
+            return openHere > 0
+              ? `<span class="card-status warn">${openHere} role${openHere === 1 ? "" : "s"} open</span>`
+              : `<span class="card-status ok">✓ fully staffed</span>`;
+          })()}
+        </div>
         <div class="locationInput" style="border:none;padding:0;">${escapeHtml(card.location || "Unnamed site")}</div>
         <div class="schedule-row">
           <div class="field">
@@ -1338,16 +1841,46 @@ function renderEmployeeSchedule(scheduleCards, branch) {
         </div>
         <div class="perforation"></div>
         <div class="staff-grid">
-          ${(card.staff || []).map(s => `
+          ${(card.staff || []).map((s, sIdx) => {
+            const filled = (s.name || "").trim().length > 0;
+            const isMine = filled && employeeSession && s.filledByStaffId === employeeSession.staffId;
+            return `
             <div class="staff-row">
+              <span class="status-dot ${filled ? "filled" : ""}"></span>
               <span style="min-width:120px;color:var(--ink-muted);font-size:12px;">${escapeHtml(s.label)}</span>
-              <strong>${escapeHtml(s.name) || "—"}</strong>
+              ${filled
+                ? `<strong style="flex:1;">${escapeHtml(s.name)}</strong>` +
+                  (isMine ? `<button type="button" class="unclaim-btn" data-card-id="${escapeAttr(card.id)}" data-sidx="${sIdx}">Alisin</button>` : "")
+                : (() => {
+                    const allowed = isRoleAllowedForEmployee(s.label);
+                    return `<button type="button" class="claim-btn${allowed ? "" : " blocked"}" data-card-id="${escapeAttr(card.id)}" data-sidx="${sIdx}" data-role-label="${escapeAttr(s.label)}"${allowed ? "" : ` title="Para sa ${escapeAttr(roleToTeam(s.label))} lang ito"`}>+ Sign me up</button>`;
+                  })()
+              }
             </div>
-          `).join("")}
+          `;
+          }).join("")}
         </div>
       </div>
     `;
-    grid.appendChild(cardEl);
+    cardEl.querySelectorAll(".claim-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const roleLabel = btn.dataset.roleLabel;
+        if (!isRoleAllowedForEmployee(roleLabel)) {
+          const { team: myTeam } = employeeSession ? splitDepartmentClient(employeeSession.department) : { team: "—" };
+          await showAlert(`Hindi ka pwedeng mag-sign up dito. "${roleLabel}" role lang ito, at ang department mo ay ${myTeam}.`);
+          return;
+        }
+        claimSlot(btn.dataset.cardId, parseInt(btn.dataset.sidx, 10), btn);
+      });
+    });
+    cardEl.querySelectorAll(".unclaim-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const ok = await showConfirm("Alisin ang pangalan mo sa slot na ito?");
+        if (!ok) return;
+        unclaimSlot(btn.dataset.cardId, parseInt(btn.dataset.sidx, 10), btn);
+      });
+    });
+    bracketGrid.appendChild(cardEl);
   });
 }
 
@@ -1358,6 +1891,166 @@ function escapeHtml(str) {
   return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+// ---------- Employee leaderboard (most-participate) ----------
+// staffId (lowercase) -> { name, department } from the "employees"
+// collection. Filled in by startEmployeesListener(); used to resolve each
+// participant's branch (south/north) and team (IT / BILLING / Pharmacy
+// Assistant) for the leaderboard cards below.
+let employeesMap = new Map();
+// Last full (unfiltered, both branches) schedule cards seen, so the
+// leaderboard can be re-rendered whenever either the schedule or the
+// employees list changes, without waiting for the other to also change.
+let lastScheduleCardsForLeaderboard = [];
+
+// Splits a department string like "IT NORTH" or "Pharmacy Assistant SOUTH"
+// into { team: "IT", branch: "NORTH" }, same convention as admin-console.html.
+function splitDepartmentClient(dep) {
+  const raw = String(dep || "").trim();
+  const m = raw.match(/^(.*?)\s+(NORTH|SOUTH)$/i);
+  if (m) return { team: m[1].trim(), branch: m[2].toUpperCase() };
+  return { team: raw || "—", branch: "—" };
+}
+
+// Maps a role-slot label (e.g. "IT SPECIALIST", "PHARMACIST", "PICKER") to
+// the department/team that's allowed to sign up for it. PICKER and
+// ENCODER/PICKER are Pharmacy Assistant work, not PHARMACIST — keep those
+// separate so a Pharmacist account can't claim a Picker slot and vice versa.
+function roleToTeam(label) {
+  const up = String(label || "").toUpperCase();
+  if (up.includes("IT")) return "IT";
+  if (up.includes("BILLING")) return "BILLING";
+  if (up === "PHARMACIST") return "PHARMACIST";
+  return "Pharmacy Assistant"; // PICKER, ENCODER, ENCODER/PICKER
+}
+
+// Whether the currently logged-in employee's own department matches the
+// team a given role slot belongs to. Used to block signing up for roles
+// outside your own department (e.g. a BILLING employee can't sign up for
+// a PHARMACIST slot).
+function isRoleAllowedForEmployee(label) {
+  if (!employeeSession) return false;
+  const { team } = splitDepartmentClient(employeeSession.department);
+  return String(team).toUpperCase() === roleToTeam(label).toUpperCase();
+}
+
+function startEmployeesListener() {
+  onSnapshot(employeesCollRef, snap => {
+    const map = new Map();
+    snap.forEach(d => map.set(d.id, d.data() || {}));
+    employeesMap = map;
+    renderLeaderboard(lastScheduleCardsForLeaderboard);
+  });
+}
+
+// Counts, per staffId, how many role slots (across every site/date, both
+// branches) that person has personally signed themselves up for. Only
+// self-claimed slots count (slot.filledByStaffId) — names an admin typed in
+// manually don't have a staffId and aren't attributable to a participant.
+function computeParticipation(allCards) {
+  const counts = new Map(); // staffId(lowercase) -> { count, name }
+  (allCards || []).forEach(card => {
+    (card.staff || []).forEach(s => {
+      const sid = (s.filledByStaffId || "").trim();
+      if (!sid) return;
+      const key = sid.toLowerCase();
+      const entry = counts.get(key) || { count: 0, name: s.name || "" };
+      entry.count += 1;
+      if ((s.name || "").trim()) entry.name = s.name;
+      counts.set(key, entry);
+    });
+  });
+  return counts;
+}
+
+function leaderboardBranchTag(branch) {
+  const upper = String(branch || "").toUpperCase();
+  if (upper === "SOUTH") return `<span class="tag tag-south">South</span>`;
+  if (upper === "NORTH") return `<span class="tag tag-north">North</span>`;
+  return `<span class="tag tag-other">—</span>`;
+}
+
+function podiumCardHtml(row, place) {
+  const badge = place === 1 ? "🥇" : place === 2 ? "🥈" : "🥉";
+  return `
+    <div class="podium-card place-${place}">
+      <div class="podium-badge">${badge}</div>
+      <div class="podium-name">${escapeHtml(row.name)}</div>
+      <div class="podium-meta">
+        ${leaderboardBranchTag(row.branch)}
+        <span class="tag tag-role">${escapeHtml(row.team)}</span>
+      </div>
+      <div class="podium-count">${row.count} sign-up${row.count === 1 ? "" : "s"}</div>
+    </div>
+  `;
+}
+
+function deptBoardHtml(deptLabel, rows) {
+  const items = rows.length
+    ? rows.map((row, i) => `
+        <li class="dept-row">
+          <span class="dept-rank">#${i + 1}</span>
+          <span class="dept-name">${escapeHtml(row.name)}</span>
+          ${leaderboardBranchTag(row.branch)}
+          <span class="dept-count">${row.count}</span>
+        </li>
+      `).join("")
+    : `<li class="dept-empty">Wala pang data.</li>`;
+  return `
+    <div class="dept-board">
+      <div class="dept-board-title">${escapeHtml(deptLabel)}</div>
+      <ul class="dept-list">${items}</ul>
+    </div>
+  `;
+}
+
+function renderLeaderboard(allCards) {
+  lastScheduleCardsForLeaderboard = allCards || [];
+  const section = document.getElementById("leaderboardSection");
+  if (!section || !employeeSession) return;
+  section.style.display = "";
+
+  const counts = computeParticipation(lastScheduleCardsForLeaderboard);
+  const rows = [...counts.entries()].map(([staffId, info]) => {
+    const emp = employeesMap.get(staffId);
+    const { team, branch } = emp ? splitDepartmentClient(emp.department) : { team: "—", branch: "—" };
+    return {
+      staffId,
+      name: (emp && emp.name) || info.name || staffId.toUpperCase(),
+      count: info.count,
+      team,
+      branch
+    };
+  }).sort((a, b) => b.count - a.count);
+
+  if (!rows.length) {
+    section.innerHTML = `
+      <div class="leaderboard-wrap">
+        <h2 class="leaderboard-title">🏆 Most Participate Employee</h2>
+        <p class="leaderboard-empty">Wala pang sumasali. Maging una — mag sign up sa mga bakanteng slot sa ibaba!</p>
+      </div>
+    `;
+    return;
+  }
+
+  const top3 = rows.slice(0, 3);
+  const podiumHtml = top3.map((row, i) => podiumCardHtml(row, i + 1)).join("");
+
+  const DEPTS = ["IT", "BILLING", "PHARMACIST", "Pharmacy Assistant"];
+  const deptBoardsHtml = DEPTS.map(dept => {
+    const deptRows = rows.filter(r => r.team.toUpperCase() === dept.toUpperCase()).slice(0, 3);
+    return deptBoardHtml(dept, deptRows);
+  }).join("");
+
+  section.innerHTML = `
+    <div class="leaderboard-wrap">
+      <h2 class="leaderboard-title">🏆 Most Participate Employee</h2>
+      <p class="leaderboard-sub">Batay sa bilang ng slot na personal na sinign-up-an, South &amp; North Caloocan.</p>
+      <div class="podium">${podiumHtml}</div>
+      <div class="dept-boards">${deptBoardsHtml}</div>
+    </div>
+  `;
+}
+
 document.querySelectorAll("#regionFilter .filter-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     currentFilter = btn.dataset.filter;
@@ -1366,24 +2059,131 @@ document.querySelectorAll("#regionFilter .filter-btn").forEach(btn => {
   });
 });
 
-document.getElementById("addCardBtn").addEventListener("click", () => {
-  cards.push(blankCard());
+document.getElementById("addDateBtn").addEventListener("click", async () => {
+  const iso = await showDatePrompt("Pumili ng petsa para sa bagong event bracket:");
+  if (!iso) return;
+  const newCard = blankCard();
+  newCard.date = iso;
+  cards.push(newCard);
+  adminSelectedDate = iso;
   saveCards();
   render();
 });
 
-document.getElementById("saveBtn").addEventListener("click", async () => {
+document.getElementById("addCardBtn").addEventListener("click", () => {
+  cards.push(blankCard());
+  adminSelectedDate = ""; // new site has no date yet -> lands in "Unscheduled"
   saveCards();
-  const sendBtn = document.getElementById("saveBtn");
-  const originalLabel = sendBtn.textContent;
-  sendBtn.disabled = true;
-  sendBtn.textContent = "Sending…";
+  render();
+});
+
+// Strips fields that should never be pushed to the remote doc: photo data
+// (too large, employees don't need it) and the local-only _touched marker
+// used by mergeRemoteClaims below.
+function stripForRemote(cardsArr) {
+  return cardsArr.map(({ photo, photoName, staff, ...rest }) => ({
+    ...rest,
+    staff: (staff || []).map(({ _touched, ...s }) => s)
+  }));
+}
+
+// Admin edits happen on a local copy that isn't live-synced with Firestore,
+// so if an employee signs herself up for an open slot after the admin last
+// loaded the page, a plain overwrite (Send / Update) would silently erase
+// that signup. Before pushing, for every slot the admin did NOT touch this
+// session, if it's blank locally but remote shows an employee already
+// claimed it, keep the remote value instead of blanking it out.
+function mergeRemoteClaims(localCards, remoteCards) {
+  const remoteById = new Map(remoteCards.map(c => [c.id, c]));
+  return localCards.map(card => {
+    const remoteCard = remoteById.get(card.id);
+    if (!remoteCard) return card;
+    const mergedStaff = (card.staff || []).map((slot, sIdx) => {
+      if (slot._touched) return slot;
+      const remoteSlot = (remoteCard.staff || [])[sIdx];
+      if (!remoteSlot) return slot;
+      if (!(slot.name || "").trim() && remoteSlot.filledByStaffId && (remoteSlot.name || "").trim()) {
+        return { ...slot, name: remoteSlot.name, filledByStaffId: remoteSlot.filledByStaffId };
+      }
+      return slot;
+    });
+    return { ...card, staff: mergedStaff };
+  });
+}
+
+// Lets a logged-in employee claim one open role slot directly, as a single
+// Firestore transaction — so two employees tapping the same open slot at
+// the same moment can't both "win" it.
+async function claimSlot(cardId, staffIdx, btn) {
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Sending…";
   try {
-    // Strip photo data URLs before sending — they're large base64 blobs
-    // employees don't need in order to see their site/date/time/role assignment.
-    const payload = cards.map(({ photo, photoName, ...rest }) => rest);
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(scheduleDocRef);
+      const data = snap.exists() ? snap.data() : { cards: [] };
+      const remoteCards = Array.isArray(data.cards) ? data.cards : [];
+      const cIdx = remoteCards.findIndex(c => c.id === cardId);
+      if (cIdx === -1) throw new Error("Site not found — try refreshing.");
+      const staffArr = (remoteCards[cIdx].staff || []).slice();
+      const slot = staffArr[staffIdx];
+      if (!slot) throw new Error("Role slot not found — try refreshing.");
+      if ((slot.name || "").trim()) throw new Error("May sumali na dito bago ka. Try refreshing.");
+      if (!isRoleAllowedForEmployee(slot.label)) throw new Error(`Hindi ka pwedeng mag-sign up dito. "${slot.label}" role lang ito.`);
+      staffArr[staffIdx] = { ...slot, name: (employeeSession.name || "").toUpperCase(), filledByStaffId: employeeSession.staffId };
+      remoteCards[cIdx] = { ...remoteCards[cIdx], staff: staffArr };
+      tx.set(scheduleDocRef, { cards: remoteCards, sentAt: serverTimestamp(), sentBy: data.sentBy || "admin" });
+    });
+  } catch (err) {
+    await showAlert(err.message || "Hindi na-save. Subukan ulit.");
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+  // On success the onSnapshot listener re-renders with the live result —
+  // no local re-render needed here.
+}
+
+// Lets an employee back out of a slot she signed up for herself. Admin-
+// assigned slots (no filledByStaffId, or a different employee's id) can't
+// be removed this way — only the admin dashboard can change those.
+async function unclaimSlot(cardId, staffIdx, btn) {
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Removing…";
+  try {
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(scheduleDocRef);
+      const data = snap.exists() ? snap.data() : { cards: [] };
+      const remoteCards = Array.isArray(data.cards) ? data.cards : [];
+      const cIdx = remoteCards.findIndex(c => c.id === cardId);
+      if (cIdx === -1) throw new Error("Site not found — try refreshing.");
+      const staffArr = (remoteCards[cIdx].staff || []).slice();
+      const slot = staffArr[staffIdx];
+      if (!slot) throw new Error("Role slot not found — try refreshing.");
+      if (!employeeSession || slot.filledByStaffId !== employeeSession.staffId) {
+        throw new Error("Hindi ito ang slot mo.");
+      }
+      staffArr[staffIdx] = { ...slot, name: "", filledByStaffId: null };
+      remoteCards[cIdx] = { ...remoteCards[cIdx], staff: staffArr };
+      tx.set(scheduleDocRef, { cards: remoteCards, sentAt: serverTimestamp(), sentBy: data.sentBy || "admin" });
+    });
+  } catch (err) {
+    await showAlert(err.message || "Hindi na-save. Subukan ulit.");
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+async function sendAllToEmployees(btn) {
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Sending…";
+  try {
+    const snap = await getDoc(scheduleDocRef);
+    const remoteCards = (snap.exists() && Array.isArray(snap.data().cards)) ? snap.data().cards : [];
+    const merged = mergeRemoteClaims(cards, remoteCards);
     await setDoc(scheduleDocRef, {
-      cards: payload,
+      cards: stripForRemote(merged),
       sentAt: serverTimestamp(),
       sentBy: "admin"
     });
@@ -1391,9 +2191,83 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
   } catch (err) {
     await showAlert("Saved to your browser, but not sent online: " + err.message);
   } finally {
-    sendBtn.disabled = false;
-    sendBtn.textContent = originalLabel;
+    btn.disabled = false;
+    btn.textContent = originalLabel;
   }
+}
+
+// Pushes only one date bracket's cards to the remote doc, leaving whatever
+// the remote already has for every other date completely untouched — so an
+// edit to one event doesn't clobber another admin's edits on a different
+// date.
+async function updateDateOnRemote(dateKey, dateLabelForMsg, btn) {
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Updating…";
+  try {
+    const snap = await getDoc(scheduleDocRef);
+    const remoteCards = (snap.exists() && Array.isArray(snap.data().cards)) ? snap.data().cards : [];
+    const kept = remoteCards.filter(c => (c.date || "") !== (dateKey || ""));
+    const thisDateLocal = cards.filter(c => (c.date || "") === (dateKey || ""));
+    const mergedThisDate = mergeRemoteClaims(thisDateLocal, remoteCards);
+    const merged = [...kept, ...stripForRemote(mergedThisDate)];
+    await setDoc(scheduleDocRef, {
+      cards: merged,
+      sentAt: serverTimestamp(),
+      sentBy: "admin"
+    });
+    await showAlert(`"${dateLabelForMsg}" updated for employees. Other event dates were left as they were.`);
+  } catch (err) {
+    await showAlert("Hindi na-update online: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+// Deletion needs to sync out right away too — otherwise employees keep
+// seeing a bracket/site the admin already removed until the next
+// Send/Update. These push straight to Firestore, no button needed.
+async function deleteDateFromRemote(dateKey) {
+  try {
+    const snap = await getDoc(scheduleDocRef);
+    const remoteCards = (snap.exists() && Array.isArray(snap.data().cards)) ? snap.data().cards : [];
+    const kept = remoteCards.filter(c => (c.date || "") !== (dateKey || ""));
+    if (kept.length === remoteCards.length) return; // wasn't live yet, nothing to remove
+    await setDoc(scheduleDocRef, {
+      cards: kept,
+      sentAt: serverTimestamp(),
+      sentBy: "admin"
+    });
+  } catch (err) {
+    await showAlert("Na-delete sa iyong browser, pero hindi na-sync online: " + err.message);
+  }
+}
+
+async function deleteSiteFromRemote(cardId) {
+  try {
+    const snap = await getDoc(scheduleDocRef);
+    const remoteCards = (snap.exists() && Array.isArray(snap.data().cards)) ? snap.data().cards : [];
+    const kept = remoteCards.filter(c => c.id !== cardId);
+    if (kept.length === remoteCards.length) return; // wasn't live yet, nothing to remove
+    await setDoc(scheduleDocRef, {
+      cards: kept,
+      sentAt: serverTimestamp(),
+      sentBy: "admin"
+    });
+  } catch (err) {
+    await showAlert("Na-delete sa iyong browser, pero hindi na-sync online: " + err.message);
+  }
+}
+
+document.getElementById("saveBtn").addEventListener("click", async () => {
+  saveCards();
+  await sendAllToEmployees(document.getElementById("saveBtn"));
+});
+
+document.getElementById("updateAllBtn").addEventListener("click", async () => {
+  saveCards();
+  await sendAllToEmployees(document.getElementById("updateAllBtn"));
 });
 
 document.getElementById("printBtn").addEventListener("click", () => window.print());
@@ -1411,14 +2285,65 @@ if (employeeSession) {
   // live, read-only view scoped to their own branch.
   document.querySelector(".toolbar").style.display = "none";
   document.getElementById("regionFilter").style.display = "none";
+  startEmployeesListener();
   onSnapshot(scheduleDocRef, snap => {
     const data = snap.exists() ? snap.data() : { cards: [] };
-    renderEmployeeSchedule(data.cards || [], employeeSession.branch);
+    const allCards = data.cards || [];
+    renderEmployeeSchedule(allCards, employeeSession.branch);
+    renderLeaderboard(allCards);
   });
 } else {
   // Admin/manager mode: full editable dashboard, as before.
   renderDatalists();
   render();
+
+  // Live sign-up feed: merges employee self-signups into the local view
+  // in real time, the same way employees see the roster update live.
+  // Only slots the admin hasn't touched this session are updated, and if
+  // the admin is actively typing somewhere, the visual refresh is held
+  // back (data still merges underneath) so it doesn't yank their cursor
+  // away mid-edit — it catches up as soon as they click elsewhere or the
+  // next signup comes in.
+  onSnapshot(scheduleDocRef, snap => {
+    const data = snap.exists() ? snap.data() : { cards: [] };
+    const remoteCards = Array.isArray(data.cards) ? data.cards : [];
+    const remoteById = new Map(remoteCards.map(c => [c.id, c]));
+    const activeEl = document.activeElement;
+    const isNameField = activeEl && activeEl.classList && activeEl.classList.contains("nameInput");
+    const activeCardId = isNameField ? activeEl.dataset.cardId : null;
+    const activeSIdx = isNameField ? parseInt(activeEl.dataset.sidx, 10) : null;
+    let changed = false;
+    const affectedDates = new Set();
+    cards.forEach(card => {
+      const remoteCard = remoteById.get(card.id);
+      if (!remoteCard) return;
+      (card.staff || []).forEach((slot, sIdx) => {
+        // Only skip the exact field being typed into right now — a field
+        // that was edited earlier and later cleared should still receive
+        // live signups going forward, not stay locked out forever.
+        if (card.id === activeCardId && sIdx === activeSIdx) return;
+        const remoteSlot = (remoteCard.staff || [])[sIdx];
+        if (!remoteSlot) return;
+        const remoteName = (remoteSlot.name || "").trim();
+        const localName = (slot.name || "").trim();
+        if (remoteName !== localName || (remoteSlot.filledByStaffId || null) !== (slot.filledByStaffId || null)) {
+          slot.name = remoteSlot.name || "";
+          slot.filledByStaffId = remoteSlot.filledByStaffId || null;
+          changed = true;
+          affectedDates.add(card.date || "");
+        }
+      });
+    });
+    if (!changed) return;
+    saveCards();
+    const isTypingInCard = activeEl && activeEl.closest && activeEl.closest(".site-card");
+    if (isTypingInCard) {
+      updateStats();
+      affectedDates.forEach(d => updateTabBadge(d));
+    } else {
+      render();
+    }
+  });
 }
 </script>
 

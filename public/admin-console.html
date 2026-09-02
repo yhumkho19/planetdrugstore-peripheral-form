@@ -1248,6 +1248,8 @@
               <option value="IT SOUTH">IT SOUTH</option>
               <option value="BILLING NORTH">BILLING NORTH</option>
               <option value="BILLING SOUTH">BILLING SOUTH</option>
+              <option value="PHARMACIST NORTH">PHARMACIST NORTH</option>
+              <option value="PHARMACIST SOUTH">PHARMACIST SOUTH</option>
               <option value="Pharmacy Assistant NORTH">Pharmacy Assistant NORTH</option>
               <option value="Pharmacy Assistant SOUTH">Pharmacy Assistant SOUTH</option>
             </select>
@@ -4599,7 +4601,7 @@
   // predictable order every time, instead of jumping around as new
   // employees are registered. Any unexpected/legacy department value still
   // gets its own card, just appended after the known teams.
-  const TEAM_ORDER = ['IT', 'BILLING', 'Pharmacy Assistant'];
+  const TEAM_ORDER = ['IT', 'BILLING', 'PHARMACIST', 'Pharmacy Assistant'];
 
   // Search (by name) and branch filter (All / North / South) apply across
   // every team card at once — one toolbar controls IT, BILLING, and
