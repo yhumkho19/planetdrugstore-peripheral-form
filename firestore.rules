@@ -47,5 +47,8 @@ service cloud.firestore {
     match /eventSchedule/{docId} {
       allow read, write: if true;
     }
+    match /emergencyNotifications/{id} {
+      allow read, write: if true;
+    }
   }
 }

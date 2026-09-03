@@ -285,6 +285,160 @@
   }
   .unclaim-btn:disabled { opacity: 0.6; cursor: default; }
 
+  .unavailable-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--danger);
+    border: none;
+    border-radius: 20px;
+    padding: 4px 10px;
+    cursor: pointer;
+    margin-left: 8px;
+    white-space: nowrap;
+  }
+  .unavailable-btn:hover { background: #9c2f22; }
+  .unavailable-btn:disabled { opacity: 0.6; cursor: default; }
+
+  .emergency-note {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--danger);
+    margin-top: 2px;
+  }
+  .staff-row.emergency { background: var(--danger-soft); margin: 0 -8px; padding: 6px 8px; border-radius: 3px; }
+  .emergency-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #fff;
+    background: var(--danger);
+    padding: 2px 7px;
+    border-radius: 10px;
+    animation: pulse-urgent 1.6s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse-urgent {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  .claim-btn.urgent { border-color: var(--danger); background: var(--danger-soft); color: var(--danger); }
+  .claim-btn.urgent:hover { background: var(--danger); color: #fff; }
+
+  /* ---------- Urgent banner (unavailable / emergency alerts) ---------- */
+  .urgent-banner {
+    border: 1.5px solid var(--danger);
+    background: var(--danger-soft);
+    margin-bottom: 18px;
+    padding: 12px 16px;
+  }
+  .urgent-banner-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--danger);
+    margin: 0 0 8px;
+  }
+  .urgent-banner-item {
+    font-size: 13px;
+    color: var(--ink);
+    padding: 5px 0;
+    border-top: 1px dashed rgba(191,59,44,0.3);
+  }
+  .urgent-banner-item:first-of-type { border-top: none; }
+  .urgent-banner-item strong { color: var(--danger); }
+
+  /* ---------- Notification bell (admin) ---------- */
+  .notif-wrap { position: relative; display: inline-block; }
+  .notif-bell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1.5px solid var(--ink);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 17px;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .notif-bell:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+  .notif-badge {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    background: var(--danger);
+    color: #fff;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 17px;
+    height: 17px;
+    border-radius: 9px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+  }
+  .notif-badge.show { display: flex; }
+  .notif-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 320px;
+    max-width: 90vw;
+    max-height: 400px;
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1.5px solid var(--ink);
+    box-shadow: 4px 4px 0 rgba(33,31,26,0.15);
+    z-index: 500;
+    display: none;
+  }
+  .notif-panel.open { display: block; }
+  .notif-panel-empty { padding: 18px 16px; color: var(--ink-faint); font-size: 13px; font-style: italic; }
+  .notif-item { padding: 12px 14px; border-bottom: 1px solid var(--border); border-left: 3px solid var(--danger); }
+  .notif-item:last-child { border-bottom: none; }
+  /* Red = still unresolved (walang backup pa). Green = na-cover na. */
+  .notif-item.is-resolved { border-left-color: var(--ok); background: var(--ok-soft); }
+  .notif-item-title { font-size: 12.5px; font-weight: 600; color: var(--danger); margin-bottom: 3px; }
+  .notif-item.is-resolved .notif-item-title { color: var(--ok); }
+  .notif-item-body { font-size: 12px; color: var(--ink-muted); line-height: 1.5; margin-bottom: 6px; }
+  .notif-resolve-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border: 1.5px solid var(--ok);
+    background: var(--ok-soft);
+    color: var(--ok);
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .notif-resolve-btn:hover { background: var(--ok); color: #fff; }
+  /* "Clear" — dismiss an already-resolved (green) item from the list for good. */
+  .notif-clear-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border: 1.5px solid var(--ink-faint);
+    background: var(--surface);
+    color: var(--ink-muted);
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .notif-clear-btn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+
   /* ---------- Card ---------- */
   .site-card {
     background: var(--surface);
@@ -641,6 +795,15 @@
     .staff-row .role-label,
     .staff-row select.roleSelect { width: 92px; font-size: 9.5px; }
     .staff-row { flex-wrap: wrap; }
+    /* .page-head goes column + align-items:flex-start on mobile, which
+       pushes .notif-wrap to the LEFT edge. The dropdown panel anchors via
+       right:0 (opens leftward from the bell), so a left-aligned bell made
+       the panel render off-screen. Pin the bell to the right instead so
+       the panel always opens within the viewport. */
+    .notif-wrap { align-self: flex-end; }
+    .urgent-banner { padding: 10px 12px; margin-bottom: 14px; }
+    .urgent-banner-title { font-size: 10px; }
+    .urgent-banner-item { font-size: 12.5px; }
   }
   @media (max-width: 340px) {
     .stats { font-size: 11px; }
@@ -825,7 +988,7 @@
 <div class="page-head">
   <div>
     <h1>Deployment Roster</h1>
-    <p>Medical &amp; Dental Mission — isang ticket kada site, staff assignment tracker</p>
+    <p>Medical &amp; Dental Mission — one ticket per site, staff assignment tracker</p>
   </div>
   <div class="stats">
     <div class="stat">
@@ -842,8 +1005,15 @@
     </div>
   </div>
   <a class="btn" id="leaderboardBtn" href="leaderboard.html" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;">🏆 Leaderboard</a>
+  <div class="notif-wrap" id="notifWrap" style="display:none;">
+    <button type="button" class="notif-bell" id="notifBell" title="Emergency notifications">
+      🔔<span class="notif-badge" id="notifBadge">0</span>
+    </button>
+    <div class="notif-panel" id="notifPanel"></div>
+  </div>
 </div>
 
+<div class="urgent-banner" id="urgentBanner" style="display:none;"></div>
 
 <div id="leaderboardSection"></div>
 
@@ -941,7 +1111,8 @@ function showDatePrompt(message, defaultIso, confirmBtnLabel) {
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  initializeFirestore, doc, collection, setDoc, getDoc, onSnapshot, serverTimestamp, runTransaction
+  initializeFirestore, doc, collection, setDoc, getDoc, onSnapshot, serverTimestamp, runTransaction,
+  addDoc, deleteDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Same Firebase project as employee-signup.html / landing-employee-page.html,
@@ -965,6 +1136,11 @@ const scheduleDocRef = doc(db, "eventSchedule", "current");
 // (doc id = staffId.toLowerCase(), fields include name/department), read
 // here only to resolve each participant's branch + team for the leaderboard.
 const employeesCollRef = collection(db, "employees");
+// One doc per "employee marked herself unavailable" event. Admin sees these
+// as a live bell/badge; matching employees (same branch + team) see them as
+// an urgent banner on their own schedule, so a same-day emergency gets
+// noticed without anyone needing to refresh.
+const notificationsCollRef = collection(db, "emergencyNotifications");
 
 // The logged-in employee's session, expected to be set by employee-login.html
 // after a successful sign-in, shaped like:
@@ -1371,7 +1547,7 @@ function render() {
   });
 
   if (!visible.length) {
-    grid.innerHTML = `<p style="color:var(--ink-muted);font-size:13.5px;">Walang site — pindutin ang “+ Add date event” o “+ Add site” para magsimula.</p>`;
+    grid.innerHTML = `<p style="color:var(--ink-muted);font-size:13.5px;">No sites yet — click “+ Add date event” or “+ Add site” to get started.</p>`;
     updateStats();
     return;
   }
@@ -1436,7 +1612,7 @@ function render() {
       render();
     });
     bracket.querySelector(".bracket-edit-date-btn").addEventListener("click", async () => {
-      const newIso = await showDatePrompt("Piliin ang bagong petsa para sa event na ito:", group.date, "Save date");
+      const newIso = await showDatePrompt("Choose the new date for this event:", group.date, "Save date");
       if (newIso === null) return;
       // Re-date every card that currently belongs to this bracket (matched
       // by date, not by the possibly-filtered group.items) so nothing gets
@@ -1517,12 +1693,16 @@ function render() {
 
         <div class="staff-grid">
           ${card.staff.map((s, sIdx) => `
-            <div class="staff-row" data-sidx="${sIdx}">
+            <div class="staff-row${s.emergency ? " emergency" : ""}" data-sidx="${sIdx}">
               <span class="drag-handle" draggable="true" title="Hold to reposition">⠿</span>
               <select class="roleSelect" data-sidx="${sIdx}">
                 ${roleOptionsHtml(s.label)}
               </select>
-              <input type="text" class="nameInput" list="roleNameList-${slug(s.label)}" data-card-id="${escapeAttr(card.id)}" data-sidx="${sIdx}" placeholder="Assign staff name" value="${escapeAttr(s.name)}">
+              <div style="flex:1;min-width:0;">
+                <input type="text" class="nameInput" style="width:100%;" list="roleNameList-${slug(s.label)}" data-card-id="${escapeAttr(card.id)}" data-sidx="${sIdx}" placeholder="${s.emergency ? "URGENT — needs replacement" : "Assign staff name"}" value="${escapeAttr(s.name)}">
+                ${s.emergency ? `<span class="emergency-note">🚨 ${escapeHtml(s.emergencyBy || "Employee")} reported unavailable (emergency) — needs replacement</span>` : ""}
+              </div>
+              ${s.emergency ? `<span class="emergency-tag">Urgent</span>` : ""}
               <span class="status-dot ${s.name.trim() ? "filled" : ""}"></span>
               <button type="button" class="removeFieldBtn" data-sidx="${sIdx}" title="Remove field">×</button>
             </div>
@@ -1646,7 +1826,12 @@ function render() {
         const sIdx = parseInt(e.target.dataset.sidx, 10);
         cards[idx].staff[sIdx].name = e.target.value;
         cards[idx].staff[sIdx]._touched = true;
-        const dot = e.target.parentElement.querySelector(".status-dot");
+        if (cards[idx].staff[sIdx].emergency && e.target.value.trim()) {
+          cards[idx].staff[sIdx].emergency = false;
+          cards[idx].staff[sIdx].emergencyBy = null;
+          cards[idx].staff[sIdx].emergencyByStaffId = null;
+        }
+        const dot = e.target.closest(".staff-row").querySelector(".status-dot");
         dot.classList.toggle("filled", e.target.value.trim().length > 0);
         saveCards();
         updateStats();
@@ -1758,6 +1943,21 @@ function renderEmployeeSchedule(scheduleCards, branch) {
 
   const filtered = (scheduleCards || []).filter(c => c.region === branch);
 
+  // Find the one slot (if any) this employee currently holds, across every
+  // branch/date — an employee can only hold one slot at a time, so every
+  // other open slot's "Sign me up" button gets disabled until they leave it.
+  let myActiveSlot = null;
+  (scheduleCards || []).some(c => {
+    const staff = c.staff || [];
+    for (let i = 0; i < staff.length; i++) {
+      if (employeeSession && staff[i].filledByStaffId === employeeSession.staffId) {
+        myActiveSlot = { cardId: c.id, sIdx: i };
+        return true;
+      }
+    }
+    return false;
+  });
+
   document.getElementById("statSites").textContent = filtered.length;
   let unfilled = 0, ready = 0;
   filtered.forEach(c => {
@@ -1844,16 +2044,28 @@ function renderEmployeeSchedule(scheduleCards, branch) {
           ${(card.staff || []).map((s, sIdx) => {
             const filled = (s.name || "").trim().length > 0;
             const isMine = filled && employeeSession && s.filledByStaffId === employeeSession.staffId;
+            const isEmergencyOpen = !filled && s.emergency;
             return `
-            <div class="staff-row">
+            <div class="staff-row${isEmergencyOpen ? " emergency" : ""}">
               <span class="status-dot ${filled ? "filled" : ""}"></span>
-              <span style="min-width:120px;color:var(--ink-muted);font-size:12px;">${escapeHtml(s.label)}</span>
+              <span style="min-width:120px;color:var(--ink-muted);font-size:12px;">
+                ${escapeHtml(s.label)}
+                ${isEmergencyOpen ? `<span class="emergency-note">🚨 Previously: ${escapeHtml(s.emergencyBy || "Employee")} — unavailable</span>` : ""}
+              </span>
               ${filled
                 ? `<strong style="flex:1;">${escapeHtml(s.name)}</strong>` +
-                  (isMine ? `<button type="button" class="unclaim-btn" data-card-id="${escapeAttr(card.id)}" data-sidx="${sIdx}">Alisin</button>` : "")
+                  (isMine
+                    ? `<button type="button" class="unavailable-btn" data-card-id="${escapeAttr(card.id)}" data-sidx="${sIdx}">🚨 Not Available</button>` +
+                      `<button type="button" class="unclaim-btn" data-card-id="${escapeAttr(card.id)}" data-sidx="${sIdx}">Leave slot</button>`
+                    : "")
                 : (() => {
                     const allowed = isRoleAllowedForEmployee(s.label);
-                    return `<button type="button" class="claim-btn${allowed ? "" : " blocked"}" data-card-id="${escapeAttr(card.id)}" data-sidx="${sIdx}" data-role-label="${escapeAttr(s.label)}"${allowed ? "" : ` title="Para sa ${escapeAttr(roleToTeam(s.label))} lang ito"`}>+ Sign me up</button>`;
+                    const blockedByOtherSlot = !!myActiveSlot && !(myActiveSlot.cardId === card.id && myActiveSlot.sIdx === sIdx);
+                    const label = isEmergencyOpen ? "🚨 Take slot (URGENT)" : "+ Sign me up";
+                    if (blockedByOtherSlot) {
+                      return `<button type="button" class="claim-btn blocked" disabled title="You're already signed up for another slot — leave it first to sign up here">${label}</button>`;
+                    }
+                    return `<button type="button" class="claim-btn${allowed ? "" : " blocked"}${isEmergencyOpen && allowed ? " urgent" : ""}" data-card-id="${escapeAttr(card.id)}" data-sidx="${sIdx}" data-role-label="${escapeAttr(s.label)}"${allowed ? "" : ` title="This is for ${escapeAttr(roleToTeam(s.label))} only"`}>${label}</button>`;
                   })()
               }
             </div>
@@ -1867,7 +2079,7 @@ function renderEmployeeSchedule(scheduleCards, branch) {
         const roleLabel = btn.dataset.roleLabel;
         if (!isRoleAllowedForEmployee(roleLabel)) {
           const { team: myTeam } = employeeSession ? splitDepartmentClient(employeeSession.department) : { team: "—" };
-          await showAlert(`Hindi ka pwedeng mag-sign up dito. "${roleLabel}" role lang ito, at ang department mo ay ${myTeam}.`);
+          await showAlert(`You can't sign up here. This is a "${roleLabel}" role only, and your department is ${myTeam}.`);
           return;
         }
         claimSlot(btn.dataset.cardId, parseInt(btn.dataset.sidx, 10), btn);
@@ -1875,9 +2087,16 @@ function renderEmployeeSchedule(scheduleCards, branch) {
     });
     cardEl.querySelectorAll(".unclaim-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
-        const ok = await showConfirm("Alisin ang pangalan mo sa slot na ito?");
+        const ok = await showConfirm("Remove your name from this slot?");
         if (!ok) return;
         unclaimSlot(btn.dataset.cardId, parseInt(btn.dataset.sidx, 10), btn);
+      });
+    });
+    cardEl.querySelectorAll(".unavailable-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const ok = await showConfirm("Mark yourself as unavailable due to an emergency?\n\nThe admin and other qualified employees will be notified right away so this slot can be filled.");
+        if (!ok) return;
+        markUnavailable(btn.dataset.cardId, parseInt(btn.dataset.sidx, 10), btn);
       });
     });
     bracketGrid.appendChild(cardEl);
@@ -1994,7 +2213,7 @@ function deptBoardHtml(deptLabel, rows) {
           <span class="dept-count">${row.count}</span>
         </li>
       `).join("")
-    : `<li class="dept-empty">Wala pang data.</li>`;
+    : `<li class="dept-empty">No data yet.</li>`;
   return `
     <div class="dept-board">
       <div class="dept-board-title">${escapeHtml(deptLabel)}</div>
@@ -2026,7 +2245,7 @@ function renderLeaderboard(allCards) {
     section.innerHTML = `
       <div class="leaderboard-wrap">
         <h2 class="leaderboard-title">🏆 Most Participate Employee</h2>
-        <p class="leaderboard-empty">Wala pang sumasali. Maging una — mag sign up sa mga bakanteng slot sa ibaba!</p>
+        <p class="leaderboard-empty">No one has signed up yet. Be the first — sign up for an open slot below!</p>
       </div>
     `;
     return;
@@ -2044,7 +2263,7 @@ function renderLeaderboard(allCards) {
   section.innerHTML = `
     <div class="leaderboard-wrap">
       <h2 class="leaderboard-title">🏆 Most Participate Employee</h2>
-      <p class="leaderboard-sub">Batay sa bilang ng slot na personal na sinign-up-an, South &amp; North Caloocan.</p>
+      <p class="leaderboard-sub">Based on the number of slots personally signed up for, South &amp; North Caloocan.</p>
       <div class="podium">${podiumHtml}</div>
       <div class="dept-boards">${deptBoardsHtml}</div>
     </div>
@@ -2060,7 +2279,7 @@ document.querySelectorAll("#regionFilter .filter-btn").forEach(btn => {
 });
 
 document.getElementById("addDateBtn").addEventListener("click", async () => {
-  const iso = await showDatePrompt("Pumili ng petsa para sa bagong event bracket:");
+  const iso = await showDatePrompt("Choose the date for the new event bracket:");
   if (!iso) return;
   const newCard = blankCard();
   newCard.date = iso;
@@ -2128,14 +2347,105 @@ async function claimSlot(cardId, staffIdx, btn) {
       const staffArr = (remoteCards[cIdx].staff || []).slice();
       const slot = staffArr[staffIdx];
       if (!slot) throw new Error("Role slot not found — try refreshing.");
-      if ((slot.name || "").trim()) throw new Error("May sumali na dito bago ka. Try refreshing.");
-      if (!isRoleAllowedForEmployee(slot.label)) throw new Error(`Hindi ka pwedeng mag-sign up dito. "${slot.label}" role lang ito.`);
-      staffArr[staffIdx] = { ...slot, name: (employeeSession.name || "").toUpperCase(), filledByStaffId: employeeSession.staffId };
+      if ((slot.name || "").trim()) throw new Error("Someone already signed up here before you. Try refreshing.");
+      if (!isRoleAllowedForEmployee(slot.label)) throw new Error(`You can't sign up here. This is a "${slot.label}" role only.`);
+      const alreadyHasSlot = remoteCards.some(c =>
+        (c.staff || []).some(s => s.filledByStaffId === employeeSession.staffId)
+      );
+      if (alreadyHasSlot) throw new Error("You're already signed up for another slot. Leave that one first before signing up here.");
+      staffArr[staffIdx] = {
+        ...slot,
+        name: (employeeSession.name || "").toUpperCase(),
+        filledByStaffId: employeeSession.staffId,
+        emergency: false,
+        emergencyBy: null,
+        emergencyByStaffId: null,
+        emergencyAt: null
+      };
       remoteCards[cIdx] = { ...remoteCards[cIdx], staff: staffArr };
       tx.set(scheduleDocRef, { cards: remoteCards, sentAt: serverTimestamp(), sentBy: data.sentBy || "admin" });
     });
+    // The slot may have been an emergency vacancy — clear any matching
+    // open notification now that someone has covered it.
+    resolveNotificationsFor(cardId, staffIdx);
   } catch (err) {
-    await showAlert(err.message || "Hindi na-save. Subukan ulit.");
+    await showAlert(err.message || "Failed to save. Please try again.");
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+  // On success the onSnapshot listener re-renders with the live result —
+  // no local re-render needed here.
+}
+
+// Lets a logged-in employee mark herself unavailable for a slot she already
+// owns, due to an emergency. This frees the slot back up (like unclaimSlot)
+// but tags it "emergency" so admin and other employees see it as urgent —
+// and files a notification doc so the admin bell + matching employees'
+// banners light up immediately, without anyone needing to refresh.
+async function markUnavailable(cardId, staffIdx, btn) {
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Sending…";
+  let notifyPayload = null;
+  try {
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(scheduleDocRef);
+      const data = snap.exists() ? snap.data() : { cards: [] };
+      const remoteCards = Array.isArray(data.cards) ? data.cards : [];
+      const cIdx = remoteCards.findIndex(c => c.id === cardId);
+      if (cIdx === -1) throw new Error("Site not found — try refreshing.");
+      const card = remoteCards[cIdx];
+      const staffArr = (card.staff || []).slice();
+      const slot = staffArr[staffIdx];
+      if (!slot) throw new Error("Role slot not found — try refreshing.");
+      if (!employeeSession || slot.filledByStaffId !== employeeSession.staffId) {
+        throw new Error("This is not your slot.");
+      }
+      const prevName = slot.name || employeeSession.name || "";
+      staffArr[staffIdx] = {
+        ...slot,
+        name: "",
+        filledByStaffId: null,
+        emergency: true,
+        emergencyBy: prevName,
+        emergencyByStaffId: employeeSession.staffId,
+        emergencyAt: Date.now()
+      };
+      remoteCards[cIdx] = { ...card, staff: staffArr };
+      tx.set(scheduleDocRef, { cards: remoteCards, sentAt: serverTimestamp(), sentBy: data.sentBy || "admin" });
+      notifyPayload = {
+        cardId,
+        staffIdx,
+        role: slot.label || "",
+        location: card.location || "Unnamed site",
+        date: card.date || "",
+        time: card.time || "",
+        region: card.region || "",
+        employeeName: prevName,
+        staffId: employeeSession.staffId,
+        createdAt: serverTimestamp(),
+        resolved: false,
+        backupName: null,
+        backupStaffId: null
+      };
+    });
+    if (notifyPayload) {
+      try {
+        await addDoc(notificationsCollRef, notifyPayload);
+      } catch (notifyErr) {
+        // Slot is already freed at this point, so don't block that — but do
+        // surface the failure instead of hiding it, since a silent failure
+        // here means admin/other employees never get notified.
+        console.error("Failed to file emergency notification:", notifyErr);
+        await showAlert(
+          "You've been marked unavailable and your slot is open again, BUT the alert to the admin/other employees was not sent.\n\n" +
+          "Error: " + (notifyErr && notifyErr.message ? notifyErr.message : notifyErr) +
+          "\n\nThe \"emergencyNotifications\" collection likely needs to be added to the Firestore Security Rules. Please message the admin right away."
+        );
+      }
+    }
+  } catch (err) {
+    await showAlert(err.message || "Failed to save. Please try again.");
     btn.disabled = false;
     btn.textContent = originalLabel;
   }
@@ -2161,14 +2471,14 @@ async function unclaimSlot(cardId, staffIdx, btn) {
       const slot = staffArr[staffIdx];
       if (!slot) throw new Error("Role slot not found — try refreshing.");
       if (!employeeSession || slot.filledByStaffId !== employeeSession.staffId) {
-        throw new Error("Hindi ito ang slot mo.");
+        throw new Error("This is not your slot.");
       }
       staffArr[staffIdx] = { ...slot, name: "", filledByStaffId: null };
       remoteCards[cIdx] = { ...remoteCards[cIdx], staff: staffArr };
       tx.set(scheduleDocRef, { cards: remoteCards, sentAt: serverTimestamp(), sentBy: data.sentBy || "admin" });
     });
   } catch (err) {
-    await showAlert(err.message || "Hindi na-save. Subukan ulit.");
+    await showAlert(err.message || "Failed to save. Please try again.");
     btn.disabled = false;
     btn.textContent = originalLabel;
   }
@@ -2218,7 +2528,7 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn) {
     });
     await showAlert(`"${dateLabelForMsg}" updated for employees. Other event dates were left as they were.`);
   } catch (err) {
-    await showAlert("Hindi na-update online: " + err.message);
+    await showAlert("Failed to update online: " + err.message);
   } finally {
     btn.disabled = false;
     btn.textContent = originalLabel;
@@ -2240,7 +2550,7 @@ async function deleteDateFromRemote(dateKey) {
       sentBy: "admin"
     });
   } catch (err) {
-    await showAlert("Na-delete sa iyong browser, pero hindi na-sync online: " + err.message);
+    await showAlert("Deleted in your browser, but failed to sync online: " + err.message);
   }
 }
 
@@ -2256,8 +2566,178 @@ async function deleteSiteFromRemote(cardId) {
       sentBy: "admin"
     });
   } catch (err) {
-    await showAlert("Na-delete sa iyong browser, pero hindi na-sync online: " + err.message);
+    await showAlert("Deleted in your browser, but failed to sync online: " + err.message);
   }
+}
+
+// ---------- Emergency notifications (admin bell + employee banner) ----------
+// Local cache of ALL emergency notifications (both open and resolved), kept
+// in sync by the onSnapshot listener below. Used both to render the
+// bell/banner and to find & update the right doc(s) once a slot is refilled.
+let latestNotifications = [];
+
+// Instead of deleting the notification once someone signs up to cover the
+// slot, mark it resolved and record who backed it up — so the bell panel
+// turns it green ("<name> — FOR BACKUP") instead of just vanishing. Admin
+// can still permanently dismiss it afterwards via the "Clear" button.
+async function resolveNotificationsFor(cardId, staffIdx) {
+  const matches = latestNotifications.filter(n => !n.resolved && n.cardId === cardId && n.staffIdx === staffIdx);
+  for (const n of matches) {
+    try {
+      await updateDoc(doc(db, "emergencyNotifications", n.id), {
+        resolved: true,
+        backupName: (employeeSession && employeeSession.name) ? employeeSession.name.toUpperCase() : "",
+        backupStaffId: employeeSession ? employeeSession.staffId : null,
+        resolvedAt: serverTimestamp()
+      });
+    } catch (e) { /* best-effort */ }
+  }
+}
+
+// Manual "Resolved"/"Clear" button in the panel — permanently removes the
+// notification doc, whether it's still red (admin handling it outside the
+// system) or already green (dismissing it after seeing the backup).
+async function resolveNotification(notifId) {
+  try {
+    await deleteDoc(doc(db, "emergencyNotifications", notifId));
+  } catch (err) {
+    await showAlert("Failed to clear the notification: " + err.message);
+  }
+}
+
+function regionLabelFromValue(region) {
+  if (region === "south") return "South Caloocan";
+  if (region === "north") return "North Caloocan";
+  return region || "—";
+}
+
+// Shared by admin and employees: bell + badge count + dropdown list of
+// emergency vacancies. Unresolved items render red with a "Resolved"
+// button; once someone backs up the slot the item turns green and shows
+// who covered it, with a "Clear" button to dismiss it for good. Admins get
+// every item; employees get only the pre-filtered subset for their own
+// branch + team (see getRelevantNotifications below). Badge count only
+// tallies still-open (unresolved) items — resolved ones stay visible in
+// the panel but don't need action.
+function renderNotifPanel(items) {
+  const badge = document.getElementById("notifBadge");
+  const wrap = document.getElementById("notifWrap");
+  const panel = document.getElementById("notifPanel");
+  if (!badge || !wrap || !panel) return;
+  wrap.style.display = "inline-block";
+  const openCount = items.filter(n => !n.resolved).length;
+  badge.textContent = String(openCount);
+  badge.classList.toggle("show", openCount > 0);
+  if (!items.length) {
+    panel.innerHTML = `<div class="notif-panel-empty">No emergency notifications.</div>`;
+    return;
+  }
+  panel.innerHTML = items.map(n => {
+    const isResolved = !!n.resolved;
+    const title = isResolved
+      ? `✅ ${escapeHtml(n.backupName || "A teammate")} — FOR BACKUP`
+      : `🚨 ${escapeHtml(n.employeeName || "Employee")} — UNAVAILABLE`;
+    const statusLine = isResolved
+      ? `Backing up for ${escapeHtml(n.employeeName || "the previous employee")}.`
+      : `Needs a replacement.`;
+    const btnClass = isResolved ? "notif-clear-btn" : "notif-resolve-btn";
+    const btnLabel = isResolved ? "Clear" : "Resolved";
+    return `
+    <div class="notif-item ${isResolved ? "is-resolved" : ""}">
+      <div class="notif-item-title">${title}</div>
+      <div class="notif-item-body">
+        ${escapeHtml(n.role || "")} at ${escapeHtml(n.location || "site")}${n.date ? " — " + escapeHtml(formatDateDisplay(n.date)) : ""}${n.time ? ", " + escapeHtml(n.time) : ""}<br>
+        Region: ${escapeHtml(regionLabelFromValue(n.region))}. ${statusLine}
+      </div>
+      <button type="button" class="${btnClass}" data-id="${escapeAttr(n.id)}">${btnLabel}</button>
+    </div>`;
+  }).join("");
+  panel.querySelectorAll(".notif-resolve-btn, .notif-clear-btn").forEach(btn => {
+    btn.addEventListener("click", () => resolveNotification(btn.dataset.id));
+  });
+}
+
+// Admin-only: banner above the schedule listing open emergency vacancies
+// across all branches/teams. Employees no longer see this banner — they
+// still get the bell — so this bails out immediately on the employee view.
+function renderUrgentBanner(items) {
+  const banner = document.getElementById("urgentBanner");
+  if (!banner) return;
+  if (employeeSession) { banner.style.display = "none"; banner.innerHTML = ""; return; }
+  const openItems = items.filter(n => !n.resolved);
+  if (!openItems.length) { banner.style.display = "none"; banner.innerHTML = ""; return; }
+  banner.style.display = "block";
+  banner.innerHTML = `<p class="urgent-banner-title">🚨 Emergency — needs replacement now</p>` +
+    openItems.map(n => `
+      <div class="urgent-banner-item">
+        <strong>${escapeHtml(n.role || "")}</strong> at ${escapeHtml(n.location || "site")}${n.date ? " — " + escapeHtml(formatDateDisplay(n.date)) : ""}${n.time ? ", " + escapeHtml(n.time) : ""}.
+        ${escapeHtml(n.employeeName || "An employee")} became unavailable. Sign up below if you can cover.
+      </div>
+    `).join("");
+}
+
+// Admins see every notification (open or resolved). Employees only see the
+// ones that match their own branch + team, same as the old employee-only
+// banner used to filter — now shared by both the bell panel and the (now
+// admin-only) banner. An employee never sees the notification generated by
+// their own "Unavailable" click; only other employees (and the admin) are
+// notified.
+function getRelevantNotifications(items) {
+  if (!employeeSession) return items;
+  const myTeam = splitDepartmentClient(employeeSession.department).team;
+  return items.filter(n =>
+    n.staffId !== employeeSession.staffId &&
+    n.region === employeeSession.branch &&
+    roleToTeam(n.role).toUpperCase() === String(myTeam).toUpperCase()
+  );
+}
+
+onSnapshot(
+  query(notificationsCollRef, orderBy("createdAt", "desc")),
+  snap => {
+    const all = [];
+    snap.forEach(d => all.push({ id: d.id, ...d.data() }));
+    // Keep resolved items too now (they're no longer deleted on cover) so
+    // the panel can still show the green "FOR BACKUP" state.
+    latestNotifications = all;
+    const relevant = getRelevantNotifications(latestNotifications);
+    renderNotifPanel(relevant);
+    renderUrgentBanner(relevant);
+  },
+  err => {
+    // Most likely cause: Firestore Security Rules don't yet allow read
+    // access to the "emergencyNotifications" collection (it's new — the
+    // rest of the app's rules won't automatically cover it). Surface this
+    // loudly instead of leaving the bell/banner silently empty forever.
+    // The bell + panel are shared elements, so both admin and employees
+    // will see this if it happens.
+    console.error("emergencyNotifications listener failed:", err);
+    const wrap = document.getElementById("notifWrap");
+    const panel = document.getElementById("notifPanel");
+    if (wrap) wrap.style.display = "inline-block";
+    if (panel) {
+      panel.classList.add("open");
+      panel.innerHTML = `<div class="notif-panel-empty" style="color:var(--danger);font-style:normal;">
+        ⚠ Failed to load notifications.<br><br>
+        <span style="font-size:11px;">${escapeHtml(err.message || String(err))}</span><br><br>
+        The "emergencyNotifications" collection needs to be allowed in the Firestore Security Rules.
+      </div>`;
+    }
+  }
+);
+
+const notifBellBtn = document.getElementById("notifBell");
+if (notifBellBtn) {
+  notifBellBtn.addEventListener("click", () => {
+    document.getElementById("notifPanel").classList.toggle("open");
+  });
+  document.addEventListener("click", e => {
+    const wrap = document.getElementById("notifWrap");
+    if (wrap && !wrap.contains(e.target)) {
+      const panel = document.getElementById("notifPanel");
+      if (panel) panel.classList.remove("open");
+    }
+  });
 }
 
 document.getElementById("saveBtn").addEventListener("click", async () => {
