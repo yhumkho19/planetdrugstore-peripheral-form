@@ -4737,6 +4737,43 @@
     renderEmployeeGroups();
   });
 
+  // Same "eventSchedule" doc event-schedule.html reads/writes — a deleted
+  // employee's already-claimed bracket slot needs to be freed the instant
+  // the account goes, not just whenever someone next happens to open the
+  // schedule page (event-schedule.html also self-heals this on its own —
+  // see its clearSlotsForDeletedEmployees() — but doing it here too means
+  // it's instant instead of depending on that page being opened later).
+  const eventScheduleDocRef = doc(db, 'eventSchedule', 'current');
+
+  async function clearEmployeeSlotsInEventSchedule(staffDocId){
+    try{
+      const snap = await getDoc(eventScheduleDocRef);
+      if(!snap.exists()) return;
+      const data = snap.data();
+      const remoteCards = Array.isArray(data.cards) ? data.cards : [];
+      let changed = false;
+      const nextCards = remoteCards.map(card => {
+        const staffArr = (card.staff || []).map(slot => {
+          const sid = (slot.filledByStaffId || '').trim().toLowerCase();
+          if(!sid || sid !== staffDocId) return slot;
+          changed = true;
+          return { ...slot, name: '', filledByStaffId: null };
+        });
+        return { ...card, staff: staffArr };
+      });
+      if(!changed) return;
+      await setDoc(eventScheduleDocRef, {
+        cards: nextCards,
+        sentAt: serverTimestamp(),
+        sentBy: data.sentBy || 'admin'
+      });
+    }catch(err){
+      // Best-effort — event-schedule.html's own reconciliation is the
+      // fallback if this write fails (e.g. offline).
+      console.error("Failed to clear the deleted employee's event-schedule slot(s):", err);
+    }
+  }
+
   // Delete Account — removes the employee's profile so they can no longer
   // sign in / use the Peripherals Receiving form. Peripherals forms they
   // already filled up and saved are untouched: each saved entry keeps its
@@ -4752,7 +4789,7 @@
     if(!btn) return;
     const uid = btn.dataset.delEmp;
     const name = btn.dataset.empName || 'this employee';
-    if(!(await showAppConfirm(`Delete the account for ${name}? They will no longer be able to sign in. Peripherals forms they already filled up will keep their name on record.`, {title:'Delete Account', okLabel:'Delete', danger:true}))){
+    if(!(await showAppConfirm(`Delete the account for ${name}? They will no longer be able to sign in. Peripherals forms they already filled up will keep their name on record. Kung may naka-sign up silang slot sa Event Schedule, mababakante rin iyon agad.`, {title:'Delete Account', okLabel:'Delete', danger:true}))){
       return;
     }
     btn.disabled = true;
@@ -4760,6 +4797,7 @@
     PDLoader.show();
     try{
       await deleteDoc(doc(db, 'employees', uid));
+      await clearEmployeeSlotsInEventSchedule(uid.trim().toLowerCase());
     }catch(err){
       await showAppAlert('Could not delete the account (' + (err.code || err.message) + ').', 'Delete Failed');
       btn.disabled = false;

@@ -1210,6 +1210,23 @@
     }
     window.employeeReady = true;
     window.dispatchEvent(new Event('employeeReady'));
+
+    // Live guard: the getDoc check above only catches a deletion that
+    // already happened before this page loaded. If an Admin deletes this
+    // account WHILE the employee is actively sitting on this page (form
+    // already open, no reload in between), that one-time check never runs
+    // again — nothing told them. Keep a live listener on their own employee
+    // doc for the rest of the session so a deletion kicks them out right
+    // away, with the same "account deleted" message employee-login.html
+    // shows via ?deleted=1.
+    onSnapshot(doc(db, 'employees', staffDocId), snap => {
+      if(!snap.exists()){
+        clearSession();
+        window.location.replace('employee-login.html?deleted=1');
+      }
+    }, err => {
+      console.error('Employee account listener failed:', err);
+    });
   })();
 
   window.fsSignOut = async function(){

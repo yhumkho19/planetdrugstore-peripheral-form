@@ -1153,7 +1153,18 @@ function getEmployeeSession() {
     const raw = sessionStorage.getItem("pdEmployeeSession") || localStorage.getItem("pdEmployeeSession");
     if (!raw) return null;
     const s = JSON.parse(raw);
-    if (!s || (s.branch !== "south" && s.branch !== "north")) return null;
+    if (!s) return null;
+    // Normalize branch casing before checking — the "branch" field comes
+    // straight from Firestore as whatever the Admin typed/selected at
+    // registration (e.g. "South", "NORTH"), not guaranteed lowercase. A
+    // strict === "south"/"north" check here silently returned null for any
+    // non-lowercase value, which meant employeeSession was null even for a
+    // signed-in employee — breaking not just this page's employee view but
+    // also the account-deletion listener below (it only runs when
+    // employeeSession is truthy).
+    const normalizedBranch = String(s.branch || "").trim().toLowerCase();
+    if (normalizedBranch !== "south" && normalizedBranch !== "north") return null;
+    s.branch = normalizedBranch;
     return s;
   } catch (e) { return null; }
 }
@@ -1610,6 +1621,7 @@ function render() {
       cards.push(nc);
       saveCards();
       render();
+      pushNewCardToRemote(nc);
     });
     bracket.querySelector(".bracket-edit-date-btn").addEventListener("click", async () => {
       const newIso = await showDatePrompt("Choose the new date for this event:", group.date, "Save date");
@@ -2120,6 +2132,11 @@ let employeesMap = new Map();
 // leaderboard can be re-rendered whenever either the schedule or the
 // employees list changes, without waiting for the other to also change.
 let lastScheduleCardsForLeaderboard = [];
+// Guards the "my account got deleted" check below against a slow/offline
+// first read of the employees collection ever looking like a deletion for
+// someone who's actually still a valid employee — only checked from the
+// second snapshot onward.
+let employeesSnapshotSeen = false;
 
 // Splits a department string like "IT NORTH" or "Pharmacy Assistant SOUTH"
 // into { team: "IT", branch: "NORTH" }, same convention as admin-console.html.
@@ -2158,7 +2175,63 @@ function startEmployeesListener() {
     snap.forEach(d => map.set(d.id, d.data() || {}));
     employeesMap = map;
     renderLeaderboard(lastScheduleCardsForLeaderboard);
+    // The account this map no longer contains might still be sitting in a
+    // signed-up slot on the live roster (admin deleted the account, but
+    // nothing ever told the schedule to let go of it). Every time the
+    // employees collection changes — including a deletion — re-check every
+    // claimed slot and free the ones whose staffId no longer has an account.
+    clearSlotsForDeletedEmployees(map);
+    // If the employee currently viewing this page is the one who just got
+    // deleted, don't leave them sitting on a page for an account that no
+    // longer exists — send them to the same login page/message
+    // employee-login.html already shows when it's opened with ?deleted=1.
+    if (employeeSession && employeesSnapshotSeen) {
+      const myId = (employeeSession.staffId || "").trim().toLowerCase();
+      if (myId && !map.has(myId)) {
+        try {
+          localStorage.removeItem("pdEmployeeSession");
+          sessionStorage.removeItem("pdEmployeeSession");
+        } catch (e) { /* best-effort */ }
+        window.location.href = "employee-login.html?deleted=1";
+        return;
+      }
+    }
+    employeesSnapshotSeen = true;
   });
+}
+
+// Reads the live roster, clears any slot whose filledByStaffId isn't in
+// currentEmployeesMap anymore (account was deleted), and pushes the fix
+// straight to Firestore so every open admin/employee view updates itself —
+// same as deleteSiteFromRemote/deleteDateFromRemote, no button needed.
+// Slots an admin filled in by typing a plain name (no filledByStaffId)
+// are untouched; only self-claimed slots tied to a real account are checked.
+async function clearSlotsForDeletedEmployees(currentEmployeesMap) {
+  try {
+    const snap = await getDoc(scheduleDocRef);
+    const data = snap.exists() ? snap.data() : { cards: [] };
+    const remoteCards = Array.isArray(data.cards) ? data.cards : [];
+    let changed = false;
+    const nextCards = remoteCards.map(card => {
+      const staffArr = (card.staff || []).map(slot => {
+        const sid = (slot.filledByStaffId || "").trim();
+        if (!sid || currentEmployeesMap.has(sid.toLowerCase())) return slot;
+        changed = true;
+        return { ...slot, name: "", filledByStaffId: null };
+      });
+      return { ...card, staff: staffArr };
+    });
+    if (!changed) return;
+    await setDoc(scheduleDocRef, {
+      cards: nextCards,
+      sentAt: serverTimestamp(),
+      sentBy: data.sentBy || "admin"
+    });
+  } catch (err) {
+    // Best-effort — if this fails (e.g. offline), the next employees
+    // snapshot or page load will simply try the cleanup again.
+    console.error("Failed to clear deleted employees' slots:", err);
+  }
 }
 
 // Counts, per staffId, how many role slots (across every site/date, both
@@ -2287,13 +2360,16 @@ document.getElementById("addDateBtn").addEventListener("click", async () => {
   adminSelectedDate = iso;
   saveCards();
   render();
+  pushNewCardToRemote(newCard);
 });
 
 document.getElementById("addCardBtn").addEventListener("click", () => {
-  cards.push(blankCard());
+  const newCard = blankCard();
+  cards.push(newCard);
   adminSelectedDate = ""; // new site has no date yet -> lands in "Unscheduled"
   saveCards();
   render();
+  pushNewCardToRemote(newCard);
 });
 
 // Strips fields that should never be pushed to the remote doc: photo data
@@ -2570,6 +2646,28 @@ async function deleteSiteFromRemote(cardId) {
   }
 }
 
+// New site/date-event cards need to sync out immediately too, same as the
+// deletes above — otherwise another admin device (or an employee) won't
+// see a newly added site until someone remembers to click Update/Send.
+// This only appends the one new card; it never touches anything else
+// already on the remote doc, so it can't clobber concurrent edits.
+async function pushNewCardToRemote(card) {
+  try {
+    const snap = await getDoc(scheduleDocRef);
+    const data = snap.exists() ? snap.data() : { cards: [] };
+    const remoteCards = Array.isArray(data.cards) ? data.cards : [];
+    if (remoteCards.some(c => c.id === card.id)) return; // already synced somehow
+    const merged = [...remoteCards, ...stripForRemote([card])];
+    await setDoc(scheduleDocRef, {
+      cards: merged,
+      sentAt: serverTimestamp(),
+      sentBy: data.sentBy || "admin"
+    });
+  } catch (err) {
+    await showAlert("Saved in your browser, but failed to sync online: " + err.message);
+  }
+}
+
 // ---------- Emergency notifications (admin bell + employee banner) ----------
 // Local cache of ALL emergency notifications (both open and resolved), kept
 // in sync by the onSnapshot listener below. Used both to render the
@@ -2760,12 +2858,18 @@ document.getElementById("resetBtn").addEventListener("click", async () => {
   }
 });
 
+// Needed in both modes now: this is what notices when the admin deletes an
+// employee's account and clears any slot that employee had signed up for
+// (see clearSlotsForDeletedEmployees above). Previously this only ran for
+// employees, so a deleted account's slot only got cleared if some employee
+// happened to have the page open — the admin's own dashboard never noticed.
+startEmployeesListener();
+
 if (employeeSession) {
   // Employee mode: hide the admin editing toolbar/filters and show a
   // live, read-only view scoped to their own branch.
   document.querySelector(".toolbar").style.display = "none";
   document.getElementById("regionFilter").style.display = "none";
-  startEmployeesListener();
   onSnapshot(scheduleDocRef, snap => {
     const data = snap.exists() ? snap.data() : { cards: [] };
     const allCards = data.cards || [];
@@ -2777,6 +2881,13 @@ if (employeeSession) {
   renderDatalists();
   render();
 
+  // Tracks which card ids we've actually seen confirmed on the server, so
+  // the "another device deleted this" check below never mistakes a
+  // brand-new card THIS device just added (and hasn't Sent/Updated yet)
+  // for something that needs to be swept away. Stays null until the first
+  // snapshot arrives — nothing is ever removed on that very first check.
+  let lastKnownRemoteCardIds = null;
+
   // Live sign-up feed: merges employee self-signups into the local view
   // in real time, the same way employees see the roster update live.
   // Only slots the admin hasn't touched this session are updated, and if
@@ -2784,6 +2895,13 @@ if (employeeSession) {
   // back (data still merges underneath) so it doesn't yank their cursor
   // away mid-edit — it catches up as soon as they click elsewhere or the
   // next signup comes in.
+  //
+  // This also picks up whole new site/date-event cards (or removals) that
+  // another admin device Sent/Updated — previously this only diffed staff
+  // fields on cards that already matched an existing local id, so a new
+  // site added on Device A and pushed to Firestore would never show up on
+  // Device B's dashboard at all, live or even after refresh, since Device
+  // B's local `cards` only ever grows from Device B's own edits.
   onSnapshot(scheduleDocRef, snap => {
     const data = snap.exists() ? snap.data() : { cards: [] };
     const remoteCards = Array.isArray(data.cards) ? data.cards : [];
@@ -2793,6 +2911,7 @@ if (employeeSession) {
     const activeCardId = isNameField ? activeEl.dataset.cardId : null;
     const activeSIdx = isNameField ? parseInt(activeEl.dataset.sidx, 10) : null;
     let changed = false;
+    let structuralChange = false;
     const affectedDates = new Set();
     cards.forEach(card => {
       const remoteCard = remoteById.get(card.id);
@@ -2814,6 +2933,36 @@ if (employeeSession) {
         }
       });
     });
+    // Pick up brand-new cards another device already Sent/Updated.
+    remoteCards.forEach(remoteCard => {
+      if (cards.some(c => c.id === remoteCard.id)) return;
+      cards.push({ ...remoteCard, staff: (remoteCard.staff || []).map(s => ({ ...s })) });
+      structuralChange = true;
+      affectedDates.add(remoteCard.date || "");
+    });
+    // Drop cards another device deleted — but only ones we'd previously
+    // confirmed were live, never a just-added local card still waiting on
+    // its first Send/Update.
+    if (lastKnownRemoteCardIds) {
+      const removeIds = new Set(
+        cards.filter(c => lastKnownRemoteCardIds.has(c.id) && !remoteById.has(c.id)).map(c => c.id)
+      );
+      if (removeIds.size) {
+        cards.forEach(c => { if (removeIds.has(c.id)) affectedDates.add(c.date || ""); });
+        cards = cards.filter(c => !removeIds.has(c.id));
+        structuralChange = true;
+      }
+    }
+    lastKnownRemoteCardIds = new Set(remoteCards.map(c => c.id));
+    if (structuralChange) {
+      // New/removed cards change the DOM structure itself (new site cards,
+      // new date tabs) — always do a full re-render for these, even if the
+      // admin is mid-edit elsewhere, rather than leave the dashboard
+      // showing a stale set of sites.
+      saveCards();
+      render();
+      return;
+    }
     if (!changed) return;
     saveCards();
     const isTypingInCard = activeEl && activeEl.closest && activeEl.closest(".site-card");

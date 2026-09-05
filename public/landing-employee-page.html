@@ -303,7 +303,7 @@
 <script type="module">
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { initializeFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     getAuth, onAuthStateChanged, signOut, setPersistence,
     indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence,
@@ -343,6 +343,32 @@
           name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase() || 'EM';
       }
     }catch(e){ /* keep default badge if session is missing/unreadable */ }
+  })();
+
+  // Live guard: this landing page never checked whether the signed-in
+  // employee's account still exists — an Admin deleting it while the
+  // employee was sitting right here did nothing until they happened to
+  // navigate to peripheral-form.html and it reloaded. Listen on their own
+  // employee doc and, the moment it's deleted, kick them to
+  // employee-login.html?deleted=1 (same "account deleted" message shown
+  // there), mirroring the pattern already used in peripheral-form.html and
+  // event-schedule.html.
+  (function watchForAccountDeletion(){
+    try{
+      const raw = localStorage.getItem('pdEmployeeSession') || sessionStorage.getItem('pdEmployeeSession');
+      const session = raw ? JSON.parse(raw) : null;
+      if(!session || !session.staffId) return;
+      const staffDocId = session.staffId.toLowerCase();
+      onSnapshot(doc(db, 'employees', staffDocId), snap => {
+        if(!snap.exists()){
+          localStorage.removeItem('pdEmployeeSession');
+          sessionStorage.removeItem('pdEmployeeSession');
+          window.location.replace('employee-login.html?deleted=1');
+        }
+      }, err => {
+        console.error('Employee account listener failed:', err);
+      });
+    }catch(e){ /* best-effort — no listener if session is unreadable */ }
   })();
 
   document.getElementById('OnLogout').addEventListener('click', async ()=>{
