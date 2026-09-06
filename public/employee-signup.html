@@ -110,6 +110,7 @@
   .lfield select{cursor:pointer;}
   .lfield input:focus,.lfield select:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 4px rgba(214,31,44,0.10);}
   .lfield .hint{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4;}
+  .lfield input:disabled{background:var(--paper);color:var(--muted);cursor:not-allowed;}
   .pw-wrap input{padding-right:54px;}
   .pw-toggle{
     position:absolute;right:6px;top:50%;transform:translateY(-50%);
@@ -204,12 +205,13 @@
         </div>
         <div class="lfield">
           <label for="empBranch">Branch</label>
-          <select id="empBranch" required>
-            <option value="" disabled selected>Select branch</option>
-            <option value="south">South</option>
-            <option value="north">North</option>
-          </select>
-          <div class="hint">Determines which site schedule you'll see once it's sent out.</div>
+          <input type="text" id="empBranch" placeholder="Auto-filled from department" disabled>
+          <div class="hint">Auto-filled based on your Department — not editable.</div>
+        </div>
+        <div class="lfield">
+          <label for="empSiteName">Site Name</label>
+          <input type="text" id="empSiteName" placeholder="e.g. Camarin, Bagbayan" required autocomplete="off">
+          <div class="hint">Specific branch/site you're assigned to.</div>
         </div>
         <div class="lfield">
           <label for="empStaffId">Staff ID</label>
@@ -275,6 +277,18 @@
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
+  function deriveBranch(dept){
+    const d = (dept || '').toUpperCase();
+    if(d.includes('NORTH')) return 'north';
+    if(d.includes('SOUTH')) return 'south';
+    return '';
+  }
+  const empDepartment = document.getElementById('empDepartment');
+  const empBranch = document.getElementById('empBranch');
+  empDepartment.addEventListener('change', ()=>{
+    empBranch.value = deriveBranch(empDepartment.value);
+  });
+
   // Show/Hide for both password fields
   function wireToggle(btnId, inputId){
     const btn = document.getElementById(btnId);
@@ -304,7 +318,8 @@
     const name = document.getElementById('empName').value.trim();
     const email = document.getElementById('empEmail').value.trim();
     const department = document.getElementById('empDepartment').value;
-    const branch = document.getElementById('empBranch').value;
+    const branch = deriveBranch(department);
+    const siteName = document.getElementById('empSiteName').value.trim();
     const staffId = document.getElementById('empStaffId').value.trim();
     const password = document.getElementById('empPassword').value;
     const password2 = document.getElementById('empPassword2').value;
@@ -327,7 +342,7 @@
       const passwordHash = await hashPassword(password);
 
       await setDoc(empRef, {
-        name, email, staffId, department, branch,
+        name, email, staffId, department, branch, siteName,
         passwordHash,
         createdAt: serverTimestamp(),
         createdBy: 'self-signup'
@@ -336,6 +351,7 @@
       okMsg.textContent = `Account created, ${name}! Redirecting you to sign in…`;
       okMsg.style.display = 'block';
       signupForm.reset();
+      empBranch.value = '';
 
       setTimeout(()=>{
         window.location.href = 'employee-login.html?registered=1&staffId=' + encodeURIComponent(staffId);

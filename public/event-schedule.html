@@ -8,25 +8,28 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #F2EEE3;
-    --surface: #FFFDF8;
-    --surface-dim: #EAE2CC;
-    --ink: #211F1A;
-    --ink-muted: #6E6656;
-    --ink-faint: #A79E8A;
-    --border: #DBD2B9;
-    --south: #0F6E5C;
-    --south-soft: #DFEEE8;
-    --north: #B5560C;
-    --north-soft: #F5E5D0;
-    --other: #4B4A66;
-    --other-soft: #E7E6F0;
-    --danger: #BF3B2C;
-    --danger-soft: #F9E7E1;
-    --ok: #1E7B4D;
-    --ok-soft: #E2F1E8;
-    --stamp: #B5342A;
-    --stamp-ink: #FBF2E9;
+    --bg: #EBF1EC;
+    --surface: #FFFFFF;
+    --surface-dim: #DEE9E1;
+    --ink: #10241E;
+    --ink-muted: #536A5F;
+    --ink-faint: #8FA69A;
+    --border: #C4D6CA;
+    --south: #0C7A61;
+    --south-soft: #D8EFE6;
+    --north: #C1560A;
+    --north-soft: #F7E2CA;
+    --other: #57468C;
+    --other-soft: #EAE5F6;
+    --danger: #C13A2C;
+    --danger-soft: #FBE5E0;
+    --ok: #167A4C;
+    --ok-soft: #DEF2E7;
+    --stamp: #C13A2C;
+    --stamp-ink: #FDF3E9;
+    --signal: #1C5CAE;
+    --signal-soft: #DCE9F7;
+    --signal-dark: #123E78;
   }
   * { box-sizing: border-box; }
   html, body {
@@ -34,13 +37,22 @@
     padding: 0;
     background: var(--bg);
     background-image:
-      radial-gradient(circle at 1px 1px, rgba(33,31,26,0.05) 1px, transparent 0);
+      radial-gradient(circle at 1px 1px, rgba(16,36,30,0.06) 1px, transparent 0);
     background-size: 22px 22px;
     color: var(--ink);
     font-family: 'IBM Plex Sans', Arial, sans-serif;
     font-size: 14px;
   }
   body { padding: 28px clamp(16px, 4vw, 48px) 60px; }
+  body.is-ready { animation: page-in 0.5s ease both; }
+  @keyframes page-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  }
+  :focus-visible { outline: 2px solid var(--south); outline-offset: 2px; }
 
   /* ---------- Header ---------- */
   .page-head {
@@ -49,22 +61,33 @@
     align-items: flex-end;
     flex-wrap: wrap;
     gap: 16px;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
     padding-bottom: 20px;
-    border-bottom: 2px solid var(--ink);
+    border-bottom: 3px solid var(--ink);
+    position: relative;
+  }
+  .page-head::after {
+    content: "";
+    position: absolute;
+    left: 0; bottom: -3px;
+    width: 64px; height: 3px;
+    background: var(--signal);
   }
   .page-head h1 {
     font-family: 'Fraunces', serif;
     font-optical-sizing: auto;
     font-weight: 600;
-    font-size: 32px;
+    font-size: 36px;
     margin: 0 0 4px;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
   }
   .page-head p {
     margin: 0;
     color: var(--ink-muted);
     font-size: 13.5px;
+    font-style: italic;
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
   }
   .stats {
     display: flex;
@@ -74,6 +97,8 @@
     border: 1px solid var(--border);
     background: var(--surface);
     padding: 10px 16px;
+    border-radius: 4px;
+    box-shadow: 3px 3px 0 rgba(16,36,30,0.06);
   }
   .stats .stat { text-align: right; }
   .stats .stat .num {
@@ -117,6 +142,7 @@
     background: var(--surface);
     color: var(--ink-muted);
   }
+  .filter-btn { transition: background-color .15s ease, border-color .15s ease, color .15s ease; }
   .filter-btn:hover { border-color: var(--ink-faint); color: var(--ink); }
   .filter-btn.active { color: #fff; border-color: transparent; }
   .filter-btn.active[data-filter="all"] { background: var(--ink); }
@@ -125,9 +151,9 @@
   .btn {
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     padding: 10px 18px;
-    border-radius: 2px;
+    border-radius: 5px;
     cursor: pointer;
     border: 1.5px solid var(--ink);
     background: var(--surface);
@@ -138,14 +164,20 @@
   .btn:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
   .btn:focus-visible { outline: 2px solid var(--south); outline-offset: 2px; }
   .btn.primary {
-    background: var(--south);
-    border-color: var(--south);
+    background: var(--signal);
+    border-color: var(--signal);
     color: #fff;
-    box-shadow: 2px 2px 0 #0a4a3e;
+    box-shadow: 2px 2px 0 var(--signal-dark);
   }
-  .btn.primary:hover { box-shadow: 1px 1px 0 #0a4a3e; }
+  .btn.primary:hover { box-shadow: 1px 1px 0 var(--signal-dark); }
   .btn.danger-outline { color: var(--danger); border-color: var(--danger); box-shadow: 2px 2px 0 var(--danger); }
   .btn.danger-outline:hover { background: var(--danger-soft); }
+  .btn.ghost {
+    box-shadow: none;
+    border-color: var(--border);
+    color: var(--ink-muted);
+  }
+  .btn.ghost:hover { border-color: var(--ink-faint); color: var(--ink); background: var(--surface); box-shadow: none; transform: none; }
 
   /* ---------- Grid ---------- */
   .grid {
@@ -190,6 +222,7 @@
   .bracket-add-btn {
     font-size: 12px;
     padding: 6px 12px;
+    border-radius: 4px;
     box-shadow: 2px 2px 0 var(--ink);
   }
   .bracket-actions {
@@ -221,6 +254,7 @@
     background: var(--surface);
     color: var(--ink-muted);
   }
+  .date-tab { transition: background-color .15s ease, border-color .15s ease, color .15s ease; }
   .date-tab:hover { border-color: var(--ink-faint); color: var(--ink); }
   .date-tab.active { background: var(--ink); border-color: var(--ink); color: #fff; }
   .date-tab { display: inline-flex; align-items: center; gap: 7px; }
@@ -298,7 +332,7 @@
     margin-left: 8px;
     white-space: nowrap;
   }
-  .unavailable-btn:hover { background: #9c2f22; }
+  .unavailable-btn:hover { background: #9a2e21; }
   .unavailable-btn:disabled { opacity: 0.6; cursor: default; }
 
   .emergency-note {
@@ -332,6 +366,7 @@
   /* ---------- Urgent banner (unavailable / emergency alerts) ---------- */
   .urgent-banner {
     border: 1.5px solid var(--danger);
+    border-radius: 6px;
     background: var(--danger-soft);
     margin-bottom: 18px;
     padding: 12px 16px;
@@ -398,11 +433,16 @@
     overflow-y: auto;
     background: var(--surface);
     border: 1.5px solid var(--ink);
-    box-shadow: 4px 4px 0 rgba(33,31,26,0.15);
+    border-radius: 8px;
+    box-shadow: 6px 6px 0 rgba(16,36,30,0.14);
     z-index: 500;
-    display: none;
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity .15s ease, transform .15s ease, visibility .15s;
   }
-  .notif-panel.open { display: block; }
+  .notif-panel.open { opacity: 1; visibility: visible; transform: none; }
   .notif-panel-empty { padding: 18px 16px; color: var(--ink-faint); font-size: 13px; font-style: italic; }
   .notif-item { padding: 12px 14px; border-bottom: 1px solid var(--border); border-left: 3px solid var(--danger); }
   .notif-item:last-child { border-bottom: none; }
@@ -443,28 +483,34 @@
   .site-card {
     background: var(--surface);
     border: 1px solid var(--border);
+    border-radius: 6px;
     display: flex;
     overflow: visible;
     position: relative;
-    box-shadow: 3px 3px 0 rgba(33,31,26,0.07);
+    box-shadow: 4px 4px 0 rgba(16,36,30,0.08);
+    transition: box-shadow .15s ease, transform .15s ease;
   }
-  .accent-bar { width: 5px; flex-shrink: 0; background: var(--other); }
+  .site-card:hover { box-shadow: 7px 7px 0 rgba(16,36,30,0.12); transform: translate(-2px, -2px); }
+  .site-card.is-cancelled:hover { box-shadow: 4px 4px 0 rgba(16,36,30,0.08); transform: none; }
+  .site-card:focus-within { box-shadow: 7px 7px 0 rgba(16,36,30,0.12); }
+  .accent-bar { width: 6px; flex-shrink: 0; background: var(--other); border-radius: 6px 0 0 6px; }
   .site-card[data-region="south"] .accent-bar { background: var(--south); }
   .site-card[data-region="north"] .accent-bar { background: var(--north); }
 
   .ticket-number {
     position: absolute;
-    top: -12px;
+    top: -13px;
     left: 14px;
     background: var(--stamp);
     color: var(--stamp-ink);
     font-family: 'IBM Plex Mono', monospace;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 12px;
-    letter-spacing: 0.03em;
-    padding: 3px 8px;
+    letter-spacing: 0.04em;
+    padding: 4px 10px;
+    border-radius: 3px;
     transform: rotate(-2deg);
-    box-shadow: 1px 1px 0 rgba(33,31,26,0.35);
+    box-shadow: 1px 2px 0 rgba(16,36,30,0.4);
     z-index: 2;
   }
 
@@ -493,6 +539,49 @@
     justify-content: center;
   }
   .remove-btn:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+
+  .cancel-event-btn {
+    position: absolute;
+    top: 10px;
+    right: 38px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-faint);
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cancel-event-btn:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+  .cancel-event-btn.is-cancelled { border-color: var(--danger); color: #fff; background: var(--danger); }
+  .cancel-event-btn.is-cancelled:hover { opacity: 0.85; }
+
+  .site-card.is-cancelled .card-inner > *:not(.cancelled-stamp) { opacity: 0.45; }
+  .site-card.is-cancelled .cancel-event-btn,
+  .site-card.is-cancelled .remove-btn { opacity: 1; }
+  .cancelled-stamp {
+    position: absolute;
+    top: 44%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-8deg);
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 0.08em;
+    color: var(--danger);
+    border: 3px solid var(--danger);
+    padding: 4px 14px;
+    border-radius: 4px;
+    background: rgba(255,253,248,0.85);
+    z-index: 3;
+    pointer-events: none;
+  }
+  .card-status.cancelled { background: var(--danger); color: #fff; }
 
   .region-line {
     display: flex;
@@ -628,6 +717,30 @@
     border: none;
   }
 
+  .staff-section { margin-top: 4px; }
+  .staff-section + .staff-section { margin-top: 14px; }
+  .staff-section-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .staff-section-hint {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--ink-faint);
+  }
+  .reliever-section .staff-section-title { color: var(--north); }
+  .reliever-section .staff-grid { border-top: 1px dashed var(--border); padding-top: 4px; }
   .staff-grid { padding-top: 2px; }
   .staff-row {
     display: flex;
@@ -719,6 +832,28 @@
   }
   .staff-row input.nameInput:focus { outline: none; border-bottom-color: var(--south); }
   .staff-row input.nameInput::placeholder { color: var(--ink-faint); font-weight: 400; }
+  .staff-row input.siteInput {
+    width: 100%;
+    margin-top: 3px;
+    border: none;
+    border-bottom: 1px dashed var(--border);
+    background: transparent;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 2px;
+    color: var(--north);
+  }
+  .staff-row input.siteInput:focus { outline: none; border-bottom-color: var(--north); }
+  .staff-row input.siteInput::placeholder { color: var(--ink-faint); font-weight: 400; }
+  .reliever-site-tag {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--north);
+    margin-top: 2px;
+  }
   .status-dot {
     width: 8px;
     height: 8px;
@@ -810,10 +945,40 @@
     .page-head h1 { font-size: 24px; }
   }
 
+  /* ---------- Empty state ---------- */
+  .empty-state {
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 48px 24px;
+    text-align: center;
+    max-width: 420px;
+    margin: 24px auto 0;
+  }
+  .empty-state .stub {
+    font-size: 26px;
+    display: inline-block;
+    margin-bottom: 14px;
+    transform: rotate(-4deg);
+  }
+  .empty-state h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0 0 8px;
+  }
+  .empty-state p {
+    color: var(--ink-muted);
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 0 0 18px;
+  }
+  .empty-state .btn { display: inline-flex; }
+
   /* ---------- Modal (replaces native alert/confirm popups) ---------- */
   .modal-overlay {
     position: fixed; inset: 0; z-index: 1000;
-    background: rgba(33,31,26,0.42);
+    background: rgba(16,36,30,0.5);
     display: none; align-items: center; justify-content: center;
     padding: 20px;
   }
@@ -822,7 +987,8 @@
     width: 100%; max-width: 380px;
     background: var(--surface);
     border: 1.5px solid var(--ink);
-    box-shadow: 6px 6px 0 rgba(33,31,26,0.15);
+    border-radius: 8px;
+    box-shadow: 8px 8px 0 rgba(16,36,30,0.16);
     padding: 24px 22px 20px;
   }
   .modal-box p {
@@ -855,6 +1021,7 @@
   .leaderboard-wrap {
     margin-bottom: 22px;
     border: 1.5px solid var(--ink);
+    border-radius: 8px;
     background: var(--surface);
     padding: 18px 18px 20px;
   }
@@ -885,6 +1052,7 @@
   }
   .podium-card {
     border: 1.5px solid var(--border);
+    border-radius: 6px;
     background: var(--surface-dim);
     padding: 14px 12px;
     text-align: center;
@@ -976,7 +1144,7 @@
   }
 </style>
 </head>
-<body>
+<body class="is-ready">
 
 <div class="modal-overlay" id="appModal">
   <div class="modal-box">
@@ -1006,7 +1174,7 @@
   </div>
   <a class="btn" id="leaderboardBtn" href="leaderboard.html" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;">🏆 Leaderboard</a>
   <div class="notif-wrap" id="notifWrap" style="display:none;">
-    <button type="button" class="notif-bell" id="notifBell" title="Emergency notifications">
+    <button type="button" class="notif-bell" id="notifBell" title="Emergency notifications" aria-label="Emergency notifications" aria-haspopup="true">
       🔔<span class="notif-badge" id="notifBadge">0</span>
     </button>
     <div class="notif-panel" id="notifPanel"></div>
@@ -1024,17 +1192,23 @@
 </div>
 
 <div class="toolbar">
-  <button class="btn primary" id="addDateBtn">+ Add date event</button>
+  <button class="btn" id="addDateBtn">+ Add date event</button>
   <button class="btn" id="addCardBtn">+ Add site</button>
-  <button class="btn" id="saveBtn">Send</button>
-  <button class="btn" id="updateAllBtn">Update All</button>
-  <button class="btn" id="printBtn">Print / Export PDF</button>
+  <button class="btn primary" id="saveBtn">📤 Send</button>
+  <button class="btn" id="updateAllBtn">🔄 Update All</button>
+  <button class="btn ghost" id="printBtn">🖨️ Print / Export PDF</button>
   <button class="btn danger-outline" id="resetBtn">Reset all</button>
 </div>
 
 <div id="datalistContainer" style="display:none" aria-hidden="true"></div>
 
-<div class="grid" id="grid"></div>
+<div class="grid" id="grid">
+  <div class="empty-state" style="opacity:.7;">
+    <span class="stub">⏳</span>
+    <h2>Loading…</h2>
+    <p>Fetching the latest roster.</p>
+  </div>
+</div>
 
 <script type="module">
 // ---------- In-page modal (replaces native alert()/confirm()) ----------
@@ -1186,12 +1360,45 @@ const ROLE_LABELS = [
 // Choices offered in each role field's dropdown.
 const ROLE_OPTIONS = ["PHARMACIST", "PICKER", "ENCODER", "BILLING", "IT SPECIALIST"];
 
+// Store Reliever duty is Pharmacy Assistant work only — every reliever row
+// is simply "PHARMACY ASSISTANT", no separate Picker/Encoder distinction.
+const RELIEVER_ROLE_OPTIONS = ["PHARMACY ASSISTANT"];
+
+// Default "Store Reliever" fields for a new site card — covers the store
+// roles left behind when their usual staff join the Event Team above.
+const RELIEVER_LABELS = ["PHARMACY ASSISTANT"];
+
 // Builds <option> tags for a role dropdown, making sure whatever label the
 // row currently has is included (and selected) even if it's not one of the
-// standard ROLE_OPTIONS (e.g. older "ENCODER/PICKER" entries).
-function roleOptionsHtml(current) {
-  const opts = ROLE_OPTIONS.includes(current) ? ROLE_OPTIONS : [current, ...ROLE_OPTIONS];
+// standard options (e.g. older "ENCODER/PICKER" entries). Store Reliever
+// rows only ever offer Pharmacy Assistant roles (PICKER/ENCODER).
+function roleOptionsHtml(current, listKey) {
+  const base = listKey === "relievers" ? RELIEVER_ROLE_OPTIONS : ROLE_OPTIONS;
+  const opts = base.includes(current) ? base : [current, ...base];
   return opts.map(r => `<option value="${escapeAttr(r)}" ${r === current ? "selected" : ""}>${escapeHtml(r)}</option>`).join("");
+}
+
+// Renders one editable role row (admin view) for either the "staff" (Event
+// Team) or "relievers" (Store Reliever) list on a site card. listKey is
+// stamped onto the row + its controls so the shared event handlers below
+// know which array on the card to update.
+function adminStaffRowHtml(s, sIdx, listKey, card) {
+  return `
+    <div class="staff-row${s.emergency ? " emergency" : ""}" data-list="${listKey}" data-sidx="${sIdx}">
+      <span class="drag-handle" draggable="true" title="Hold to reposition">⠿</span>
+      <select class="roleSelect" data-list="${listKey}" data-sidx="${sIdx}">
+        ${roleOptionsHtml(s.label, listKey)}
+      </select>
+      <div style="flex:1;min-width:0;">
+        <input type="text" class="nameInput" style="width:100%;" list="roleNameList-${slug(s.label)}" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" placeholder="${s.emergency ? "URGENT — needs replacement" : (listKey === "relievers" ? "Assign reliever name" : "Assign staff name")}" value="${escapeAttr(s.name)}">
+        ${listKey === "relievers" ? `<input type="text" class="siteInput" list="siteNameList" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" placeholder="Store to relieve — e.g. Branch X" value="${escapeAttr(s.site || "")}">` : ""}
+        ${s.emergency ? `<span class="emergency-note">🚨 ${escapeHtml(s.emergencyBy || "Employee")} reported unavailable (emergency) — needs replacement</span>` : ""}
+      </div>
+      ${s.emergency ? `<span class="emergency-tag">Urgent</span>` : ""}
+      <span class="status-dot ${s.name.trim() ? "filled" : ""}"></span>
+      <button type="button" class="removeFieldBtn" data-list="${listKey}" data-sidx="${sIdx}" title="Remove field" aria-label="Remove field">×</button>
+    </div>
+  `;
 }
 
 function blankCard() {
@@ -1204,8 +1411,10 @@ function blankCard() {
     date: "",
     time: "7:00PM - ONWARDS",
     staff: ROLE_LABELS.map(label => ({ label, name: "" })),
+    relievers: [],
     photo: null,
-    photoName: ""
+    photoName: "",
+    cancelled: false
   };
 }
 
@@ -1221,8 +1430,10 @@ function migrateOld(oldCard) {
     date: oldCard.date || "",
     time: oldCard.time || "",
     staff: oldCard.staff || ROLE_LABELS.map(label => ({ label, name: "" })),
+    relievers: oldCard.relievers || [],
     photo: oldCard.photo || null,
-    photoName: ""
+    photoName: "",
+    cancelled: oldCard.cancelled || false
   };
 }
 
@@ -1247,10 +1458,30 @@ let employeeSelectedDate = null;
 let adminSelectedDate;
 
 // Normalize any pre-existing entries to uppercase so old data matches the
-// new auto-uppercase behavior right away.
+// new auto-uppercase behavior right away. Also backfills the "relievers"
+// list onto cards saved before the Store Reliever section existed.
 cards.forEach(c => {
   c.location = (c.location || "").toUpperCase();
+  if (!Array.isArray(c.relievers)) {
+    c.relievers = [];
+  }
+  if (c.cancelled === undefined) c.cancelled = false;
   c.staff.forEach(s => { s.name = (s.name || "").toUpperCase(); });
+  c.relievers.forEach(s => {
+    s.name = (s.name || "").toUpperCase();
+    if (s.site === undefined) s.site = "";
+  });
+  // Store Reliever duty is Pharmacy Assistant only — drop any leftover
+  // PHARMACIST/BILLING/IT SPECIALIST reliever rows from older cards, and
+  // relabel whatever's left (old PICKER/ENCODER entries) to a single
+  // "PHARMACY ASSISTANT" role, since there's no longer a Picker/Encoder
+  // distinction for relievers. Also drop empty leftover placeholder rows
+  // (no name AND no site) from before Store Reliever rows were auto-added
+  // per Picker/Encoder signup — a blank, site-less row is meaningless now.
+  c.relievers = c.relievers
+    .filter(s => roleToTeam(s.label).toUpperCase() === "PHARMACY ASSISTANT")
+    .filter(s => (s.name || "").trim() || (s.site || "").trim())
+    .map(s => ({ ...s, label: "PHARMACY ASSISTANT" }));
 });
 
 function saveCards() {
@@ -1268,7 +1499,7 @@ let roleHistory = JSON.parse(localStorage.getItem(ROLE_HISTORY_KEY) || "{}");
 // available immediately, not just going forward.
 cards.forEach(c => {
   if (c.location.trim()) siteHistory.add(c.location.trim());
-  c.staff.forEach(s => {
+  [...c.staff, ...(c.relievers || [])].forEach(s => {
     if (!s.name.trim()) return;
     if (!roleHistory[s.label]) roleHistory[s.label] = [];
     if (!roleHistory[s.label].includes(s.name.trim())) roleHistory[s.label].push(s.name.trim());
@@ -1490,7 +1721,8 @@ function updateStats() {
   document.getElementById("statSites").textContent = cards.length;
   let unfilled = 0, ready = 0;
   cards.forEach(c => {
-    const empty = c.staff.filter(s => !s.name.trim()).length;
+    const empty = c.staff.filter(s => !s.name.trim()).length +
+      (c.relievers || []).filter(s => !s.name.trim()).length;
     unfilled += empty;
     if (empty === 0) ready++;
   });
@@ -1522,6 +1754,7 @@ function bracketOpenCount(items) {
   let unfilled = 0;
   items.forEach(({ card }) => {
     unfilled += (card.staff || []).filter(s => !(s.name || "").trim()).length;
+    unfilled += (card.relievers || []).filter(s => !(s.name || "").trim()).length;
   });
   return unfilled;
 }
@@ -1558,7 +1791,21 @@ function render() {
   });
 
   if (!visible.length) {
-    grid.innerHTML = `<p style="color:var(--ink-muted);font-size:13.5px;">No sites yet — click “+ Add date event” or “+ Add site” to get started.</p>`;
+    const noneMatchFilter = cards.length > 0;
+    grid.innerHTML = noneMatchFilter
+      ? `<div class="empty-state">
+          <span class="stub">🎟️</span>
+          <h2>No sites in this region yet</h2>
+          <p>Switch the filter above, or add a site under this region to get started.</p>
+        </div>`
+      : `<div class="empty-state">
+          <span class="stub">🎟️</span>
+          <h2>No sites yet</h2>
+          <p>Start by creating a date bracket for the event, then add each site under it.</p>
+          <button type="button" class="btn primary" id="emptyStateAddDate">+ Add date event</button>
+        </div>`;
+    const emptyBtn = document.getElementById("emptyStateAddDate");
+    if (emptyBtn) emptyBtn.addEventListener("click", () => document.getElementById("addDateBtn").click());
     updateStats();
     return;
   }
@@ -1657,14 +1904,16 @@ function render() {
       ticketCounter++;
 
       const cardEl = document.createElement("div");
-      cardEl.className = "site-card";
+      cardEl.className = "site-card" + (card.cancelled ? " is-cancelled" : "");
       cardEl.dataset.region = card.region;
 
       cardEl.innerHTML = `
       <div class="ticket-number">#${String(ticketCounter).padStart(2, "0")}</div>
       <div class="accent-bar"></div>
       <div class="card-inner">
-        <button class="remove-btn" title="Remove this site">×</button>
+        ${card.cancelled ? `<div class="cancelled-stamp">CANCELLED</div>` : ""}
+        <button class="cancel-event-btn ${card.cancelled ? "is-cancelled" : ""}" title="${card.cancelled ? "Reinstate this event" : "Cancel this event"}" aria-label="${card.cancelled ? "Reinstate this event" : "Cancel this event"}">${card.cancelled ? "↺" : "🚫"}</button>
+        <button class="remove-btn" title="Remove this site" aria-label="Remove this site">×</button>
 
         <div class="region-line">
           <select class="regionSelect">
@@ -1687,7 +1936,7 @@ function render() {
             <label>Date</label>
             <div class="date-wrap">
               <input type="text" inputmode="numeric" class="dateInput" placeholder="MM/DD/YYYY" autocomplete="off" value="${escapeAttr(formatDateDisplay(card.date))}" data-raw="${escapeAttr(isoToDigits(card.date))}">
-              <button type="button" class="calendarBtn" title="Choose date" tabindex="-1">📅</button>
+              <button type="button" class="calendarBtn" title="Choose date" aria-label="Choose date" tabindex="-1">📅</button>
               <input type="date" class="dateNative" tabindex="-1" value="${escapeAttr(card.date)}">
             </div>
           </div>
@@ -1695,7 +1944,7 @@ function render() {
             <label>Time</label>
             <div class="time-wrap">
               <input type="text" inputmode="numeric" class="timeInput" placeholder="7:00AM" value="${escapeAttr(card.time)}">
-              <button type="button" class="clockBtn" title="Choose time" tabindex="-1">🕐</button>
+              <button type="button" class="clockBtn" title="Choose time" aria-label="Choose time" tabindex="-1">🕐</button>
               <input type="time" class="timeNative" tabindex="-1">
             </div>
           </div>
@@ -1703,24 +1952,21 @@ function render() {
 
         <div class="perforation"></div>
 
-        <div class="staff-grid">
-          ${card.staff.map((s, sIdx) => `
-            <div class="staff-row${s.emergency ? " emergency" : ""}" data-sidx="${sIdx}">
-              <span class="drag-handle" draggable="true" title="Hold to reposition">⠿</span>
-              <select class="roleSelect" data-sidx="${sIdx}">
-                ${roleOptionsHtml(s.label)}
-              </select>
-              <div style="flex:1;min-width:0;">
-                <input type="text" class="nameInput" style="width:100%;" list="roleNameList-${slug(s.label)}" data-card-id="${escapeAttr(card.id)}" data-sidx="${sIdx}" placeholder="${s.emergency ? "URGENT — needs replacement" : "Assign staff name"}" value="${escapeAttr(s.name)}">
-                ${s.emergency ? `<span class="emergency-note">🚨 ${escapeHtml(s.emergencyBy || "Employee")} reported unavailable (emergency) — needs replacement</span>` : ""}
-              </div>
-              ${s.emergency ? `<span class="emergency-tag">Urgent</span>` : ""}
-              <span class="status-dot ${s.name.trim() ? "filled" : ""}"></span>
-              <button type="button" class="removeFieldBtn" data-sidx="${sIdx}" title="Remove field">×</button>
-            </div>
-          `).join("")}
+        <div class="staff-section">
+          <div class="staff-section-title">🩺 Event Team</div>
+          <div class="staff-grid" data-list="staff">
+            ${card.staff.map((s, sIdx) => adminStaffRowHtml(s, sIdx, "staff", card)).join("")}
+          </div>
+          <button type="button" class="addFieldBtn" data-list="staff">+ Add field</button>
         </div>
-        <button type="button" class="addFieldBtn">+ Add field</button>
+
+        <div class="staff-section reliever-section">
+          <div class="staff-section-title">🏬 Store Reliever <span class="staff-section-hint">covers the store while Event Team is out</span></div>
+          <div class="staff-grid" data-list="relievers">
+            ${(card.relievers || []).map((s, sIdx) => adminStaffRowHtml(s, sIdx, "relievers", card)).join("")}
+          </div>
+          <button type="button" class="addFieldBtn" data-list="relievers">+ Add field</button>
+        </div>
 
         <div class="attach-row ${card.photo ? "has-photo" : ""}">
           <div class="attach-thumb">${card.photo ? `<img src="${card.photo}" alt="">` : "📎"}</div>
@@ -1732,6 +1978,35 @@ function render() {
     `;
 
     // ---- Events ----
+    cardEl.querySelector(".cancel-event-btn").addEventListener("click", async function () {
+      const nowCancelled = !cards[idx].cancelled;
+      const ok = await showConfirm(
+        nowCancelled
+          ? "Cancel this event? Employees will see it marked as cancelled and won't be able to sign up until it's reinstated."
+          : "Reinstate this event? It will become active again for employees."
+      );
+      if (!ok) return;
+      cards[idx].cancelled = nowCancelled;
+      saveCards();
+      // Flip the visible state on this exact card right away, instead of
+      // waiting on the full render() below (or a page refresh) to notice.
+      cardEl.classList.toggle("is-cancelled", nowCancelled);
+      this.classList.toggle("is-cancelled", nowCancelled);
+      this.title = nowCancelled ? "Reinstate this event" : "Cancel this event";
+      this.textContent = nowCancelled ? "↺" : "🚫";
+      let stampEl = cardEl.querySelector(".cancelled-stamp");
+      if (nowCancelled && !stampEl) {
+        stampEl = document.createElement("div");
+        stampEl.className = "cancelled-stamp";
+        stampEl.textContent = "CANCELLED";
+        cardEl.querySelector(".card-inner").prepend(stampEl);
+      } else if (!nowCancelled && stampEl) {
+        stampEl.remove();
+      }
+      render();
+      pushCardPatchToRemote(card.id, { cancelled: nowCancelled }, cards[idx]);
+    });
+
     cardEl.querySelector(".remove-btn").addEventListener("click", async () => {
       if (await showConfirm("Remove this site from the list?")) {
         const removedId = card.id;
@@ -1835,13 +2110,15 @@ function render() {
     cardEl.querySelectorAll(".nameInput").forEach(inp => {
       inp.addEventListener("input", e => {
         uppercaseInPlace(e.target);
+        const listKey = e.target.dataset.list || "staff";
         const sIdx = parseInt(e.target.dataset.sidx, 10);
-        cards[idx].staff[sIdx].name = e.target.value;
-        cards[idx].staff[sIdx]._touched = true;
-        if (cards[idx].staff[sIdx].emergency && e.target.value.trim()) {
-          cards[idx].staff[sIdx].emergency = false;
-          cards[idx].staff[sIdx].emergencyBy = null;
-          cards[idx].staff[sIdx].emergencyByStaffId = null;
+        const arr = cards[idx][listKey];
+        arr[sIdx].name = e.target.value;
+        arr[sIdx]._touched = true;
+        if (arr[sIdx].emergency && e.target.value.trim()) {
+          arr[sIdx].emergency = false;
+          arr[sIdx].emergencyBy = null;
+          arr[sIdx].emergencyByStaffId = null;
         }
         const dot = e.target.closest(".staff-row").querySelector(".status-dot");
         dot.classList.toggle("filled", e.target.value.trim().length > 0);
@@ -1850,15 +2127,30 @@ function render() {
         updateTabBadge(group.date);
       });
       inp.addEventListener("change", e => {
+        const listKey = e.target.dataset.list || "staff";
         const sIdx = parseInt(e.target.dataset.sidx, 10);
-        addRoleHistory(cards[idx].staff[sIdx].label, e.target.value);
+        addRoleHistory(cards[idx][listKey][sIdx].label, e.target.value);
+      });
+    });
+
+    cardEl.querySelectorAll(".siteInput").forEach(inp => {
+      inp.addEventListener("input", e => {
+        uppercaseInPlace(e.target);
+        const listKey = e.target.dataset.list || "relievers";
+        const sIdx = parseInt(e.target.dataset.sidx, 10);
+        cards[idx][listKey][sIdx].site = e.target.value;
+        saveCards();
+      });
+      inp.addEventListener("change", e => {
+        addSiteHistory(e.target.value);
       });
     });
 
     cardEl.querySelectorAll(".roleSelect").forEach(sel => {
       sel.addEventListener("change", e => {
+        const listKey = e.target.dataset.list || "staff";
         const sIdx = parseInt(e.target.dataset.sidx, 10);
-        cards[idx].staff[sIdx].label = e.target.value;
+        cards[idx][listKey][sIdx].label = e.target.value;
         saveCards();
         render();
       });
@@ -1866,21 +2158,31 @@ function render() {
 
     cardEl.querySelectorAll(".removeFieldBtn").forEach(btn => {
       btn.addEventListener("click", e => {
-        const sIdx = parseInt(e.target.dataset.sidx, 10);
-        cards[idx].staff.splice(sIdx, 1);
+        const listKey = btn.dataset.list || "staff";
+        const sIdx = parseInt(btn.dataset.sidx, 10);
+        cards[idx][listKey].splice(sIdx, 1);
         saveCards();
         render();
       });
     });
 
-    const addFieldBtn = cardEl.querySelector(".addFieldBtn");
-    if (addFieldBtn) addFieldBtn.addEventListener("click", () => {
-      cards[idx].staff.push({ label: ROLE_OPTIONS[0], name: "" });
-      saveCards();
-      render();
+    cardEl.querySelectorAll(".addFieldBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const listKey = btn.dataset.list || "staff";
+        if (!Array.isArray(cards[idx][listKey])) cards[idx][listKey] = [];
+        cards[idx][listKey].push(
+          listKey === "relievers"
+            ? { label: RELIEVER_ROLE_OPTIONS[0], name: "", site: "" }
+            : { label: ROLE_OPTIONS[0], name: "" }
+        );
+        saveCards();
+        render();
+      });
     });
 
-    // ---- Drag-to-reorder roles (grab the 6-dot handle, drop on target row) ----
+    // ---- Drag-to-reorder roles (grab the 6-dot handle, drop on target row).
+    // Reordering only happens within the same list (Event Team stays
+    // separate from Store Reliever) — a drop across sections is ignored.
     cardEl.querySelectorAll(".staff-row").forEach(row => {
       row.addEventListener("dragover", e => {
         e.preventDefault();
@@ -1890,10 +2192,12 @@ function render() {
       row.addEventListener("drop", e => {
         e.preventDefault();
         row.classList.remove("drag-over");
-        const fromIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+        const [fromList, fromIdxRaw] = String(e.dataTransfer.getData("text/plain")).split(":");
+        const fromIdx = parseInt(fromIdxRaw, 10);
+        const toList = row.dataset.list || "staff";
         const toIdx = parseInt(row.dataset.sidx, 10);
-        if (isNaN(fromIdx) || fromIdx === toIdx) return;
-        const staffArr = cards[idx].staff;
+        if (fromList !== toList || isNaN(fromIdx) || fromIdx === toIdx) return;
+        const staffArr = cards[idx][toList];
         const [moved] = staffArr.splice(fromIdx, 1);
         staffArr.splice(toIdx, 0, moved);
         saveCards();
@@ -1904,7 +2208,7 @@ function render() {
       handle.addEventListener("dragstart", e => {
         const row = handle.closest(".staff-row");
         e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", row.dataset.sidx);
+        e.dataTransfer.setData("text/plain", `${row.dataset.list || "staff"}:${row.dataset.sidx}`);
         row.classList.add("dragging");
       });
       handle.addEventListener("dragend", () => {
@@ -1955,16 +2259,19 @@ function renderEmployeeSchedule(scheduleCards, branch) {
 
   const filtered = (scheduleCards || []).filter(c => c.region === branch);
 
-  // Find the one slot (if any) this employee currently holds, across every
-  // branch/date — an employee can only hold one slot at a time, so every
-  // other open slot's "Sign me up" button gets disabled until they leave it.
+  // Find the one slot (if any) this employee currently holds — Event Team
+  // OR Store Reliever, across every branch/date. An employee can only hold
+  // one slot total at a time, so every other open slot's "Sign me up"
+  // button gets disabled until they leave it.
   let myActiveSlot = null;
   (scheduleCards || []).some(c => {
-    const staff = c.staff || [];
-    for (let i = 0; i < staff.length; i++) {
-      if (employeeSession && staff[i].filledByStaffId === employeeSession.staffId) {
-        myActiveSlot = { cardId: c.id, sIdx: i };
-        return true;
+    for (const listKey of ["staff", "relievers"]) {
+      const list = c[listKey] || [];
+      for (let i = 0; i < list.length; i++) {
+        if (employeeSession && list[i].filledByStaffId === employeeSession.staffId) {
+          myActiveSlot = { cardId: c.id, list: listKey, sIdx: i };
+          return true;
+        }
       }
     }
     return false;
@@ -1973,7 +2280,8 @@ function renderEmployeeSchedule(scheduleCards, branch) {
   document.getElementById("statSites").textContent = filtered.length;
   let unfilled = 0, ready = 0;
   filtered.forEach(c => {
-    const empty = (c.staff || []).filter(s => !(s.name || "").trim()).length;
+    const empty = (c.staff || []).filter(s => !(s.name || "").trim()).length +
+      (c.relievers || []).filter(s => !(s.name || "").trim()).length;
     unfilled += empty;
     if (empty === 0) ready++;
   });
@@ -1984,7 +2292,11 @@ function renderEmployeeSchedule(scheduleCards, branch) {
   grid.innerHTML = "";
 
   if (!filtered.length) {
-    grid.innerHTML = `<p style="color:var(--ink-muted);font-size:13.5px;">No schedule has been sent yet for ${branchLabel}.</p>`;
+    grid.innerHTML = `<div class="empty-state">
+        <span class="stub">🎟️</span>
+        <h2>Nothing posted yet</h2>
+        <p>No schedule has been sent yet for ${escapeHtml(branchLabel)}. Check back once the admin publishes the roster.</p>
+      </div>`;
     return;
   }
 
@@ -2025,16 +2337,19 @@ function renderEmployeeSchedule(scheduleCards, branch) {
 
   activeGroup.items.forEach(({ card }, idx) => {
     const cardEl = document.createElement("div");
-    cardEl.className = "site-card";
+    cardEl.className = "site-card" + (card.cancelled ? " is-cancelled" : "");
     cardEl.dataset.region = card.region;
     cardEl.innerHTML = `
       <div class="ticket-number">#${String(idx + 1).padStart(2, "0")}</div>
       <div class="accent-bar"></div>
       <div class="card-inner">
+        ${card.cancelled ? `<div class="cancelled-stamp">CANCELLED</div>` : ""}
         <div class="region-line">
           <span class="sep">${escapeHtml(regionLabel(card))} · ${escapeHtml(missionLabel(card))}</span>
           ${(() => {
-            const openHere = (card.staff || []).filter(s => !(s.name || "").trim()).length;
+            if (card.cancelled) return `<span class="card-status cancelled">Cancelled</span>`;
+            const openHere = (card.staff || []).filter(s => !(s.name || "").trim()).length +
+              (card.relievers || []).filter(s => !(s.name || "").trim()).length;
             return openHere > 0
               ? `<span class="card-status warn">${openHere} role${openHere === 1 ? "" : "s"} open</span>`
               : `<span class="card-status ok">✓ fully staffed</span>`;
@@ -2052,67 +2367,93 @@ function renderEmployeeSchedule(scheduleCards, branch) {
           </div>
         </div>
         <div class="perforation"></div>
-        <div class="staff-grid">
-          ${(card.staff || []).map((s, sIdx) => {
-            const filled = (s.name || "").trim().length > 0;
-            const isMine = filled && employeeSession && s.filledByStaffId === employeeSession.staffId;
-            const isEmergencyOpen = !filled && s.emergency;
-            return `
-            <div class="staff-row${isEmergencyOpen ? " emergency" : ""}">
-              <span class="status-dot ${filled ? "filled" : ""}"></span>
-              <span style="min-width:120px;color:var(--ink-muted);font-size:12px;">
-                ${escapeHtml(s.label)}
-                ${isEmergencyOpen ? `<span class="emergency-note">🚨 Previously: ${escapeHtml(s.emergencyBy || "Employee")} — unavailable</span>` : ""}
-              </span>
-              ${filled
-                ? `<strong style="flex:1;">${escapeHtml(s.name)}</strong>` +
-                  (isMine
-                    ? `<button type="button" class="unavailable-btn" data-card-id="${escapeAttr(card.id)}" data-sidx="${sIdx}">🚨 Not Available</button>` +
-                      `<button type="button" class="unclaim-btn" data-card-id="${escapeAttr(card.id)}" data-sidx="${sIdx}">Leave slot</button>`
-                    : "")
-                : (() => {
-                    const allowed = isRoleAllowedForEmployee(s.label);
-                    const blockedByOtherSlot = !!myActiveSlot && !(myActiveSlot.cardId === card.id && myActiveSlot.sIdx === sIdx);
-                    const label = isEmergencyOpen ? "🚨 Take slot (URGENT)" : "+ Sign me up";
-                    if (blockedByOtherSlot) {
-                      return `<button type="button" class="claim-btn blocked" disabled title="You're already signed up for another slot — leave it first to sign up here">${label}</button>`;
-                    }
-                    return `<button type="button" class="claim-btn${allowed ? "" : " blocked"}${isEmergencyOpen && allowed ? " urgent" : ""}" data-card-id="${escapeAttr(card.id)}" data-sidx="${sIdx}" data-role-label="${escapeAttr(s.label)}"${allowed ? "" : ` title="This is for ${escapeAttr(roleToTeam(s.label))} only"`}>${label}</button>`;
-                  })()
-              }
-            </div>
-          `;
-          }).join("")}
+        <div class="staff-section">
+          <div class="staff-section-title">🩺 Event Team</div>
+          <div class="staff-grid">
+            ${(card.staff || []).map((s, sIdx) => employeeStaffRowHtml(s, sIdx, "staff", card, myActiveSlot, card.cancelled)).join("")}
+          </div>
+        </div>
+        <div class="staff-section reliever-section">
+          <div class="staff-section-title">🏬 Store Reliever <span class="staff-section-hint">covers the store while Event Team is out</span></div>
+          <div class="staff-grid">
+            ${(card.relievers || []).map((s, sIdx) => employeeStaffRowHtml(s, sIdx, "relievers", card, myActiveSlot, card.cancelled)).join("")}
+          </div>
         </div>
       </div>
     `;
     cardEl.querySelectorAll(".claim-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const roleLabel = btn.dataset.roleLabel;
-        if (!isRoleAllowedForEmployee(roleLabel)) {
+        const btnListKey = btn.dataset.list || "staff";
+        if (!isRoleAllowedForEmployee(roleLabel, btnListKey)) {
           const { team: myTeam } = employeeSession ? splitDepartmentClient(employeeSession.department) : { team: "—" };
-          await showAlert(`You can't sign up here. This is a "${roleLabel}" role only, and your department is ${myTeam}.`);
+          if (btnListKey === "relievers") {
+            await showAlert(`You can't sign up here. Store Reliever duty is for Pharmacy Assistant only, and your department is ${myTeam}.`);
+          } else {
+            await showAlert(`You can't sign up here. This is a "${roleLabel}" role only, and your department is ${myTeam}.`);
+          }
           return;
         }
-        claimSlot(btn.dataset.cardId, parseInt(btn.dataset.sidx, 10), btn);
+        claimSlot(btn.dataset.cardId, btn.dataset.list || "staff", parseInt(btn.dataset.sidx, 10), btn);
       });
     });
     cardEl.querySelectorAll(".unclaim-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const ok = await showConfirm("Remove your name from this slot?");
         if (!ok) return;
-        unclaimSlot(btn.dataset.cardId, parseInt(btn.dataset.sidx, 10), btn);
+        unclaimSlot(btn.dataset.cardId, btn.dataset.list || "staff", parseInt(btn.dataset.sidx, 10), btn);
       });
     });
     cardEl.querySelectorAll(".unavailable-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const ok = await showConfirm("Mark yourself as unavailable due to an emergency?\n\nThe admin and other qualified employees will be notified right away so this slot can be filled.");
         if (!ok) return;
-        markUnavailable(btn.dataset.cardId, parseInt(btn.dataset.sidx, 10), btn);
+        markUnavailable(btn.dataset.cardId, btn.dataset.list || "staff", parseInt(btn.dataset.sidx, 10), btn);
       });
     });
     bracketGrid.appendChild(cardEl);
   });
+}
+
+// Renders one slot row (employee view) for either the "staff" (Event Team)
+// or "relievers" (Store Reliever) list — with the appropriate sign-up /
+// leave / unavailable controls, scoped by listKey.
+function employeeStaffRowHtml(s, sIdx, listKey, card, myActiveSlot, cancelled) {
+  const filled = (s.name || "").trim().length > 0;
+  const isMine = filled && employeeSession && s.filledByStaffId === employeeSession.staffId;
+  const isEmergencyOpen = !filled && s.emergency;
+  return `
+    <div class="staff-row${isEmergencyOpen ? " emergency" : ""}">
+      <span class="status-dot ${filled ? "filled" : ""}"></span>
+      <span style="min-width:120px;color:var(--ink-muted);font-size:12px;">
+        ${escapeHtml(s.label)}
+        ${listKey === "relievers" && (s.site || "").trim() ? `<span class="reliever-site-tag">📍 ${escapeHtml(s.site)}</span>` : ""}
+        ${isEmergencyOpen ? `<span class="emergency-note">🚨 Previously: ${escapeHtml(s.emergencyBy || "Employee")} — unavailable</span>` : ""}
+      </span>
+      ${filled
+        ? `<strong style="flex:1;">${escapeHtml(s.name)}</strong>` +
+          (isMine
+            ? (cancelled
+                ? `<span style="flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);">Event cancelled</span>`
+                : `<button type="button" class="unavailable-btn" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}">🚨 Not Available</button>` +
+                  `<button type="button" class="unclaim-btn" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}">Leave slot</button>`)
+            : "")
+        : (() => {
+            if (cancelled) {
+              return `<button type="button" class="claim-btn blocked" disabled title="This event has been cancelled">Cancelled</button>`;
+            }
+            const allowed = isRoleAllowedForEmployee(s.label, listKey);
+            const blockedByOtherSlot = !!myActiveSlot && !(myActiveSlot.cardId === card.id && myActiveSlot.list === listKey && myActiveSlot.sIdx === sIdx);
+            const label = isEmergencyOpen ? "🚨 Take slot (URGENT)" : (listKey === "relievers" ? "+ Sign up as reliever" : "+ Sign me up");
+            const restrictionLabel = listKey === "relievers" ? "Pharmacy Assistant" : roleToTeam(s.label);
+            if (blockedByOtherSlot) {
+              return `<button type="button" class="claim-btn blocked" disabled title="You're already signed up for another slot — leave it first to sign up here">${label}</button>`;
+            }
+            return `<button type="button" class="claim-btn${allowed ? "" : " blocked"}${isEmergencyOpen && allowed ? " urgent" : ""}" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" data-role-label="${escapeAttr(s.label)}"${allowed ? "" : ` title="This is for ${escapeAttr(restrictionLabel)} only"`}>${label}</button>`;
+          })()
+      }
+    </div>
+  `;
 }
 
 function escapeAttr(str) {
@@ -2162,11 +2503,21 @@ function roleToTeam(label) {
 // Whether the currently logged-in employee's own department matches the
 // team a given role slot belongs to. Used to block signing up for roles
 // outside your own department (e.g. a BILLING employee can't sign up for
-// a PHARMACIST slot).
-function isRoleAllowedForEmployee(label) {
+// a PHARMACIST slot). Store Reliever ("relievers") slots are Pharmacy
+// Assistant duty only, regardless of the slot's role label — a Pharmacist,
+// Billing, or IT employee is never allowed to sign up as a store reliever.
+function isRoleAllowedForEmployee(label, listKey) {
   if (!employeeSession) return false;
   const { team } = splitDepartmentClient(employeeSession.department);
-  return String(team).toUpperCase() === roleToTeam(label).toUpperCase();
+  // Normalize the department's team through roleToTeam too — this way it
+  // still matches "Pharmacy Assistant" even if an older/legacy account has
+  // its department saved as something like "PICKER" or "ENCODER" instead of
+  // the broader "Pharmacy Assistant" label.
+  const normalizedTeam = roleToTeam(team).toUpperCase();
+  if (listKey === "relievers") {
+    return normalizedTeam === "PHARMACY ASSISTANT";
+  }
+  return normalizedTeam === roleToTeam(label).toUpperCase();
 }
 
 function startEmployeesListener() {
@@ -2212,15 +2563,17 @@ async function clearSlotsForDeletedEmployees(currentEmployeesMap) {
     const data = snap.exists() ? snap.data() : { cards: [] };
     const remoteCards = Array.isArray(data.cards) ? data.cards : [];
     let changed = false;
-    const nextCards = remoteCards.map(card => {
-      const staffArr = (card.staff || []).map(slot => {
-        const sid = (slot.filledByStaffId || "").trim();
-        if (!sid || currentEmployeesMap.has(sid.toLowerCase())) return slot;
-        changed = true;
-        return { ...slot, name: "", filledByStaffId: null };
-      });
-      return { ...card, staff: staffArr };
+    const clearDeleted = list => (list || []).map(slot => {
+      const sid = (slot.filledByStaffId || "").trim();
+      if (!sid || currentEmployeesMap.has(sid.toLowerCase())) return slot;
+      changed = true;
+      return { ...slot, name: "", filledByStaffId: null };
     });
+    const nextCards = remoteCards.map(card => ({
+      ...card,
+      staff: clearDeleted(card.staff),
+      relievers: clearDeleted(card.relievers)
+    }));
     if (!changed) return;
     await setDoc(scheduleDocRef, {
       cards: nextCards,
@@ -2241,7 +2594,7 @@ async function clearSlotsForDeletedEmployees(currentEmployeesMap) {
 function computeParticipation(allCards) {
   const counts = new Map(); // staffId(lowercase) -> { count, name }
   (allCards || []).forEach(card => {
-    (card.staff || []).forEach(s => {
+    [...(card.staff || []), ...(card.relievers || [])].forEach(s => {
       const sid = (s.filledByStaffId || "").trim();
       if (!sid) return;
       const key = sid.toLowerCase();
@@ -2376,9 +2729,10 @@ document.getElementById("addCardBtn").addEventListener("click", () => {
 // (too large, employees don't need it) and the local-only _touched marker
 // used by mergeRemoteClaims below.
 function stripForRemote(cardsArr) {
-  return cardsArr.map(({ photo, photoName, staff, ...rest }) => ({
+  return cardsArr.map(({ photo, photoName, staff, relievers, ...rest }) => ({
     ...rest,
-    staff: (staff || []).map(({ _touched, ...s }) => s)
+    staff: (staff || []).map(({ _touched, ...s }) => s),
+    relievers: (relievers || []).map(({ _touched, ...s }) => s)
   }));
 }
 
@@ -2390,26 +2744,30 @@ function stripForRemote(cardsArr) {
 // claimed it, keep the remote value instead of blanking it out.
 function mergeRemoteClaims(localCards, remoteCards) {
   const remoteById = new Map(remoteCards.map(c => [c.id, c]));
+  const mergeList = (localList, remoteList) => (localList || []).map((slot, sIdx) => {
+    if (slot._touched) return slot;
+    const remoteSlot = (remoteList || [])[sIdx];
+    if (!remoteSlot) return slot;
+    if (!(slot.name || "").trim() && remoteSlot.filledByStaffId && (remoteSlot.name || "").trim()) {
+      return { ...slot, name: remoteSlot.name, filledByStaffId: remoteSlot.filledByStaffId };
+    }
+    return slot;
+  });
   return localCards.map(card => {
     const remoteCard = remoteById.get(card.id);
     if (!remoteCard) return card;
-    const mergedStaff = (card.staff || []).map((slot, sIdx) => {
-      if (slot._touched) return slot;
-      const remoteSlot = (remoteCard.staff || [])[sIdx];
-      if (!remoteSlot) return slot;
-      if (!(slot.name || "").trim() && remoteSlot.filledByStaffId && (remoteSlot.name || "").trim()) {
-        return { ...slot, name: remoteSlot.name, filledByStaffId: remoteSlot.filledByStaffId };
-      }
-      return slot;
-    });
-    return { ...card, staff: mergedStaff };
+    return {
+      ...card,
+      staff: mergeList(card.staff, remoteCard.staff),
+      relievers: mergeList(card.relievers, remoteCard.relievers)
+    };
   });
 }
 
 // Lets a logged-in employee claim one open role slot directly, as a single
 // Firestore transaction — so two employees tapping the same open slot at
 // the same moment can't both "win" it.
-async function claimSlot(cardId, staffIdx, btn) {
+async function claimSlot(cardId, listKey, staffIdx, btn) {
   const originalLabel = btn.textContent;
   btn.disabled = true;
   btn.textContent = "Sending…";
@@ -2420,15 +2778,36 @@ async function claimSlot(cardId, staffIdx, btn) {
       const remoteCards = Array.isArray(data.cards) ? data.cards : [];
       const cIdx = remoteCards.findIndex(c => c.id === cardId);
       if (cIdx === -1) throw new Error("Site not found — try refreshing.");
-      const staffArr = (remoteCards[cIdx].staff || []).slice();
+      if (remoteCards[cIdx].cancelled) throw new Error("This event has been cancelled.");
+      const staffArr = (remoteCards[cIdx][listKey] || []).slice();
       const slot = staffArr[staffIdx];
       if (!slot) throw new Error("Role slot not found — try refreshing.");
       if ((slot.name || "").trim()) throw new Error("Someone already signed up here before you. Try refreshing.");
-      if (!isRoleAllowedForEmployee(slot.label)) throw new Error(`You can't sign up here. This is a "${slot.label}" role only.`);
+      if (!isRoleAllowedForEmployee(slot.label, listKey)) {
+        throw new Error(listKey === "relievers"
+          ? "You can't sign up here. Store Reliever duty is for Pharmacy Assistant only."
+          : `You can't sign up here. This is a "${slot.label}" role only.`);
+      }
       const alreadyHasSlot = remoteCards.some(c =>
-        (c.staff || []).some(s => s.filledByStaffId === employeeSession.staffId)
+        (c.staff || []).some(s => s.filledByStaffId === employeeSession.staffId) ||
+        (c.relievers || []).some(s => s.filledByStaffId === employeeSession.staffId)
       );
       if (alreadyHasSlot) throw new Error("You're already signed up for another slot. Leave that one first before signing up here.");
+
+      // Picker/Encoder-Picker (Event Team) duty pulls a Pharmacy Assistant
+      // out of her own store, so that store now needs a Store Reliever.
+      // Auto-add an open reliever row on this same card, pre-filled with
+      // the employee's own registered Site Name (from her employee-signup
+      // profile) so admin/other Pharmacy Assistants immediately see which
+      // store needs covering — they just need to fill in the name.
+      const isStoreAwayRole = listKey === "staff" && roleToTeam(slot.label).toUpperCase() === "PHARMACY ASSISTANT";
+      let mySiteName = "";
+      if (isStoreAwayRole) {
+        const empRef = doc(db, "employees", (employeeSession.staffId || "").trim().toLowerCase());
+        const empSnap = await tx.get(empRef);
+        if (empSnap.exists()) mySiteName = String(empSnap.data().siteName || "").trim();
+      }
+
       staffArr[staffIdx] = {
         ...slot,
         name: (employeeSession.name || "").toUpperCase(),
@@ -2438,12 +2817,22 @@ async function claimSlot(cardId, staffIdx, btn) {
         emergencyByStaffId: null,
         emergencyAt: null
       };
-      remoteCards[cIdx] = { ...remoteCards[cIdx], staff: staffArr };
+      remoteCards[cIdx] = { ...remoteCards[cIdx], [listKey]: staffArr };
+      if (isStoreAwayRole && mySiteName) {
+        const relieversArr = (remoteCards[cIdx].relievers || []).slice();
+        relieversArr.push({
+          label: "PHARMACY ASSISTANT",
+          name: "",
+          site: mySiteName,
+          addedForStaffId: employeeSession.staffId
+        });
+        remoteCards[cIdx] = { ...remoteCards[cIdx], relievers: relieversArr };
+      }
       tx.set(scheduleDocRef, { cards: remoteCards, sentAt: serverTimestamp(), sentBy: data.sentBy || "admin" });
     });
     // The slot may have been an emergency vacancy — clear any matching
     // open notification now that someone has covered it.
-    resolveNotificationsFor(cardId, staffIdx);
+    resolveNotificationsFor(cardId, listKey, staffIdx);
   } catch (err) {
     await showAlert(err.message || "Failed to save. Please try again.");
     btn.disabled = false;
@@ -2458,7 +2847,7 @@ async function claimSlot(cardId, staffIdx, btn) {
 // but tags it "emergency" so admin and other employees see it as urgent —
 // and files a notification doc so the admin bell + matching employees'
 // banners light up immediately, without anyone needing to refresh.
-async function markUnavailable(cardId, staffIdx, btn) {
+async function markUnavailable(cardId, listKey, staffIdx, btn) {
   const originalLabel = btn.textContent;
   btn.disabled = true;
   btn.textContent = "Sending…";
@@ -2471,7 +2860,7 @@ async function markUnavailable(cardId, staffIdx, btn) {
       const cIdx = remoteCards.findIndex(c => c.id === cardId);
       if (cIdx === -1) throw new Error("Site not found — try refreshing.");
       const card = remoteCards[cIdx];
-      const staffArr = (card.staff || []).slice();
+      const staffArr = (card[listKey] || []).slice();
       const slot = staffArr[staffIdx];
       if (!slot) throw new Error("Role slot not found — try refreshing.");
       if (!employeeSession || slot.filledByStaffId !== employeeSession.staffId) {
@@ -2487,13 +2876,27 @@ async function markUnavailable(cardId, staffIdx, btn) {
         emergencyByStaffId: employeeSession.staffId,
         emergencyAt: Date.now()
       };
-      remoteCards[cIdx] = { ...card, staff: staffArr };
+      remoteCards[cIdx] = { ...card, [listKey]: staffArr };
+      // Same cleanup as leaving the slot: her going unavailable means this
+      // specific reliever need (tied to her own site) no longer applies —
+      // whoever eventually takes the reopened slot will trigger their own.
+      if (listKey === "staff" && roleToTeam(slot.label).toUpperCase() === "PHARMACY ASSISTANT") {
+        const relieversArr = (remoteCards[cIdx].relievers || []).slice();
+        const autoIdx = relieversArr.findIndex(s =>
+          s.addedForStaffId === employeeSession.staffId && !(s.name || "").trim()
+        );
+        if (autoIdx !== -1) {
+          relieversArr.splice(autoIdx, 1);
+          remoteCards[cIdx] = { ...remoteCards[cIdx], relievers: relieversArr };
+        }
+      }
       tx.set(scheduleDocRef, { cards: remoteCards, sentAt: serverTimestamp(), sentBy: data.sentBy || "admin" });
       notifyPayload = {
         cardId,
+        list: listKey,
         staffIdx,
         role: slot.label || "",
-        location: card.location || "Unnamed site",
+        location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (card.location || "Unnamed site"),
         date: card.date || "",
         time: card.time || "",
         region: card.region || "",
@@ -2532,7 +2935,7 @@ async function markUnavailable(cardId, staffIdx, btn) {
 // Lets an employee back out of a slot she signed up for herself. Admin-
 // assigned slots (no filledByStaffId, or a different employee's id) can't
 // be removed this way — only the admin dashboard can change those.
-async function unclaimSlot(cardId, staffIdx, btn) {
+async function unclaimSlot(cardId, listKey, staffIdx, btn) {
   const originalLabel = btn.textContent;
   btn.disabled = true;
   btn.textContent = "Removing…";
@@ -2543,14 +2946,27 @@ async function unclaimSlot(cardId, staffIdx, btn) {
       const remoteCards = Array.isArray(data.cards) ? data.cards : [];
       const cIdx = remoteCards.findIndex(c => c.id === cardId);
       if (cIdx === -1) throw new Error("Site not found — try refreshing.");
-      const staffArr = (remoteCards[cIdx].staff || []).slice();
+      const staffArr = (remoteCards[cIdx][listKey] || []).slice();
       const slot = staffArr[staffIdx];
       if (!slot) throw new Error("Role slot not found — try refreshing.");
       if (!employeeSession || slot.filledByStaffId !== employeeSession.staffId) {
         throw new Error("This is not your slot.");
       }
       staffArr[staffIdx] = { ...slot, name: "", filledByStaffId: null };
-      remoteCards[cIdx] = { ...remoteCards[cIdx], staff: staffArr };
+      remoteCards[cIdx] = { ...remoteCards[cIdx], [listKey]: staffArr };
+      // If leaving a Picker/Encoder-Picker slot freed up her own store again,
+      // drop the auto-added Store Reliever row this signup created — but
+      // only if it's still unfilled. If someone already took it, leave it be.
+      if (listKey === "staff" && roleToTeam(slot.label).toUpperCase() === "PHARMACY ASSISTANT") {
+        const relieversArr = (remoteCards[cIdx].relievers || []).slice();
+        const autoIdx = relieversArr.findIndex(s =>
+          s.addedForStaffId === employeeSession.staffId && !(s.name || "").trim()
+        );
+        if (autoIdx !== -1) {
+          relieversArr.splice(autoIdx, 1);
+          remoteCards[cIdx] = { ...remoteCards[cIdx], relievers: relieversArr };
+        }
+      }
       tx.set(scheduleDocRef, { cards: remoteCards, sentAt: serverTimestamp(), sentBy: data.sentBy || "admin" });
     });
   } catch (err) {
@@ -2630,6 +3046,39 @@ async function deleteDateFromRemote(dateKey) {
   }
 }
 
+// Patches a few top-level fields on one existing card straight on the
+// remote doc (e.g. cancelled: true/false), leaving every staff/reliever
+// signup on that card and every other card completely untouched — same
+// "sync immediately, no button needed" pattern as pushNewCardToRemote /
+// deleteSiteFromRemote above.
+async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard) {
+  try {
+    const snap = await getDoc(scheduleDocRef);
+    const data = snap.exists() ? snap.data() : { cards: [] };
+    const remoteCards = Array.isArray(data.cards) ? data.cards : [];
+    const cIdx = remoteCards.findIndex(c => c.id === cardId);
+    let nextCards;
+    if (cIdx === -1) {
+      // This card was never "Sent"/"Updated" to Firestore before — append a
+      // full copy now (patch applied) instead of silently doing nothing,
+      // otherwise the cancel/reinstate would only reach employees the next
+      // time someone clicks Send/Update.
+      if (!fallbackLocalCard) return;
+      nextCards = [...remoteCards, { ...stripForRemote([fallbackLocalCard])[0], ...patch }];
+    } else {
+      nextCards = remoteCards.slice();
+      nextCards[cIdx] = { ...nextCards[cIdx], ...patch };
+    }
+    await setDoc(scheduleDocRef, {
+      cards: nextCards,
+      sentAt: serverTimestamp(),
+      sentBy: data.sentBy || "admin"
+    });
+  } catch (err) {
+    await showAlert("Saved in your browser, but failed to sync online: " + err.message);
+  }
+}
+
 async function deleteSiteFromRemote(cardId) {
   try {
     const snap = await getDoc(scheduleDocRef);
@@ -2678,8 +3127,10 @@ let latestNotifications = [];
 // slot, mark it resolved and record who backed it up — so the bell panel
 // turns it green ("<name> — FOR BACKUP") instead of just vanishing. Admin
 // can still permanently dismiss it afterwards via the "Clear" button.
-async function resolveNotificationsFor(cardId, staffIdx) {
-  const matches = latestNotifications.filter(n => !n.resolved && n.cardId === cardId && n.staffIdx === staffIdx);
+async function resolveNotificationsFor(cardId, listKey, staffIdx) {
+  const matches = latestNotifications.filter(n =>
+    !n.resolved && n.cardId === cardId && staffIdx === n.staffIdx && (n.list || "staff") === listKey
+  );
   for (const n of matches) {
     try {
       await updateDoc(doc(db, "emergencyNotifications", n.id), {
@@ -2744,7 +3195,7 @@ function renderNotifPanel(items) {
     <div class="notif-item ${isResolved ? "is-resolved" : ""}">
       <div class="notif-item-title">${title}</div>
       <div class="notif-item-body">
-        ${escapeHtml(n.role || "")} at ${escapeHtml(n.location || "site")}${n.date ? " — " + escapeHtml(formatDateDisplay(n.date)) : ""}${n.time ? ", " + escapeHtml(n.time) : ""}<br>
+        ${escapeHtml(n.role || "")}${n.list === "relievers" ? " (Store Reliever)" : ""} at ${escapeHtml(n.location || "site")}${n.date ? " — " + escapeHtml(formatDateDisplay(n.date)) : ""}${n.time ? ", " + escapeHtml(n.time) : ""}<br>
         Region: ${escapeHtml(regionLabelFromValue(n.region))}. ${statusLine}
       </div>
       <button type="button" class="${btnClass}" data-id="${escapeAttr(n.id)}">${btnLabel}</button>
@@ -2768,7 +3219,7 @@ function renderUrgentBanner(items) {
   banner.innerHTML = `<p class="urgent-banner-title">🚨 Emergency — needs replacement now</p>` +
     openItems.map(n => `
       <div class="urgent-banner-item">
-        <strong>${escapeHtml(n.role || "")}</strong> at ${escapeHtml(n.location || "site")}${n.date ? " — " + escapeHtml(formatDateDisplay(n.date)) : ""}${n.time ? ", " + escapeHtml(n.time) : ""}.
+        <strong>${escapeHtml(n.role || "")}</strong>${n.list === "relievers" ? " (Store Reliever)" : ""} at ${escapeHtml(n.location || "site")}${n.date ? " — " + escapeHtml(formatDateDisplay(n.date)) : ""}${n.time ? ", " + escapeHtml(n.time) : ""}.
         ${escapeHtml(n.employeeName || "An employee")} became unavailable. Sign up below if you can cover.
       </div>
     `).join("");
@@ -2872,7 +3323,19 @@ if (employeeSession) {
   document.getElementById("regionFilter").style.display = "none";
   onSnapshot(scheduleDocRef, snap => {
     const data = snap.exists() ? snap.data() : { cards: [] };
-    const allCards = data.cards || [];
+    // Store Reliever duty is Pharmacy Assistant only — strip any leftover
+    // PHARMACIST/BILLING/IT SPECIALIST reliever rows pushed from older data,
+    // relabel any old PICKER/ENCODER entries to "PHARMACY ASSISTANT", and
+    // drop empty leftover placeholder rows (no name AND no site) from
+    // before Store Reliever rows were auto-added per Picker/Encoder signup —
+    // before showing the roster to employees.
+    const allCards = (data.cards || []).map(c => ({
+      ...c,
+      relievers: (c.relievers || [])
+        .filter(s => roleToTeam(s.label).toUpperCase() === "PHARMACY ASSISTANT")
+        .filter(s => (s.name || "").trim() || (s.site || "").trim())
+        .map(s => ({ ...s, label: "PHARMACY ASSISTANT" }))
+    }));
     renderEmployeeSchedule(allCards, employeeSession.branch);
     renderLeaderboard(allCards);
   });
@@ -2909,6 +3372,7 @@ if (employeeSession) {
     const activeEl = document.activeElement;
     const isNameField = activeEl && activeEl.classList && activeEl.classList.contains("nameInput");
     const activeCardId = isNameField ? activeEl.dataset.cardId : null;
+    const activeList = isNameField ? (activeEl.dataset.list || "staff") : null;
     const activeSIdx = isNameField ? parseInt(activeEl.dataset.sidx, 10) : null;
     let changed = false;
     let structuralChange = false;
@@ -2916,27 +3380,46 @@ if (employeeSession) {
     cards.forEach(card => {
       const remoteCard = remoteById.get(card.id);
       if (!remoteCard) return;
-      (card.staff || []).forEach((slot, sIdx) => {
-        // Only skip the exact field being typed into right now — a field
-        // that was edited earlier and later cleared should still receive
-        // live signups going forward, not stay locked out forever.
-        if (card.id === activeCardId && sIdx === activeSIdx) return;
-        const remoteSlot = (remoteCard.staff || [])[sIdx];
-        if (!remoteSlot) return;
-        const remoteName = (remoteSlot.name || "").trim();
-        const localName = (slot.name || "").trim();
-        if (remoteName !== localName || (remoteSlot.filledByStaffId || null) !== (slot.filledByStaffId || null)) {
-          slot.name = remoteSlot.name || "";
-          slot.filledByStaffId = remoteSlot.filledByStaffId || null;
-          changed = true;
-          affectedDates.add(card.date || "");
-        }
+      const remoteCancelled = !!remoteCard.cancelled;
+      if (remoteCancelled !== !!card.cancelled) {
+        card.cancelled = remoteCancelled;
+        structuralChange = true;
+        affectedDates.add(card.date || "");
+      }
+      ["staff", "relievers"].forEach(listKey => {
+        (card[listKey] || []).forEach((slot, sIdx) => {
+          // Only skip the exact field being typed into right now — a field
+          // that was edited earlier and later cleared should still receive
+          // live signups going forward, not stay locked out forever.
+          if (card.id === activeCardId && listKey === activeList && sIdx === activeSIdx) return;
+          const remoteSlot = (remoteCard[listKey] || [])[sIdx];
+          if (!remoteSlot) return;
+          const remoteName = (remoteSlot.name || "").trim();
+          const localName = (slot.name || "").trim();
+          if (remoteName !== localName || (remoteSlot.filledByStaffId || null) !== (slot.filledByStaffId || null)) {
+            slot.name = remoteSlot.name || "";
+            slot.filledByStaffId = remoteSlot.filledByStaffId || null;
+            changed = true;
+            affectedDates.add(card.date || "");
+          }
+        });
       });
     });
     // Pick up brand-new cards another device already Sent/Updated.
     remoteCards.forEach(remoteCard => {
       if (cards.some(c => c.id === remoteCard.id)) return;
-      cards.push({ ...remoteCard, staff: (remoteCard.staff || []).map(s => ({ ...s })) });
+      cards.push({
+        ...remoteCard,
+        staff: (remoteCard.staff || []).map(s => ({ ...s })),
+        // Store Reliever duty is Pharmacy Assistant only — drop any
+        // leftover PHARMACIST/BILLING/IT SPECIALIST reliever rows, relabel
+        // any old PICKER/ENCODER entries to "PHARMACY ASSISTANT", and drop
+        // empty leftover placeholder rows (no name AND no site).
+        relievers: (remoteCard.relievers || [])
+          .filter(s => roleToTeam(s.label).toUpperCase() === "PHARMACY ASSISTANT")
+          .filter(s => (s.name || "").trim() || (s.site || "").trim())
+          .map(s => ({ ...s, label: "PHARMACY ASSISTANT" }))
+      });
       structuralChange = true;
       affectedDates.add(remoteCard.date || "");
     });
