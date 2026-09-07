@@ -8,28 +8,36 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #EBF1EC;
+    --bg: #EEF2EF;
     --surface: #FFFFFF;
-    --surface-dim: #DEE9E1;
-    --ink: #10241E;
-    --ink-muted: #536A5F;
-    --ink-faint: #8FA69A;
-    --border: #C4D6CA;
-    --south: #0C7A61;
-    --south-soft: #D8EFE6;
-    --north: #C1560A;
-    --north-soft: #F7E2CA;
-    --other: #57468C;
-    --other-soft: #EAE5F6;
+    --surface-dim: #E4ECE6;
+    --ink: #0E1F1A;
+    --ink-muted: #4E6459;
+    --ink-faint: #90A79B;
+    --border: #D3E0D8;
+    --south: #0B7A5C;
+    --south-soft: #DCF1E7;
+    --north: #B85A0E;
+    --north-soft: #F8E5CD;
+    --other: #5A4A93;
+    --other-soft: #EAE5F7;
     --danger: #C13A2C;
     --danger-soft: #FBE5E0;
     --ok: #167A4C;
     --ok-soft: #DEF2E7;
     --stamp: #C13A2C;
     --stamp-ink: #FDF3E9;
-    --signal: #1C5CAE;
-    --signal-soft: #DCE9F7;
-    --signal-dark: #123E78;
+    --signal: #1857A6;
+    --signal-soft: #E1EBF8;
+    --signal-dark: #103F7B;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --shadow-xs: 0 1px 2px rgba(14,31,26,.07);
+    --shadow-sm: 0 2px 6px rgba(14,31,26,.08), 0 1px 2px rgba(14,31,26,.06);
+    --shadow-md: 0 10px 24px -10px rgba(14,31,26,.22), 0 2px 6px -1px rgba(14,31,26,.08);
+    --shadow-lg: 0 24px 48px -16px rgba(14,31,26,.28), 0 4px 10px -2px rgba(14,31,26,.1);
+    --shadow-press: 0 1px 3px rgba(14,31,26,.1);
   }
   * { box-sizing: border-box; }
   html, body {
@@ -37,13 +45,26 @@
     padding: 0;
     background: var(--bg);
     background-image:
-      radial-gradient(circle at 1px 1px, rgba(16,36,30,0.06) 1px, transparent 0);
-    background-size: 22px 22px;
+      radial-gradient(circle at 1px 1px, rgba(14,31,26,0.05) 1px, transparent 0);
+    background-size: 24px 24px;
     color: var(--ink);
     font-family: 'IBM Plex Sans', Arial, sans-serif;
     font-size: 14px;
   }
-  body { padding: 28px clamp(16px, 4vw, 48px) 60px; }
+  body {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 32px clamp(16px, 4vw, 48px) 64px;
+    position: relative;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--south) 0%, var(--south) 33%, var(--signal) 33%, var(--signal) 66%, var(--north) 66%, var(--north) 100%);
+    z-index: 50;
+  }
   body.is-ready { animation: page-in 0.5s ease both; }
   @keyframes page-in {
     from { opacity: 0; transform: translateY(6px); }
@@ -58,93 +79,102 @@
   .page-head {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 16px;
-    margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 3px solid var(--ink);
+    gap: 20px;
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
     position: relative;
-  }
-  .page-head::after {
-    content: "";
-    position: absolute;
-    left: 0; bottom: -3px;
-    width: 64px; height: 3px;
-    background: var(--signal);
   }
   .page-head h1 {
     font-family: 'Fraunces', serif;
     font-optical-sizing: auto;
     font-weight: 600;
-    font-size: 36px;
-    margin: 0 0 4px;
-    letter-spacing: -0.015em;
+    font-size: clamp(28px, 3.4vw, 40px);
+    margin: 0 0 6px;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
   }
   .page-head p {
     margin: 0;
     color: var(--ink-muted);
-    font-size: 13.5px;
+    font-size: 14px;
     font-style: italic;
     font-family: 'Fraunces', serif;
     font-weight: 500;
   }
   .stats {
     display: flex;
-    gap: 20px;
+    align-items: stretch;
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 12.5px;
-    border: 1px solid var(--border);
     background: var(--surface);
-    padding: 10px 16px;
-    border-radius: 4px;
-    box-shadow: 3px 3px 0 rgba(16,36,30,0.06);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
   }
-  .stats .stat { text-align: right; }
+  .stats .stat {
+    text-align: center;
+    padding: 12px 22px;
+    position: relative;
+  }
+  .stats .stat + .stat::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 14px; bottom: 14px;
+    border-left: 1px dashed var(--border);
+  }
   .stats .stat .num {
     display: block;
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 600;
     line-height: 1.1;
+    color: var(--ink);
   }
   .stats .stat.warn .num { color: var(--danger); }
   .stats .stat.good .num { color: var(--ok); }
   .stats .stat .cap {
     color: var(--ink-faint);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-size: 10px;
+    letter-spacing: 0.07em;
+    font-size: 9.5px;
+    margin-top: 3px;
+    display: block;
   }
 
   /* ---------- Toolbar ---------- */
   .toolbar {
     display: flex;
-    gap: 10px;
-    margin-bottom: 24px;
+    gap: 8px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
+    align-items: center;
   }
   .region-filter {
     display: flex;
-    gap: 8px;
-    margin-bottom: 18px;
+    gap: 6px;
+    margin-bottom: 22px;
     flex-wrap: wrap;
+    background: var(--surface-dim);
+    padding: 4px;
+    border-radius: 999px;
+    width: fit-content;
   }
   .filter-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11.5px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12.5px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 7px 16px;
-    border-radius: 20px;
+    letter-spacing: 0.01em;
+    padding: 7px 18px;
+    border-radius: 999px;
     cursor: pointer;
-    border: 1.5px solid var(--border);
-    background: var(--surface);
+    border: none;
+    background: transparent;
     color: var(--ink-muted);
   }
-  .filter-btn { transition: background-color .15s ease, border-color .15s ease, color .15s ease; }
-  .filter-btn:hover { border-color: var(--ink-faint); color: var(--ink); }
-  .filter-btn.active { color: #fff; border-color: transparent; }
+  .filter-btn { transition: background-color .15s ease, color .15s ease, box-shadow .15s ease; }
+  .filter-btn:hover { color: var(--ink); }
+  .filter-btn.active { color: #fff; box-shadow: var(--shadow-xs); }
   .filter-btn.active[data-filter="all"] { background: var(--ink); }
   .filter-btn.active[data-filter="south"] { background: var(--south); }
   .filter-btn.active[data-filter="north"] { background: var(--north); }
@@ -153,31 +183,33 @@
     font-size: 13px;
     font-weight: 600;
     padding: 10px 18px;
-    border-radius: 5px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    border: 1.5px solid var(--ink);
+    border: 1px solid var(--border);
     background: var(--surface);
     color: var(--ink);
-    box-shadow: 2px 2px 0 var(--ink);
-    transition: transform .08s ease, box-shadow .08s ease;
+    box-shadow: var(--shadow-xs);
+    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, background-color .12s ease;
   }
-  .btn:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); border-color: var(--ink-faint); }
+  .btn:active { transform: translateY(0); box-shadow: var(--shadow-press); }
   .btn:focus-visible { outline: 2px solid var(--south); outline-offset: 2px; }
   .btn.primary {
-    background: var(--signal);
-    border-color: var(--signal);
+    background: linear-gradient(180deg, #1E63B4, var(--signal) 65%);
+    border-color: var(--signal-dark);
     color: #fff;
-    box-shadow: 2px 2px 0 var(--signal-dark);
+    box-shadow: 0 4px 12px -3px rgba(24,87,166,.5);
   }
-  .btn.primary:hover { box-shadow: 1px 1px 0 var(--signal-dark); }
-  .btn.danger-outline { color: var(--danger); border-color: var(--danger); box-shadow: 2px 2px 0 var(--danger); }
-  .btn.danger-outline:hover { background: var(--danger-soft); }
+  .btn.primary:hover { box-shadow: 0 6px 16px -3px rgba(24,87,166,.55); border-color: var(--signal-dark); }
+  .btn.danger-outline { color: var(--danger); border-color: rgba(193,58,44,.4); }
+  .btn.danger-outline:hover { background: var(--danger-soft); border-color: var(--danger); }
   .btn.ghost {
     box-shadow: none;
-    border-color: var(--border);
+    border-color: transparent;
+    background: transparent;
     color: var(--ink-muted);
   }
-  .btn.ghost:hover { border-color: var(--ink-faint); color: var(--ink); background: var(--surface); box-shadow: none; transform: none; }
+  .btn.ghost:hover { border-color: var(--border); color: var(--ink); background: var(--surface); box-shadow: none; transform: none; }
 
   /* ---------- Grid ---------- */
   .grid {
@@ -198,9 +230,9 @@
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1.5px solid var(--ink);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--ink);
   }
   .bracket-date {
     font-family: 'Fraunces', serif;
@@ -222,8 +254,8 @@
   .bracket-add-btn {
     font-size: 12px;
     padding: 6px 12px;
-    border-radius: 4px;
-    box-shadow: 2px 2px 0 var(--ink);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-xs);
   }
   .bracket-actions {
     margin-left: auto;
@@ -248,15 +280,16 @@
     font-size: 12px;
     font-weight: 600;
     padding: 9px 16px;
-    border-radius: 20px;
+    border-radius: 999px;
     cursor: pointer;
-    border: 1.5px solid var(--border);
+    border: 1px solid var(--border);
     background: var(--surface);
     color: var(--ink-muted);
+    box-shadow: var(--shadow-xs);
   }
-  .date-tab { transition: background-color .15s ease, border-color .15s ease, color .15s ease; }
-  .date-tab:hover { border-color: var(--ink-faint); color: var(--ink); }
-  .date-tab.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .date-tab { transition: background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease; }
+  .date-tab:hover { border-color: var(--ink-faint); color: var(--ink); box-shadow: var(--shadow-sm); }
+  .date-tab.active { background: var(--ink); border-color: var(--ink); color: #fff; box-shadow: var(--shadow-sm); }
   .date-tab { display: inline-flex; align-items: center; gap: 7px; }
   .date-tab.has-open:not(.active) { border-color: var(--danger); color: var(--danger); }
   .tab-badge {
@@ -396,15 +429,17 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    border: 1.5px solid var(--ink);
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
     background: var(--surface);
     cursor: pointer;
     font-size: 17px;
-    box-shadow: 2px 2px 0 var(--ink);
+    box-shadow: var(--shadow-xs);
+    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
   }
-  .notif-bell:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+  .notif-bell:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); border-color: var(--ink-faint); }
   .notif-badge {
     position: absolute;
     top: -7px;
@@ -434,7 +469,7 @@
     background: var(--surface);
     border: 1.5px solid var(--ink);
     border-radius: 8px;
-    box-shadow: 6px 6px 0 rgba(16,36,30,0.14);
+    box-shadow: var(--shadow-lg);
     z-index: 500;
     display: block;
     opacity: 0;
@@ -483,17 +518,17 @@
   .site-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     display: flex;
     overflow: visible;
     position: relative;
-    box-shadow: 4px 4px 0 rgba(16,36,30,0.08);
-    transition: box-shadow .15s ease, transform .15s ease;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow .18s ease, transform .18s ease;
   }
-  .site-card:hover { box-shadow: 7px 7px 0 rgba(16,36,30,0.12); transform: translate(-2px, -2px); }
-  .site-card.is-cancelled:hover { box-shadow: 4px 4px 0 rgba(16,36,30,0.08); transform: none; }
-  .site-card:focus-within { box-shadow: 7px 7px 0 rgba(16,36,30,0.12); }
-  .accent-bar { width: 6px; flex-shrink: 0; background: var(--other); border-radius: 6px 0 0 6px; }
+  .site-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+  .site-card.is-cancelled:hover { box-shadow: var(--shadow-sm); transform: none; }
+  .site-card:focus-within { box-shadow: var(--shadow-md); }
+  .accent-bar { width: 5px; flex-shrink: 0; background: var(--other); border-radius: var(--radius-md) 0 0 var(--radius-md); }
   .site-card[data-region="south"] .accent-bar { background: var(--south); }
   .site-card[data-region="north"] .accent-bar { background: var(--north); }
 
@@ -510,7 +545,7 @@
     padding: 4px 10px;
     border-radius: 3px;
     transform: rotate(-2deg);
-    box-shadow: 1px 2px 0 rgba(16,36,30,0.4);
+    box-shadow: 0 3px 8px rgba(14,31,26,.28);
     z-index: 2;
   }
 
@@ -803,6 +838,21 @@
     justify-content: center;
   }
   .removeFieldBtn:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+  .kickBtn {
+    flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 3px;
+    border: 1px solid var(--danger);
+    background: var(--danger-soft);
+    color: var(--danger);
+    cursor: pointer;
+  }
+  .kickBtn:hover { background: var(--danger); color: #fff; }
   .addFieldBtn {
     display: block;
     width: 100%;
@@ -948,8 +998,9 @@
   /* ---------- Empty state ---------- */
   .empty-state {
     border: 1.5px dashed var(--border);
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     background: var(--surface);
+    box-shadow: var(--shadow-xs);
     padding: 48px 24px;
     text-align: center;
     max-width: 420px;
@@ -978,21 +1029,51 @@
   /* ---------- Modal (replaces native alert/confirm popups) ---------- */
   .modal-overlay {
     position: fixed; inset: 0; z-index: 1000;
-    background: rgba(16,36,30,0.5);
-    display: none; align-items: center; justify-content: center;
+    background: rgba(16,36,30,0.4);
+    backdrop-filter: blur(7px) saturate(1.1);
+    -webkit-backdrop-filter: blur(7px) saturate(1.1);
+    display: flex; align-items: center; justify-content: center;
     padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .2s ease, visibility .2s;
   }
-  .modal-overlay.open { display: flex; }
+  .modal-overlay.open { opacity: 1; visibility: visible; }
   .modal-box {
     width: 100%; max-width: 380px;
     background: var(--surface);
-    border: 1.5px solid var(--ink);
-    border-radius: 8px;
-    box-shadow: 8px 8px 0 rgba(16,36,30,0.16);
-    padding: 24px 22px 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 26px 24px 22px;
+    transform: scale(0.88) translateY(14px);
+    opacity: 0;
+    transition: transform .34s cubic-bezier(.32,1.56,.64,1), opacity .22s ease;
+  }
+  .modal-overlay.open .modal-box {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  .modal-icon {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    background: var(--signal-soft);
+    color: var(--signal);
+    animation: modal-icon-pop .38s cubic-bezier(.32,1.6,.64,1) .08s both;
+  }
+  .modal-icon:empty { display: none; }
+  .modal-icon.warn { background: var(--danger-soft); color: var(--danger); }
+  .modal-icon.question { background: var(--other-soft); color: var(--other); }
+  @keyframes modal-icon-pop {
+    from { transform: scale(0.3); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
   }
   .modal-box p {
-    margin: 0 0 20px;
+    margin: 0 0 22px;
     font-size: 14.5px;
     line-height: 1.55;
     color: var(--ink);
@@ -1003,26 +1084,31 @@
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
-    padding: 9px 16px;
+    padding: 10px 18px;
+    border-radius: 999px;
     border: 1.5px solid var(--ink);
     background: var(--surface);
     color: var(--ink);
     cursor: pointer;
+    transition: transform .1s ease, box-shadow .1s ease, background-color .15s ease;
   }
-  .modal-actions button:hover { background: var(--surface-dim); }
+  .modal-actions button:hover { background: var(--surface-dim); transform: translateY(-1px); }
   .modal-actions button.primary {
-    background: var(--ink);
-    color: var(--surface);
+    background: linear-gradient(180deg, #1E63B4, var(--signal) 65%);
+    border-color: var(--signal-dark);
+    color: #fff;
+    box-shadow: 0 6px 14px -4px rgba(24,87,166,.5);
   }
-  .modal-actions button.primary:hover { opacity: 0.88; }
+  .modal-actions button.primary:hover { opacity: 0.92; transform: translateY(-1px); }
 
   /* ---------- Leaderboard (employee side) ---------- */
   #leaderboardSection { display: none; }
   .leaderboard-wrap {
     margin-bottom: 22px;
-    border: 1.5px solid var(--ink);
-    border-radius: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
     background: var(--surface);
+    box-shadow: var(--shadow-sm);
     padding: 18px 18px 20px;
   }
   .leaderboard-title {
@@ -1148,6 +1234,7 @@
 
 <div class="modal-overlay" id="appModal">
   <div class="modal-box">
+    <div class="modal-icon" id="appModalIcon"></div>
     <p id="appModalMessage"></p>
     <div class="modal-actions" id="appModalActions"></div>
   </div>
@@ -1215,14 +1302,30 @@
 const appModal = document.getElementById("appModal");
 const appModalMessage = document.getElementById("appModalMessage");
 const appModalActions = document.getElementById("appModalActions");
+const appModalIcon = document.getElementById("appModalIcon");
 
 function closeModal() {
   appModal.classList.remove("open");
   appModalActions.innerHTML = "";
 }
 
+// Sets the little animated badge above the modal text. "kind" controls both
+// the glyph and the color: "ok" (default, checkmark) for plain confirmations,
+// "warn" (!) for failures/destructive actions, "question" (?) for yes/no
+// prompts, "date" (📅) for the date picker. Re-triggers the pop-in animation
+// each time so repeat modals (e.g. two alerts in a row) still animate.
+function setModalIcon(kind) {
+  const glyphs = { ok: "✓", warn: "!", question: "?", date: "📅" };
+  appModalIcon.textContent = glyphs[kind] || glyphs.ok;
+  appModalIcon.className = "modal-icon" + (kind === "warn" || kind === "question" ? " " + kind : "");
+  appModalIcon.style.animation = "none";
+  void appModalIcon.offsetWidth;
+  appModalIcon.style.animation = "";
+}
+
 function showAlert(message) {
   return new Promise(resolve => {
+    setModalIcon(/fail|error|can'?t|cannot/i.test(message) ? "warn" : "ok");
     appModalMessage.textContent = message;
     appModalActions.innerHTML = "";
     const okBtn = document.createElement("button");
@@ -1237,6 +1340,7 @@ function showAlert(message) {
 
 function showConfirm(message) {
   return new Promise(resolve => {
+    setModalIcon(/undone|remove|delete|unavailable/i.test(message) ? "warn" : "question");
     appModalMessage.textContent = message;
     appModalActions.innerHTML = "";
     const cancelBtn = document.createElement("button");
@@ -1258,6 +1362,7 @@ function showConfirm(message) {
 // Resolves to the chosen ISO date string, or null if cancelled/empty.
 function showDatePrompt(message, defaultIso, confirmBtnLabel) {
   return new Promise(resolve => {
+    setModalIcon("date");
     appModalMessage.innerHTML = `
       <div style="margin-bottom:14px;">${escapeHtml(message)}</div>
       <input type="date" id="datePromptInput" value="${escapeAttr(defaultIso || "")}"
@@ -1344,6 +1449,21 @@ function getEmployeeSession() {
 }
 const employeeSession = getEmployeeSession();
 
+// ---------- Leave-slot / Not-Available daily cutoff ----------
+// After this local time each day, employees can no longer tap "Leave slot"
+// or "🚨 Not Available" themselves — only the admin can remove them from a
+// slot at that point. Change LEAVE_CUTOFF_HOUR / LEAVE_CUTOFF_MINUTE below
+// to move the cutoff. Currently set to 8:35 PM for testing — set back to
+// 17 / 0 (5:00 PM) for production use.
+const LEAVE_CUTOFF_HOUR = 20;   // 24-hour format: 17 = 5:00 PM, 20 = 8:00 PM
+const LEAVE_CUTOFF_MINUTE = 35; // 0-59
+function isPastLeaveCutoff() {
+  const now = new Date();
+  const cutoffMinutesOfDay = LEAVE_CUTOFF_HOUR * 60 + LEAVE_CUTOFF_MINUTE;
+  const nowMinutesOfDay = now.getHours() * 60 + now.getMinutes();
+  return nowMinutesOfDay >= cutoffMinutesOfDay;
+}
+
 const STORAGE_KEY = "medicalMissionCardsV2";
 const SITE_HISTORY_KEY = "medicalMissionSiteHistoryV1";
 const ROLE_HISTORY_KEY = "medicalMissionRoleHistoryV1";
@@ -1396,6 +1516,7 @@ function adminStaffRowHtml(s, sIdx, listKey, card) {
       </div>
       ${s.emergency ? `<span class="emergency-tag">Urgent</span>` : ""}
       <span class="status-dot ${s.name.trim() ? "filled" : ""}"></span>
+      ${s.filledByStaffId ? `<button type="button" class="kickBtn" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" title="Remove this employee from the slot and notify them" aria-label="Remove employee from slot">Remove</button>` : ""}
       <button type="button" class="removeFieldBtn" data-list="${listKey}" data-sidx="${sIdx}" title="Remove field" aria-label="Remove field">×</button>
     </div>
   `;
@@ -2120,6 +2241,39 @@ function render() {
           arr[sIdx].emergencyBy = null;
           arr[sIdx].emergencyByStaffId = null;
         }
+        // Admin manually cleared/edited a self-claimed slot's name by typing —
+        // release the ownership tag too, or the previous owner stays stuck
+        // seeing "You're already signed up" even though the slot now looks
+        // empty (filledByStaffId would otherwise still point to them).
+        let releasedReliever = false;
+        if (!e.target.value.trim() && arr[sIdx].filledByStaffId) {
+          // Same reliever cleanup as unclaimSlot/markUnavailable/the kick
+          // button: clearing an Event Team (Pharmacy Assistant) name by
+          // typing also releases the store-reliever row auto-added for her,
+          // as long as no one has filled it in yet.
+          if (listKey === "staff" && roleToTeam(arr[sIdx].label).toUpperCase() === "PHARMACY ASSISTANT") {
+            const relieversArr = cards[idx].relievers || [];
+            const autoIdx = relieversArr.findIndex(s =>
+              s.addedForStaffId === arr[sIdx].filledByStaffId && !(s.name || "").trim()
+            );
+            if (autoIdx !== -1) {
+              relieversArr.splice(autoIdx, 1);
+              releasedReliever = true;
+            }
+          }
+          arr[sIdx].filledByStaffId = null;
+          arr[sIdx].emergency = false;
+          arr[sIdx].emergencyBy = null;
+          arr[sIdx].emergencyByStaffId = null;
+        }
+        if (releasedReliever) {
+          // A reliever row disappeared, which changes the DOM structure of
+          // this card (not just a text value) — a full re-render is needed
+          // so the row actually vanishes on screen instead of only in data.
+          saveCards();
+          render();
+          return;
+        }
         const dot = e.target.closest(".staff-row").querySelector(".status-dot");
         dot.classList.toggle("filled", e.target.value.trim().length > 0);
         saveCards();
@@ -2174,6 +2328,18 @@ function render() {
         cards[idx][listKey].splice(sIdx, 1);
         saveCards();
         render();
+      });
+    });
+
+    cardEl.querySelectorAll(".kickBtn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const listKey = btn.dataset.list || "staff";
+        const sIdx = parseInt(btn.dataset.sidx, 10);
+        const slot = (cards[idx][listKey] || [])[sIdx];
+        const who = (slot && slot.name) ? slot.name : "this employee";
+        const ok = await showConfirm(`Remove ${who} from this slot?\n\nThey'll be notified right away and can sign up for a slot again.`);
+        if (!ok) return;
+        await adminRemoveEmployeeFromSlot(card.id, listKey, sIdx, btn);
       });
     });
 
@@ -2446,8 +2612,10 @@ function employeeStaffRowHtml(s, sIdx, listKey, card, myActiveSlot, cancelled) {
           (isMine
             ? (cancelled
                 ? `<span style="flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);">Event cancelled</span>`
-                : `<button type="button" class="unavailable-btn" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}">🚨 Not Available</button>` +
-                  `<button type="button" class="unclaim-btn" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}">Leave slot</button>`)
+                : (isPastLeaveCutoff()
+                    ? `<span style="flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);" title="Past the daily cutoff — only the admin can remove you from this slot now.">🔒 Locked — see admin</span>`
+                    : `<button type="button" class="unavailable-btn" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}">🚨 Not Available</button>` +
+                      `<button type="button" class="unclaim-btn" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}">Leave slot</button>`))
             : "")
         : (() => {
             if (cancelled) {
@@ -2915,6 +3083,10 @@ async function claimSlot(cardId, listKey, staffIdx, btn) {
 // and files a notification doc so the admin bell + matching employees'
 // banners light up immediately, without anyone needing to refresh.
 async function markUnavailable(cardId, listKey, staffIdx, btn) {
+  if (isPastLeaveCutoff()) {
+    await showAlert("Past today's cutoff — please contact the admin to be removed from this slot.");
+    return;
+  }
   const originalLabel = btn.textContent;
   btn.disabled = true;
   btn.textContent = "Sending…";
@@ -2999,10 +3171,104 @@ async function markUnavailable(cardId, listKey, staffIdx, btn) {
   // no local re-render needed here.
 }
 
+// Admin-only: forcibly removes whoever self-claimed a slot, writing straight
+// to Firestore (unlike the plain nameInput edit, which only stages a local
+// change until "Send"/"Update" is clicked). This guarantees the slot opens
+// back up immediately for everyone — including the removed employee, who is
+// filed a real-time notification ("You have been removed from ...") so it
+// shows up in their notification bell right away.
+async function adminRemoveEmployeeFromSlot(cardId, listKey, staffIdx, btn) {
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Removing…";
+  let notifyPayload = null;
+  try {
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(scheduleDocRef);
+      const data = snap.exists() ? snap.data() : { cards: [] };
+      const remoteCards = Array.isArray(data.cards) ? data.cards : [];
+      const cIdx = remoteCards.findIndex(c => c.id === cardId);
+      if (cIdx === -1) throw new Error("Site not found — try refreshing.");
+      const card = remoteCards[cIdx];
+      const staffArr = (card[listKey] || []).slice();
+      const slot = staffArr[staffIdx];
+      if (!slot) throw new Error("Role slot not found — try refreshing.");
+      const removedStaffId = slot.filledByStaffId || null;
+      const removedName = slot.name || "";
+      staffArr[staffIdx] = {
+        ...slot,
+        name: "",
+        filledByStaffId: null,
+        emergency: false,
+        emergencyBy: null,
+        emergencyByStaffId: null,
+        emergencyAt: null
+      };
+      remoteCards[cIdx] = { ...card, [listKey]: staffArr };
+      // Same cleanup as an employee leaving her own slot or marking herself
+      // unavailable: kicking her off an Event Team (staff/Pharmacy Assistant)
+      // slot means the store-reliever need tied to her no longer applies.
+      // Without this, every admin removal left its auto-added reliever row
+      // behind, so unfilled reliever rows piled up over time.
+      if (removedStaffId && listKey === "staff" && roleToTeam(slot.label).toUpperCase() === "PHARMACY ASSISTANT") {
+        const relieversArr = (remoteCards[cIdx].relievers || []).slice();
+        const autoIdx = relieversArr.findIndex(s =>
+          s.addedForStaffId === removedStaffId && !(s.name || "").trim()
+        );
+        if (autoIdx !== -1) {
+          relieversArr.splice(autoIdx, 1);
+          remoteCards[cIdx] = { ...remoteCards[cIdx], relievers: relieversArr };
+        }
+      }
+      tx.set(scheduleDocRef, { cards: remoteCards, sentAt: serverTimestamp(), sentBy: data.sentBy || "admin" });
+      if (removedStaffId) {
+        notifyPayload = {
+          type: "removed",
+          cardId,
+          list: listKey,
+          staffIdx,
+          role: slot.label || "",
+          location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (card.location || "Unnamed site"),
+          date: card.date || "",
+          time: card.time || "",
+          region: card.region || "",
+          employeeName: removedName || "",
+          staffId: removedStaffId,
+          createdAt: serverTimestamp(),
+          resolved: false
+        };
+      }
+    });
+    if (notifyPayload) {
+      try {
+        await addDoc(notificationsCollRef, notifyPayload);
+      } catch (notifyErr) {
+        console.error("Failed to file removal notification:", notifyErr);
+        await showAlert(
+          "The employee was removed from the slot, BUT the notification to them could not be sent.\n\n" +
+          "Error: " + (notifyErr && notifyErr.message ? notifyErr.message : notifyErr) +
+          "\n\nThe \"emergencyNotifications\" collection may need to be allowed in the Firestore Security Rules."
+        );
+      }
+    }
+  } catch (err) {
+    await showAlert(err.message || "Failed to remove. Please try again.");
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+  // The admin dashboard's own onSnapshot listener (further below) picks up
+  // this write and merges it into the local `cards` view automatically —
+  // no manual re-render needed here.
+}
+
 // Lets an employee back out of a slot she signed up for herself. Admin-
 // assigned slots (no filledByStaffId, or a different employee's id) can't
 // be removed this way — only the admin dashboard can change those.
 async function unclaimSlot(cardId, listKey, staffIdx, btn) {
+  if (isPastLeaveCutoff()) {
+    await showAlert("Past today's cutoff — please contact the admin to be removed from this slot.");
+    return;
+  }
   const originalLabel = btn.textContent;
   btn.disabled = true;
   btn.textContent = "Removing…";
@@ -3250,20 +3516,28 @@ function renderNotifPanel(items) {
   }
   panel.innerHTML = items.map(n => {
     const isResolved = !!n.resolved;
-    const title = isResolved
-      ? `✅ ${escapeHtml(n.backupName || "A teammate")} — FOR BACKUP`
-      : `🚨 ${escapeHtml(n.employeeName || "Employee")} — UNAVAILABLE`;
-    const statusLine = isResolved
-      ? `Backing up for ${escapeHtml(n.employeeName || "the previous employee")}.`
-      : `Needs a replacement.`;
-    const btnClass = isResolved ? "notif-clear-btn" : "notif-resolve-btn";
-    const btnLabel = isResolved ? "Clear" : "Resolved";
+    const isRemoved = n.type === "removed";
+    let title, statusLine, btnLabel;
+    if (isRemoved) {
+      title = `🔔 You've been removed from this slot`;
+      statusLine = `You're free to sign up for another slot now.`;
+      btnLabel = "Got it";
+    } else if (isResolved) {
+      title = `✅ ${escapeHtml(n.backupName || "A teammate")} — FOR BACKUP`;
+      statusLine = `Backing up for ${escapeHtml(n.employeeName || "the previous employee")}.`;
+      btnLabel = "Clear";
+    } else {
+      title = `🚨 ${escapeHtml(n.employeeName || "Employee")} — UNAVAILABLE`;
+      statusLine = `Needs a replacement.`;
+      btnLabel = "Resolved";
+    }
+    const btnClass = (isRemoved || isResolved) ? "notif-clear-btn" : "notif-resolve-btn";
     return `
-    <div class="notif-item ${isResolved ? "is-resolved" : ""}">
+    <div class="notif-item ${(isResolved || isRemoved) ? "is-resolved" : ""}">
       <div class="notif-item-title">${title}</div>
       <div class="notif-item-body">
         ${escapeHtml(n.role || "")}${n.list === "relievers" ? " (Store Reliever)" : ""} at ${escapeHtml(n.location || "site")}${n.date ? " — " + escapeHtml(formatDateDisplay(n.date)) : ""}${n.time ? ", " + escapeHtml(n.time) : ""}<br>
-        Region: ${escapeHtml(regionLabelFromValue(n.region))}. ${statusLine}
+        ${isRemoved ? "" : `Region: ${escapeHtml(regionLabelFromValue(n.region))}. `}${statusLine}
       </div>
       <button type="button" class="${btnClass}" data-id="${escapeAttr(n.id)}">${btnLabel}</button>
     </div>`;
@@ -3280,7 +3554,7 @@ function renderUrgentBanner(items) {
   const banner = document.getElementById("urgentBanner");
   if (!banner) return;
   if (employeeSession) { banner.style.display = "none"; banner.innerHTML = ""; return; }
-  const openItems = items.filter(n => !n.resolved);
+  const openItems = items.filter(n => !n.resolved && n.type !== "removed");
   if (!openItems.length) { banner.style.display = "none"; banner.innerHTML = ""; return; }
   banner.style.display = "block";
   banner.innerHTML = `<p class="urgent-banner-title">🚨 Emergency — needs replacement now</p>` +
@@ -3301,16 +3575,30 @@ function renderUrgentBanner(items) {
 function getRelevantNotifications(items) {
   if (!employeeSession) return items;
   const myTeam = splitDepartmentClient(employeeSession.department).team;
-  return items.filter(n =>
-    n.staffId !== employeeSession.staffId &&
-    n.region === employeeSession.branch &&
-    roleToTeam(n.role).toUpperCase() === String(myTeam).toUpperCase()
-  );
+  return items.filter(n => {
+    // "removed" notifications are personal — addressed to the one employee
+    // admin took off a slot — so show it to them specifically, regardless
+    // of team/branch (unlike "emergency" ones, which broadcast to teammates
+    // who could cover the vacancy and never show up for the reporter).
+    if (n.type === "removed") return n.staffId === employeeSession.staffId;
+    return (
+      n.staffId !== employeeSession.staffId &&
+      n.region === employeeSession.branch &&
+      roleToTeam(n.role).toUpperCase() === String(myTeam).toUpperCase()
+    );
+  });
 }
+
+// Tracks notification ids we've already alerted the current employee about
+// via the pop-up modal, so a notification only interrupts them once (the
+// bell panel still lists it after that). Stays null until the first
+// snapshot is processed, so opening the page never floods them with modals
+// for notifications that were already sitting there before they arrived.
+let seenNotificationIds = null;
 
 onSnapshot(
   query(notificationsCollRef, orderBy("createdAt", "desc")),
-  snap => {
+  async snap => {
     const all = [];
     snap.forEach(d => all.push({ id: d.id, ...d.data() }));
     // Keep resolved items too now (they're no longer deleted on cover) so
@@ -3319,6 +3607,28 @@ onSnapshot(
     const relevant = getRelevantNotifications(latestNotifications);
     renderNotifPanel(relevant);
     renderUrgentBanner(relevant);
+
+    // Pop up a modal right in front of an employee who is actively on the
+    // page for any brand-new notification addressed to them — e.g. "you've
+    // been removed" or a fresh emergency vacancy on their own team — so
+    // they're aware immediately instead of only noticing the bell badge
+    // later. (The bell/panel above already covers the case where they're
+    // away from the page and check back afterwards.)
+    if (employeeSession) {
+      const openRelevant = relevant.filter(n => !n.resolved);
+      if (seenNotificationIds !== null) {
+        const freshOnes = openRelevant.filter(n => !seenNotificationIds.has(n.id));
+        for (const n of freshOnes) {
+          const isRemoved = n.type === "removed";
+          const where = `${n.role || ""}${n.list === "relievers" ? " (Store Reliever)" : ""} at ${n.location || "site"}${n.date ? " — " + formatDateDisplay(n.date) : ""}${n.time ? ", " + n.time : ""}`;
+          const message = isRemoved
+            ? `You've been removed from your slot: ${where}.\n\nYou're free to sign up for another slot now.`
+            : `🚨 Emergency vacancy just opened for your team: ${where}.\n\n${n.employeeName || "A teammate"} became unavailable — sign up below if you can cover.`;
+          await showAlert(message);
+        }
+      }
+      seenNotificationIds = new Set(openRelevant.map(n => n.id));
+    }
   },
   err => {
     // Most likely cause: Firestore Security Rules don't yet allow read
@@ -3388,6 +3698,7 @@ if (employeeSession) {
   // live, read-only view scoped to their own branch.
   document.querySelector(".toolbar").style.display = "none";
   document.getElementById("regionFilter").style.display = "none";
+  let lastEmployeeAllCards = [];
   onSnapshot(scheduleDocRef, snap => {
     const data = snap.exists() ? snap.data() : { cards: [] };
     // Store Reliever duty is Pharmacy Assistant only — strip any leftover
@@ -3403,9 +3714,24 @@ if (employeeSession) {
         .filter(s => (s.name || "").trim() || (s.site || "").trim())
         .map(s => ({ ...s, label: "PHARMACY ASSISTANT" }))
     }));
+    lastEmployeeAllCards = allCards;
     renderEmployeeSchedule(allCards, employeeSession.branch);
     renderLeaderboard(allCards);
   });
+  // Live cutoff watch: no Firestore change happens exactly at the cutoff
+  // time, so without this, "Leave slot" / "Not Available" would only lock
+  // out on the next signup or page reload. This polls the clock every 15s
+  // and re-renders — using the last data already received above, no extra
+  // reads — the instant the cutoff boundary is crossed while someone is
+  // sitting on the page.
+  let wasPastLeaveCutoff = isPastLeaveCutoff();
+  setInterval(() => {
+    const nowPastCutoff = isPastLeaveCutoff();
+    if (nowPastCutoff !== wasPastLeaveCutoff) {
+      wasPastLeaveCutoff = nowPastCutoff;
+      renderEmployeeSchedule(lastEmployeeAllCards, employeeSession.branch);
+    }
+  }, 15000);
 } else {
   // Admin/manager mode: full editable dashboard, as before.
   renderDatalists();
