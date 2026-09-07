@@ -2129,7 +2129,18 @@ function render() {
       inp.addEventListener("change", e => {
         const listKey = e.target.dataset.list || "staff";
         const sIdx = parseInt(e.target.dataset.sidx, 10);
-        addRoleHistory(cards[idx][listKey][sIdx].label, e.target.value);
+        const slot = cards[idx][listKey][sIdx];
+        addRoleHistory(slot.label, e.target.value);
+        // Picker/Encoder-Picker (Event Team) duty pulls a Pharmacy Assistant
+        // out of her own store — auto-add/refresh a Store Reliever row on
+        // this same card with her registered Site Name, same as when she
+        // self-signs-up, so Event Team can see which store needs covering
+        // even when the admin typed her name in directly instead.
+        if (listKey === "staff" && roleToTeam(slot.label).toUpperCase() === "PHARMACY ASSISTANT") {
+          syncAutoRelieverForSlot(cards[idx], sIdx, e.target.value);
+          saveCards();
+          render();
+        }
       });
     });
 
@@ -2518,6 +2529,62 @@ function isRoleAllowedForEmployee(label, listKey) {
     return normalizedTeam === "PHARMACY ASSISTANT";
   }
   return normalizedTeam === roleToTeam(label).toUpperCase();
+}
+
+// Finds an employee record in employeesMap whose registered name matches
+// typedName (case-insensitive, exact match). Used so that admin/Event Team
+// typing a Pharmacy Assistant's name directly into a Picker/Encoder field
+// still resolves to her registered Site Name — the same lookup claimSlot()
+// already does for self-signups — instead of only working when the
+// employee signs herself up.
+function findEmployeeByName(typedName) {
+  const name = (typedName || "").trim().toUpperCase();
+  if (!name) return null;
+  for (const [staffId, data] of employeesMap.entries()) {
+    if (String((data && data.name) || "").trim().toUpperCase() === name) {
+      return { staffId, siteName: String((data && data.siteName) || "").trim() };
+    }
+  }
+  return null;
+}
+
+// Keeps the auto-added Store Reliever row for one Picker/Encoder staff slot
+// in sync with whatever name is currently typed into that slot. Mirrors
+// claimSlot's auto-add (site pre-filled from the employee's own registered
+// Site Name) so Event Team can see, at a glance, which store needs covering
+// and who's covering it — regardless of whether the Pharmacy Assistant
+// signed herself up or the admin typed her name in directly. Tagged with
+// addedForSlotKey (card+slot position) rather than a staffId, since a typed
+// name isn't guaranteed to match a real account.
+function syncAutoRelieverForSlot(card, sIdx, typedName) {
+  if (!Array.isArray(card.relievers)) card.relievers = [];
+  const slotKey = `${card.id}:${sIdx}`;
+  const existingIdx = card.relievers.findIndex(s => s.addedForSlotKey === slotKey);
+  const match = findEmployeeByName(typedName);
+  const siteName = match ? match.siteName : "";
+
+  if (existingIdx !== -1) {
+    // Only touch it while it's still unfilled — if another Pharmacy
+    // Assistant already claimed the reliever slot, leave it be even if the
+    // Picker/Encoder name later changes.
+    if ((card.relievers[existingIdx].name || "").trim()) return;
+    if (!siteName) {
+      card.relievers.splice(existingIdx, 1);
+    } else {
+      card.relievers[existingIdx].site = siteName;
+      card.relievers[existingIdx].addedForStaffId = match.staffId;
+    }
+    return;
+  }
+  if (siteName) {
+    card.relievers.push({
+      label: "PHARMACY ASSISTANT",
+      name: "",
+      site: siteName,
+      addedForStaffId: match.staffId,
+      addedForSlotKey: slotKey
+    });
+  }
 }
 
 function startEmployeesListener() {
@@ -3387,12 +3454,38 @@ if (employeeSession) {
         affectedDates.add(card.date || "");
       }
       ["staff", "relievers"].forEach(listKey => {
-        (card[listKey] || []).forEach((slot, sIdx) => {
+        const remoteList = remoteCard[listKey] || [];
+        const localList = card[listKey] || [];
+        // A resized list (row count changed) means a slot was appended or
+        // removed — e.g. an employee's Picker/Encoder self-signup auto-adds
+        // a new Store Reliever row on this same card, or the admin typing a
+        // Pharmacy Assistant's name in directly does the same, or another
+        // device used "+ Add field"/"Remove field". The per-index diff below
+        // only ever visits indices that already exist in the LOCAL array, so
+        // it can never notice the list grew or shrank — without this check,
+        // Event Team's dashboard would silently miss brand-new Store
+        // Reliever rows (and the site/name in them) until the page is
+        // reloaded, even though employees see them live immediately.
+        if (remoteList.length !== localList.length) {
+          const activeHere = card.id === activeCardId && listKey === activeList;
+          card[listKey] = remoteList.map((remoteSlot, sIdx) => {
+            // Still protect whatever the admin is actively typing into,
+            // even though the list around it just got resized.
+            if (activeHere && sIdx === activeSIdx && localList[sIdx]) {
+              return { ...remoteSlot, name: localList[sIdx].name, filledByStaffId: localList[sIdx].filledByStaffId };
+            }
+            return { ...remoteSlot };
+          });
+          structuralChange = true;
+          affectedDates.add(card.date || "");
+          return;
+        }
+        localList.forEach((slot, sIdx) => {
           // Only skip the exact field being typed into right now — a field
           // that was edited earlier and later cleared should still receive
           // live signups going forward, not stay locked out forever.
           if (card.id === activeCardId && listKey === activeList && sIdx === activeSIdx) return;
-          const remoteSlot = (remoteCard[listKey] || [])[sIdx];
+          const remoteSlot = remoteList[sIdx];
           if (!remoteSlot) return;
           const remoteName = (remoteSlot.name || "").trim();
           const localName = (slot.name || "").trim();
