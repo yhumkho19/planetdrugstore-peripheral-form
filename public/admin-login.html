@@ -280,7 +280,7 @@
   // between this page and the landing page in a loop.
   await auth.authStateReady();
   if(auth.currentUser){
-    window.location.replace(isEventScheduleUser(auth.currentUser) ? 'event-schedule-landing.html' : 'admin-console.html');
+    window.location.replace(isEventScheduleUser(auth.currentUser) ? 'event-team-schedule.html' : 'admin-console.html');
   }
 
   loginForm.addEventListener('submit', async (e)=>{

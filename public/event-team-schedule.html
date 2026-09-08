@@ -1447,16 +1447,11 @@ function getEmployeeSession() {
     return s;
   } catch (e) { return null; }
 }
-// EMPLOYEE FILE: this page is only ever opened by employees, so it must
-// never fall back to showing the full editable admin dashboard just
-// because the session is missing/expired — that fallback was the source of
-// the mode conflict when this was one shared file. If there's no valid
-// employee session, send them to login instead of rendering anything here.
-const employeeSession = getEmployeeSession();
-if (!employeeSession) {
-  window.location.href = "employee-login.html";
-  throw new Error("No employee session — redirecting to employee-login.html.");
-}
+// EVENT TEAM FILE: this page is only ever opened by the event team, so it
+// always runs in admin mode — an employee session sitting in this browser's
+// storage (e.g. from someone testing both roles on the same device) is
+// ignored on purpose instead of switching this page into employee view.
+const employeeSession = null;
 
 // ---------- Leave-slot / Not-Available daily cutoff ----------
 // After this local time each day, employees can no longer tap "Leave slot"

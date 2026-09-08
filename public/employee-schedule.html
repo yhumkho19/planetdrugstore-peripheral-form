@@ -3582,14 +3582,7 @@ function renderUrgentBanner(items) {
 // their own "Unavailable" click; only other employees (and the admin) are
 // notified.
 function getRelevantNotifications(items) {
-  if (!employeeSession) {
-    // "removed" notifications are the personal "you've been removed from
-    // this slot" message meant for the one employee the admin just took
-    // off a slot — the admin already knows they did it, so it doesn't
-    // belong in the Event Team's own bell/panel. Admins still see every
-    // open emergency-vacancy ("unavailable") notification.
-    return items.filter(n => n.type !== "removed");
-  }
+  if (!employeeSession) return items;
   const myTeam = splitDepartmentClient(employeeSession.department).team;
   return items.filter(n => {
     // "removed" notifications are personal — addressed to the one employee
