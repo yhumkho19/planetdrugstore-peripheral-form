@@ -171,6 +171,7 @@
     box-shadow: var(--shadow-xs);
     font-size: 13px;
     font-weight: 600;
+    font-family: inherit;
     color: var(--ink);
     cursor: pointer;
   }
@@ -180,6 +181,43 @@
     color: #fff; display: flex; align-items: center; justify-content: center;
     font-size: 11px; font-weight: 700; flex-shrink: 0;
   }
+  /* ---------- Admin chip dropdown (logout) ---------- */
+  .admin-chip-wrap { position: relative; display: inline-block; }
+  .admin-chip:hover { border-color: var(--ink-faint); }
+  .admin-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 180px;
+    background: var(--surface);
+    border: 1.5px solid var(--ink);
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    z-index: 500;
+    padding: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity .15s ease, transform .15s ease, visibility .15s;
+  }
+  .admin-dropdown.open { opacity: 1; visibility: visible; transform: none; }
+  .admin-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    padding: 9px 10px;
+    border: none;
+    background: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--danger);
+    cursor: pointer;
+    text-align: left;
+  }
+  .admin-dropdown-item:hover { background: var(--danger-soft); }
   .content-scroll { padding: 4px clamp(16px, 3vw, 36px) 64px; max-width: 1440px; }
   @media (max-width: 900px) {
     .sidebar { display: none; }
@@ -1445,13 +1483,14 @@
       <div class="label">Mission Event<br>System</div>
     </div>
     <nav class="sidebar-nav">
-      <a href="#" class="active"><span class="ic">🗓️</span>Deployment Roster</a>
-      <a href="#"><span class="ic">📅</span>Events</a>
-      <a href="#"><span class="ic">📍</span>Sites</a>
+      <a href="event-schedule-landing.html" class="active"><span class="ic">🏡</span>Home</a>
+      <!-- <a href="#" class="active"><span class="ic">🗓️</span>Deployment Roster</a> -->
+      <!-- <a href="#"><span class="ic">📅</span>Events</a> -->
+      <!-- <a href="#"><span class="ic">📍</span>Sites</a>
       <a href="#"><span class="ic">👥</span>Staff</a>
       <a href="#"><span class="ic">📊</span>Reports</a>
       <a href="#"><span class="ic">⚙️</span>Settings</a>
-    </nav>
+    </nav> -->
     <div class="sidebar-foot">✚ One ticket per site,<br>Staff assignment tracker</div>
   </aside>
 
@@ -1465,7 +1504,12 @@
           </button>
           <div class="notif-panel" id="notifPanel"></div>
         </div>
-        <div class="admin-chip"><span class="avatar">A</span>Administrator ▾</div>
+        <div class="admin-chip-wrap" id="adminChipWrap">
+          <button type="button" class="admin-chip" id="adminChipBtn" aria-haspopup="true"><span class="avatar">ET</span>EVENT TEAM▾</button>
+          <div class="admin-dropdown" id="adminDropdown">
+            <button type="button" class="admin-dropdown-item" id="logoutBtn">🚪 Logout</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1697,6 +1741,13 @@ import {
   initializeFirestore, doc, collection, setDoc, getDoc, onSnapshot, serverTimestamp, runTransaction,
   addDoc, deleteDoc, updateDoc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// Only needed here for Logout — admin-login.html is what actually signs
+// the Event Team account in and keeps them signed in via persistence, so
+// logging out has to sign that same session out too. Without this, clicking
+// Logout and landing back on admin-login.html would just auto-redirect
+// straight back in, since admin-login.html sees the still-active session
+// and skips the login form entirely.
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // Same Firebase project as employee-signup.html / landing-employee-page.html,
 // used here so "Send" can publish the roster for employees to read.
@@ -1709,6 +1760,7 @@ const firebaseConfig = {
   appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
 };
 const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
 const db = initializeFirestore(fbApp, {
   experimentalForceLongPolling: true,
   useFetchStreams: false
@@ -4104,6 +4156,35 @@ if (notifBellBtn) {
     }
   });
 }
+
+// Admin chip dropdown (Logout) — same open/close-on-outside-click pattern
+// as the notif bell above.
+const adminChipBtn = document.getElementById("adminChipBtn");
+if (adminChipBtn) {
+  adminChipBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    document.getElementById("adminDropdown").classList.toggle("open");
+  });
+  document.addEventListener("click", e => {
+    const wrap = document.getElementById("adminChipWrap");
+    if (wrap && !wrap.contains(e.target)) {
+      const dropdown = document.getElementById("adminDropdown");
+      if (dropdown) dropdown.classList.remove("open");
+    }
+  });
+}
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  document.getElementById("adminDropdown").classList.remove("open");
+  if (!(await showConfirm("Mag-logout ka ba? Kailangan mo ulit mag-sign in para makabalik dito."))) return;
+  try {
+    await signOut(auth);
+  } catch (err) {
+    // Sign-out failing shouldn't trap the user here — send them to the
+    // login page regardless so they can sign back in either way.
+  }
+  window.location.href = "admin-login.html";
+});
 
 // Send / Update All / Reset all all assume there's at least one site to act
 // on. With zero cards (the "No sites yet" empty state), there's nothing

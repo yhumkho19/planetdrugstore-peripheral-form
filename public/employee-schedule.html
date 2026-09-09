@@ -147,8 +147,63 @@
   }
   .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
   .content-scroll { padding: 4px clamp(16px, 3vw, 36px) 64px; max-width: 1440px; }
+
+  /* ---------- Mobile nav (hamburger + off-canvas sidebar) ---------- */
+  .menu-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: var(--shadow-xs);
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 18px;
+    color: var(--ink);
+  }
+  .menu-toggle:hover { border-color: var(--ink-faint); }
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(16,27,61,0.45);
+    z-index: 199;
+  }
+  .sidebar-close {
+    display: none;
+  }
   @media (max-width: 900px) {
-    .sidebar { display: none; }
+    .menu-toggle { display: inline-flex; }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform .22s ease;
+      box-shadow: var(--shadow-lg);
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-backdrop.open { display: block; }
+    .sidebar-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      margin-left: auto;
+    }
+    .sidebar-close:hover { background: rgba(255,255,255,0.16); }
   }
   body.is-ready { animation: page-in 0.5s ease both; }
   @keyframes page-in {
@@ -192,6 +247,7 @@
   .stats {
     display: flex;
     align-items: stretch;
+    flex-wrap: wrap;
     gap: 12px;
     font-family: 'Inter', sans-serif;
   }
@@ -205,6 +261,8 @@
     background: var(--surface);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
+    flex: 1 1 auto;
+    min-width: 0;
   }
   .stats .stat::before {
     content: "🗂️";
@@ -1077,7 +1135,11 @@
   @media (max-width: 460px) {
     body { padding: 26px 14px 48px; }
     .page-head { flex-direction: column; align-items: flex-start; gap: 12px; }
-    .stats { width: 100%; justify-content: space-between; gap: 10px; }
+    .stats { width: 100%; justify-content: space-between; gap: 8px; }
+    .stats .stat { flex-basis: calc(33.333% - 6px); padding: 10px 8px; gap: 6px; }
+    .stats .stat::before { width: 30px; height: 30px; font-size: 12px; }
+    .stats .stat .num { font-size: 17px; }
+    .stats .stat .cap { font-size: 8px; }
     .toolbar { gap: 8px; }
     .toolbar .btn { flex: 1 1 auto; text-align: center; padding: 9px 10px; }
     .grid { margin-top: 6px; }
@@ -1362,10 +1424,11 @@
 </div>
 
 <div class="app-shell">
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div class="mark">M</div>
       <div class="label">Mission Event<br>System</div>
+      <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Close menu">✕</button>
     </div>
     <nav class="sidebar-nav">
       <a href="#" class="active"><span class="ic">🗓️</span>My Schedule</a>
@@ -1373,10 +1436,12 @@
     </nav>
     <div class="sidebar-foot">✚ One ticket per site,<br>Staff assignment tracker</div>
   </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
   <div class="main-area">
     <div class="topbar">
-      <div class="topbar-right" style="margin-left:0;">
+      <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+      <div class="topbar-right">
         <div class="notif-wrap" id="notifWrap" style="display:none;">
           <button type="button" class="notif-bell" id="notifBell" title="Emergency notifications" aria-label="Emergency notifications" aria-haspopup="true">
             🔔<span class="notif-badge" id="notifBadge">0</span>
@@ -1677,6 +1742,30 @@ function getEmployeeSession() {
 // because the session is missing/expired — that fallback was the source of
 // the mode conflict when this was one shared file. If there's no valid
 // employee session, send them to login instead of rendering anything here.
+// ---------- Mobile sidebar (hamburger drawer) ----------
+(() => {
+  const sidebarEl = document.getElementById("sidebar");
+  const backdropEl = document.getElementById("sidebarBackdrop");
+  const openBtn = document.getElementById("menuToggle");
+  const closeBtn = document.getElementById("sidebarClose");
+  if (!sidebarEl || !backdropEl || !openBtn) return;
+  const openSidebar = () => {
+    sidebarEl.classList.add("open");
+    backdropEl.classList.add("open");
+    openBtn.setAttribute("aria-expanded", "true");
+  };
+  const closeSidebar = () => {
+    sidebarEl.classList.remove("open");
+    backdropEl.classList.remove("open");
+    openBtn.setAttribute("aria-expanded", "false");
+  };
+  openBtn.addEventListener("click", openSidebar);
+  if (closeBtn) closeBtn.addEventListener("click", closeSidebar);
+  backdropEl.addEventListener("click", closeSidebar);
+  sidebarEl.querySelectorAll(".sidebar-nav a").forEach(a => a.addEventListener("click", closeSidebar));
+  window.addEventListener("resize", () => { if (window.innerWidth > 900) closeSidebar(); });
+})();
+
 const employeeSession = getEmployeeSession();
 if (!employeeSession) {
   window.location.href = "employee-login.html";
