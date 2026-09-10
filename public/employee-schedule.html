@@ -1894,6 +1894,12 @@ function loadCards() {
 }
 
 let cards = loadCards();
+// Card ids THIS device has just created locally and is still in the middle
+// of pushing to Firestore for the very first time (see pushNewCardToRemote
+// below). The live-sync listener won't treat these as orphans just because
+// they don't exist on the server yet — everything else that's missing from
+// the server is trusted to really be gone.
+let pendingLocalCardIds = new Set();
 let currentFilter = "all";
 // Which date bracket the logged-in employee currently has selected.
 let employeeSelectedDate = null;
@@ -4078,6 +4084,7 @@ async function deleteSiteFromRemote(cardId) {
 // This only appends the one new card; it never touches anything else
 // already on the remote doc, so it can't clobber concurrent edits.
 async function pushNewCardToRemote(card) {
+  pendingLocalCardIds.add(card.id);
   try {
     const snap = await getDoc(scheduleDocRef);
     const data = snap.exists() ? snap.data() : { cards: [] };
@@ -4091,6 +4098,12 @@ async function pushNewCardToRemote(card) {
     });
   } catch (err) {
     await showAlert("Saved in your browser, but failed to sync online: " + err.message);
+  } finally {
+    // Whether that push just succeeded or failed, it's no longer "in
+    // flight" — if it failed, the card genuinely isn't on the server, so
+    // the live-sync listener should be free to clean it up like any other
+    // orphan instead of protecting it forever.
+    pendingLocalCardIds.delete(card.id);
   }
 }
 
@@ -4474,13 +4487,6 @@ if (employeeSession) {
   renderDatalists();
   render();
 
-  // Tracks which card ids we've actually seen confirmed on the server, so
-  // the "another device deleted this" check below never mistakes a
-  // brand-new card THIS device just added (and hasn't Sent/Updated yet)
-  // for something that needs to be swept away. Stays null until the first
-  // snapshot arrives — nothing is ever removed on that very first check.
-  let lastKnownRemoteCardIds = null;
-
   // Live sign-up feed: merges employee self-signups into the local view
   // in real time, the same way employees see the roster update live.
   // Only slots the admin hasn't touched this session are updated, and if
@@ -4608,20 +4614,27 @@ if (employeeSession) {
       structuralChange = true;
       affectedDates.add(remoteCard.date || "");
     });
-    // Drop cards another device deleted — but only ones we'd previously
-    // confirmed were live, never a just-added local card still waiting on
-    // its first Send/Update.
-    if (lastKnownRemoteCardIds) {
-      const removeIds = new Set(
-        cards.filter(c => lastKnownRemoteCardIds.has(c.id) && !remoteById.has(c.id)).map(c => c.id)
-      );
-      if (removeIds.size) {
-        cards.forEach(c => { if (removeIds.has(c.id)) affectedDates.add(c.date || ""); });
-        cards = cards.filter(c => !removeIds.has(c.id));
-        structuralChange = true;
-      }
+    // Drop cards that don't exist on the server — another device deleted
+    // them, or (this was the actual bug) this browser's OWN localStorage
+    // cache is simply stale: e.g. this card was deleted from another device
+    // while this browser's tab was closed, so this browser never lived
+    // through that deletion as a snapshot event and just reloaded the old
+    // card straight from localStorage. That used to only get swept away
+    // starting from the SECOND snapshot this session — meaning a card that
+    // was already gone from the server before the page even loaded could
+    // stay "stuck" on that one device forever. This now runs on every
+    // snapshot, including the very first one. The only cards exempt are
+    // ones THIS device just created and is still actively pushing to
+    // Firestore for the first time (pendingLocalCardIds) — everything else
+    // missing from the server is trusted to really be gone.
+    const removeIds = new Set(
+      cards.filter(c => !remoteById.has(c.id) && !pendingLocalCardIds.has(c.id)).map(c => c.id)
+    );
+    if (removeIds.size) {
+      cards.forEach(c => { if (removeIds.has(c.id)) affectedDates.add(c.date || ""); });
+      cards = cards.filter(c => !removeIds.has(c.id));
+      structuralChange = true;
     }
-    lastKnownRemoteCardIds = new Set(remoteCards.map(c => c.id));
     if (structuralChange) {
       // New/removed cards change the DOM structure itself (new site cards,
       // new date tabs) — always do a full re-render for these, even if the

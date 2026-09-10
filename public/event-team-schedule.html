@@ -320,6 +320,19 @@
     flex-wrap: wrap;
     align-items: center;
   }
+  .unsaved-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #fff3cd;
+    color: #8a6300;
+    border: 1px solid #ffe08a;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
   .region-filter {
     display: flex;
     gap: 4px;
@@ -374,6 +387,8 @@
   .btn.primary:hover { box-shadow: 0 6px 16px -3px rgba(47,111,237,.55); border-color: var(--signal-dark); }
   .btn.danger-outline { color: var(--danger); border-color: rgba(229,72,77,.35); }
   .btn.danger-outline:hover { background: var(--danger-soft); border-color: var(--danger); }
+  .btn.success-outline { color: var(--ok); border-color: rgba(26,174,111,.35); }
+  .btn.success-outline:hover { background: var(--ok-soft); border-color: var(--ok); }
   .btn.ghost {
     box-shadow: none;
     border-color: transparent;
@@ -1368,6 +1383,8 @@
     box-shadow: 0 6px 14px -4px rgba(24,87,166,.5);
   }
   .modal-actions button.primary:hover { opacity: 0.92; transform: translateY(-1px); }
+  .modal-actions button.danger-outline { color: var(--danger); border-color: rgba(229,72,77,.55); }
+  .modal-actions button.danger-outline:hover { background: var(--danger-soft); }
 
   /* ---------- Leaderboard (employee side) ---------- */
   #leaderboardSection { display: none; }
@@ -1584,7 +1601,8 @@
       <div class="toolbar">
         <button class="btn" id="addDateBtn">+ Add date event</button>
         <button class="btn primary" id="saveBtn">📤 Send</button>
-        <button class="btn" id="updateAllBtn">🔄 Update All</button>
+        <button class="btn" id="updateAllBtn">💾 Save All</button>
+        <span id="unsavedIndicator" class="unsaved-badge" style="display:none;">● There are unsaved changes.</span>
         <button class="btn ghost" id="printBtn">🖨️ Print / Export PDF</button>
         <button class="btn danger-outline" id="resetBtn">Reset all</button>
         <a class="btn" id="leaderboardBtn" href="leaderboard.html" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;margin-left:auto;">🏆 Leaderboard</a>
@@ -1661,6 +1679,37 @@ function showConfirm(message) {
     appModalActions.appendChild(okBtn);
     appModal.classList.add("open");
     okBtn.focus();
+  });
+}
+
+// Shown instead of the plain logout confirm when hasUnsavedChanges is true.
+// Gives a third choice (save everything first) instead of a plain yes/no,
+// so an admin who added a date event or a site can't lose it by logging out
+// before it's been pushed to Firestore. Resolves to "save", "discard", or
+// "cancel".
+function showUnsavedChangesPrompt() {
+  return new Promise(resolve => {
+    setModalIcon("warn");
+    appModalMessage.textContent =
+      "May mga hindi pa na-Send/Save All na pagbabago (bagong date event, site, o edit). " +
+      "Kapag nag-logout ka nang hindi muna sina-save, mawawala ang mga ito.";
+    appModalActions.innerHTML = "";
+    const cancelBtn = document.createElement("button");
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.addEventListener("click", () => { closeModal(); resolve("cancel"); });
+    const discardBtn = document.createElement("button");
+    discardBtn.className = "danger-outline";
+    discardBtn.textContent = "Logout without saving";
+    discardBtn.addEventListener("click", () => { closeModal(); resolve("discard"); });
+    const saveBtn = document.createElement("button");
+    saveBtn.className = "primary";
+    saveBtn.textContent = "Save All & Logout";
+    saveBtn.addEventListener("click", () => { closeModal(); resolve("save"); });
+    appModalActions.appendChild(cancelBtn);
+    appModalActions.appendChild(discardBtn);
+    appModalActions.appendChild(saveBtn);
+    appModal.classList.add("open");
+    saveBtn.focus();
   });
 }
 
@@ -1965,7 +2014,112 @@ function loadCards() {
   return Array.from({ length: 6 }, blankCard);
 }
 
-let cards = loadCards();
+// Normalize any pre-existing entries to uppercase so old data matches the
+// new auto-uppercase behavior right away. Also backfills the "relievers"
+// list onto cards saved before the Store Reliever section existed. Shared
+// by the initial load AND by revertUnsavedLocalChanges() (discard-logout),
+// which re-runs this same cleanup on fresh-from-Firestore cards.
+function normalizeCards(arr) {
+  arr.forEach(c => {
+    c.location = (c.location || "").toUpperCase();
+    if (!Array.isArray(c.relievers)) {
+      c.relievers = [];
+    }
+    if (c.cancelled === undefined) c.cancelled = false;
+    c.staff.forEach(s => { s.name = (s.name || "").toUpperCase(); });
+    c.relievers.forEach(s => {
+      s.name = (s.name || "").toUpperCase();
+      if (s.site === undefined) s.site = "";
+    });
+    // Store Reliever duty is Pharmacy Assistant only — drop any leftover
+    // PHARMACIST/BILLING/IT SPECIALIST reliever rows from older cards, and
+    // relabel whatever's left (old PICKER/ENCODER entries) to a single
+    // "PHARMACY ASSISTANT" role, since there's no longer a Picker/Encoder
+    // distinction for relievers. Also drop empty leftover placeholder rows
+    // (no name AND no site) from before Store Reliever rows were auto-added
+    // per Picker/Encoder signup — a blank, site-less row is meaningless now.
+    c.relievers = c.relievers
+      .filter(s => roleToTeam(s.label).toUpperCase() === "PHARMACY ASSISTANT")
+      .filter(s => (s.name || "").trim() || (s.site || "").trim())
+      .map(s => ({ ...s, label: "PHARMACY ASSISTANT" }));
+  });
+  return arr;
+}
+
+let cards = normalizeCards(loadCards());
+// True whenever there are local edits (a new/edited site, a date-event
+// change, etc.) that haven't been pushed to Firestore yet via Send / Save
+// All / a bracket's own Update button. Drives the "unsaved changes" badge
+// in the toolbar and the logout guard further down, so an admin can't add
+// a date event or a site, forget to save it, and lose it by logging out.
+//
+// This is now computed by actually diffing each card against a snapshot of
+// its last-confirmed-saved state (lastSavedCardSnapshots below), rather
+// than a one-way flag that latches "true" the moment ANY field is touched
+// and only clears on an explicit Send/Update. With the old one-way flag,
+// changing a bracket's mission from Medical Mission to People's Day and
+// then changing it right back to Medical Mission still left "unsaved
+// changes" showing (and blocked/warned on logout) even though nothing
+// actually differed from what was last saved. Same for date, region, site
+// name, etc. Diffing against a real snapshot means only a genuine
+// difference from the saved version shows the badge.
+let hasUnsavedChanges = false;
+// id -> JSON snapshot of a card's editable fields, as of the last time
+// that card's content was actually confirmed saved (pushed via Send/Save
+// All, pushed via a single bracket's own Update, reverted to the live
+// server copy on discard-logout, or merged in from another device's
+// confirmed push via the live onSnapshot listener below). Compared against
+// the live `cards` array to decide whether there's a REAL unsaved
+// difference, instead of just "something was edited at some point".
+let lastSavedCardSnapshots = new Map();
+
+// Only the fields a person can actually change are part of the comparison
+// (id itself never changes, and there's nothing else on a card that isn't
+// one of these).
+function snapshotKeyFor(card) {
+  const { region, regionCustom, mission, location, date, time, staff, relievers, photo, photoName, cancelled } = card;
+  return JSON.stringify({ region, regionCustom, mission, location, date, time, staff, relievers, photo, photoName, cancelled });
+}
+
+// Replaces the entire snapshot — used after a full Send/Save All push, and
+// after discarding local edits back to the live server copy, since both of
+// those mean every card's local content now matches what's confirmed saved.
+function setSavedSnapshot(cardsArr) {
+  lastSavedCardSnapshots = new Map(cardsArr.map(c => [c.id, snapshotKeyFor(c)]));
+}
+
+// Updates the snapshot for just the given card ids — used after a single
+// bracket's own Update (only that bracket's cards just got confirmed, other
+// brackets may still be genuinely unsaved) and after the live onSnapshot
+// listener merges in confirmed remote content for cards nobody is actively
+// editing locally. A ghost id (card no longer exists locally) is dropped
+// from the snapshot instead of throwing, since a confirmed remote delete
+// counts as saved too.
+function updateSavedSnapshotForIds(ids) {
+  ids.forEach(id => {
+    const card = cards.find(c => c.id === id);
+    if (card) lastSavedCardSnapshots.set(id, snapshotKeyFor(card));
+    else lastSavedCardSnapshots.delete(id);
+  });
+}
+// Card ids THIS device has just created locally and is still in the middle
+// of pushing to Firestore for the very first time (see pushNewCardToRemote
+// below). The live-sync listener won't treat these as orphans just because
+// they don't exist on the server yet — everything else that's missing from
+// the server is trusted to really be gone.
+let pendingLocalCardIds = new Set();
+// Card ids THIS device created (new bracket via "+ Add date event", or a
+// new site via a bracket's "+ Add site") that have never been explicitly
+// confirmed by the admin via Send/Save All or a per-bracket Update — even
+// though pushNewCardToRemote already synced them live the moment they were
+// created, so other devices/employees can see them right away. Kept so
+// "Logout without saving" can tell these apart from cards that really are
+// saved, and delete them from Firestore too instead of leaving them
+// stranded live on the server after the admin chose to discard them.
+// Cleared entirely by markSaved() (Send/Save All), and per-date by
+// updateDateOnRemote() (a bracket's own Update) and the delete handlers
+// below.
+let sessionNewCardIds = new Set();
 let currentFilter = "all";
 // Which date bracket the logged-in employee currently has selected.
 let employeeSelectedDate = null;
@@ -1973,35 +2127,47 @@ let employeeSelectedDate = null;
 // chosen (defaults to the first/earliest bracket once render() runs).
 let adminSelectedDate;
 
-// Normalize any pre-existing entries to uppercase so old data matches the
-// new auto-uppercase behavior right away. Also backfills the "relievers"
-// list onto cards saved before the Store Reliever section existed.
-cards.forEach(c => {
-  c.location = (c.location || "").toUpperCase();
-  if (!Array.isArray(c.relievers)) {
-    c.relievers = [];
-  }
-  if (c.cancelled === undefined) c.cancelled = false;
-  c.staff.forEach(s => { s.name = (s.name || "").toUpperCase(); });
-  c.relievers.forEach(s => {
-    s.name = (s.name || "").toUpperCase();
-    if (s.site === undefined) s.site = "";
-  });
-  // Store Reliever duty is Pharmacy Assistant only — drop any leftover
-  // PHARMACIST/BILLING/IT SPECIALIST reliever rows from older cards, and
-  // relabel whatever's left (old PICKER/ENCODER entries) to a single
-  // "PHARMACY ASSISTANT" role, since there's no longer a Picker/Encoder
-  // distinction for relievers. Also drop empty leftover placeholder rows
-  // (no name AND no site) from before Store Reliever rows were auto-added
-  // per Picker/Encoder signup — a blank, site-less row is meaningless now.
-  c.relievers = c.relievers
-    .filter(s => roleToTeam(s.label).toUpperCase() === "PHARMACY ASSISTANT")
-    .filter(s => (s.name || "").trim() || (s.site || "").trim())
-    .map(s => ({ ...s, label: "PHARMACY ASSISTANT" }));
-});
-
 function saveCards() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+  markUnsaved();
+}
+
+// Re-checks whether the live `cards` array actually differs from the last
+// confirmed-saved snapshot, and updates the "unsaved changes" badge to
+// match. Called after every local edit (via saveCards() below) — unlike
+// the old version, this can also flip hasUnsavedChanges back to false on
+// its own, e.g. when a field is edited and then changed back to its saved
+// value, without needing an explicit Send/Update.
+function markUnsaved() {
+  const currentIds = new Set(cards.map(c => c.id));
+  let dirty = false;
+  for (const card of cards) {
+    const saved = lastSavedCardSnapshots.get(card.id);
+    if (saved === undefined || saved !== snapshotKeyFor(card)) { dirty = true; break; }
+  }
+  if (!dirty) {
+    for (const id of lastSavedCardSnapshots.keys()) {
+      if (!currentIds.has(id)) { dirty = true; break; } // saved card deleted locally, not yet pushed
+    }
+  }
+  hasUnsavedChanges = dirty;
+  const el = document.getElementById("unsavedIndicator");
+  if (el) el.style.display = dirty ? "inline-flex" : "none";
+}
+
+// Call once a full push to Firestore (Send / Save All) has actually
+// succeeded, to clear the "unsaved changes" state.
+function markSaved() {
+  // Everything just got pushed, so the whole snapshot resyncs to match —
+  // not just a flag flip, so a later edit-then-revert is correctly
+  // detected as "not actually unsaved" against this new baseline.
+  setSavedSnapshot(cards);
+  hasUnsavedChanges = false;
+  // A full Send/Save All just confirmed everything, including any
+  // brand-new bracket/site — so none of them are "never confirmed" anymore.
+  sessionNewCardIds = new Set();
+  const el = document.getElementById("unsavedIndicator");
+  if (el) el.style.display = "none";
 }
 
 // ---------- Site name / role name suggestion history ----------
@@ -2372,6 +2538,7 @@ function render() {
         <div class="bracket-actions">
           <button type="button" class="btn bracket-edit-date-btn">✎ Edit date</button>
           <button type="button" class="btn danger-outline bracket-delete-btn">Delete event</button>
+          <button type="button" class="btn success-outline bracket-save-btn">💾 Save</button>
           <button type="button" class="btn bracket-update-btn">Update</button>
           <button type="button" class="btn bracket-add-btn">+ Add site</button>
         </div>
@@ -2382,6 +2549,7 @@ function render() {
       const nc = blankCard();
       nc.date = group.date;
       cards.push(nc);
+      sessionNewCardIds.add(nc.id);
       saveCards();
       render();
       pushNewCardToRemote(nc);
@@ -2404,11 +2572,32 @@ function render() {
       );
       if (!ok) return;
       const deletedDate = group.date;
+      cards.filter(c => (c.date || "") === (group.date || "")).forEach(c => sessionNewCardIds.delete(c.id));
       cards = cards.filter(c => (c.date || "") !== (group.date || ""));
       if (adminSelectedDate === group.date) adminSelectedDate = undefined;
       saveCards();
       render();
       deleteDateFromRemote(deletedDate);
+    });
+    // Explicit "Save" per bracket: an admin can be in the middle of filling
+    // out a new bracket (still typing names, hasn't decided branch, etc.)
+    // and just wants confirmation this device won't lose it — WITHOUT
+    // pushing a half-finished bracket live for employees to see yet. This
+    // only writes to this browser's localStorage (same as every field
+    // already auto-saves on change); it never touches Firestore, so the
+    // "unsaved changes" badge/logout guard stays on until an actual
+    // Update/Send All happens. Kept separate from "Update" (which pushes
+    // this bracket to Firestore for employees) so the two can't be confused.
+    bracket.querySelector(".bracket-save-btn").addEventListener("click", e => {
+      saveCards();
+      const btn = e.currentTarget;
+      const original = btn.textContent;
+      btn.textContent = "✓ Saved";
+      btn.disabled = true;
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.disabled = false;
+      }, 1200);
     });
     bracket.querySelector(".bracket-update-btn").addEventListener("click", e => {
       saveCards();
@@ -2528,6 +2717,7 @@ function render() {
       if (await showConfirm("Remove this site from the list?")) {
         const removedId = card.id;
         cards.splice(idx, 1);
+        sessionNewCardIds.delete(removedId);
         saveCards();
         render();
         deleteSiteFromRemote(removedId);
@@ -3345,6 +3535,7 @@ document.getElementById("addDateBtn").addEventListener("click", async () => {
   newCard.mission = details.mission;
   newCard.location = details.location;
   cards.push(newCard);
+  sessionNewCardIds.add(newCard.id);
   adminSelectedDate = details.date;
   saveCards();
   render();
@@ -3855,12 +4046,25 @@ async function sendAllToEmployees(btn) {
     // find out from a notification instead of noticing on their own later.
     const scheduleChangeNotifications = applyScheduleChangeNotifications(cards, remoteCards);
     const merged = mergeRemoteClaims(cards, remoteCards);
+    // Write the merge result back into the local `cards` array, not just to
+    // Firestore. Previously `merged` was only ever sent remotely, so local
+    // `cards` kept its pre-merge (e.g. blank) slots while the server now had
+    // the merged-in self-signup names. That mismatch was picked up moments
+    // later by the admin onSnapshot listener below, which mistook it for a
+    // fresh local edit and called saveCards() -> markUnsaved(), flipping
+    // hasUnsavedChanges back to true right after markSaved() had just
+    // cleared it. If that happened while the "Schedule sent" alert below
+    // was still open, the Logout flow's `if (hasUnsavedChanges) return;`
+    // guard would then incorrectly abort the logout, leaving the admin
+    // stuck on the page even after choosing "Save All & Logout".
+    cards = merged;
     await setDoc(scheduleDocRef, {
       cards: stripForRemote(merged),
       sentAt: serverTimestamp(),
       sentBy: "admin"
     });
     saveCards();
+    markSaved();
     render();
     const allChangeNotifications = [...branchChangeNotifications, ...scheduleChangeNotifications];
     let notifFailCount = 0;
@@ -3918,13 +4122,34 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn) {
     // out from a notification instead of noticing on their own later.
     const scheduleChangeNotifications = applyScheduleChangeNotifications(thisDateLocal, remoteCards);
     const mergedThisDate = mergeRemoteClaims(thisDateLocal, remoteCards);
+    // Same fix as sendAllToEmployees above: reflect the merged (self-signup
+    // filled-in) cards back into the local `cards` array for this date, so
+    // local state doesn't diverge from what was just pushed and falsely
+    // trip the onSnapshot listener's "local edit" detection.
+    const mergedByIdThisDate = new Map(mergedThisDate.map(c => [c.id, c]));
+    cards = cards.map(c => mergedByIdThisDate.get(c.id) || c);
     const merged = [...kept, ...stripForRemote(mergedThisDate)];
     await setDoc(scheduleDocRef, {
       cards: merged,
       sentAt: serverTimestamp(),
       sentBy: "admin"
     });
+    // This bracket's own Update just confirmed every card in it, including
+    // any that were brand-new and only ever auto-synced — so they're no
+    // longer "never confirmed" even though the badge/logout guard below
+    // stays on for any OTHER bracket that's still unpushed.
+    thisDateLocalIds.forEach(id => sessionNewCardIds.delete(id));
+    // This bracket's cards are now confirmed saved — snapshot just these
+    // ids (not the whole board) so a genuinely unsaved OTHER bracket still
+    // correctly shows "unsaved changes", while this one stops.
+    updateSavedSnapshotForIds(thisDateLocalIds);
     saveCards();
+    // Note: this only pushes THIS bracket's cards (see comment above) — it
+    // deliberately does not call markSaved(), since other brackets may still
+    // have local edits that haven't been pushed. The "unsaved changes" badge
+    // and logout guard only clear (for the whole board) once Send/Save All
+    // pushes everything, or naturally once every remaining bracket's own
+    // Update/edit gets snapshotted too.
     render();
     const allChangeNotifications = [...branchChangeNotifications, ...scheduleChangeNotifications];
     let notifFailCount = 0;
@@ -4158,6 +4383,7 @@ async function deleteSiteFromRemote(cardId) {
 // This only appends the one new card; it never touches anything else
 // already on the remote doc, so it can't clobber concurrent edits.
 async function pushNewCardToRemote(card) {
+  pendingLocalCardIds.add(card.id);
   try {
     const snap = await getDoc(scheduleDocRef);
     const data = snap.exists() ? snap.data() : { cards: [] };
@@ -4171,6 +4397,12 @@ async function pushNewCardToRemote(card) {
     });
   } catch (err) {
     await showAlert("Saved in your browser, but failed to sync online: " + err.message);
+  } finally {
+    // Whether that push just succeeded or failed, it's no longer "in
+    // flight" — if it failed, the card genuinely isn't on the server, so
+    // the live-sync listener should be free to clean it up like any other
+    // orphan instead of protecting it forever.
+    pendingLocalCardIds.delete(card.id);
   }
 }
 
@@ -4482,7 +4714,42 @@ if (adminChipBtn) {
 
 document.getElementById("logoutBtn").addEventListener("click", async () => {
   document.getElementById("adminDropdown").classList.remove("open");
-  if (!(await showConfirm("Mag-logout ka ba? Kailangan mo ulit mag-sign in para makabalik dito."))) return;
+  if (hasUnsavedChanges) {
+    // There's a bracket/site sitting only in this browser's localStorage —
+    // give the admin a real choice instead of silently logging them out and
+    // losing it (or silently forcing a save they didn't ask for).
+    const choice = await showUnsavedChangesPrompt();
+    if (choice === "cancel") return;
+    if (choice === "save") {
+      if (!hasNoSitesYet()) {
+        await sendAllToEmployees(document.getElementById("updateAllBtn"));
+      }
+      if (hasUnsavedChanges) return; // the save failed — stay logged in, nothing lost
+    }
+    if (choice === "discard") {
+      // Previously this fell straight through to signing out, leaving the
+      // never-pushed bracket/site sitting in localStorage untouched — so
+      // "discard" didn't actually discard anything, and the same unsaved
+      // bracket would just reappear the next time this device logged back
+      // in. Pull down whatever is actually live on Firestore and overwrite
+      // the local copy with it, so a real discard happens before we leave.
+      if (sessionNewCardIds.size) {
+        // A brand-new bracket/site is already live on Firestore the moment
+        // it's created (pushNewCardToRemote syncs it out right away so
+        // other devices/employees see it immediately) — even though the
+        // admin never confirmed it with Save All/Update. So just pulling
+        // the "live" remote copy below wouldn't make it disappear like the
+        // admin expects; it has to actually be deleted server-side first.
+        const cleared = await deleteCardsFromRemote(sessionNewCardIds);
+        if (!cleared) return; // couldn't confirm removal online — stay logged in, nothing lost
+        sessionNewCardIds = new Set();
+      }
+      const reverted = await revertUnsavedLocalChanges();
+      if (!reverted) return; // couldn't confirm the live version — stay logged in, nothing lost
+    }
+  } else if (!(await showConfirm("Mag-logout ka ba? Kailangan mo ulit mag-sign in para makabalik dito."))) {
+    return;
+  }
   try {
     await signOut(auth);
   } catch (err) {
@@ -4490,6 +4757,75 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
     // login page regardless so they can sign back in either way.
   }
   window.location.href = "admin-login.html";
+});
+
+// Deletes cards (by id) that this device auto-synced live to Firestore on
+// creation but the admin never actually confirmed with Save All/Update.
+// Used right before a "Logout without saving" discard so a brand-new
+// bracket/site doesn't stay stranded live on the server (and reappear on
+// this or any other device) just because it technically already made it
+// there. Returns true once Firestore reflects the removal (or there was
+// nothing to remove), false if that couldn't be confirmed.
+async function deleteCardsFromRemote(ids) {
+  try {
+    const snap = await getDoc(scheduleDocRef);
+    const remoteCards = (snap.exists() && Array.isArray(snap.data().cards)) ? snap.data().cards : [];
+    const kept = remoteCards.filter(c => !ids.has(c.id));
+    if (kept.length === remoteCards.length) return true; // wasn't live yet, nothing to remove
+    await setDoc(scheduleDocRef, {
+      cards: kept,
+      sentAt: serverTimestamp(),
+      sentBy: "admin"
+    });
+    return true;
+  } catch (err) {
+    console.error("Failed to remove never-confirmed new card(s) from remote on discard:", err);
+    await showAlert(
+      "Couldn't confirm removal of your not-yet-saved new site(s)/bracket online. Please check your connection and try 'Logout without saving' again, or use 'Save All & Logout' instead."
+    );
+    return false;
+  }
+}
+
+// Pulls the current live Firestore state and overwrites the local
+// in-memory `cards` + localStorage with it, discarding any bracket/site
+// edits that were only ever local. Used when the admin explicitly chooses
+// "Logout without saving" on the unsaved-changes prompt. Returns true on
+// success. If Firestore can't be reached, local data is left untouched
+// (rather than risking wiping real work on a guess) and false is returned
+// so the caller can keep the admin signed in instead of logging them out
+// with the discard only half-done.
+async function revertUnsavedLocalChanges() {
+  try {
+    const snap = await getDoc(scheduleDocRef);
+    const remoteCards = (snap.exists() && Array.isArray(snap.data().cards)) ? snap.data().cards : [];
+    // Remote docs are stripped of photo/photoName (see stripForRemote) —
+    // add those back as blank so the local card shape stays consistent.
+    cards = normalizeCards(remoteCards.map(c => ({ photo: null, photoName: "", ...c })));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+    pendingLocalCardIds = new Set();
+    sessionNewCardIds = new Set();
+    markSaved();
+    return true;
+  } catch (err) {
+    console.error("Failed to revert unsaved local changes on discard:", err);
+    await showAlert(
+      "Couldn't confirm the latest saved version online, so your unsaved bracket/site was left as-is on this device. " +
+      "Please check your connection and try 'Logout without saving' again, or use 'Save All & Logout' instead."
+    );
+    return false;
+  }
+}
+
+// Extra safety net for the same "lost work" problem: also warn on a plain
+// tab close/refresh/navigate-away, not just the in-app Logout button. Most
+// browsers show their own generic "leave site?" text regardless of
+// returnValue, which is expected — this only fires while something is
+// genuinely unsaved.
+window.addEventListener("beforeunload", (e) => {
+  if (!hasUnsavedChanges) return;
+  e.preventDefault();
+  e.returnValue = "";
 });
 
 // Send / Update All / Reset all all assume there's at least one site to act
@@ -4583,13 +4919,6 @@ if (employeeSession) {
   renderDatalists();
   render();
 
-  // Tracks which card ids we've actually seen confirmed on the server, so
-  // the "another device deleted this" check below never mistakes a
-  // brand-new card THIS device just added (and hasn't Sent/Updated yet)
-  // for something that needs to be swept away. Stays null until the first
-  // snapshot arrives — nothing is ever removed on that very first check.
-  let lastKnownRemoteCardIds = null;
-
   // Live sign-up feed: merges employee self-signups into the local view
   // in real time, the same way employees see the roster update live.
   // Only slots the admin hasn't touched this session are updated, and if
@@ -4623,6 +4952,11 @@ if (employeeSession) {
     let changed = false;
     let structuralChange = false;
     const affectedDates = new Set();
+    // Card ids touched by a confirmed remote value in this pass — used to
+    // refresh lastSavedCardSnapshots below, so cards updated purely by
+    // someone else's push (or a self-signup) don't get mistaken for this
+    // admin's own unsaved edits and wrongly light up "unsaved changes".
+    const touchedIds = new Set();
     cards.forEach(card => {
       const remoteCard = remoteById.get(card.id);
       if (!remoteCard) return;
@@ -4630,6 +4964,7 @@ if (employeeSession) {
       if (remoteCancelled !== !!card.cancelled) {
         card.cancelled = remoteCancelled;
         structuralChange = true;
+        touchedIds.add(card.id);
         affectedDates.add(card.date || "");
       }
       // Branch, mission, site name, date, and time were previously never
@@ -4649,6 +4984,7 @@ if (employeeSession) {
           if (remoteVal !== localVal) {
             card[field] = remoteCard[field];
             structuralChange = true;
+            touchedIds.add(card.id);
             affectedDates.add(card.date || "");
             affectedDates.add(remoteCard.date || "");
           }
@@ -4678,6 +5014,7 @@ if (employeeSession) {
             return { ...remoteSlot };
           });
           structuralChange = true;
+          touchedIds.add(card.id);
           affectedDates.add(card.date || "");
           return;
         }
@@ -4694,6 +5031,7 @@ if (employeeSession) {
             slot.name = remoteSlot.name || "";
             slot.filledByStaffId = remoteSlot.filledByStaffId || null;
             changed = true;
+            touchedIds.add(card.id);
             affectedDates.add(card.date || "");
           }
         });
@@ -4715,22 +5053,41 @@ if (employeeSession) {
           .map(s => ({ ...s, label: "PHARMACY ASSISTANT" }))
       });
       structuralChange = true;
+      touchedIds.add(remoteCard.id);
       affectedDates.add(remoteCard.date || "");
     });
-    // Drop cards another device deleted — but only ones we'd previously
-    // confirmed were live, never a just-added local card still waiting on
-    // its first Send/Update.
-    if (lastKnownRemoteCardIds) {
-      const removeIds = new Set(
-        cards.filter(c => lastKnownRemoteCardIds.has(c.id) && !remoteById.has(c.id)).map(c => c.id)
-      );
-      if (removeIds.size) {
-        cards.forEach(c => { if (removeIds.has(c.id)) affectedDates.add(c.date || ""); });
-        cards = cards.filter(c => !removeIds.has(c.id));
-        structuralChange = true;
-      }
+    // Drop cards that don't exist on the server — another device deleted
+    // them, or (this was the actual bug) this browser's OWN localStorage
+    // cache is simply stale: e.g. this card was deleted from another device
+    // while this browser's tab was closed, so this browser never lived
+    // through that deletion as a snapshot event and just reloaded the old
+    // card straight from localStorage. That used to only get swept away
+    // starting from the SECOND snapshot this session — meaning a card that
+    // was already gone from the server before the page even loaded could
+    // stay "stuck" on that one device forever. This now runs on every
+    // snapshot, including the very first one. The only cards exempt are
+    // ones THIS device just created and is still actively pushing to
+    // Firestore for the first time (pendingLocalCardIds) — everything else
+    // missing from the server is trusted to really be gone.
+    const removeIds = new Set(
+      cards.filter(c => !remoteById.has(c.id) && !pendingLocalCardIds.has(c.id)).map(c => c.id)
+    );
+    if (removeIds.size) {
+      cards.forEach(c => { if (removeIds.has(c.id)) affectedDates.add(c.date || ""); });
+      cards = cards.filter(c => !removeIds.has(c.id));
+      structuralChange = true;
     }
-    lastKnownRemoteCardIds = new Set(remoteCards.map(c => c.id));
+    // Every touched card just got synced to a confirmed remote value, so
+    // it counts as saved — EXCEPT a card the admin is actively typing into
+    // right now, which still has a genuinely pending local edit sitting in
+    // the field being skipped above; that one keeps its existing dirty
+    // state and gets snapshotted on a later, quieter pass instead.
+    const skipSnapshotIds = new Set([activeCardId, activeCardIdForFields].filter(Boolean));
+    const idsToSnapshot = [...touchedIds].filter(id => !skipSnapshotIds.has(id));
+    if (idsToSnapshot.length) updateSavedSnapshotForIds(idsToSnapshot);
+    // A card removed here was confirmed gone on the server, so it can't be
+    // "unsaved" locally anymore either — drop its stale snapshot entry.
+    removeIds.forEach(id => lastSavedCardSnapshots.delete(id));
     if (structuralChange) {
       // New/removed cards change the DOM structure itself (new site cards,
       // new date tabs) — always do a full re-render for these, even if the
