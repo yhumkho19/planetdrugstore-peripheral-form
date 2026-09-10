@@ -536,6 +536,15 @@
   }
   .field input:focus{outline:none;border-color:var(--red);background:#fff;}
   .field input[readonly]{color:var(--muted);cursor:not-allowed;}
+  .field input:disabled{background:var(--paper);color:var(--muted);cursor:not-allowed;}
+  .input-wrap{position:relative;}
+  .pw-wrap input{padding-right:54px;}
+  .pw-toggle{
+    position:absolute;right:5px;top:50%;transform:translateY(-50%);
+    border:none;background:transparent;color:var(--muted);cursor:pointer;
+    font-size:11px;font-weight:700;letter-spacing:0.4px;padding:7px 9px;border-radius:6px;
+  }
+  .pw-toggle:hover{background:var(--paper);color:var(--maroon);}
   .pf-attach-section{padding:4px 20px 6px;}
   .sig-pad-wrap{position:relative;max-width:280px;}
   .sig-canvas{
@@ -1254,16 +1263,36 @@
               <option value="Pharmacy Assistant SOUTH">Pharmacy Assistant SOUTH</option>
             </select>
           </div>
+          <div class="field">
+            <label for="empBranch">Branch</label>
+            <input type="text" id="empBranch" placeholder="Auto-filled from department" disabled>
+            <div class="hint">Auto-filled based on Department — not editable.</div>
+          </div>
+          <div class="field">
+            <label for="empSiteName">Site Name</label>
+            <input type="text" id="empSiteName" placeholder="e.g. Camarin, Bagbayan" required autocomplete="off">
+            <div class="hint">Specific branch/site the employee is assigned to.</div>
+          </div>
+          <div class="field">
+            <label for="empStaffId">Staff ID</label>
+            <input type="text" id="empStaffId" placeholder="10234" required>
+            <div class="hint">Employee will use this to log in to the form.</div>
+          </div>
           <div class="two-col">
             <div class="field">
-              <label for="empStaffId">Staff ID</label>
-              <input type="text" id="empStaffId" placeholder="10234" required>
-              <div class="hint">Employee will use this to log in to the form.</div>
+              <label for="empPassword">Password</label>
+              <div class="input-wrap pw-wrap">
+                <input type="password" id="empPassword" placeholder="Temporary password" required>
+                <button type="button" class="pw-toggle" id="pwToggle1">SHOW</button>
+              </div>
+              <div class="hint">Any length is allowed.</div>
             </div>
             <div class="field">
-              <label for="empPassword">Password</label>
-              <input type="text" id="empPassword" placeholder="Temporary password" required>
-              <div class="hint">Any length is allowed.</div>
+              <label for="empPassword2">Confirm Password</label>
+              <div class="input-wrap pw-wrap">
+                <input type="password" id="empPassword2" placeholder="Re-type password" required>
+                <button type="button" class="pw-toggle" id="pwToggle2">SHOW</button>
+              </div>
             </div>
           </div>
           <button type="submit" class="submit-btn" id="registerBtn">Create Account</button>
@@ -4531,6 +4560,33 @@
   const errMsg = document.getElementById('errMsg');
   const okMsg = document.getElementById('okMsg');
 
+  // Auto-fill Branch from Department, same logic as employee-signup.html
+  // so accounts created here match the shape self-signup produces.
+  function deriveBranch(dept){
+    const d = (dept || '').toUpperCase();
+    if(d.includes('NORTH')) return 'north';
+    if(d.includes('SOUTH')) return 'south';
+    return '';
+  }
+  const empDepartmentReg = document.getElementById('empDepartment');
+  const empBranchReg = document.getElementById('empBranch');
+  empDepartmentReg.addEventListener('change', ()=>{
+    empBranchReg.value = deriveBranch(empDepartmentReg.value);
+  });
+
+  // Show/Hide toggle for both password fields
+  function wireRegisterPwToggle(btnId, inputId){
+    const btn = document.getElementById(btnId);
+    const input = document.getElementById(inputId);
+    btn.addEventListener('click', ()=>{
+      const showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      btn.textContent = showing ? 'SHOW' : 'HIDE';
+    });
+  }
+  wireRegisterPwToggle('pwToggle1', 'empPassword');
+  wireRegisterPwToggle('pwToggle2', 'empPassword2');
+
   registerForm.addEventListener('submit', async (e)=>{
     e.preventDefault();
     errMsg.style.display = 'none';
@@ -4542,13 +4598,19 @@
     const name = document.getElementById('empName').value.trim();
     const email = document.getElementById('empEmail').value.trim();
     const department = document.getElementById('empDepartment').value;
+    const branch = deriveBranch(department);
+    const siteName = document.getElementById('empSiteName').value.trim();
     const staffId = document.getElementById('empStaffId').value.trim();
     const password = document.getElementById('empPassword').value;
+    const password2 = document.getElementById('empPassword2').value;
     const staffDocId = staffId.toLowerCase();
 
     try{
       if(!staffDocId){
         throw { code: 'invalid-staffid' };
+      }
+      if(password !== password2){
+        throw { code: 'password-mismatch' };
       }
       const empRef = doc(db, 'employees', staffDocId);
       const existing = await getDoc(empRef);
@@ -4559,7 +4621,7 @@
       const passwordHash = await hashPassword(password);
 
       await setDoc(empRef, {
-        name, email, staffId, department,
+        name, email, staffId, department, branch, siteName,
         passwordHash,
         createdAt: serverTimestamp(),
         createdBy: auth.currentUser ? auth.currentUser.email : ''
@@ -4568,6 +4630,7 @@
       okMsg.textContent = `Account created for ${name} (Staff ID: ${staffId}). Share the Staff ID and password with them directly.`;
       okMsg.style.display = 'block';
       registerForm.reset();
+      empBranchReg.value = '';
     }catch(err){
       errMsg.textContent = friendlyError(err);
       errMsg.style.display = 'block';
@@ -4582,6 +4645,7 @@
     const code = err && err.code || '';
     if(code.includes('staffid-in-use')) return 'That Staff ID is already registered.';
     if(code.includes('invalid-staffid')) return 'Please enter a Staff ID.';
+    if(code.includes('password-mismatch')) return 'Passwords do not match — please re-type them.';
     return 'Could not create the account (' + (code || 'unknown error') + ').';
   }
 

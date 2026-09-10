@@ -57,6 +57,8 @@
     color: var(--ink);
     font-family: 'Inter', 'IBM Plex Sans', Arial, sans-serif;
     font-size: 14px;
+    max-width: 100%;
+    overflow-x: hidden;
   }
   body {
     position: relative;
@@ -389,7 +391,7 @@
   }
   .bracket-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
     gap: 22px 18px;
   }
 
@@ -702,7 +704,7 @@
   .ticket-number {
     position: absolute;
     top: 14px;
-    right: 44px;
+    right: 68px;
     background: var(--surface-dim);
     color: var(--ink-faint);
     font-family: 'Inter', sans-serif;
@@ -1137,6 +1139,17 @@
     box-shadow: 0 0 0 2px var(--danger-soft);
   }
   .status-dot.filled { background: var(--ok); box-shadow: 0 0 0 2px var(--ok-soft); }
+  .emp-role-label {
+    min-width: 0;
+    flex: 1 1 100px;
+    color: var(--ink-muted);
+    font-size: 12px;
+  }
+  .emp-name { flex: 1 1 120px; min-width: 0; word-break: break-word; }
+  .staff-row .claim-btn,
+  .staff-row .unclaim-btn,
+  .staff-row .unavailable-btn,
+  .staff-row .kickBtn { flex-shrink: 0; }
 
   .attach-row {
     margin-top: 14px;
@@ -1192,7 +1205,9 @@
   @media (max-width: 460px) {
     body { padding: 26px 14px 48px; }
     .page-head { flex-direction: column; align-items: flex-start; gap: 12px; }
-    .stats { width: 100%; justify-content: space-between; gap: 10px; }
+    .stats { width: 100%; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .stats .stat { flex: 1 1 auto; padding: 10px 12px; gap: 8px; }
+    .stats .stat::before { width: 30px; height: 30px; font-size: 13px; }
     .toolbar { gap: 8px; }
     .toolbar .btn { flex: 1 1 auto; text-align: center; padding: 9px 10px; }
     .grid { margin-top: 6px; }
@@ -1201,9 +1216,29 @@
     .bracket-add-btn { margin-left: 0; }
     .region-line { flex-wrap: wrap; padding-right: 30px; }
     .schedule-row { flex-direction: column; }
+    /* Staff/reliever rows: a fixed-width role label + drag handle + action
+       buttons used to fight for space on one line, squeezing the name
+       input down to ~100px and wrapping everything messily. Instead, lay
+       each row out across up to three lines:
+       1) drag handle + role selector/label + status dot + close (×)
+       2) the name (and, for relievers, the site) input — full width
+       3) any action buttons (Remove / Leave slot / Not Available / sign up) — full width */
+    .staff-row { flex-wrap: wrap; row-gap: 8px; }
     .staff-row .role-label,
-    .staff-row select.roleSelect { width: 92px; font-size: 9.5px; }
-    .staff-row { flex-wrap: wrap; }
+    .staff-row select.roleSelect { width: auto; flex: 1 1 auto; min-width: 0; font-size: 11px; }
+    .staff-row .name-field-wrap { flex: 1 1 100%; order: 3; }
+    .staff-row .emp-role-label { flex: 1 1 auto; }
+    .staff-row .emp-name { flex: 1 1 100%; order: 3; }
+    .staff-row .kickBtn { flex: 1 1 100%; order: 4; text-align: center; padding: 7px; }
+    .staff-row .claim-btn,
+    .staff-row .unclaim-btn,
+    .staff-row .unavailable-btn {
+      flex: 1 1 auto;
+      order: 4;
+      margin-left: 0;
+      text-align: center;
+      padding: 7px 10px;
+    }
     /* .page-head goes column + align-items:flex-start on mobile, which
        pushes .notif-wrap to the LEFT edge. The dropdown panel anchors via
        right:0 (opens leftward from the bell), so a left-aligned bell made
@@ -1869,7 +1904,7 @@ function adminStaffRowHtml(s, sIdx, listKey, card) {
       <select class="roleSelect" data-list="${listKey}" data-sidx="${sIdx}">
         ${roleOptionsHtml(s.label, listKey)}
       </select>
-      <div style="flex:1;min-width:0;">
+      <div class="name-field-wrap" style="flex:1;min-width:0;">
         <input type="text" class="nameInput" style="width:100%;" list="roleNameList-${slug(s.label)}" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" placeholder="${s.emergency ? "URGENT — needs replacement" : (listKey === "relievers" ? "Assign reliever name" : "Assign staff name")}" value="${escapeAttr(s.name)}">
         ${listKey === "relievers" ? `<input type="text" class="siteInput" list="siteNameList" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" placeholder="Store to relieve — e.g. Branch X" value="${escapeAttr(s.site || "")}">` : ""}
         ${s.emergency ? `<span class="emergency-note">🚨 ${escapeHtml(s.emergencyBy || "Employee")} reported unavailable (emergency) — needs replacement</span>` : ""}
@@ -2963,13 +2998,13 @@ function employeeStaffRowHtml(s, sIdx, listKey, card, myActiveSlot, cancelled) {
   return `
     <div class="staff-row${isEmergencyOpen ? " emergency" : ""}">
       <span class="status-dot ${filled ? "filled" : ""}"></span>
-      <span style="min-width:120px;color:var(--ink-muted);font-size:12px;">
+      <span class="emp-role-label">
         ${escapeHtml(s.label)}
         ${listKey === "relievers" && (s.site || "").trim() ? `<span class="reliever-site-tag">📍 ${escapeHtml(s.site)}</span>` : ""}
         ${isEmergencyOpen ? `<span class="emergency-note">🚨 Previously: ${escapeHtml(s.emergencyBy || "Employee")} — unavailable</span>` : ""}
       </span>
       ${filled
-        ? `<strong style="flex:1;">${escapeHtml(s.name)}</strong>` +
+        ? `<strong class="emp-name">${escapeHtml(s.name)}</strong>` +
           (isMine
             ? (cancelled
                 ? `<span style="flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);">Event cancelled</span>`
@@ -3445,6 +3480,57 @@ function applyRegionChangeClearing(localCardsSubset, remoteCards) {
   return notifyPayloads;
 }
 
+// If the admin moves a site to a different event date, or edits its time or
+// location, and then pushes that change (Send/Update), everyone who had
+// actually self-signed into a slot on that card (identified by
+// filledByStaffId — a name the admin merely typed by hand has no account to
+// notify) should be told the Event Team changed it, rather than silently
+// discovering it next time they open the schedule. Unlike a branch change,
+// the slot itself isn't cleared — the employee is still booked, just on the
+// new date/time — so this only ever queues a notification, it never touches
+// `card`. Returns the list of notification payloads to file once the push
+// itself succeeds.
+function applyScheduleChangeNotifications(localCardsSubset, remoteCards) {
+  const remoteById = new Map(remoteCards.map(c => [c.id, c]));
+  const notifyPayloads = [];
+  localCardsSubset.forEach(card => {
+    const remoteCard = remoteById.get(card.id);
+    if (!remoteCard) return; // brand-new card — nothing prior to compare against
+    const oldDate = remoteCard.date || "";
+    const newDate = card.date || "";
+    const oldTime = remoteCard.time || "";
+    const newTime = card.time || "";
+    const oldLocation = remoteCard.location || "";
+    const newLocation = card.location || "";
+    const dateChanged = oldDate !== newDate;
+    const detailsChanged = !dateChanged && (oldTime !== newTime || oldLocation !== newLocation);
+    if (!dateChanged && !detailsChanged) return;
+    ["staff", "relievers"].forEach(listKey => {
+      (remoteCard[listKey] || []).forEach(slot => {
+        if (slot && slot.filledByStaffId) {
+          notifyPayloads.push({
+            type: dateChanged ? "dateChanged" : "eventUpdated",
+            cardId: card.id,
+            list: listKey,
+            role: slot.label || "",
+            location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (newLocation || oldLocation || "Unnamed site"),
+            date: newDate,
+            time: newTime,
+            oldDate: oldDate,
+            newDate: newDate,
+            region: card.region || "",
+            employeeName: slot.name || "",
+            staffId: slot.filledByStaffId,
+            createdAt: serverTimestamp(),
+            resolved: false
+          });
+        }
+      });
+    });
+  });
+  return notifyPayloads;
+}
+
 // Lets a logged-in employee claim one open role slot directly, as a single
 // Firestore transaction — so two employees tapping the same open slot at
 // the same moment can't both "win" it.
@@ -3765,6 +3851,9 @@ async function sendAllToEmployees(btn) {
     // Wipe rosters (and queue alerts) for any card whose branch changed
     // since the last push, before merging in newer remote self-signups.
     const branchChangeNotifications = applyRegionChangeClearing(cards, remoteCards);
+    // Tell anyone booked on a card whose date/time/location moved, so they
+    // find out from a notification instead of noticing on their own later.
+    const scheduleChangeNotifications = applyScheduleChangeNotifications(cards, remoteCards);
     const merged = mergeRemoteClaims(cards, remoteCards);
     await setDoc(scheduleDocRef, {
       cards: stripForRemote(merged),
@@ -3773,12 +3862,21 @@ async function sendAllToEmployees(btn) {
     });
     saveCards();
     render();
-    if (branchChangeNotifications.length) {
-      await Promise.all(branchChangeNotifications.map(p =>
+    const allChangeNotifications = [...branchChangeNotifications, ...scheduleChangeNotifications];
+    let notifFailCount = 0;
+    if (allChangeNotifications.length) {
+      await Promise.all(allChangeNotifications.map(p =>
         addDoc(notificationsCollRef, p).catch(err => {
-          console.error("Failed to file branch-change notification:", err);
+          notifFailCount++;
+          console.error("Failed to file schedule-change notification:", err);
         })
       ));
+    }
+    if (notifFailCount > 0) {
+      await showAlert(
+        `Schedule sent, but ${notifFailCount} employee notification(s) failed to send.\n\n` +
+        `The "emergencyNotifications" collection's Firestore Security Rules may not allow the new notification types (dateChanged/eventUpdated). Please check the rules or message the developer.`
+      );
     }
     await showAlert("Schedule sent to employees. South will only see South, North will only see North.");
   } catch (err) {
@@ -3800,12 +3898,25 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn) {
   try {
     const snap = await getDoc(scheduleDocRef);
     const remoteCards = (snap.exists() && Array.isArray(snap.data().cards)) ? snap.data().cards : [];
-    const kept = remoteCards.filter(c => (c.date || "") !== (dateKey || ""));
     const thisDateLocal = cards.filter(c => (c.date || "") === (dateKey || ""));
+    // Match by card ID, not by date, when deciding what to drop from the
+    // remote doc. If the admin used "Edit date" to move this bracket to a
+    // new date, these same cards still exist on the remote doc under their
+    // OLD date — filtering "kept" by dateKey alone would never touch that
+    // old-dated copy (its date isn't the new dateKey either), leaving a
+    // stale duplicate of every re-dated card behind. Excluding by ID
+    // guarantees each card we're about to push replaces its one and only
+    // remote copy, wherever that copy's date used to be.
+    const thisDateLocalIds = new Set(thisDateLocal.map(c => c.id));
+    const kept = remoteCards.filter(c => !thisDateLocalIds.has(c.id));
     // Wipe rosters (and queue alerts) for any card in this date whose
     // branch changed since the last push, before merging in newer remote
     // self-signups.
     const branchChangeNotifications = applyRegionChangeClearing(thisDateLocal, remoteCards);
+    // Tell anyone booked on a card whose date/time/location moved (e.g. the
+    // whole bracket's date was just edited via "Edit date"), so they find
+    // out from a notification instead of noticing on their own later.
+    const scheduleChangeNotifications = applyScheduleChangeNotifications(thisDateLocal, remoteCards);
     const mergedThisDate = mergeRemoteClaims(thisDateLocal, remoteCards);
     const merged = [...kept, ...stripForRemote(mergedThisDate)];
     await setDoc(scheduleDocRef, {
@@ -3815,12 +3926,21 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn) {
     });
     saveCards();
     render();
-    if (branchChangeNotifications.length) {
-      await Promise.all(branchChangeNotifications.map(p =>
+    const allChangeNotifications = [...branchChangeNotifications, ...scheduleChangeNotifications];
+    let notifFailCount = 0;
+    if (allChangeNotifications.length) {
+      await Promise.all(allChangeNotifications.map(p =>
         addDoc(notificationsCollRef, p).catch(err => {
-          console.error("Failed to file branch-change notification:", err);
+          notifFailCount++;
+          console.error("Failed to file schedule-change notification:", err);
         })
       ));
+    }
+    if (notifFailCount > 0) {
+      await showAlert(
+        `"${dateLabelForMsg}" updated, but ${notifFailCount} employee notification(s) failed to send.\n\n` +
+        `The "emergencyNotifications" collection's Firestore Security Rules may not allow the new notification types (dateChanged/eventUpdated). Please check the rules or message the developer.`
+      );
     }
     await showAlert(`"${dateLabelForMsg}" updated for employees. Other event dates were left as they were.`);
   } catch (err) {
@@ -3838,13 +3958,56 @@ async function deleteDateFromRemote(dateKey) {
   try {
     const snap = await getDoc(scheduleDocRef);
     const remoteCards = (snap.exists() && Array.isArray(snap.data().cards)) ? snap.data().cards : [];
+    const removedCards = remoteCards.filter(c => (c.date || "") === (dateKey || ""));
     const kept = remoteCards.filter(c => (c.date || "") !== (dateKey || ""));
     if (kept.length === remoteCards.length) return; // wasn't live yet, nothing to remove
+    // Anyone who'd actually self-signed into a slot on one of these cards
+    // (filledByStaffId — a hand-typed name has no account to notify) needs
+    // to be told the whole event date was deleted, not just find their slot
+    // silently gone next time they open the schedule.
+    const notifyPayloads = [];
+    removedCards.forEach(removedCard => {
+      ["staff", "relievers"].forEach(listKey => {
+        (removedCard[listKey] || []).forEach(slot => {
+          if (slot && slot.filledByStaffId) {
+            notifyPayloads.push({
+              type: "eventDeleted",
+              cardId: removedCard.id,
+              list: listKey,
+              role: slot.label || "",
+              location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (removedCard.location || "Unnamed site"),
+              date: removedCard.date || "",
+              time: removedCard.time || "",
+              region: removedCard.region || "",
+              employeeName: slot.name || "",
+              staffId: slot.filledByStaffId,
+              createdAt: serverTimestamp(),
+              resolved: false
+            });
+          }
+        });
+      });
+    });
     await setDoc(scheduleDocRef, {
       cards: kept,
       sentAt: serverTimestamp(),
       sentBy: "admin"
     });
+    if (notifyPayloads.length) {
+      let notifFailCount = 0;
+      await Promise.all(notifyPayloads.map(p =>
+        addDoc(notificationsCollRef, p).catch(err => {
+          notifFailCount++;
+          console.error("Failed to file event-deleted notification:", err);
+        })
+      ));
+      if (notifFailCount > 0) {
+        await showAlert(
+          `Event deleted, but ${notifFailCount} employee notification(s) failed to send.\n\n` +
+          `The "emergencyNotifications" collection's Firestore Security Rules may not allow the "eventDeleted" notification type. Please check the rules or message the developer.`
+        );
+      }
+    }
   } catch (err) {
     await showAlert("Deleted in your browser, but failed to sync online: " + err.message);
   }
@@ -3862,6 +4025,7 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard) {
     const remoteCards = Array.isArray(data.cards) ? data.cards : [];
     const cIdx = remoteCards.findIndex(c => c.id === cardId);
     let nextCards;
+    let cardBeforePatch = null; // the remote card as it stood before this patch — used below to find who to notify
     if (cIdx === -1) {
       // This card was never "Sent"/"Updated" to Firestore before — append a
       // full copy now (patch applied) instead of silently doing nothing,
@@ -3870,14 +4034,62 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard) {
       if (!fallbackLocalCard) return;
       nextCards = [...remoteCards, { ...stripForRemote([fallbackLocalCard])[0], ...patch }];
     } else {
+      cardBeforePatch = remoteCards[cIdx];
       nextCards = remoteCards.slice();
       nextCards[cIdx] = { ...nextCards[cIdx], ...patch };
+    }
+    // If this patch toggles "cancelled", tell everyone who'd actually
+    // self-signed into a slot on this card (filledByStaffId — a name the
+    // admin merely typed by hand has no account to notify) that the Event
+    // Team cancelled or reinstated it.
+    const notifyPayloads = [];
+    if (Object.prototype.hasOwnProperty.call(patch, "cancelled") && cardBeforePatch) {
+      const wasCancelled = !!cardBeforePatch.cancelled;
+      const nowCancelled = !!patch.cancelled;
+      if (wasCancelled !== nowCancelled) {
+        ["staff", "relievers"].forEach(listKey => {
+          (cardBeforePatch[listKey] || []).forEach(slot => {
+            if (slot && slot.filledByStaffId) {
+              notifyPayloads.push({
+                type: nowCancelled ? "eventCancelled" : "eventReinstated",
+                cardId: cardBeforePatch.id,
+                list: listKey,
+                role: slot.label || "",
+                location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (cardBeforePatch.location || "Unnamed site"),
+                date: cardBeforePatch.date || "",
+                time: cardBeforePatch.time || "",
+                region: cardBeforePatch.region || "",
+                employeeName: slot.name || "",
+                staffId: slot.filledByStaffId,
+                createdAt: serverTimestamp(),
+                resolved: false
+              });
+            }
+          });
+        });
+      }
     }
     await setDoc(scheduleDocRef, {
       cards: nextCards,
       sentAt: serverTimestamp(),
       sentBy: data.sentBy || "admin"
     });
+    if (notifyPayloads.length) {
+      let notifFailCount = 0;
+      await Promise.all(notifyPayloads.map(p =>
+        addDoc(notificationsCollRef, p).catch(err => {
+          notifFailCount++;
+          console.error("Failed to file cancel-toggle notification:", err);
+        })
+      ));
+      if (notifFailCount > 0) {
+        const actionLabel = patch.cancelled ? "Event cancelled" : "Event reinstated";
+        await showAlert(
+          `${actionLabel}, but ${notifFailCount} employee notification(s) failed to send.\n\n` +
+          `The "emergencyNotifications" collection's Firestore Security Rules may not allow the "eventCancelled"/"eventReinstated" notification types. Please check the rules or message the developer.`
+        );
+      }
+    }
   } catch (err) {
     await showAlert("Saved in your browser, but failed to sync online: " + err.message);
   }
@@ -3887,13 +4099,54 @@ async function deleteSiteFromRemote(cardId) {
   try {
     const snap = await getDoc(scheduleDocRef);
     const remoteCards = (snap.exists() && Array.isArray(snap.data().cards)) ? snap.data().cards : [];
+    const removedCard = remoteCards.find(c => c.id === cardId);
     const kept = remoteCards.filter(c => c.id !== cardId);
     if (kept.length === remoteCards.length) return; // wasn't live yet, nothing to remove
+    // Same idea as deleteDateFromRemote — anyone who'd self-signed into a
+    // slot on this one site needs to be told it was removed.
+    const notifyPayloads = [];
+    if (removedCard) {
+      ["staff", "relievers"].forEach(listKey => {
+        (removedCard[listKey] || []).forEach(slot => {
+          if (slot && slot.filledByStaffId) {
+            notifyPayloads.push({
+              type: "siteRemoved",
+              cardId: removedCard.id,
+              list: listKey,
+              role: slot.label || "",
+              location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (removedCard.location || "Unnamed site"),
+              date: removedCard.date || "",
+              time: removedCard.time || "",
+              region: removedCard.region || "",
+              employeeName: slot.name || "",
+              staffId: slot.filledByStaffId,
+              createdAt: serverTimestamp(),
+              resolved: false
+            });
+          }
+        });
+      });
+    }
     await setDoc(scheduleDocRef, {
       cards: kept,
       sentAt: serverTimestamp(),
       sentBy: "admin"
     });
+    if (notifyPayloads.length) {
+      let notifFailCount = 0;
+      await Promise.all(notifyPayloads.map(p =>
+        addDoc(notificationsCollRef, p).catch(err => {
+          notifFailCount++;
+          console.error("Failed to file site-removed notification:", err);
+        })
+      ));
+      if (notifFailCount > 0) {
+        await showAlert(
+          `Site removed, but ${notifFailCount} employee notification(s) failed to send.\n\n` +
+          `The "emergencyNotifications" collection's Firestore Security Rules may not allow the "siteRemoved" notification type. Please check the rules or message the developer.`
+        );
+      }
+    }
   } catch (err) {
     await showAlert("Deleted in your browser, but failed to sync online: " + err.message);
   }
@@ -3989,6 +4242,13 @@ function renderNotifPanel(items) {
     const isResolved = !!n.resolved;
     const isRemoved = n.type === "removed";
     const isBranchChanged = n.type === "branchChanged";
+    const isDateChanged = n.type === "dateChanged";
+    const isEventUpdated = n.type === "eventUpdated";
+    const isEventDeleted = n.type === "eventDeleted";
+    const isSiteRemoved = n.type === "siteRemoved";
+    const isEventCancelled = n.type === "eventCancelled";
+    const isEventReinstated = n.type === "eventReinstated";
+    const isPersonalNotice = isRemoved || isBranchChanged || isDateChanged || isEventUpdated || isEventDeleted || isSiteRemoved || isEventCancelled || isEventReinstated;
     let title, statusLine, btnLabel;
     if (isRemoved) {
       title = `🔔 You've been removed from this slot`;
@@ -3997,6 +4257,32 @@ function renderNotifPanel(items) {
     } else if (isBranchChanged) {
       title = `🔔 The event team's branch was changed`;
       statusLine = `Your slot was cleared — you're free to sign up for another slot now.`;
+      btnLabel = "Got it";
+    } else if (isDateChanged) {
+      title = `🔔 The date of this event was changed`;
+      statusLine = n.oldDate
+        ? `Moved from ${escapeHtml(formatDateDisplay(n.oldDate))} to ${escapeHtml(formatDateDisplay(n.newDate))} by the Event Team. You're still booked — just on the new date.`
+        : `This event's date was changed by the Event Team. You're still booked — just on the new date.`;
+      btnLabel = "Got it";
+    } else if (isEventUpdated) {
+      title = `🔔 This event was updated`;
+      statusLine = `The Event Team updated the time or location for this slot. You're still booked.`;
+      btnLabel = "Got it";
+    } else if (isEventDeleted) {
+      title = `🔔 This event was deleted`;
+      statusLine = `The Event Team deleted this event date — you're free to sign up for another slot now.`;
+      btnLabel = "Got it";
+    } else if (isSiteRemoved) {
+      title = `🔔 This site was removed`;
+      statusLine = `The Event Team removed this site from the schedule — you're free to sign up for another slot now.`;
+      btnLabel = "Got it";
+    } else if (isEventCancelled) {
+      title = `🔔 This event was cancelled`;
+      statusLine = `The Event Team cancelled this event — you're still on the roster, but there's nothing to show up for unless it's reinstated.`;
+      btnLabel = "Got it";
+    } else if (isEventReinstated) {
+      title = `🔔 This event is back on`;
+      statusLine = `The Event Team reinstated this event — you're good to go as scheduled.`;
       btnLabel = "Got it";
     } else if (isResolved) {
       title = `✅ ${escapeHtml(n.backupName || "A teammate")} — FOR BACKUP`;
@@ -4007,13 +4293,13 @@ function renderNotifPanel(items) {
       statusLine = `Needs a replacement.`;
       btnLabel = "Resolved";
     }
-    const btnClass = (isRemoved || isBranchChanged || isResolved) ? "notif-clear-btn" : "notif-resolve-btn";
+    const btnClass = (isPersonalNotice || isResolved) ? "notif-clear-btn" : "notif-resolve-btn";
     return `
-    <div class="notif-item ${(isResolved || isRemoved || isBranchChanged) ? "is-resolved" : ""}">
+    <div class="notif-item ${(isResolved || isPersonalNotice) ? "is-resolved" : ""}">
       <div class="notif-item-title">${title}</div>
       <div class="notif-item-body">
         ${escapeHtml(n.role || "")}${n.list === "relievers" ? " (Store Reliever)" : ""} at ${escapeHtml(n.location || "site")}${n.date ? " — " + escapeHtml(formatDateDisplay(n.date)) : ""}${n.time ? ", " + escapeHtml(n.time) : ""}<br>
-        ${(isRemoved || isBranchChanged) ? "" : `Region: ${escapeHtml(regionLabelFromValue(n.region))}. `}${statusLine}
+        ${isPersonalNotice ? "" : `Region: ${escapeHtml(regionLabelFromValue(n.region))}. `}${statusLine}
       </div>
       <button type="button" class="${btnClass}" data-id="${escapeAttr(n.id)}">${btnLabel}</button>
     </div>`;
@@ -4030,7 +4316,8 @@ function renderUrgentBanner(items) {
   const banner = document.getElementById("urgentBanner");
   if (!banner) return;
   if (employeeSession) { banner.style.display = "none"; banner.innerHTML = ""; return; }
-  const openItems = items.filter(n => !n.resolved && n.type !== "removed" && n.type !== "branchChanged");
+  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "eventDeleted", "siteRemoved", "eventCancelled", "eventReinstated"];
+  const openItems = items.filter(n => !n.resolved && !personalTypes.includes(n.type));
   if (!openItems.length) { banner.style.display = "none"; banner.innerHTML = ""; return; }
   banner.style.display = "block";
   banner.innerHTML = `<p class="urgent-banner-title">🚨 Emergency — needs replacement now</p>` +
@@ -4049,23 +4336,23 @@ function renderUrgentBanner(items) {
 // their own "Unavailable" click; only other employees (and the admin) are
 // notified.
 function getRelevantNotifications(items) {
+  // "removed"/"branchChanged"/"dateChanged"/"eventUpdated"/"eventDeleted"/
+  // "siteRemoved" are all personal, addressed-to-one-employee notices — the
+  // admin already knows they made the change, so none of these belong in
+  // the Event Team's own bell/panel. Admins still see every open
+  // emergency-vacancy ("unavailable") notification.
+  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "eventDeleted", "siteRemoved", "eventCancelled", "eventReinstated"];
   if (!employeeSession) {
-    // "removed" notifications are the personal "you've been removed from
-    // this slot" message meant for the one employee the admin just took
-    // off a slot — the admin already knows they did it, so it doesn't
-    // belong in the Event Team's own bell/panel. Admins still see every
-    // open emergency-vacancy ("unavailable") notification. Same reasoning
-    // for "branchChanged" — the admin is the one who changed the branch.
-    return items.filter(n => n.type !== "removed" && n.type !== "branchChanged");
+    return items.filter(n => !personalTypes.includes(n.type));
   }
   const myTeam = splitDepartmentClient(employeeSession.department).team;
   return items.filter(n => {
-    // "removed"/"branchChanged" notifications are personal — addressed to
-    // the one employee whose slot was taken away or cleared — so show them
-    // to that employee specifically, regardless of team/branch (unlike
+    // Personal notices are addressed to the one employee whose slot was
+    // taken away, moved, updated, or removed entirely — so show them to
+    // that employee specifically, regardless of team/branch (unlike
     // "emergency" ones, which broadcast to teammates who could cover the
     // vacancy and never show up for the reporter).
-    if (n.type === "removed" || n.type === "branchChanged") return n.staffId === employeeSession.staffId;
+    if (personalTypes.includes(n.type)) return n.staffId === employeeSession.staffId;
     return (
       n.staffId !== employeeSession.staffId &&
       n.region === employeeSession.branch &&
@@ -4106,12 +4393,31 @@ onSnapshot(
         for (const n of freshOnes) {
           const isRemoved = n.type === "removed";
           const isBranchChanged = n.type === "branchChanged";
+          const isDateChanged = n.type === "dateChanged";
+          const isEventUpdated = n.type === "eventUpdated";
+          const isEventDeleted = n.type === "eventDeleted";
+          const isSiteRemoved = n.type === "siteRemoved";
+          const isEventCancelled = n.type === "eventCancelled";
+          const isEventReinstated = n.type === "eventReinstated";
           const where = `${n.role || ""}${n.list === "relievers" ? " (Store Reliever)" : ""} at ${n.location || "site"}${n.date ? " — " + formatDateDisplay(n.date) : ""}${n.time ? ", " + n.time : ""}`;
           let message;
           if (isRemoved) {
             message = `You've been removed from your slot: ${where}.\n\nYou're free to sign up for another slot now.`;
           } else if (isBranchChanged) {
             message = `The event team is changed the branch for: ${where}.\n\nYour slot was cleared — you're free to sign up for another slot now.`;
+          } else if (isDateChanged) {
+            const moved = n.oldDate ? `moved from ${formatDateDisplay(n.oldDate)} to ${formatDateDisplay(n.newDate)}` : `changed`;
+            message = `The event team changed the date for your slot: ${where}.\n\nThe date was ${moved}. You're still booked — just on the new date.`;
+          } else if (isEventUpdated) {
+            message = `The event team updated your slot: ${where}.\n\nThe time or location changed. You're still booked.`;
+          } else if (isEventDeleted) {
+            message = `The event team deleted this event: ${where}.\n\nYou're free to sign up for another slot now.`;
+          } else if (isSiteRemoved) {
+            message = `The event team removed this site: ${where}.\n\nYou're free to sign up for another slot now.`;
+          } else if (isEventCancelled) {
+            message = `The event team cancelled this event: ${where}.\n\nYou're still on the roster — nothing to show up for unless it's reinstated.`;
+          } else if (isEventReinstated) {
+            message = `Good news — this event is back on: ${where}.\n\nYou're good to go as scheduled.`;
           } else {
             message = `🚨 Emergency vacancy just opened for your team: ${where}.\n\n${n.employeeName || "A teammate"} became unavailable — sign up below if you can cover.`;
           }
