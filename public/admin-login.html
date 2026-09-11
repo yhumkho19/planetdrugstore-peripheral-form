@@ -293,9 +293,13 @@ startVersionWatch();
   // Event Schedule has its own fixed account — this login page is shared
   // by IT Admin and the Event Schedule team; we branch on the signed-in
   // email to decide which landing page to send them to.
-  const EVENT_SCHEDULE_EMAIL = 'eventschedule@planetdrugstore.ph';
+  const EVENT_SCHEDULE_EMAILS = [
+    'pharmacistdepart@planetdrugstore.ph',
+    'billingdepart@planetdrugstore.ph',
+    'informationdepart@planetdrugstore.ph'
+  ];
   function isEventScheduleUser(user){
-    return (user && user.email || '').toLowerCase() === EVENT_SCHEDULE_EMAIL;
+    return EVENT_SCHEDULE_EMAILS.includes((user && user.email || '').toLowerCase());
   }
 
   const loginForm = document.getElementById('loginForm');

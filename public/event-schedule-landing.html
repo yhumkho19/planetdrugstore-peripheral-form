@@ -382,7 +382,11 @@ startVersionWatch();
   });
   const auth = getAuth(app);
 
-  const EVENT_SCHEDULE_EMAIL = 'eventschedule@planetdrugstore.ph';
+  const EVENT_SCHEDULE_EMAILS = [
+    'pharmacistdepart@planetdrugstore.ph',
+    'billingdepart@planetdrugstore.ph',
+    'informationdepart@planetdrugstore.ph'
+  ];
 
   // Only the Event Schedule account belongs on this page — anyone else
   // (not signed in, or signed in as a different account) gets sent back
@@ -393,7 +397,7 @@ startVersionWatch();
   // redirect loop.
   await auth.authStateReady();
   const currentUser = auth.currentUser;
-  if(!currentUser || (currentUser.email || '').toLowerCase() !== EVENT_SCHEDULE_EMAIL){
+  if(!currentUser || !EVENT_SCHEDULE_EMAILS.includes((currentUser.email || '').toLowerCase())){
     window.location.replace('admin-login.html');
   }
 
