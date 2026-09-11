@@ -3,6 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Welcome to Firebase Hosting</title>
     <link rel="icon" href="logo-transparent.png" type="image/x-icon">
 
@@ -47,6 +50,48 @@
       <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
     </div>
     <p id="load">Firebase SDK Loading&hellip;</p>
+
+    <script>
+      // ---------- Update/version check ----------
+      // Same fix as the rest of the app's pages — see the comment in any of
+      // the other .html files for the full explanation. Plain <script> here
+      // (not type="module") to match this page's existing style.
+      var APP_VERSION = "2026-09-11.1";
+      function startVersionWatch() {
+        function checkForUpdate() {
+          fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" })
+            .then(function (res) { return res.ok ? res.text() : null; })
+            .then(function (text) {
+              if (!text) return;
+              var match = text.match(/APP_VERSION = "([^"]+)"/);
+              if (match && match[1] !== APP_VERSION) showUpdateBanner();
+            })
+            .catch(function () {});
+        }
+        function showUpdateBanner() {
+          if (document.getElementById("updateBanner")) return;
+          var bar = document.createElement("div");
+          bar.id = "updateBanner";
+          bar.style.cssText =
+            "position:fixed;top:0;left:0;right:0;z-index:9999;background:#1F2937;color:#fff;" +
+            "padding:10px 16px;font:600 14px/1.4 Roboto,sans-serif;display:flex;gap:12px;" +
+            "align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);";
+          bar.innerHTML =
+            '<span>May bagong bersyon ng page na available.</span>' +
+            '<button type="button" id="updateBannerBtn" style="background:#fff;color:#1F2937;border:none;' +
+            'border-radius:6px;padding:6px 14px;font:600 13px/1 Roboto,sans-serif;cursor:pointer;">I-refresh ngayon</button>';
+          document.body.appendChild(bar);
+          document.getElementById("updateBannerBtn").addEventListener("click", function () {
+            location.reload();
+          });
+        }
+        setInterval(checkForUpdate, 3 * 60 * 1000);
+        document.addEventListener("visibilitychange", function () {
+          if (document.visibilityState === "visible") checkForUpdate();
+        });
+      }
+      startVersionWatch();
+    </script>
 
     <script>
       document.addEventListener('DOMContentLoaded', function() {

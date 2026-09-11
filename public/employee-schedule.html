@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Deployment Roster — Medical &amp; People's Day</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1431,6 +1434,7 @@
       <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Close menu">✕</button>
     </div>
     <nav class="sidebar-nav">
+      <a href="landing-employee-page.html" class="active"><span class="ic">🏠</span>Home</a>
       <a href="#" class="active"><span class="ic">🗓️</span>My Schedule</a>
       <a href="leaderboard.html" target="_blank" rel="noopener"><span class="ic">🏆</span>Leaderboard</a>
     </nav>
@@ -1512,6 +1516,59 @@
 </div>
 
 <script type="module">
+// ---------- Update/version check ----------
+// This page is a single static HTML file served with no per-deploy hashed
+// filename, so a browser (or a CDN/proxy in front of the host) that cached
+// an old copy has no natural reason to notice a new one was uploaded. The
+// Cache-Control meta tags in <head> ask browsers not to cache this page at
+// all, but that's only advisory. This is the reliable fix: bump
+// APP_VERSION any time a new version of this file is uploaded. Every open
+// tab then periodically re-fetches this same page with cache forcibly
+// bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
+// doesn't match what this tab is currently running — shows a small banner
+// instead of silently staying on stale code.
+const APP_VERSION = "2026-09-11.1";
+function startVersionWatch() {
+  async function checkForUpdate() {
+    try {
+      const res = await fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) return;
+      const text = await res.text();
+      const match = text.match(/const APP_VERSION = "([^"]+)"/);
+      if (match && match[1] !== APP_VERSION) showUpdateBanner();
+    } catch (err) {
+      // Offline or a network hiccup — just try again on the next tick.
+    }
+  }
+  function showUpdateBanner() {
+    if (document.getElementById("updateBanner")) return;
+    const bar = document.createElement("div");
+    bar.id = "updateBanner";
+    bar.style.cssText =
+      "position:fixed;top:0;left:0;right:0;z-index:9999;background:#1F2937;color:#fff;" +
+      "padding:10px 16px;font:600 14px/1.4 Inter,sans-serif;display:flex;gap:12px;" +
+      "align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);";
+    bar.innerHTML =
+      `<span>May bagong bersyon ng page na available.</span>` +
+      `<button type="button" id="updateBannerBtn" style="background:#fff;color:#1F2937;border:none;` +
+      `border-radius:6px;padding:6px 14px;font:600 13px/1 Inter,sans-serif;cursor:pointer;">I-refresh ngayon</button>`;
+    document.body.prepend(bar);
+    document.getElementById("updateBannerBtn").addEventListener("click", () => {
+      // Generic guard: only files that track unsaved local edits define
+      // `hasUnsavedChanges` — for everything else this simply reloads.
+      if (typeof hasUnsavedChanges !== "undefined" && hasUnsavedChanges) {
+        if (!confirm("May unsaved changes ka pa. Sigurado ka bang mag-refresh?")) return;
+      }
+      location.reload();
+    });
+  }
+  setInterval(checkForUpdate, 3 * 60 * 1000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") checkForUpdate();
+  });
+}
+startVersionWatch();
+
 // ---------- In-page modal (replaces native alert()/confirm()) ----------
 const appModal = document.getElementById("appModal");
 const appModalMessage = document.getElementById("appModalMessage");
@@ -4296,10 +4353,41 @@ function getRelevantNotifications(items) {
 
 // Tracks notification ids we've already alerted the current employee about
 // via the pop-up modal, so a notification only interrupts them once (the
-// bell panel still lists it after that). Stays null until the first
-// snapshot is processed, so opening the page never floods them with modals
-// for notifications that were already sitting there before they arrived.
+// bell panel still lists it after that).
+//
+// Two trackers, because "first snapshot after page load" is NOT a safe
+// signal that the employee has already seen a notification:
+//   - seenNotificationIds: in-memory only, resets every reload. Still used
+//     to gate broadcast/team "unavailable" vacancy notices, so opening the
+//     page doesn't modal-flood the employee with every open vacancy that
+//     was already sitting there before this tab opened.
+//   - alertedPersonalNotifIds: persisted to localStorage per employee (key
+//     includes staffId), because a personal notice — e.g. "you've been
+//     removed" — can be filed by the admin while the employee is logged
+//     out entirely. With only the in-memory tracker, logging back in made
+//     that notification look "already there on first snapshot" and it was
+//     silently marked seen without ever alerting — the employee only found
+//     out if they happened to open the bell panel manually. Personal
+//     notices now always alert once, checked against this persisted set,
+//     regardless of whether it's the first snapshot this session.
 let seenNotificationIds = null;
+const personalNotifTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "eventDeleted", "siteRemoved", "eventCancelled", "eventReinstated"];
+function alertedPersonalNotifIdsKey() {
+  return (employeeSession && employeeSession.staffId) ? `pdAlertedPersonalNotifIds_${employeeSession.staffId}` : null;
+}
+function loadAlertedPersonalNotifIds() {
+  const key = alertedPersonalNotifIdsKey();
+  if (!key) return new Set();
+  try { return new Set(JSON.parse(localStorage.getItem(key) || "[]")); }
+  catch (e) { return new Set(); }
+}
+function saveAlertedPersonalNotifIds(set) {
+  const key = alertedPersonalNotifIdsKey();
+  if (!key) return;
+  try { localStorage.setItem(key, JSON.stringify([...set])); }
+  catch (e) { /* storage full/unavailable — non-fatal, the modal already showed */ }
+}
+let alertedPersonalNotifIds = loadAlertedPersonalNotifIds();
 
 onSnapshot(
   query(notificationsCollRef, orderBy("createdAt", "desc")),
@@ -4321,42 +4409,48 @@ onSnapshot(
     // away from the page and check back afterwards.)
     if (employeeSession) {
       const openRelevant = relevant.filter(n => !n.resolved);
-      if (seenNotificationIds !== null) {
-        const freshOnes = openRelevant.filter(n => !seenNotificationIds.has(n.id));
-        for (const n of freshOnes) {
-          const isRemoved = n.type === "removed";
-          const isBranchChanged = n.type === "branchChanged";
-          const isDateChanged = n.type === "dateChanged";
-          const isEventUpdated = n.type === "eventUpdated";
-          const isEventDeleted = n.type === "eventDeleted";
-          const isSiteRemoved = n.type === "siteRemoved";
-          const isEventCancelled = n.type === "eventCancelled";
-          const isEventReinstated = n.type === "eventReinstated";
-          const where = `${n.role || ""}${n.list === "relievers" ? " (Store Reliever)" : ""} at ${n.location || "site"}${n.date ? " — " + formatDateDisplay(n.date) : ""}${n.time ? ", " + n.time : ""}`;
-          let message;
-          if (isRemoved) {
-            message = `You've been removed from your slot: ${where}.\n\nYou're free to sign up for another slot now.`;
-          } else if (isBranchChanged) {
-            message = `The event team is changed the branch for: ${where}.\n\nYour slot was cleared — you're free to sign up for another slot now.`;
-          } else if (isDateChanged) {
-            const moved = n.oldDate ? `moved from ${formatDateDisplay(n.oldDate)} to ${formatDateDisplay(n.newDate)}` : `changed`;
-            message = `The event team changed the date for your slot: ${where}.\n\nThe date was ${moved}. You're still booked — just on the new date.`;
-          } else if (isEventUpdated) {
-            message = `The event team updated your slot: ${where}.\n\nThe time or location changed. You're still booked.`;
-          } else if (isEventDeleted) {
-            message = `The event team deleted this event: ${where}.\n\nYou're free to sign up for another slot now.`;
-          } else if (isSiteRemoved) {
-            message = `The event team removed this site: ${where}.\n\nYou're free to sign up for another slot now.`;
-          } else if (isEventCancelled) {
-            message = `The event team cancelled this event: ${where}.\n\nYou're still on the roster — nothing to show up for unless it's reinstated.`;
-          } else if (isEventReinstated) {
-            message = `Good news — this event is back on: ${where}.\n\nYou're good to go as scheduled.`;
-          } else {
-            message = `🚨 Emergency vacancy just opened for your team: ${where}.\n\n${n.employeeName || "A teammate"} became unavailable — sign up below if you can cover.`;
-          }
-          await showAlert(message);
+      const freshPersonal = openRelevant.filter(n => personalNotifTypes.includes(n.type) && !alertedPersonalNotifIds.has(n.id));
+      const freshBroadcast = seenNotificationIds !== null
+        ? openRelevant.filter(n => !personalNotifTypes.includes(n.type) && !seenNotificationIds.has(n.id))
+        : [];
+      const freshOnes = [...freshPersonal, ...freshBroadcast];
+      for (const n of freshOnes) {
+        const isRemoved = n.type === "removed";
+        const isBranchChanged = n.type === "branchChanged";
+        const isDateChanged = n.type === "dateChanged";
+        const isEventUpdated = n.type === "eventUpdated";
+        const isEventDeleted = n.type === "eventDeleted";
+        const isSiteRemoved = n.type === "siteRemoved";
+        const isEventCancelled = n.type === "eventCancelled";
+        const isEventReinstated = n.type === "eventReinstated";
+        const where = `${n.role || ""}${n.list === "relievers" ? " (Store Reliever)" : ""} at ${n.location || "site"}${n.date ? " — " + formatDateDisplay(n.date) : ""}${n.time ? ", " + n.time : ""}`;
+        let message;
+        if (isRemoved) {
+          message = `You've been removed from your slot: ${where}.\n\nYou're free to sign up for another slot now.`;
+        } else if (isBranchChanged) {
+          message = `The event team is changed the branch for: ${where}.\n\nYour slot was cleared — you're free to sign up for another slot now.`;
+        } else if (isDateChanged) {
+          const moved = n.oldDate ? `moved from ${formatDateDisplay(n.oldDate)} to ${formatDateDisplay(n.newDate)}` : `changed`;
+          message = `The event team changed the date for your slot: ${where}.\n\nThe date was ${moved}. You're still booked — just on the new date.`;
+        } else if (isEventUpdated) {
+          message = `The event team updated your slot: ${where}.\n\nThe time or location changed. You're still booked.`;
+        } else if (isEventDeleted) {
+          message = `The event team deleted this event: ${where}.\n\nYou're free to sign up for another slot now.`;
+        } else if (isSiteRemoved) {
+          message = `The event team removed this site: ${where}.\n\nYou're free to sign up for another slot now.`;
+        } else if (isEventCancelled) {
+          message = `The event team cancelled this event: ${where}.\n\nYou're still on the roster — nothing to show up for unless it's reinstated.`;
+        } else if (isEventReinstated) {
+          message = `Good news — this event is back on: ${where}.\n\nYou're good to go as scheduled.`;
+        } else {
+          message = `🚨 Emergency vacancy just opened for your team: ${where}.\n\n${n.employeeName || "A teammate"} became unavailable — sign up below if you can cover.`;
+        }
+        await showAlert(message);
+        if (personalNotifTypes.includes(n.type)) {
+          alertedPersonalNotifIds.add(n.id);
         }
       }
+      if (freshPersonal.length) saveAlertedPersonalNotifIds(alertedPersonalNotifIds);
       seenNotificationIds = new Set(openRelevant.map(n => n.id));
     }
   },

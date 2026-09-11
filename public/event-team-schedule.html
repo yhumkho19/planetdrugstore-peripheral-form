@@ -3,6 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Discourage the browser (and any CDN/proxy in front of the host) from
+     caching this page at all. This alone isn't 100% reliable — some
+     browsers/CDNs ignore meta cache headers and only respect real HTTP
+     response headers — so it's paired with the in-app version check below
+     (APP_VERSION) as the real fix, which works regardless of hosting
+     config. -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Deployment Roster — Medical &amp; People's Day</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1548,7 +1557,7 @@
 
   <div class="main-area">
     <div class="topbar">
-      <div class="topbar-search">🔍 Search events, sites, or staff…</div>
+      <!-- <div class="topbar-search">🔍 Search events, sites, or staff…</div> -->
       <div class="topbar-right">
         <div class="notif-wrap" id="notifWrap" style="display:none;">
           <button type="button" class="notif-bell" id="notifBell" title="Emergency notifications" aria-label="Emergency notifications" aria-haspopup="true">
@@ -1601,7 +1610,7 @@
       <div class="toolbar">
         <button class="btn" id="addDateBtn">+ Add date event</button>
         <button class="btn primary" id="saveBtn">📤 Send</button>
-        <button class="btn" id="updateAllBtn">💾 Save All</button>
+        <button class="btn" id="updateAllBtn">💾 Save</button>
         <span id="unsavedIndicator" class="unsaved-badge" style="display:none;">● There are unsaved changes.</span>
         <button class="btn ghost" id="printBtn">🖨️ Print / Export PDF</button>
         <button class="btn danger-outline" id="resetBtn">Reset all</button>
@@ -1623,6 +1632,63 @@
 </div>
 
 <script type="module">
+// ---------- Update/version check ----------
+// This page is a single static HTML file — there's no per-deploy hashed
+// filename to force a fresh download the way a bundled app would, so a
+// browser (or a CDN/proxy in front of the host) that's cached an old copy
+// has no natural reason to notice a new one was uploaded. The meta tags in
+// <head> ask browsers not to cache this page at all, but that's only
+// advisory — not every browser/CDN honors it. This is the reliable fix:
+// bump APP_VERSION any time you upload a new version of this file. Every
+// signed-in tab then periodically re-fetches this same page with cache
+// forcibly bypassed, reads whatever APP_VERSION is embedded in THAT fresh
+// copy, and — if it doesn't match what this tab is currently running —
+// shows a small "may bagong bersyon" banner instead of silently staying on
+// stale code (which is what caused needing a manual cache-clear before).
+const APP_VERSION = "2026-09-11.1";
+function startVersionWatch() {
+  async function checkForUpdate() {
+    try {
+      const res = await fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) return;
+      const text = await res.text();
+      const match = text.match(/const APP_VERSION = "([^"]+)"/);
+      if (match && match[1] !== APP_VERSION) showUpdateBanner();
+    } catch (err) {
+      // Offline or a network hiccup — just try again on the next tick,
+      // nothing to show the event team for a failed background check.
+    }
+  }
+  function showUpdateBanner() {
+    if (document.getElementById("updateBanner")) return; // already showing
+    const bar = document.createElement("div");
+    bar.id = "updateBanner";
+    bar.style.cssText =
+      "position:fixed;top:0;left:0;right:0;z-index:9999;background:#1F2937;color:#fff;" +
+      "padding:10px 16px;font:600 14px/1.4 Inter,sans-serif;display:flex;gap:12px;" +
+      "align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);";
+    bar.innerHTML =
+      `<span>May bagong bersyon ng page na available.</span>` +
+      `<button type="button" id="updateBannerBtn" style="background:#fff;color:#1F2937;border:none;` +
+      `border-radius:6px;padding:6px 14px;font:600 13px/1 Inter,sans-serif;cursor:pointer;">I-refresh ngayon</button>`;
+    document.body.prepend(bar);
+    document.getElementById("updateBannerBtn").addEventListener("click", () => {
+      // Reuse the same guard as the Logout button so an event team member
+      // mid-edit doesn't lose a not-yet-saved change to a surprise refresh.
+      if (typeof hasUnsavedChanges !== "undefined" && hasUnsavedChanges) {
+        showAlert("May unsaved changes ka pa. I-Save o i-Update/Send muna bago mag-refresh.", "warn");
+        return;
+      }
+      location.reload();
+    });
+  }
+  setInterval(checkForUpdate, 3 * 60 * 1000); // every 3 minutes
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") checkForUpdate();
+  });
+}
+startVersionWatch();
+
 // ---------- In-page modal (replaces native alert()/confirm()) ----------
 const appModal = document.getElementById("appModal");
 const appModalMessage = document.getElementById("appModalMessage");
@@ -1691,8 +1757,8 @@ function showUnsavedChangesPrompt() {
   return new Promise(resolve => {
     setModalIcon("warn");
     appModalMessage.textContent =
-      "May mga hindi pa na-Send/Save All na pagbabago (bagong date event, site, o edit). " +
-      "Kapag nag-logout ka nang hindi muna sina-save, mawawala ang mga ito.";
+      "May mga hindi pa na-Send/Update na pagbabago (bagong date event, site, o edit). " +
+      "Kapag nag-logout ka nang hindi muna sina-save, mawawala ang mga ito. Kung i-\"Save\" mo, mase-save lang ito sa browser na ito bilang draft — HINDI pa ito makikita ng mga empleyado hanggang sa i-Send o i-Update mo.";
     appModalActions.innerHTML = "";
     const cancelBtn = document.createElement("button");
     cancelBtn.textContent = "Cancel";
@@ -1703,7 +1769,7 @@ function showUnsavedChangesPrompt() {
     discardBtn.addEventListener("click", () => { closeModal(); resolve("discard"); });
     const saveBtn = document.createElement("button");
     saveBtn.className = "primary";
-    saveBtn.textContent = "Save All & Logout";
+    saveBtn.textContent = "Save & Logout";
     saveBtn.addEventListener("click", () => { closeModal(); resolve("save"); });
     appModalActions.appendChild(cancelBtn);
     appModalActions.appendChild(discardBtn);
@@ -2072,6 +2138,57 @@ let hasUnsavedChanges = false;
 // the live `cards` array to decide whether there's a REAL unsaved
 // difference, instead of just "something was edited at some point".
 let lastSavedCardSnapshots = new Map();
+// Separate baseline captured only by a local-only "Save" click
+// (markLocallySavedOnly()), never by a real Send/Update. Kept distinct from
+// lastSavedCardSnapshots (the true server-confirmed state) so the two
+// questions "did anything change since my last local Save?" and "does this
+// still differ from what's actually confirmed/original?" can be answered
+// independently. Without this split, reusing lastSavedCardSnapshots for a
+// local Save meant reverting a field (mission/branch/date/etc.) back to its
+// TRUE original value after an in-between local Save still showed "unsaved
+// changes" — because the comparison baseline had been silently moved to
+// whatever was on screen at that Save click, not the real original. null
+// means no local Save has happened yet this session.
+let lastLocalSaveSnapshots = null;
+
+// Card ids with a card-level field (region/regionCustom/mission/location/
+// date/time) edited locally but not yet confirmed via Send/Save All or a
+// bracket's own Update. This exists because the live onSnapshot listener
+// otherwise only protects a card from being overwritten by remote data
+// while the admin's cursor is STILL literally focused inside that card —
+// and every one of these fields' change handlers calls render() right
+// after the edit, which rebuilds the DOM and kills that focus immediately.
+// Without this, changing a bracket's mission from Medical Mission to
+// People's Day (or any other card-level field) would look fine for a
+// moment, then silently revert back to the old value the next time the
+// onSnapshot listener fired for ANY reason (another admin's edit, an
+// employee self-signup, etc.), since by then nothing was "focused" there
+// anymore to stop the remote (still-old) value from winning the diff.
+// Cleared per-card by markSaved() (Send/Save All, or a discard-logout
+// revert) and by updateDateOnRemote() (a single bracket's own Update) once
+// that card's fields are actually confirmed pushed.
+//
+// Persisted to localStorage (not just kept in memory) so a draft saved via
+// "Save All & Logout" is still protected the NEXT time this browser logs
+// back in — otherwise the very first live-sync tick after login would see
+// the still-unsent local edit differing from the (still old) value on the
+// server and silently pull the old value back in, discarding the draft
+// exactly like the in-session bug this whole mechanism fixes.
+const DIRTY_FIELDS_KEY = "medicalMissionDirtyFieldsV1";
+let locallyDirtyCardLevelIds = new Set(
+  JSON.parse(localStorage.getItem(DIRTY_FIELDS_KEY) || "[]")
+);
+function persistDirtyCardLevelIds() {
+  localStorage.setItem(DIRTY_FIELDS_KEY, JSON.stringify([...locallyDirtyCardLevelIds]));
+}
+function markCardLevelDirty(id) {
+  locallyDirtyCardLevelIds.add(id);
+  persistDirtyCardLevelIds();
+}
+function clearCardLevelDirty(ids) {
+  ids.forEach(id => locallyDirtyCardLevelIds.delete(id));
+  persistDirtyCardLevelIds();
+}
 
 // Only the fields a person can actually change are part of the comparison
 // (id itself never changes, and there's nothing else on a card that isn't
@@ -2132,27 +2249,39 @@ function saveCards() {
   markUnsaved();
 }
 
+// Checks whether the live `cards` array differs from a given saved-snapshot
+// map. Returns true (differs) if snapshotMap is null/absent — no baseline
+// means nothing has been confirmed against yet, so treat it as a real diff.
+function differsFromSnapshot(snapshotMap) {
+  if (!snapshotMap) return true;
+  const currentIds = new Set(cards.map(c => c.id));
+  for (const card of cards) {
+    const saved = snapshotMap.get(card.id);
+    if (saved === undefined || saved !== snapshotKeyFor(card)) return true;
+  }
+  for (const id of snapshotMap.keys()) {
+    if (!currentIds.has(id)) return true; // saved card deleted locally, not yet pushed
+  }
+  return false;
+}
+
 // Re-checks whether the live `cards` array actually differs from the last
 // confirmed-saved snapshot, and updates the "unsaved changes" badge to
 // match. Called after every local edit (via saveCards() below) — unlike
 // the old version, this can also flip hasUnsavedChanges back to false on
 // its own, e.g. when a field is edited and then changed back to its saved
 // value, without needing an explicit Send/Update.
+//
+// "Unsaved" only when it differs from BOTH the true server-confirmed
+// baseline AND the last local-Save baseline (if any) — matching EITHER one
+// means there's nothing this device would lose by logging out right now.
+// This is what lets a field reverted all the way back to its true original
+// value clear the badge even if a local "Save" happened somewhere in
+// between at a different, since-abandoned value.
 function markUnsaved() {
-  const currentIds = new Set(cards.map(c => c.id));
-  let dirty = false;
-  for (const card of cards) {
-    const saved = lastSavedCardSnapshots.get(card.id);
-    if (saved === undefined || saved !== snapshotKeyFor(card)) { dirty = true; break; }
-  }
-  if (!dirty) {
-    for (const id of lastSavedCardSnapshots.keys()) {
-      if (!currentIds.has(id)) { dirty = true; break; } // saved card deleted locally, not yet pushed
-    }
-  }
-  hasUnsavedChanges = dirty;
+  hasUnsavedChanges = differsFromSnapshot(lastSavedCardSnapshots) && differsFromSnapshot(lastLocalSaveSnapshots);
   const el = document.getElementById("unsavedIndicator");
-  if (el) el.style.display = dirty ? "inline-flex" : "none";
+  if (el) el.style.display = hasUnsavedChanges ? "inline-flex" : "none";
 }
 
 // Call once a full push to Firestore (Send / Save All) has actually
@@ -2166,8 +2295,45 @@ function markSaved() {
   // A full Send/Save All just confirmed everything, including any
   // brand-new bracket/site — so none of them are "never confirmed" anymore.
   sessionNewCardIds = new Set();
+  // Every card-level field edit (region/mission/location/date/time) just
+  // got confirmed too (or, on a discard-logout revert, thrown away and
+  // replaced with the live server copy) — either way nothing is pending
+  // anymore, so live sync can freely pull remote values again.
+  locallyDirtyCardLevelIds = new Set();
+  persistDirtyCardLevelIds();
+  // A real confirmed push just happened, so any local-Save-only baseline is
+  // moot — everything is judged against the (now up to date) true baseline
+  // above instead.
+  lastLocalSaveSnapshots = null;
   const el = document.getElementById("unsavedIndicator");
   if (el) el.style.display = "none";
+}
+
+// Call when the event team clicks the local-only "Save" button — records
+// this moment as a separate `lastLocalSaveSnapshots` baseline (see its
+// declaration above), deliberately NOT touching `lastSavedCardSnapshots`
+// (the true server-confirmed baseline), `locallyDirtyCardLevelIds`, or
+// `sessionNewCardIds`.
+//
+// Two past bugs came from collapsing this into a single baseline:
+// 1. Reusing markSaved() here once cleared `locallyDirtyCardLevelIds`, which
+//    is what stops the live onSnapshot listener from overwriting a
+//    card-level field (branch/mission/site/date/time) with the still-old
+//    value sitting on the server. A value that looked saved would silently
+//    "blink" back to its old value moments later.
+// 2. Moving `lastSavedCardSnapshots` itself to match the just-saved state
+//    meant that if the event team later changed a field right back to its
+//    TRUE original value (e.g. Medical Mission -> People's Day -> Medical
+//    Mission again, with a local Save somewhere in between), the badge kept
+//    showing "unsaved changes" — the comparison baseline had silently moved
+//    to whatever was on screen at that Save click, not the real original.
+//
+// markUnsaved() now clears the badge when the board matches EITHER baseline,
+// so both cases self-correct: nothing changed since the last local Save, OR
+// a field made it all the way back to its true original value.
+function markLocallySavedOnly() {
+  lastLocalSaveSnapshots = new Map(cards.map(c => [c.id, snapshotKeyFor(c)]));
+  markUnsaved();
 }
 
 // ---------- Site name / role name suggestion history ----------
@@ -2385,6 +2551,7 @@ function timeInputKeydown(el, idx) {
     }
     renderTimeField(el, raw, ampm);
     cards[idx].time = el.value;
+    markCardLevelDirty(cards[idx].id);
     saveCards();
   };
 }
@@ -2538,7 +2705,6 @@ function render() {
         <div class="bracket-actions">
           <button type="button" class="btn bracket-edit-date-btn">✎ Edit date</button>
           <button type="button" class="btn danger-outline bracket-delete-btn">Delete event</button>
-          <button type="button" class="btn success-outline bracket-save-btn">💾 Save</button>
           <button type="button" class="btn bracket-update-btn">Update</button>
           <button type="button" class="btn bracket-add-btn">+ Add site</button>
         </div>
@@ -2560,7 +2726,16 @@ function render() {
       // Re-date every card that currently belongs to this bracket (matched
       // by date, not by the possibly-filtered group.items) so nothing gets
       // left behind under the old date.
-      cards.forEach(c => { if ((c.date || "") === (group.date || "")) c.date = newIso; });
+      cards.forEach(c => {
+        if ((c.date || "") === (group.date || "")) {
+          c.date = newIso;
+          // Same protection as the mission/region field handlers below: mark
+          // this card's date as locally dirty so the live onSnapshot
+          // listener doesn't quietly overwrite this not-yet-pushed date back
+          // to the old one from the server before an Update/Send confirms it.
+          markCardLevelDirty(c.id);
+        }
+      });
       adminSelectedDate = newIso;
       saveCards();
       render();
@@ -2579,29 +2754,15 @@ function render() {
       render();
       deleteDateFromRemote(deletedDate);
     });
-    // Explicit "Save" per bracket: an admin can be in the middle of filling
-    // out a new bracket (still typing names, hasn't decided branch, etc.)
-    // and just wants confirmation this device won't lose it — WITHOUT
-    // pushing a half-finished bracket live for employees to see yet. This
-    // only writes to this browser's localStorage (same as every field
-    // already auto-saves on change); it never touches Firestore, so the
-    // "unsaved changes" badge/logout guard stays on until an actual
-    // Update/Send All happens. Kept separate from "Update" (which pushes
-    // this bracket to Firestore for employees) so the two can't be confused.
-    bracket.querySelector(".bracket-save-btn").addEventListener("click", e => {
-      saveCards();
-      const btn = e.currentTarget;
-      const original = btn.textContent;
-      btn.textContent = "✓ Saved";
-      btn.disabled = true;
-      setTimeout(() => {
-        btn.textContent = original;
-        btn.disabled = false;
-      }, 1200);
-    });
+    // Captured now (render time) so Update always pushes exactly the cards
+    // shown in this bracket — even one whose date field was just typed into
+    // inline, which changes cards[idx].date immediately without a render
+    // (see updateDateOnRemote for why re-matching by date instead of by
+    // this id list was the bug).
+    const groupCardIds = group.items.map(({ card }) => card.id);
     bracket.querySelector(".bracket-update-btn").addEventListener("click", e => {
       saveCards();
-      updateDateOnRemote(group.date, dateLabel, e.currentTarget);
+      updateDateOnRemote(group.date, dateLabel, e.currentTarget, groupCardIds);
     });
     const bracketGrid = bracket.querySelector(".bracket-grid");
 
@@ -2726,22 +2887,28 @@ function render() {
 
     cardEl.querySelector(".regionSelect").addEventListener("change", e => {
       cards[idx].region = e.target.value;
+      markCardLevelDirty(card.id);
       saveCards(); render();
     });
     const regionCustomInput = cardEl.querySelector(".regionCustomInput");
     if (regionCustomInput) regionCustomInput.addEventListener("input", e => {
-      cards[idx].regionCustom = e.target.value; saveCards();
+      cards[idx].regionCustom = e.target.value;
+      markCardLevelDirty(card.id);
+      saveCards();
     });
 
     cardEl.querySelector(".missionSelect").addEventListener("change", e => {
       cards[idx].mission = e.target.value;
+      markCardLevelDirty(card.id);
       saveCards(); render();
     });
 
     const locationInput = cardEl.querySelector(".locationInput");
     locationInput.addEventListener("input", e => {
       uppercaseInPlace(e.target);
-      cards[idx].location = e.target.value; saveCards();
+      cards[idx].location = e.target.value;
+      markCardLevelDirty(card.id);
+      saveCards();
     });
     locationInput.addEventListener("change", e => {
       addSiteHistory(e.target.value);
@@ -2762,6 +2929,7 @@ function render() {
       const iso = renderDateField(dateInputEl, raw);
       cards[idx].date = iso;
       dateNativeEl.value = iso;
+      markCardLevelDirty(card.id);
       saveCards();
     });
     dateInputEl.addEventListener("paste", e => {
@@ -2771,6 +2939,7 @@ function render() {
       const iso = renderDateField(dateInputEl, raw);
       cards[idx].date = iso;
       dateNativeEl.value = iso;
+      markCardLevelDirty(card.id);
       saveCards();
     });
     cardEl.querySelector(".calendarBtn").addEventListener("click", () => {
@@ -2781,6 +2950,7 @@ function render() {
       const iso = e.target.value;
       renderDateField(dateInputEl, isoToDigits(iso));
       cards[idx].date = iso;
+      markCardLevelDirty(card.id);
       saveCards();
     });
 
@@ -2800,6 +2970,7 @@ function render() {
       const ampm = ampmMatch ? (ampmMatch[0][0].toUpperCase() === "A" ? "AM" : "PM") : (timeInputEl.dataset.ampm || "AM");
       renderTimeField(timeInputEl, digits, ampm);
       cards[idx].time = timeInputEl.value;
+      markCardLevelDirty(card.id);
       saveCards();
     });
     cardEl.querySelector(".clockBtn").addEventListener("click", () => {
@@ -2811,6 +2982,7 @@ function render() {
       const parsed = timeToRawAmpm(base);
       renderTimeField(timeInputEl, parsed.raw, parsed.ampm);
       cards[idx].time = timeInputEl.value;
+      markCardLevelDirty(card.id);
       saveCards();
     });
 
@@ -4095,14 +4267,27 @@ async function sendAllToEmployees(btn) {
 // the remote already has for every other date completely untouched — so an
 // edit to one event doesn't clobber another admin's edits on a different
 // date.
-async function updateDateOnRemote(dateKey, dateLabelForMsg, btn) {
+async function updateDateOnRemote(dateKey, dateLabelForMsg, btn, groupCardIds) {
   const originalLabel = btn.textContent;
   btn.disabled = true;
   btn.textContent = "Updating…";
   try {
     const snap = await getDoc(scheduleDocRef);
     const remoteCards = (snap.exists() && Array.isArray(snap.data().cards)) ? snap.data().cards : [];
-    const thisDateLocal = cards.filter(c => (c.date || "") === (dateKey || ""));
+    // Select by the exact card IDs this bracket had at render time, NOT by
+    // re-matching cards[].date === dateKey. Typing into a single site's
+    // inline date field updates cards[idx].date right away (so the field
+    // reflects what was typed) but deliberately skips a render() to avoid
+    // yanking focus mid-keystroke — so by the time Update is clicked, that
+    // one card's .date can already differ from dateKey even though it's
+    // still sitting in this bracket on screen. Filtering by date silently
+    // excluded that card from the push; only the render() at the end of
+    // this function would regroup it, so a first click looked like it did
+    // nothing for that site and a second click (now in the right bracket)
+    // was needed to actually push it. Matching by ID always pushes what's
+    // on screen, regardless of any date field just typed into it.
+    const groupCardIdSet = new Set(groupCardIds || []);
+    const thisDateLocal = cards.filter(c => groupCardIdSet.has(c.id));
     // Match by card ID, not by date, when deciding what to drop from the
     // remote doc. If the admin used "Edit date" to move this bracket to a
     // new date, these same cards still exist on the remote doc under their
@@ -4143,6 +4328,10 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn) {
     // ids (not the whole board) so a genuinely unsaved OTHER bracket still
     // correctly shows "unsaved changes", while this one stops.
     updateSavedSnapshotForIds(thisDateLocalIds);
+    // This bracket's card-level fields (region/mission/location/date/time)
+    // are now confirmed pushed too, so live sync can safely pull remote
+    // values for these cards again without clobbering a not-yet-sent edit.
+    clearCardLevelDirty(thisDateLocalIds);
     saveCards();
     // Note: this only pushes THIS bracket's cards (see comment above) — it
     // deliberately does not call markSaved(), since other brackets may still
@@ -4218,6 +4407,16 @@ async function deleteDateFromRemote(dateKey) {
       sentAt: serverTimestamp(),
       sentBy: "admin"
     });
+    // The delete already happened locally (and just got confirmed on the
+    // server above) — but these ids were never removed from
+    // lastSavedCardSnapshots, so differsFromSnapshot() kept seeing a "saved
+    // card deleted locally, not yet pushed" mismatch forever, lighting up
+    // "unsaved changes" even though there was nothing left to save.
+    // updateSavedSnapshotForIds() already drops a ghost id (card no longer
+    // in `cards`) from the snapshot instead of throwing — it just wasn't
+    // being called from here.
+    updateSavedSnapshotForIds(removedCards.map(c => c.id));
+    markUnsaved();
     if (notifyPayloads.length) {
       let notifFailCount = 0;
       await Promise.all(notifyPayloads.map(p =>
@@ -4357,6 +4556,11 @@ async function deleteSiteFromRemote(cardId) {
       sentAt: serverTimestamp(),
       sentBy: "admin"
     });
+    // Same fix as deleteDateFromRemote above: drop this now-deleted id from
+    // lastSavedCardSnapshots so it stops permanently reading as "unsaved"
+    // once the delete is actually confirmed on the server.
+    updateSavedSnapshotForIds([cardId]);
+    markUnsaved();
     if (notifyPayloads.length) {
       let notifFailCount = 0;
       await Promise.all(notifyPayloads.map(p =>
@@ -4721,10 +4925,15 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
     const choice = await showUnsavedChangesPrompt();
     if (choice === "cancel") return;
     if (choice === "save") {
-      if (!hasNoSitesYet()) {
-        await sendAllToEmployees(document.getElementById("updateAllBtn"));
-      }
-      if (hasUnsavedChanges) return; // the save failed — stay logged in, nothing lost
+      // "Save All & Logout" keeps the draft in THIS BROWSER's localStorage
+      // only — it must not publish to Firestore/employees. Publishing is
+      // only ever done via the explicit "Send" button or a bracket's own
+      // "Update" button. This used to call sendAllToEmployees() here, which
+      // meant choosing "Save" on this prompt silently sent every unpublished
+      // edit (e.g. a bracket's mission changed from Medical Mission to
+      // People's Day) straight to employees, even though the admin only
+      // meant to save their draft before stepping away.
+      saveCards();
     }
     if (choice === "discard") {
       // Previously this fell straight through to signing out, leaving the
@@ -4846,12 +5055,23 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
 });
 
 document.getElementById("updateAllBtn").addEventListener("click", async () => {
+  // "Save" here is a LOCAL-ONLY save (draft). It must NOT push to Firestore /
+  // employees — that's what "Send" (saveBtn) and a bracket's own "Update"
+  // button are for. Previously this called sendAllToEmployees() here too,
+  // which meant clicking this button silently published every change live to
+  // employees, even though it's meant to just persist the draft in this
+  // browser until someone explicitly Sends/Updates it.
   if (hasNoSitesYet()) {
-    await showAlert("You need to add a date event and at least one site before you can update this.", "warn");
+    await showAlert("You need to add a date event and at least one site before you can save this.", "warn");
     return;
   }
   saveCards();
-  await sendAllToEmployees(document.getElementById("updateAllBtn"));
+  // Once the event team has explicitly clicked "Save", clear the logout
+  // guard's baseline for THIS device — but keep the card-level dirty
+  // protection intact (see markLocallySavedOnly() above) since nothing was
+  // actually pushed to Firestore yet.
+  markLocallySavedOnly();
+  await showAlert("Saved on this device. This has NOT been sent to employees yet — use \"Send\" or a bracket's \"Update\" button to publish it.", "ok");
 });
 
 document.getElementById("printBtn").addEventListener("click", () => window.print());
@@ -4957,6 +5177,20 @@ if (employeeSession) {
     // someone else's push (or a self-signup) don't get mistaken for this
     // admin's own unsaved edits and wrongly light up "unsaved changes".
     const touchedIds = new Set();
+    // Card ids whose card-level fields AND staff/reliever lists are
+    // confirmed to match the server this pass — whether or not anything
+    // actually needed to change. Previously only `touchedIds` (cards where
+    // a real diff was found and merged in) ever got a baseline snapshot
+    // recorded below. A card that already matched the server exactly (the
+    // normal case for most cards, most of the time) never got a snapshot
+    // entry AT ALL — so `markUnsaved()`'s per-card check (`saved ===
+    // undefined`) treated it as dirty forever, no matter how many times a
+    // bracket's own Update or a full Send pushed things. That's why the
+    // "unsaved changes" badge / logout prompt could keep reappearing even
+    // right after successfully updating the one bracket that actually had
+    // an edit — every OTHER, never-edited card was silently counted as
+    // "still unsaved" too, just because it never got its baseline recorded.
+    const reconciledIds = new Set();
     cards.forEach(card => {
       const remoteCard = remoteById.get(card.id);
       if (!remoteCard) return;
@@ -4976,7 +5210,8 @@ if (employeeSession) {
       // array. These go through `render()` (structuralChange) since branch
       // affects the card's color/badge and site name affects its position
       // in region-filtered views.
-      if (card.id !== activeCardIdForFields) {
+      const cardLevelFieldsOk = card.id !== activeCardIdForFields && !locallyDirtyCardLevelIds.has(card.id);
+      if (cardLevelFieldsOk) {
         const cardLevelFields = ["region", "regionCustom", "mission", "location", "date", "time"];
         cardLevelFields.forEach(field => {
           const remoteVal = remoteCard[field] || "";
@@ -5036,6 +5271,15 @@ if (employeeSession) {
           }
         });
       });
+      // This card's staff/reliever lists were fully diffed above (nothing in
+      // this specific card is being actively typed into right now), so
+      // combined with cardLevelFieldsOk this card's local content is now
+      // provably in sync with the server — a genuine candidate for the
+      // saved-snapshot baseline below, whether or not anything above
+      // actually needed to change.
+      if (cardLevelFieldsOk && card.id !== activeCardId) {
+        reconciledIds.add(card.id);
+      }
     });
     // Pick up brand-new cards another device already Sent/Updated.
     remoteCards.forEach(remoteCard => {
@@ -5081,9 +5325,12 @@ if (employeeSession) {
     // it counts as saved — EXCEPT a card the admin is actively typing into
     // right now, which still has a genuinely pending local edit sitting in
     // the field being skipped above; that one keeps its existing dirty
-    // state and gets snapshotted on a later, quieter pass instead.
+    // state and gets snapshotted on a later, quieter pass instead. Cards
+    // that needed no changes at all (reconciledIds) are included too, so
+    // they finally get a real baseline instead of being treated as
+    // permanently dirty just for never having one.
     const skipSnapshotIds = new Set([activeCardId, activeCardIdForFields].filter(Boolean));
-    const idsToSnapshot = [...touchedIds].filter(id => !skipSnapshotIds.has(id));
+    const idsToSnapshot = [...new Set([...touchedIds, ...reconciledIds])].filter(id => !skipSnapshotIds.has(id));
     if (idsToSnapshot.length) updateSavedSnapshotForIds(idsToSnapshot);
     // A card removed here was confirmed gone on the server, so it can't be
     // "unsaved" locally anymore either — drop its stale snapshot entry.

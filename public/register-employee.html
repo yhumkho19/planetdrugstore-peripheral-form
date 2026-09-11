@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Register Employee — Planet Drugstore Peripherals</title>
 <link rel="icon" type="image/x-icon" href="logo-transparent.png">
 <style>
@@ -169,6 +172,59 @@
 </div>
 
 <script type="module">
+// ---------- Update/version check ----------
+// This page is a single static HTML file served with no per-deploy hashed
+// filename, so a browser (or a CDN/proxy in front of the host) that cached
+// an old copy has no natural reason to notice a new one was uploaded. The
+// Cache-Control meta tags in <head> ask browsers not to cache this page at
+// all, but that's only advisory. This is the reliable fix: bump
+// APP_VERSION any time a new version of this file is uploaded. Every open
+// tab then periodically re-fetches this same page with cache forcibly
+// bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
+// doesn't match what this tab is currently running — shows a small banner
+// instead of silently staying on stale code.
+const APP_VERSION = "2026-09-11.1";
+function startVersionWatch() {
+  async function checkForUpdate() {
+    try {
+      const res = await fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) return;
+      const text = await res.text();
+      const match = text.match(/const APP_VERSION = "([^"]+)"/);
+      if (match && match[1] !== APP_VERSION) showUpdateBanner();
+    } catch (err) {
+      // Offline or a network hiccup — just try again on the next tick.
+    }
+  }
+  function showUpdateBanner() {
+    if (document.getElementById("updateBanner")) return;
+    const bar = document.createElement("div");
+    bar.id = "updateBanner";
+    bar.style.cssText =
+      "position:fixed;top:0;left:0;right:0;z-index:9999;background:#1F2937;color:#fff;" +
+      "padding:10px 16px;font:600 14px/1.4 Inter,sans-serif;display:flex;gap:12px;" +
+      "align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);";
+    bar.innerHTML =
+      `<span>May bagong bersyon ng page na available.</span>` +
+      `<button type="button" id="updateBannerBtn" style="background:#fff;color:#1F2937;border:none;` +
+      `border-radius:6px;padding:6px 14px;font:600 13px/1 Inter,sans-serif;cursor:pointer;">I-refresh ngayon</button>`;
+    document.body.prepend(bar);
+    document.getElementById("updateBannerBtn").addEventListener("click", () => {
+      // Generic guard: only files that track unsaved local edits define
+      // `hasUnsavedChanges` — for everything else this simply reloads.
+      if (typeof hasUnsavedChanges !== "undefined" && hasUnsavedChanges) {
+        if (!confirm("May unsaved changes ka pa. Sigurado ka bang mag-refresh?")) return;
+      }
+      location.reload();
+    });
+  }
+  setInterval(checkForUpdate, 3 * 60 * 1000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") checkForUpdate();
+  });
+}
+startVersionWatch();
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
     initializeFirestore, collection, doc, setDoc, deleteDoc, query, orderBy, limit, onSnapshot, serverTimestamp
