@@ -1132,6 +1132,33 @@
   }
   .staff-row input.nameInput:focus { outline: none; border-color: var(--signal); background: var(--surface); }
   .staff-row input.nameInput::placeholder { color: var(--ink-faint); font-weight: 400; }
+  .name-picker { position: relative; }
+  .name-picker-toggle {
+    position: absolute; right: 7px; top: 7px; z-index: 1;
+    border: 0; background: transparent; color: var(--ink-muted);
+    cursor: pointer; font-size: 12px; padding: 3px 5px;
+  }
+  .name-picker-toggle:hover { color: var(--signal); }
+  .name-picker-menu {
+    position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 80;
+    display: none; padding: 8px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-md);
+  }
+  .name-picker-menu.open { display: block; }
+  .name-picker-search {
+    width: 100%; padding: 7px 9px; border: 1px solid var(--border);
+    border-radius: 7px; background: var(--surface-dim); color: var(--ink);
+    font: 12px 'Inter', sans-serif; margin-bottom: 6px;
+  }
+  .name-picker-search:focus { outline: 2px solid var(--signal); outline-offset: 1px; }
+  .name-picker-options { max-height: 180px; overflow-y: auto; }
+  .name-picker-option {
+    display: block; width: 100%; text-align: left; border: 0;
+    background: transparent; color: var(--ink); padding: 7px 8px;
+    border-radius: 6px; cursor: pointer; font: 12px 'Inter', sans-serif;
+  }
+  .name-picker-option:hover { background: var(--signal-soft); color: var(--signal-dark); }
+  .name-picker-empty { padding: 8px; color: var(--ink-muted); font-size: 12px; }
   .staff-row input.siteInput {
     width: 100%;
     margin-top: 3px;
@@ -1395,7 +1422,7 @@
   .modal-actions button.danger-outline { color: var(--danger); border-color: rgba(229,72,77,.55); }
   .modal-actions button.danger-outline:hover { background: var(--danger-soft); }
 
-  /* ---------- Staff Directory (Pharmacy / Pharmacy Assistant only) ---------- */
+  /* ---------- Staff Directory ---------- */
   .staffdir-overlay {
     position: fixed; inset: 0; z-index: 1000;
     background: rgba(16,36,30,0.4);
@@ -1440,14 +1467,9 @@
   .staffdir-search:focus { outline: 2px solid var(--signal); outline-offset: 1px; }
   .staffdir-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .staffdir-team { margin-bottom: 16px; }
-  .staffdir-team-head {
-    display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
-  }
+  .staffdir-team-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
   .staffdir-team-head h3 { margin: 0; font-size: 13px; font-weight: 800; letter-spacing: .3px; color: var(--ink); text-transform: uppercase; }
-  .staffdir-team-count {
-    font-size: 11.5px; font-weight: 700; color: var(--signal);
-    background: var(--signal-soft); border-radius: 999px; padding: 2px 9px;
-  }
+  .staffdir-team-count { font-size: 11.5px; font-weight: 700; color: var(--signal); background: var(--signal-soft); border-radius: 999px; padding: 2px 9px; }
   .staffdir-branch { margin-bottom: 10px; }
   .staffdir-branch-head { font-size: 11.5px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .3px; margin-bottom: 4px; }
   .staffdir-row {
@@ -1606,19 +1628,13 @@
   </div>
 </div>
 
-<!-- Staff Directory — shows employees registered in admin-console.html
-     (the "employees" Firestore collection). Which teams appear here is
-     scoped to whichever department account is currently signed in
-     (pharmacistdepart@ / informationdepart@ / billingdepart@ — see the
-     STAFFDIR_SCOPE_BY_EMAIL map in the script below), not shown all at
-     once to everyone. -->
 <div class="staffdir-overlay" id="staffDirOverlay">
   <div class="staffdir-box">
     <div class="staffdir-head">
       <h2>👥 Staff Directory</h2>
       <button type="button" class="staffdir-close" id="staffDirCloseBtn" aria-label="Close">✕</button>
     </div>
-    <p class="staffdir-sub" id="staffDirSub">Pharmacy and Pharmacy Assistant employees registered in the admin console.</p>
+    <p class="staffdir-sub" id="staffDirSub">Staff registered in the admin console.</p>
     <input type="text" class="staffdir-search" id="staffDirSearch" placeholder="Search by name…" autocomplete="off">
     <div class="staffdir-body" id="staffDirBody"></div>
   </div>
@@ -1636,9 +1652,10 @@
       <!-- <a href="#" class="active"><span class="ic">🗓️</span>Deployment Roster</a> -->
       <!-- <a href="#"><span class="ic">📅</span>Events</a> -->
       <!-- <a href="#"><span class="ic">📍</span>Sites</a>
+      <a href="#"><span class="ic">👥</span>Staff</a>
       <a href="#"><span class="ic">📊</span>Reports</a>
-      <a href="#"><span class="ic">⚙️</span>Settings</a> -->
-    </nav>
+      <a href="#"><span class="ic">⚙️</span>Settings</a>
+    </nav> -->
     <div class="sidebar-foot">✚ One ticket per site,<br>Staff assignment tracker</div>
   </aside>
 
@@ -1646,7 +1663,7 @@
     <div class="topbar">
       <!-- <div class="topbar-search">🔍 Search events, sites, or staff…</div> -->
       <div class="topbar-right">
-        <div class="notif-wrap" id="notifWrap" style="display:none;">
+        <div class="notif-wrap" id="notifWrap">
           <button type="button" class="notif-bell" id="notifBell" title="Emergency notifications" aria-label="Emergency notifications" aria-haspopup="true">
             🔔<span class="notif-badge" id="notifBadge">0</span>
           </button>
@@ -1984,10 +2001,7 @@ import {
 // Logout and landing back on admin-login.html would just auto-redirect
 // straight back in, since admin-login.html sees the still-active session
 // and skips the login form entirely.
-// onAuthStateChanged added so the Staff Directory can tell which department
-// account (pharmacistdepart@ / informationdepart@ / billingdepart@) is
-// currently signed in and scope what it shows accordingly.
-import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // Same Firebase project as employee-signup.html / landing-employee-page.html,
 // used here so "Send" can publish the roster for employees to read.
@@ -2005,6 +2019,38 @@ const db = initializeFirestore(fbApp, {
   experimentalForceLongPolling: true,
   useFetchStreams: false
 });
+await auth.authStateReady();
+const SCHEDULE_ACCESS = {
+  pharmacist: "pharmacistdepart@planetdrugstore.ph",
+  billing: "billingdepart@planetdrugstore.ph",
+  information: "informationdepart@planetdrugstore.ph"
+};
+const signedInScheduleEmail = String(auth.currentUser && auth.currentUser.email || "").trim().toLowerCase();
+const scheduleAccessRole = Object.entries(SCHEDULE_ACCESS)
+  .find(([, email]) => email === signedInScheduleEmail)?.[0] || "";
+if (!scheduleAccessRole) {
+  window.location.replace("admin-login.html");
+  throw new Error("Unauthorized event schedule account.");
+}
+const isPharmacistScheduleUser = scheduleAccessRole === "pharmacist";
+if (!isPharmacistScheduleUser) {
+  ["addDateBtn", "saveBtn", "resetBtn"].forEach(id => {
+    const button = document.getElementById(id);
+    if (button) button.style.display = "none";
+  });
+}
+function canEditScheduleSlot(label, listKey) {
+  if (isPharmacistScheduleUser) return true;
+  if (listKey === "relievers") return false;
+  const role = roleToTeam(label).toUpperCase();
+  return (scheduleAccessRole === "billing" && role === "BILLING") ||
+    (scheduleAccessRole === "information" && role === "IT");
+}
+function requirePharmacistScheduleAccess() {
+  if (isPharmacistScheduleUser) return true;
+  showAlert("Event schedule creation and event management are available only to pharmacistdepart@planetdrugstore.ph.");
+  return false;
+}
 // Single shared doc that "Send" overwrites and employees read live.
 const scheduleDocRef = doc(db, "eventSchedule", "current");
 // Same "employees" collection admin-console.html registers accounts into
@@ -2102,22 +2148,88 @@ function roleOptionsHtml(current, listKey) {
 // Team) or "relievers" (Store Reliever) list on a site card. listKey is
 // stamped onto the row + its controls so the shared event handlers below
 // know which array on the card to update.
+function registeredNamesForTeam(team) {
+  const names = [];
+  for (const data of employeesMap.values()) {
+    const employee = data || {};
+    const { team: employeeTeam } = splitDepartmentClient(employee.department);
+    if (employeeTeam.toUpperCase() !== team) continue;
+    const name = String(employee.name || "").trim();
+    if (name && !names.includes(name)) names.push(name);
+  }
+  return names.sort((a, b) => a.localeCompare(b));
+}
+
+function setupStaffNamePickers(container) {
+  container.querySelectorAll(".name-picker").forEach(picker => {
+    const input = picker.querySelector(".nameInput");
+    const toggle = picker.querySelector(".name-picker-toggle");
+    const menu = picker.querySelector(".name-picker-menu");
+    const search = picker.querySelector(".name-picker-search");
+    const options = picker.querySelector(".name-picker-options");
+    if (!input || !toggle || !menu || !search || !options || input.disabled) return;
+
+    const close = () => menu.classList.remove("open");
+    const renderOptions = () => {
+      const queryText = search.value.trim().toLowerCase();
+      const names = registeredNamesForTeam(input.dataset.pickerTeam || "");
+      const filtered = names.filter(name => name.toLowerCase().includes(queryText));
+      options.innerHTML = filtered.length
+        ? filtered.map(name => `<button type="button" class="name-picker-option" data-name="${escapeAttr(name)}">${escapeHtml(name)}</button>`).join("")
+        : `<div class="name-picker-empty">No registered employees found.</div>`;
+    };
+    const open = () => {
+      renderOptions();
+      menu.classList.add("open");
+      search.focus();
+    };
+
+    toggle.addEventListener("click", e => {
+      e.stopPropagation();
+      menu.classList.contains("open") ? close() : open();
+    });
+    input.addEventListener("focus", renderOptions);
+    search.addEventListener("input", renderOptions);
+    options.addEventListener("click", e => {
+      const option = e.target.closest(".name-picker-option");
+      if (!option) return;
+      input.value = option.dataset.name || "";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      close();
+    });
+    picker.addEventListener("focusout", () => {
+      setTimeout(() => {
+        if (!picker.contains(document.activeElement)) close();
+      }, 0);
+    });
+  });
+}
+
 function adminStaffRowHtml(s, sIdx, listKey, card) {
+  const slotEditable = canEditScheduleSlot(s.label, listKey);
   return `
     <div class="staff-row${s.emergency ? " emergency" : ""}" data-list="${listKey}" data-sidx="${sIdx}">
       <span class="drag-handle" draggable="true" title="Hold to reposition">⠿</span>
-      <select class="roleSelect" data-list="${listKey}" data-sidx="${sIdx}">
+      <select class="roleSelect" data-list="${listKey}" data-sidx="${sIdx}"${slotEditable ? "" : " disabled"}>
         ${roleOptionsHtml(s.label, listKey)}
       </select>
       <div class="name-field-wrap" style="flex:1;min-width:0;">
-        <input type="text" class="nameInput" style="width:100%;" list="roleNameList-${slug(s.label)}" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" placeholder="${s.emergency ? "URGENT — needs replacement" : (listKey === "relievers" ? "Assign reliever name" : "Assign staff name")}" value="${escapeAttr(s.name)}">
-        ${listKey === "relievers" ? `<input type="text" class="siteInput" list="siteNameList" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" placeholder="Store to relieve — e.g. Branch X" value="${escapeAttr(s.site || "")}">` : ""}
+        <div class="name-picker">
+          <input type="text" class="nameInput" style="width:100%;padding-right:32px;" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" data-picker-team="${escapeAttr(roleToTeam(s.label).toUpperCase())}" placeholder="${s.emergency ? "URGENT — needs replacement" : (listKey === "relievers" ? "Assign reliever name" : "Assign staff name")}" value="${escapeAttr(s.name)}"${slotEditable ? "" : " disabled"}>
+          <button type="button" class="name-picker-toggle" aria-label="Choose registered employee" tabindex="-1"${slotEditable ? "" : " disabled"}>▾</button>
+          <div class="name-picker-menu">
+            <input type="search" class="name-picker-search" placeholder="Search employee name…" autocomplete="off">
+            <div class="name-picker-options"></div>
+          </div>
+        </div>
+        ${listKey === "relievers" ? `<input type="text" class="siteInput" list="siteNameList" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" placeholder="Store to relieve — e.g. Branch X" value="${escapeAttr(s.site || "")}"${slotEditable ? "" : " disabled"}>` : ""}
         ${s.emergency ? `<span class="emergency-note">🚨 ${escapeHtml(s.emergencyBy || "Employee")} reported unavailable (emergency) — needs replacement</span>` : ""}
       </div>
       ${s.emergency ? `<span class="emergency-tag">Urgent</span>` : ""}
       <span class="status-dot ${s.name.trim() ? "filled" : ""}"></span>
-      ${s.filledByStaffId ? `<button type="button" class="kickBtn" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" title="Remove this employee from the slot and notify them" aria-label="Remove employee from slot">Remove</button>` : ""}
-      <button type="button" class="removeFieldBtn" data-list="${listKey}" data-sidx="${sIdx}" title="Remove field" aria-label="Remove field">×</button>
+      ${s.filledByStaffId && slotEditable ? `<button type="button" class="kickBtn" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" title="Remove this employee from the slot and notify them" aria-label="Remove employee from slot">Remove</button>` : ""}
+      ${slotEditable ? `<button type="button" class="removeFieldBtn" data-list="${listKey}" data-sidx="${sIdx}" title="Remove field" aria-label="Remove field">×</button>` : ""}
     </div>
   `;
 }
@@ -2793,15 +2905,16 @@ function render() {
         <span class="bracket-date">${escapeHtml(dateLabel)}</span>
         <span class="bracket-count">${group.items.length} site${group.items.length === 1 ? "" : "s"}</span>
         <div class="bracket-actions">
-          <button type="button" class="btn bracket-edit-date-btn">✎ Edit date</button>
-          <button type="button" class="btn danger-outline bracket-delete-btn">Delete event</button>
+          ${isPharmacistScheduleUser ? `<button type="button" class="btn bracket-edit-date-btn">✎ Edit date</button>` : ""}
+          ${isPharmacistScheduleUser ? `<button type="button" class="btn danger-outline bracket-delete-btn">Delete event</button>` : ""}
           <button type="button" class="btn bracket-update-btn">Update</button>
-          <button type="button" class="btn bracket-add-btn">+ Add site</button>
+          ${isPharmacistScheduleUser ? `<button type="button" class="btn bracket-add-btn">+ Add site</button>` : ""}
         </div>
       </div>
       <div class="bracket-grid"></div>
     `;
-    bracket.querySelector(".bracket-add-btn").addEventListener("click", () => {
+    bracket.querySelector(".bracket-add-btn")?.addEventListener("click", () => {
+      if (!requirePharmacistScheduleAccess()) return;
       const nc = blankCard();
       nc.date = group.date;
       cards.push(nc);
@@ -2810,7 +2923,8 @@ function render() {
       render();
       pushNewCardToRemote(nc);
     });
-    bracket.querySelector(".bracket-edit-date-btn").addEventListener("click", async () => {
+    bracket.querySelector(".bracket-edit-date-btn")?.addEventListener("click", async () => {
+      if (!requirePharmacistScheduleAccess()) return;
       const newIso = await showDatePrompt("Choose the new date for this event:", group.date, "Save date");
       if (newIso === null) return;
       // Re-date every card that currently belongs to this bracket (matched
@@ -2830,7 +2944,8 @@ function render() {
       saveCards();
       render();
     });
-    bracket.querySelector(".bracket-delete-btn").addEventListener("click", async () => {
+    bracket.querySelector(".bracket-delete-btn")?.addEventListener("click", async () => {
+      if (!requirePharmacistScheduleAccess()) return;
       const wholeGroupCount = cards.filter(c => (c.date || "") === (group.date || "")).length;
       const ok = await showConfirm(
         `Delete "${dateLabel}"? This will remove all ${wholeGroupCount} site${wholeGroupCount === 1 ? "" : "s"} under this event date. This cannot be undone.`
@@ -2869,40 +2984,40 @@ function render() {
       <div class="accent-bar"></div>
       <div class="card-inner">
         ${card.cancelled ? `<div class="cancelled-stamp">CANCELLED</div>` : ""}
-        <button class="cancel-event-btn ${card.cancelled ? "is-cancelled" : ""}" title="${card.cancelled ? "Reinstate this event" : "Cancel this event"}" aria-label="${card.cancelled ? "Reinstate this event" : "Cancel this event"}">${card.cancelled ? "↺" : "🚫"}</button>
-        <button class="remove-btn" title="Remove this site" aria-label="Remove this site">×</button>
+        ${isPharmacistScheduleUser ? `<button class="cancel-event-btn ${card.cancelled ? "is-cancelled" : ""}" title="${card.cancelled ? "Reinstate this event" : "Cancel this event"}" aria-label="${card.cancelled ? "Reinstate this event" : "Cancel this event"}">${card.cancelled ? "↺" : "🚫"}</button>` : ""}
+        ${isPharmacistScheduleUser ? `<button class="remove-btn" title="Remove this site" aria-label="Remove this site">×</button>` : ""}
 
         <div class="region-line">
-          <select class="regionSelect">
+          <select class="regionSelect"${isPharmacistScheduleUser ? "" : " disabled"}>
             <option value="south" ${card.region === "south" ? "selected" : ""}>South Caloocan</option>
             <option value="north" ${card.region === "north" ? "selected" : ""}>North Caloocan</option>
             <option value="other" ${card.region === "other" ? "selected" : ""}>Custom…</option>
           </select>
-          ${card.region === "other" ? `<input type="text" class="customText regionCustomInput" placeholder="Area name" value="${escapeAttr(card.regionCustom)}">` : ""}
+          ${card.region === "other" ? `<input type="text" class="customText regionCustomInput" placeholder="Area name" value="${escapeAttr(card.regionCustom)}"${isPharmacistScheduleUser ? "" : " disabled"}>` : ""}
           <span class="sep">·</span>
-          <select class="missionSelect">
+          <select class="missionSelect"${isPharmacistScheduleUser ? "" : " disabled"}>
             <option value="medical" ${card.mission === "medical" ? "selected" : ""}>Medical Mission</option>
             <option value="peoples_day" ${card.mission === "peoples_day" ? "selected" : ""}>People's Day</option>
           </select>
         </div>
 
-        <input type="text" class="locationInput" list="siteNameList" placeholder="Site name — e.g. Brgy. 91 Hall" value="${escapeAttr(card.location)}">
+        <input type="text" class="locationInput" list="siteNameList" placeholder="Site name — e.g. Brgy. 91 Hall" value="${escapeAttr(card.location)}"${isPharmacistScheduleUser ? "" : " disabled"}>
 
         <div class="schedule-row">
           <div class="field">
             <label>Date</label>
             <div class="date-wrap">
-              <input type="text" inputmode="numeric" class="dateInput" placeholder="MM/DD/YYYY" autocomplete="off" value="${escapeAttr(formatDateDisplay(card.date))}" data-raw="${escapeAttr(isoToDigits(card.date))}">
-              <button type="button" class="calendarBtn" title="Choose date" aria-label="Choose date" tabindex="-1">📅</button>
-              <input type="date" class="dateNative" tabindex="-1" value="${escapeAttr(card.date)}">
+              <input type="text" inputmode="numeric" class="dateInput" placeholder="MM/DD/YYYY" autocomplete="off" value="${escapeAttr(formatDateDisplay(card.date))}" data-raw="${escapeAttr(isoToDigits(card.date))}"${isPharmacistScheduleUser ? "" : " disabled"}>
+              <button type="button" class="calendarBtn" title="Choose date" aria-label="Choose date" tabindex="-1"${isPharmacistScheduleUser ? "" : " disabled"}>📅</button>
+              <input type="date" class="dateNative" tabindex="-1" value="${escapeAttr(card.date)}"${isPharmacistScheduleUser ? "" : " disabled"}>
             </div>
           </div>
           <div class="field">
             <label>Time</label>
             <div class="time-wrap">
-              <input type="text" inputmode="numeric" class="timeInput" placeholder="7:00AM" value="${escapeAttr(card.time)}">
-              <button type="button" class="clockBtn" title="Choose time" aria-label="Choose time" tabindex="-1">🕐</button>
-              <input type="time" class="timeNative" tabindex="-1">
+              <input type="text" inputmode="numeric" class="timeInput" placeholder="7:00AM" value="${escapeAttr(card.time)}"${isPharmacistScheduleUser ? "" : " disabled"}>
+              <button type="button" class="clockBtn" title="Choose time" aria-label="Choose time" tabindex="-1"${isPharmacistScheduleUser ? "" : " disabled"}>🕐</button>
+              <input type="time" class="timeNative" tabindex="-1"${isPharmacistScheduleUser ? "" : " disabled"}>
             </div>
           </div>
         </div>
@@ -2914,7 +3029,7 @@ function render() {
           <div class="staff-grid" data-list="staff">
             ${card.staff.map((s, sIdx) => adminStaffRowHtml(s, sIdx, "staff", card)).join("")}
           </div>
-          <button type="button" class="addFieldBtn" data-list="staff">+ Add field</button>
+          ${isPharmacistScheduleUser ? `<button type="button" class="addFieldBtn" data-list="staff">+ Add field</button>` : ""}
         </div>
 
         <div class="staff-section reliever-section">
@@ -2922,7 +3037,7 @@ function render() {
           <div class="staff-grid" data-list="relievers">
             ${(card.relievers || []).map((s, sIdx) => adminStaffRowHtml(s, sIdx, "relievers", card)).join("")}
           </div>
-          <button type="button" class="addFieldBtn" data-list="relievers">+ Add field</button>
+          ${isPharmacistScheduleUser ? `<button type="button" class="addFieldBtn" data-list="relievers">+ Add field</button>` : ""}
         </div>
 
         <div class="attach-row ${card.photo ? "has-photo" : ""}">
@@ -2934,8 +3049,10 @@ function render() {
       </div>
     `;
 
+    setupStaffNamePickers(cardEl);
+
     // ---- Events ----
-    cardEl.querySelector(".cancel-event-btn").addEventListener("click", async function () {
+    cardEl.querySelector(".cancel-event-btn")?.addEventListener("click", async function () {
       const nowCancelled = !cards[idx].cancelled;
       const ok = await showConfirm(
         nowCancelled
@@ -2964,7 +3081,7 @@ function render() {
       pushCardPatchToRemote(card.id, { cancelled: nowCancelled }, cards[idx]);
     });
 
-    cardEl.querySelector(".remove-btn").addEventListener("click", async () => {
+    cardEl.querySelector(".remove-btn")?.addEventListener("click", async () => {
       if (await showConfirm("Remove this site from the list?")) {
         const removedId = card.id;
         cards.splice(idx, 1);
@@ -3603,31 +3720,17 @@ function syncAutoRelieverForSlot(card, sIdx, typedName) {
   }
 }
 
-// ---------- Staff Directory (scoped to the signed-in department) ----------
-// Shows employees registered in admin-console.html (same "employees"
-// Firestore collection, read live via employeesMap above), but only the
-// team(s) that belong to whichever department account is currently signed
-// in here via admin-login.html:
-//   - pharmacistdepart@planetdrugstore.ph → PHARMACIST + Pharmacy Assistant
-//   - informationdepart@planetdrugstore.ph (IT)                → IT only
-//   - billingdepart@planetdrugstore.ph                         → BILLING only
-// Every scope still shows both South and North branches — only the team
-// is restricted, not the branch. If a signed-in email isn't recognized,
-// this falls back to the original PHARMACIST + Pharmacy Assistant scope.
+// ---------- Staff Directory ----------
 const staffDirOverlay = document.getElementById("staffDirOverlay");
 const staffDirBody = document.getElementById("staffDirBody");
 const staffDirSearch = document.getElementById("staffDirSearch");
 const staffDirSub = document.getElementById("staffDirSub");
-const STAFFDIR_DEFAULT_TEAMS = ["PHARMACIST", "PHARMACY ASSISTANT"];
 const STAFFDIR_SCOPE_BY_EMAIL = {
   "pharmacistdepart@planetdrugstore.ph": ["PHARMACIST", "PHARMACY ASSISTANT"],
   "informationdepart@planetdrugstore.ph": ["IT"],
   "billingdepart@planetdrugstore.ph": ["BILLING"]
 };
-// Which team(s) the current admin session is allowed to see. Set for real
-// once Firebase reports who's signed in (see onAuthStateChanged below);
-// starts as the default so nothing renders empty/broken before that fires.
-let staffDirTeams = STAFFDIR_DEFAULT_TEAMS;
+let staffDirTeams = STAFFDIR_SCOPE_BY_EMAIL[signedInScheduleEmail] || ["PHARMACIST", "PHARMACY ASSISTANT"];
 let staffDirQuery = "";
 
 function staffDirTeamLabel(team) {
@@ -3638,28 +3741,50 @@ function staffDirTeamLabel(team) {
   return team;
 }
 
-// Updates the "Pharmacy and Pharmacy Assistant employees…" line under the
-// Staff Directory title so it always matches whatever staffDirTeams
-// currently allows, instead of leaving stale copy from another department.
 function updateStaffDirSubtitle() {
-  if (!staffDirSub) return;
-  const labels = staffDirTeams.map(staffDirTeamLabel);
-  const joined = labels.length > 1
-    ? `${labels.slice(0, -1).join(", ")} and ${labels[labels.length - 1]}`
-    : labels[0];
-  staffDirSub.textContent = `${joined} employees registered in the admin console, South and North.`;
+  if (staffDirSub) {
+    staffDirSub.textContent = `${staffDirTeams.map(staffDirTeamLabel).join(" and ")} employees registered in the admin console, South and North.`;
+  }
 }
 
-// Resolves which teams the signed-in admin account may see in the Staff
-// Directory, keyed off the exact email used to log in via admin-login.html.
-// Re-runs renderStaffDirectory() too, in case the directory is already
-// open when auth state resolves or changes (e.g. first load).
-onAuthStateChanged(auth, (user) => {
-  const email = String((user && user.email) || "").trim().toLowerCase();
-  staffDirTeams = STAFFDIR_SCOPE_BY_EMAIL[email] || STAFFDIR_DEFAULT_TEAMS;
-  updateStaffDirSubtitle();
-  renderStaffDirectory();
-});
+function renderStaffDirectory() {
+  if (!staffDirBody) return;
+  const queryText = staffDirQuery.trim().toLowerCase();
+  const rows = [...employeesMap.entries()]
+    .map(([staffId, emp]) => {
+      const { team, branch } = splitDepartmentClient(emp.department);
+      return { staffId, emp, team: team.toUpperCase(), branch };
+    })
+    .filter(row => staffDirTeams.includes(row.team))
+    .filter(row => !queryText || String(row.emp.name || "").toLowerCase().includes(queryText));
+
+  if (!rows.length) {
+    staffDirBody.innerHTML = `<div class="staffdir-empty">${employeesMap.size ? "No matching staff found." : "No employees registered yet."}</div>`;
+    return;
+  }
+
+  const groups = new Map();
+  rows.forEach(row => {
+    if (!groups.has(row.team)) groups.set(row.team, new Map());
+    const branches = groups.get(row.team);
+    if (!branches.has(row.branch)) branches.set(row.branch, []);
+    branches.get(row.branch).push(row);
+  });
+  staffDirBody.innerHTML = staffDirTeams.filter(team => groups.has(team)).map(team => {
+    const branches = groups.get(team);
+    const total = [...branches.values()].reduce((count, list) => count + list.length, 0);
+    const branchHtml = [...branches.entries()].sort().map(([branch, list]) => `
+      <div class="staffdir-branch">
+        <div class="staffdir-branch-head">${escapeHtml(branch)}</div>
+        ${list.sort((a, b) => String(a.emp.name || "").localeCompare(String(b.emp.name || ""))).map(row => `
+          <div class="staffdir-row">
+            <div><div class="name">${escapeHtml(row.emp.name || "—")}</div><div class="site">${escapeHtml(row.emp.siteName || "")}</div></div>
+            <div class="staffid">${escapeHtml(row.emp.staffId || row.staffId)}</div>
+          </div>`).join("")}
+      </div>`).join("");
+    return `<div class="staffdir-team"><div class="staffdir-team-head"><h3>${escapeHtml(staffDirTeamLabel(team))}</h3><span class="staffdir-team-count">${total}</span></div>${branchHtml}</div>`;
+  }).join("");
+}
 
 function openStaffDirectory() {
   staffDirOverlay.classList.add("open");
@@ -3671,81 +3796,18 @@ function closeStaffDirectory() {
   staffDirOverlay.classList.remove("open");
 }
 
-function renderStaffDirectory() {
-  if (!staffDirBody) return;
-  const nameQuery = staffDirQuery.trim().toLowerCase();
-
-  // Only the team(s) the signed-in department account is scoped to (see
-  // staffDirTeams above) — other departments' accounts exist in the same
-  // "employees" collection admin-console.html registers into, but are
-  // intentionally excluded from view here.
-  const rows = [...employeesMap.entries()]
-    .map(([staffId, emp]) => {
-      const { team, branch } = splitDepartmentClient(emp.department);
-      return { staffId, emp, team: team.toUpperCase(), branch };
-    })
-    .filter(r => staffDirTeams.includes(r.team))
-    .filter(r => !nameQuery || String(r.emp.name || "").toLowerCase().includes(nameQuery));
-
-  if (rows.length === 0) {
-    const scopeLabel = staffDirTeams.map(staffDirTeamLabel).join(" / ");
-    staffDirBody.innerHTML = `<div class="staffdir-empty">${
-      employeesMap.size === 0 ? "No employees registered yet." : `No matching ${escapeHtml(scopeLabel)} staff found.`
-    }</div>`;
-    return;
-  }
-
-  const groups = new Map();
-  rows.forEach(r => {
-    if (!groups.has(r.team)) groups.set(r.team, new Map());
-    const branches = groups.get(r.team);
-    if (!branches.has(r.branch)) branches.set(r.branch, []);
-    branches.get(r.branch).push(r);
-  });
-
-  staffDirBody.innerHTML = staffDirTeams
-    .filter(t => groups.has(t))
-    .map(t => {
-      const branches = groups.get(t);
-      const teamTotal = [...branches.values()].reduce((n, list) => n + list.length, 0);
-      const branchesHtml = [...branches.entries()]
-        .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([branch, list]) => {
-          const rowsHtml = list
-            .sort((a, b) => String(a.emp.name || "").localeCompare(String(b.emp.name || "")))
-            .map(r => `
-              <div class="staffdir-row">
-                <div>
-                  <div class="name">${escapeHtml(r.emp.name || "—")}</div>
-                  <div class="site">${escapeHtml(r.emp.siteName || "")}</div>
-                </div>
-                <div class="staffid">${escapeHtml(r.emp.staffId || r.staffId)}</div>
-              </div>`).join("");
-          return `<div class="staffdir-branch">
-            <div class="staffdir-branch-head">${escapeHtml(branch)}</div>
-            ${rowsHtml}
-          </div>`;
-        }).join("");
-      return `<div class="staffdir-team">
-        <div class="staffdir-team-head">
-          <h3>${escapeHtml(staffDirTeamLabel(t))}</h3>
-          <span class="staffdir-team-count">${teamTotal}</span>
-        </div>
-        ${branchesHtml}
-      </div>`;
-    }).join("");
-}
-
-document.getElementById("staffNavBtn").addEventListener("click", (e) => {
+document.getElementById("staffNavBtn").addEventListener("click", e => {
   e.preventDefault();
   openStaffDirectory();
 });
-staffDirSearch.addEventListener("input", (e) => {
+staffDirSearch.addEventListener("input", e => {
   staffDirQuery = e.target.value;
   renderStaffDirectory();
 });
 document.getElementById("staffDirCloseBtn").addEventListener("click", closeStaffDirectory);
-staffDirOverlay.addEventListener("click", (e) => { if (e.target === staffDirOverlay) closeStaffDirectory(); });
+staffDirOverlay.addEventListener("click", e => {
+  if (e.target === staffDirOverlay) closeStaffDirectory();
+});
 
 function startEmployeesListener() {
   onSnapshot(employeesCollRef, snap => {
@@ -3753,8 +3815,6 @@ function startEmployeesListener() {
     snap.forEach(d => map.set(d.id, d.data() || {}));
     employeesMap = map;
     renderLeaderboard(lastScheduleCardsForLeaderboard);
-    // Keep the Staff Directory in sync too, in case it's open when an
-    // account is added/edited/removed in admin-console.html.
     renderStaffDirectory();
     // The account this map no longer contains might still be sitting in a
     // signed-up slot on the live roster (admin deleted the account, but
@@ -3935,6 +3995,7 @@ document.querySelectorAll("#regionFilter .filter-btn").forEach(btn => {
 });
 
 document.getElementById("addDateBtn").addEventListener("click", async () => {
+  if (!requirePharmacistScheduleAccess()) return;
   const details = await showAddDateEventPrompt();
   if (!details) return;
   const newCard = blankCard();
@@ -4125,6 +4186,46 @@ function applyScheduleChangeNotifications(localCardsSubset, remoteCards) {
             resolved: false
           });
         }
+      });
+    });
+  });
+  return notifyPayloads;
+}
+
+function applyAssignmentNotifications(localCardsSubset, remoteCards) {
+  const remoteById = new Map(remoteCards.map(c => [c.id, c]));
+  const notifyPayloads = [];
+  localCardsSubset.forEach(card => {
+    const remoteCard = remoteById.get(card.id);
+    if (!remoteCard) return;
+    ["staff", "relievers"].forEach(listKey => {
+      const localSlots = card[listKey] || [];
+      const remoteSlots = remoteCard[listKey] || [];
+      localSlots.forEach((slot, index) => {
+        const name = String(slot.name || "").trim();
+        const previous = remoteSlots[index] || {};
+        if (!name || name.toUpperCase() === String(previous.name || "").trim().toUpperCase()) return;
+        const employee = findEmployeeByName(name);
+        if (!employee) return;
+        const assignedTeam = roleToTeam(slot.label).toUpperCase();
+        const targetRoles = ["pharmacist"];
+        if (assignedTeam === "IT") targetRoles.push("information");
+        if (assignedTeam === "BILLING") targetRoles.push("billing");
+        notifyPayloads.push({
+          type: "slotAssigned",
+          cardId: card.id,
+          list: listKey,
+          role: slot.label || "",
+          location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (card.location || "Unnamed site"),
+          date: card.date || "",
+          time: card.time || "",
+          region: card.region || "",
+          employeeName: name,
+          staffId: employee.staffId,
+          targetRoles,
+          createdAt: serverTimestamp(),
+          resolved: false
+        });
       });
     });
   });
@@ -4454,6 +4555,7 @@ async function sendAllToEmployees(btn) {
     // Tell anyone booked on a card whose date/time/location moved, so they
     // find out from a notification instead of noticing on their own later.
     const scheduleChangeNotifications = applyScheduleChangeNotifications(cards, remoteCards);
+    const assignmentNotifications = applyAssignmentNotifications(cards, remoteCards);
     const merged = mergeRemoteClaims(cards, remoteCards);
     // Write the merge result back into the local `cards` array, not just to
     // Firestore. Previously `merged` was only ever sent remotely, so local
@@ -4475,7 +4577,7 @@ async function sendAllToEmployees(btn) {
     saveCards();
     markSaved();
     render();
-    const allChangeNotifications = [...branchChangeNotifications, ...scheduleChangeNotifications];
+    const allChangeNotifications = [...branchChangeNotifications, ...scheduleChangeNotifications, ...assignmentNotifications];
     let notifFailCount = 0;
     if (allChangeNotifications.length) {
       await Promise.all(allChangeNotifications.map(p =>
@@ -4543,6 +4645,7 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn, groupCardIds) {
     // whole bracket's date was just edited via "Edit date"), so they find
     // out from a notification instead of noticing on their own later.
     const scheduleChangeNotifications = applyScheduleChangeNotifications(thisDateLocal, remoteCards);
+    const assignmentNotifications = applyAssignmentNotifications(thisDateLocal, remoteCards);
     const mergedThisDate = mergeRemoteClaims(thisDateLocal, remoteCards);
     // Same fix as sendAllToEmployees above: reflect the merged (self-signup
     // filled-in) cards back into the local `cards` array for this date, so
@@ -4577,7 +4680,7 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn, groupCardIds) {
     // pushes everything, or naturally once every remaining bracket's own
     // Update/edit gets snapshotted too.
     render();
-    const allChangeNotifications = [...branchChangeNotifications, ...scheduleChangeNotifications];
+    const allChangeNotifications = [...branchChangeNotifications, ...scheduleChangeNotifications, ...assignmentNotifications];
     let notifFailCount = 0;
     if (allChangeNotifications.length) {
       await Promise.all(allChangeNotifications.map(p =>
@@ -4836,6 +4939,21 @@ async function pushNewCardToRemote(card) {
       sentAt: serverTimestamp(),
       sentBy: data.sentBy || "admin"
     });
+    if (isPharmacistScheduleUser) {
+      await addDoc(notificationsCollRef, {
+        type: "eventCreated",
+        targetRoles: ["billing", "information"],
+        cardId: card.id,
+        role: "",
+        location: card.location || "Unnamed site",
+        date: card.date || "",
+        time: card.time || "",
+        region: card.region || "",
+        createdBy: signedInScheduleEmail,
+        createdAt: serverTimestamp(),
+        resolved: false
+      });
+    }
   } catch (err) {
     await showAlert("Saved in your browser, but failed to sync online: " + err.message);
   } finally {
@@ -4921,7 +5039,9 @@ function renderNotifPanel(items) {
     const isSiteRemoved = n.type === "siteRemoved";
     const isEventCancelled = n.type === "eventCancelled";
     const isEventReinstated = n.type === "eventReinstated";
-    const isPersonalNotice = isRemoved || isBranchChanged || isDateChanged || isEventUpdated || isEventDeleted || isSiteRemoved || isEventCancelled || isEventReinstated;
+    const isEventCreated = n.type === "eventCreated";
+    const isSlotAssigned = n.type === "slotAssigned";
+    const isPersonalNotice = isRemoved || isBranchChanged || isDateChanged || isEventUpdated || isEventDeleted || isSiteRemoved || isEventCancelled || isEventReinstated || isEventCreated || isSlotAssigned;
     let title, statusLine, btnLabel;
     if (isRemoved) {
       title = `🔔 You've been removed from this slot`;
@@ -4957,6 +5077,14 @@ function renderNotifPanel(items) {
       title = `🔔 This event is back on`;
       statusLine = `The Event Team reinstated this event — you're good to go as scheduled.`;
       btnLabel = "Got it";
+    } else if (isEventCreated) {
+      title = `📅 New event schedule available`;
+      statusLine = `A new event was created by the pharmacist department.`;
+      btnLabel = "Got it";
+    } else if (isSlotAssigned) {
+      title = `📌 You were assigned to an event slot`;
+      statusLine = `The pharmacist department assigned your name to this slot.`;
+      btnLabel = "Got it";
     } else if (isResolved) {
       title = `✅ ${escapeHtml(n.backupName || "A teammate")} — FOR BACKUP`;
       statusLine = `Backing up for ${escapeHtml(n.employeeName || "the previous employee")}.`;
@@ -4989,7 +5117,7 @@ function renderUrgentBanner(items) {
   const banner = document.getElementById("urgentBanner");
   if (!banner) return;
   if (employeeSession) { banner.style.display = "none"; banner.innerHTML = ""; return; }
-  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "eventDeleted", "siteRemoved", "eventCancelled", "eventReinstated"];
+  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "eventDeleted", "siteRemoved", "eventCancelled", "eventReinstated", "eventCreated", "slotAssigned"];
   const openItems = items.filter(n => !n.resolved && !personalTypes.includes(n.type));
   if (!openItems.length) { banner.style.display = "none"; banner.innerHTML = ""; return; }
   banner.style.display = "block";
@@ -5014,9 +5142,18 @@ function getRelevantNotifications(items) {
   // admin already knows they made the change, so none of these belong in
   // the Event Team's own bell/panel. Admins still see every open
   // emergency-vacancy ("unavailable") notification.
-  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "eventDeleted", "siteRemoved", "eventCancelled", "eventReinstated"];
+  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "eventDeleted", "siteRemoved", "eventCancelled", "eventReinstated", "eventCreated", "slotAssigned"];
   if (!employeeSession) {
-    return items.filter(n => !personalTypes.includes(n.type));
+    return items.filter(n =>
+      n.type === "eventCreated"
+        ? Array.isArray(n.targetRoles) && n.targetRoles.includes(scheduleAccessRole)
+        : n.type === "slotAssigned"
+          ? (Array.isArray(n.targetRoles) && n.targetRoles.includes(scheduleAccessRole)) ||
+            scheduleAccessRole === "pharmacist" ||
+            (scheduleAccessRole === "information" && roleToTeam(n.role).toUpperCase() === "IT") ||
+            (scheduleAccessRole === "billing" && roleToTeam(n.role).toUpperCase() === "BILLING")
+        : !personalTypes.includes(n.type)
+    );
   }
   const myTeam = splitDepartmentClient(employeeSession.department).team;
   return items.filter(n => {
@@ -5059,11 +5196,10 @@ onSnapshot(
     // they're aware immediately instead of only noticing the bell badge
     // later. (The bell/panel above already covers the case where they're
     // away from the page and check back afterwards.)
-    if (employeeSession) {
-      const openRelevant = relevant.filter(n => !n.resolved);
-      if (seenNotificationIds !== null) {
-        const freshOnes = openRelevant.filter(n => !seenNotificationIds.has(n.id));
-        for (const n of freshOnes) {
+    const openRelevant = relevant.filter(n => !n.resolved);
+    if (seenNotificationIds !== null) {
+      const freshOnes = openRelevant.filter(n => !seenNotificationIds.has(n.id));
+      for (const n of freshOnes) {
           const isRemoved = n.type === "removed";
           const isBranchChanged = n.type === "branchChanged";
           const isDateChanged = n.type === "dateChanged";
@@ -5072,6 +5208,7 @@ onSnapshot(
           const isSiteRemoved = n.type === "siteRemoved";
           const isEventCancelled = n.type === "eventCancelled";
           const isEventReinstated = n.type === "eventReinstated";
+          const isSlotAssigned = n.type === "slotAssigned";
           const where = `${n.role || ""}${n.list === "relievers" ? " (Store Reliever)" : ""} at ${n.location || "site"}${n.date ? " — " + formatDateDisplay(n.date) : ""}${n.time ? ", " + n.time : ""}`;
           let message;
           if (isRemoved) {
@@ -5091,14 +5228,15 @@ onSnapshot(
             message = `The event team cancelled this event: ${where}.\n\nYou're still on the roster — nothing to show up for unless it's reinstated.`;
           } else if (isEventReinstated) {
             message = `Good news — this event is back on: ${where}.\n\nYou're good to go as scheduled.`;
+          } else if (isSlotAssigned) {
+            message = `📌 You were assigned to an event slot: ${where}.\n\nThe pharmacist department assigned your name to this slot.`;
           } else {
             message = `🚨 Emergency vacancy just opened for your team: ${where}.\n\n${n.employeeName || "A teammate"} became unavailable — sign up below if you can cover.`;
           }
-          await showAlert(message);
-        }
+        await showAlert(message);
       }
-      seenNotificationIds = new Set(openRelevant.map(n => n.id));
     }
+    seenNotificationIds = new Set(openRelevant.map(n => n.id));
   },
   err => {
     // Most likely cause: Firestore Security Rules don't yet allow read
@@ -5314,6 +5452,7 @@ document.getElementById("updateAllBtn").addEventListener("click", async () => {
 document.getElementById("printBtn").addEventListener("click", () => window.print());
 
 document.getElementById("resetBtn").addEventListener("click", async () => {
+  if (!requirePharmacistScheduleAccess()) return;
   if (hasNoSitesYet()) {
     await showAlert("There's nothing to reset yet — add a date event and at least one site first.", "warn");
     return;

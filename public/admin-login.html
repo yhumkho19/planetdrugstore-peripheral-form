@@ -290,11 +290,9 @@ startVersionWatch();
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
-  // Event Schedule accounts — Pharmacist, Billing, and IT department
-  // accounts all get sent to event-schedule-landing.html. This login page
-  // is shared by IT Admin and these three Event Schedule accounts; we
-  // branch on the signed-in email to decide which landing page to send
-  // them to.
+  // Event Schedule has its own fixed account — this login page is shared
+  // by IT Admin and the Event Schedule team; we branch on the signed-in
+  // email to decide which landing page to send them to.
   const EVENT_SCHEDULE_EMAILS = [
     'pharmacistdepart@planetdrugstore.ph',
     'billingdepart@planetdrugstore.ph',
