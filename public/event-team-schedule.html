@@ -1395,6 +1395,75 @@
   .modal-actions button.danger-outline { color: var(--danger); border-color: rgba(229,72,77,.55); }
   .modal-actions button.danger-outline:hover { background: var(--danger-soft); }
 
+  /* ---------- Staff Directory (Pharmacy / Pharmacy Assistant only) ---------- */
+  .staffdir-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(16,36,30,0.4);
+    backdrop-filter: blur(7px) saturate(1.1);
+    -webkit-backdrop-filter: blur(7px) saturate(1.1);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    opacity: 0; visibility: hidden;
+    transition: opacity .2s ease, visibility .2s;
+  }
+  .staffdir-overlay.open { opacity: 1; visibility: visible; }
+  .staffdir-box {
+    width: 100%; max-width: 640px;
+    max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
+    display: flex; flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 24px 24px 20px;
+    transform: scale(0.94) translateY(10px);
+    opacity: 0;
+    transition: transform .3s cubic-bezier(.32,1.56,.64,1), opacity .2s ease;
+  }
+  .staffdir-overlay.open .staffdir-box { transform: scale(1) translateY(0); opacity: 1; }
+  .staffdir-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex: 0 0 auto; }
+  .staffdir-head h2 { margin: 0; font-size: 18px; font-weight: 700; color: var(--ink); }
+  .staffdir-close {
+    flex: none; width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--surface-dim);
+    color: var(--ink-muted); font-size: 14px; cursor: pointer;
+  }
+  .staffdir-close:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .staffdir-sub { margin: 6px 0 14px; font-size: 13px; color: var(--ink-muted); flex: 0 0 auto; }
+  .staffdir-search {
+    flex: 0 0 auto; width: 100%; margin-bottom: 14px;
+    font-family: inherit; font-size: 13.5px;
+    padding: 10px 14px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--surface-dim); color: var(--ink);
+  }
+  .staffdir-search:focus { outline: 2px solid var(--signal); outline-offset: 1px; }
+  .staffdir-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .staffdir-team { margin-bottom: 16px; }
+  .staffdir-team-head {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  }
+  .staffdir-team-head h3 { margin: 0; font-size: 13px; font-weight: 800; letter-spacing: .3px; color: var(--ink); text-transform: uppercase; }
+  .staffdir-team-count {
+    font-size: 11.5px; font-weight: 700; color: var(--signal);
+    background: var(--signal-soft); border-radius: 999px; padding: 2px 9px;
+  }
+  .staffdir-branch { margin-bottom: 10px; }
+  .staffdir-branch-head { font-size: 11.5px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .3px; margin-bottom: 4px; }
+  .staffdir-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 10px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface); margin-bottom: 6px;
+  }
+  .staffdir-row .name { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .staffdir-row .site { font-size: 12px; color: var(--ink-muted); }
+  .staffdir-row .staffid { font-size: 11.5px; color: var(--ink-faint); white-space: nowrap; }
+  .staffdir-empty { font-size: 13px; color: var(--ink-muted); text-align: center; padding: 30px 0; }
+  @media (max-width: 640px) {
+    .staffdir-box { padding: 20px 18px 16px; }
+    .staffdir-row { flex-wrap: wrap; }
+  }
+
   /* ---------- Leaderboard (employee side) ---------- */
   #leaderboardSection { display: none; }
   .leaderboard-wrap {
@@ -1537,6 +1606,24 @@
   </div>
 </div>
 
+<!-- Staff Directory — shows employees registered in admin-console.html
+     (the "employees" Firestore collection). Which teams appear here is
+     scoped to whichever department account is currently signed in
+     (pharmacistdepart@ / informationdepart@ / billingdepart@ — see the
+     STAFFDIR_SCOPE_BY_EMAIL map in the script below), not shown all at
+     once to everyone. -->
+<div class="staffdir-overlay" id="staffDirOverlay">
+  <div class="staffdir-box">
+    <div class="staffdir-head">
+      <h2>👥 Staff Directory</h2>
+      <button type="button" class="staffdir-close" id="staffDirCloseBtn" aria-label="Close">✕</button>
+    </div>
+    <p class="staffdir-sub" id="staffDirSub">Pharmacy and Pharmacy Assistant employees registered in the admin console.</p>
+    <input type="text" class="staffdir-search" id="staffDirSearch" placeholder="Search by name…" autocomplete="off">
+    <div class="staffdir-body" id="staffDirBody"></div>
+  </div>
+</div>
+
 <div class="app-shell">
   <aside class="sidebar">
     <div class="sidebar-logo">
@@ -1545,13 +1632,13 @@
     </div>
     <nav class="sidebar-nav">
       <a href="event-schedule-landing.html" class="active"><span class="ic">🏡</span>Home</a>
+      <a href="#" id="staffNavBtn"><span class="ic">👥</span>Staff</a>
       <!-- <a href="#" class="active"><span class="ic">🗓️</span>Deployment Roster</a> -->
       <!-- <a href="#"><span class="ic">📅</span>Events</a> -->
       <!-- <a href="#"><span class="ic">📍</span>Sites</a>
-      <a href="#"><span class="ic">👥</span>Staff</a>
       <a href="#"><span class="ic">📊</span>Reports</a>
-      <a href="#"><span class="ic">⚙️</span>Settings</a>
-    </nav> -->
+      <a href="#"><span class="ic">⚙️</span>Settings</a> -->
+    </nav>
     <div class="sidebar-foot">✚ One ticket per site,<br>Staff assignment tracker</div>
   </aside>
 
@@ -1897,7 +1984,10 @@ import {
 // Logout and landing back on admin-login.html would just auto-redirect
 // straight back in, since admin-login.html sees the still-active session
 // and skips the login form entirely.
-import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+// onAuthStateChanged added so the Staff Directory can tell which department
+// account (pharmacistdepart@ / informationdepart@ / billingdepart@) is
+// currently signed in and scope what it shows accordingly.
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // Same Firebase project as employee-signup.html / landing-employee-page.html,
 // used here so "Send" can publish the roster for employees to read.
@@ -3513,12 +3603,159 @@ function syncAutoRelieverForSlot(card, sIdx, typedName) {
   }
 }
 
+// ---------- Staff Directory (scoped to the signed-in department) ----------
+// Shows employees registered in admin-console.html (same "employees"
+// Firestore collection, read live via employeesMap above), but only the
+// team(s) that belong to whichever department account is currently signed
+// in here via admin-login.html:
+//   - pharmacistdepart@planetdrugstore.ph → PHARMACIST + Pharmacy Assistant
+//   - informationdepart@planetdrugstore.ph (IT)                → IT only
+//   - billingdepart@planetdrugstore.ph                         → BILLING only
+// Every scope still shows both South and North branches — only the team
+// is restricted, not the branch. If a signed-in email isn't recognized,
+// this falls back to the original PHARMACIST + Pharmacy Assistant scope.
+const staffDirOverlay = document.getElementById("staffDirOverlay");
+const staffDirBody = document.getElementById("staffDirBody");
+const staffDirSearch = document.getElementById("staffDirSearch");
+const staffDirSub = document.getElementById("staffDirSub");
+const STAFFDIR_DEFAULT_TEAMS = ["PHARMACIST", "PHARMACY ASSISTANT"];
+const STAFFDIR_SCOPE_BY_EMAIL = {
+  "pharmacistdepart@planetdrugstore.ph": ["PHARMACIST", "PHARMACY ASSISTANT"],
+  "informationdepart@planetdrugstore.ph": ["IT"],
+  "billingdepart@planetdrugstore.ph": ["BILLING"]
+};
+// Which team(s) the current admin session is allowed to see. Set for real
+// once Firebase reports who's signed in (see onAuthStateChanged below);
+// starts as the default so nothing renders empty/broken before that fires.
+let staffDirTeams = STAFFDIR_DEFAULT_TEAMS;
+let staffDirQuery = "";
+
+function staffDirTeamLabel(team) {
+  if (team === "PHARMACIST") return "Pharmacist";
+  if (team === "PHARMACY ASSISTANT") return "Pharmacy Assistant";
+  if (team === "IT") return "IT";
+  if (team === "BILLING") return "Billing";
+  return team;
+}
+
+// Updates the "Pharmacy and Pharmacy Assistant employees…" line under the
+// Staff Directory title so it always matches whatever staffDirTeams
+// currently allows, instead of leaving stale copy from another department.
+function updateStaffDirSubtitle() {
+  if (!staffDirSub) return;
+  const labels = staffDirTeams.map(staffDirTeamLabel);
+  const joined = labels.length > 1
+    ? `${labels.slice(0, -1).join(", ")} and ${labels[labels.length - 1]}`
+    : labels[0];
+  staffDirSub.textContent = `${joined} employees registered in the admin console, South and North.`;
+}
+
+// Resolves which teams the signed-in admin account may see in the Staff
+// Directory, keyed off the exact email used to log in via admin-login.html.
+// Re-runs renderStaffDirectory() too, in case the directory is already
+// open when auth state resolves or changes (e.g. first load).
+onAuthStateChanged(auth, (user) => {
+  const email = String((user && user.email) || "").trim().toLowerCase();
+  staffDirTeams = STAFFDIR_SCOPE_BY_EMAIL[email] || STAFFDIR_DEFAULT_TEAMS;
+  updateStaffDirSubtitle();
+  renderStaffDirectory();
+});
+
+function openStaffDirectory() {
+  staffDirOverlay.classList.add("open");
+  renderStaffDirectory();
+  staffDirSearch.focus();
+}
+
+function closeStaffDirectory() {
+  staffDirOverlay.classList.remove("open");
+}
+
+function renderStaffDirectory() {
+  if (!staffDirBody) return;
+  const nameQuery = staffDirQuery.trim().toLowerCase();
+
+  // Only the team(s) the signed-in department account is scoped to (see
+  // staffDirTeams above) — other departments' accounts exist in the same
+  // "employees" collection admin-console.html registers into, but are
+  // intentionally excluded from view here.
+  const rows = [...employeesMap.entries()]
+    .map(([staffId, emp]) => {
+      const { team, branch } = splitDepartmentClient(emp.department);
+      return { staffId, emp, team: team.toUpperCase(), branch };
+    })
+    .filter(r => staffDirTeams.includes(r.team))
+    .filter(r => !nameQuery || String(r.emp.name || "").toLowerCase().includes(nameQuery));
+
+  if (rows.length === 0) {
+    const scopeLabel = staffDirTeams.map(staffDirTeamLabel).join(" / ");
+    staffDirBody.innerHTML = `<div class="staffdir-empty">${
+      employeesMap.size === 0 ? "No employees registered yet." : `No matching ${escapeHtml(scopeLabel)} staff found.`
+    }</div>`;
+    return;
+  }
+
+  const groups = new Map();
+  rows.forEach(r => {
+    if (!groups.has(r.team)) groups.set(r.team, new Map());
+    const branches = groups.get(r.team);
+    if (!branches.has(r.branch)) branches.set(r.branch, []);
+    branches.get(r.branch).push(r);
+  });
+
+  staffDirBody.innerHTML = staffDirTeams
+    .filter(t => groups.has(t))
+    .map(t => {
+      const branches = groups.get(t);
+      const teamTotal = [...branches.values()].reduce((n, list) => n + list.length, 0);
+      const branchesHtml = [...branches.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([branch, list]) => {
+          const rowsHtml = list
+            .sort((a, b) => String(a.emp.name || "").localeCompare(String(b.emp.name || "")))
+            .map(r => `
+              <div class="staffdir-row">
+                <div>
+                  <div class="name">${escapeHtml(r.emp.name || "—")}</div>
+                  <div class="site">${escapeHtml(r.emp.siteName || "")}</div>
+                </div>
+                <div class="staffid">${escapeHtml(r.emp.staffId || r.staffId)}</div>
+              </div>`).join("");
+          return `<div class="staffdir-branch">
+            <div class="staffdir-branch-head">${escapeHtml(branch)}</div>
+            ${rowsHtml}
+          </div>`;
+        }).join("");
+      return `<div class="staffdir-team">
+        <div class="staffdir-team-head">
+          <h3>${escapeHtml(staffDirTeamLabel(t))}</h3>
+          <span class="staffdir-team-count">${teamTotal}</span>
+        </div>
+        ${branchesHtml}
+      </div>`;
+    }).join("");
+}
+
+document.getElementById("staffNavBtn").addEventListener("click", (e) => {
+  e.preventDefault();
+  openStaffDirectory();
+});
+staffDirSearch.addEventListener("input", (e) => {
+  staffDirQuery = e.target.value;
+  renderStaffDirectory();
+});
+document.getElementById("staffDirCloseBtn").addEventListener("click", closeStaffDirectory);
+staffDirOverlay.addEventListener("click", (e) => { if (e.target === staffDirOverlay) closeStaffDirectory(); });
+
 function startEmployeesListener() {
   onSnapshot(employeesCollRef, snap => {
     const map = new Map();
     snap.forEach(d => map.set(d.id, d.data() || {}));
     employeesMap = map;
     renderLeaderboard(lastScheduleCardsForLeaderboard);
+    // Keep the Staff Directory in sync too, in case it's open when an
+    // account is added/edited/removed in admin-console.html.
+    renderStaffDirectory();
     // The account this map no longer contains might still be sitting in a
     // signed-up slot on the live roster (admin deleted the account, but
     // nothing ever told the schedule to let go of it). Every time the

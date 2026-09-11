@@ -382,18 +382,26 @@ startVersionWatch();
   });
   const auth = getAuth(app);
 
-  const EVENT_SCHEDULE_EMAIL = 'eventschedule@planetdrugstore.ph';
+  // Accounts allowed on this page — Pharmacist, Billing, and IT department
+  // accounts all get the same access here. (Only pharmacistdepart actually
+  // builds/sends the schedule from event-team-schedule.html; Billing and IT
+  // just get the same page-level access as Pharmacist.)
+  const EVENT_SCHEDULE_EMAILS = [
+    'pharmacistdepart@planetdrugstore.ph',
+    'billingdepart@planetdrugstore.ph',
+    'informationdepart@planetdrugstore.ph'
+  ];
 
-  // Only the Event Schedule account belongs on this page — anyone else
-  // (not signed in, or signed in as a different account) gets sent back
-  // to the shared login page. We check ONCE via authStateReady() instead
-  // of an onAuthStateChanged listener — a live listener here can fire on
-  // a transient/stale state while the session is still being restored
-  // from storage, which was the cause of the admin-login <-> this page
-  // redirect loop.
+  // Only the accounts above belong on this page — anyone else (not signed
+  // in, or signed in as a different account) gets sent back to the shared
+  // login page. We check ONCE via authStateReady() instead of an
+  // onAuthStateChanged listener — a live listener here can fire on a
+  // transient/stale state while the session is still being restored from
+  // storage, which was the cause of the admin-login <-> this page redirect
+  // loop.
   await auth.authStateReady();
   const currentUser = auth.currentUser;
-  if(!currentUser || (currentUser.email || '').toLowerCase() !== EVENT_SCHEDULE_EMAIL){
+  if(!currentUser || !EVENT_SCHEDULE_EMAILS.includes((currentUser.email || '').toLowerCase())){
     window.location.replace('admin-login.html');
   }
 
