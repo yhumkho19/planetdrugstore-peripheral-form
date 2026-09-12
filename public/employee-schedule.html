@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Deployment Roster — Medical &amp; People's Day</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #EEF1FA;
@@ -460,6 +460,40 @@
   .date-tab.active .tab-badge { background: rgba(255,255,255,0.18); color: #fff; }
   .tab-badge.ok { background: var(--ok-soft); color: var(--ok); }
   .date-tab.active .tab-badge.ok { background: rgba(255,255,255,0.18); color: #fff; }
+  .branch-marker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: #e8eefc;
+    color: #28539a;
+    white-space: nowrap;
+  }
+  .branch-marker.south { background: #fff0d8; color: #965b00; }
+  .date-tab.active .branch-marker { background: rgba(255,255,255,0.2); color: #fff; }
+  .branch-container {
+    grid-column: 1 / -1;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 14px;
+    background: rgba(255,255,255,.65);
+  }
+  .branch-container + .branch-container { margin-top: 18px; }
+  .branch-container-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .branch-container-head.north { color: #28539a; }
+  .branch-container-head.south { color: #965b00; }
+  .branch-container-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 22px 18px; }
+  .notification-focus { animation: notificationFocus 2.2s ease; }
+  @keyframes notificationFocus { 0%, 100% { box-shadow: var(--shadow-sm); } 20%, 70% { box-shadow: 0 0 0 4px rgba(214,31,44,.35), 0 12px 28px rgba(214,31,44,.22); } }
 
   .card-status {
     font-family: 'IBM Plex Mono', monospace;
@@ -1414,6 +1448,80 @@
     .modal-actions { justify-content: stretch; }
     .modal-actions button { flex: 1 1 auto; }
   }
+  /* ---------- Planet Drugstore visual theme ---------- */
+  :root {
+    --bg: #FAF6F5;
+    --surface: #FFFFFF;
+    --surface-dim: #FFF1F1;
+    --ink: #2A1416;
+    --ink-muted: #7A5B5D;
+    --ink-faint: #B58D90;
+    --border: #E6D5D6;
+    --signal: #D61F2C;
+    --signal-dark: #A5151F;
+    --signal-soft: #FBE7E9;
+    --danger: #D61F2C;
+    --danger-soft: #FBE7E9;
+    --ok: #1F8A4C;
+    --ok-soft: #E3F4E9;
+    --sidebar-bg: #3D0A10;
+    --sidebar-bg-hi: #6E1620;
+    --sidebar-ink: #F6DADC;
+    --sidebar-ink-dim: #D7AEB1;
+    --stat-blue: #D61F2C;
+    --stat-blue-soft: #FBE7E9;
+    --stat-green: #1F8A4C;
+    --stat-green-soft: #E3F4E9;
+    --stat-purple: #A5151F;
+    --stat-purple-soft: #FBE7E9;
+  }
+  body {
+    background:
+      radial-gradient(900px 420px at 100% -10%, rgba(214,31,44,.10), transparent 60%),
+      var(--bg);
+    font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
+    color: var(--ink);
+  }
+  h1, h2, h3, .sidebar-logo .label, .bracket-date {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  }
+  .sidebar {
+    background:
+      radial-gradient(300px 240px at 100% 100%, rgba(214,31,44,.35), transparent 70%),
+      linear-gradient(165deg, #6E1620, var(--sidebar-bg));
+    box-shadow: 8px 0 28px rgba(61,10,16,.12);
+  }
+  .sidebar-nav a.active {
+    background: #D61F2C;
+    box-shadow: 0 8px 18px rgba(214,31,44,.32);
+  }
+  .topbar { background: rgba(250,246,245,.92); backdrop-filter: blur(12px); }
+  .content-scroll { max-width: 1480px; }
+  .page-head h1 { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; color: #3D0A10; }
+  .stats .stat, .site-card, .admin-chip {
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 24px rgba(110,22,32,.08);
+  }
+  .site-card { border-radius: 18px; }
+  .site-card:hover { box-shadow: 0 16px 34px rgba(110,22,32,.14); }
+  .btn.primary {
+    background: linear-gradient(135deg, #D61F2C, #A5151F);
+    border-color: #A5151F;
+    box-shadow: 0 10px 22px rgba(214,31,44,.22);
+  }
+  .btn.primary:hover { background: #A5151F; }
+  .date-tab.active, .filter-btn.active[data-filter="all"] {
+    background: #6E1620;
+    border-color: #6E1620;
+  }
+  .staff-row input.nameInput { background: #FFF9F9; border-color: var(--border); }
+  .staff-row input.nameInput:focus { border-color: #D61F2C; box-shadow: 0 0 0 3px rgba(214,31,44,.10); }
+  .urgent-banner { background: #FBE7E9; border-color: #D61F2C; }
+  .modal-box { border-color: var(--border); box-shadow: 0 24px 54px rgba(61,10,16,.22); }
+  @media (max-width: 620px) {
+    .topbar { background: var(--bg); }
+    .site-card { border-radius: 16px; }
+  }
 </style>
 </head>
 <body class="is-ready">
@@ -1594,7 +1702,7 @@ function setModalIcon(kind) {
   appModalIcon.style.animation = "";
 }
 
-function showAlert(message, kind) {
+function showAlert(message, kind, siteTarget) {
   return new Promise(resolve => {
     setModalIcon(kind || (/fail|error|can'?t|cannot/i.test(message) ? "warn" : "ok"));
     appModalMessage.textContent = message;
@@ -1604,6 +1712,25 @@ function showAlert(message, kind) {
     okBtn.textContent = "OK";
     okBtn.addEventListener("click", () => { closeModal(); resolve(); });
     appModalActions.appendChild(okBtn);
+    if (siteTarget && siteTarget.cardId) {
+      const viewBtn = document.createElement("button");
+      viewBtn.className = "secondary";
+      viewBtn.textContent = "View assigned site";
+      viewBtn.addEventListener("click", () => {
+        closeModal();
+        const tab = document.querySelector(`.date-tab[data-datekey="${escapeAttr(siteTarget.date || "")}"]`);
+        if (tab && !tab.classList.contains("active")) tab.click();
+        setTimeout(() => {
+          const card = document.querySelector(`.site-card[data-card-id="${escapeAttr(siteTarget.cardId)}"]`);
+          if (!card) return;
+          card.scrollIntoView({ behavior: "smooth", block: "center" });
+          card.classList.add("notification-focus");
+          setTimeout(() => card.classList.remove("notification-focus"), 2200);
+        }, 80);
+        resolve();
+      });
+      appModalActions.appendChild(viewBtn);
+    }
     appModal.classList.add("open");
     okBtn.focus();
   });
@@ -1758,6 +1885,22 @@ const db = initializeFirestore(fbApp, {
 });
 // Single shared doc that "Send" overwrites and employees read live.
 const scheduleDocRef = doc(db, "eventSchedule", "current");
+
+// Employee self-service writes must update the published roster without
+// accidentally publishing unrelated pharmacist drafts (such as cancellation).
+function publishedCardsWithRosterChanges(data, liveCards) {
+  const published = Array.isArray(data.employeeCards) ? data.employeeCards : liveCards;
+  const publishedById = new Map(published.map(card => [card.id, card]));
+  return liveCards.map(card => {
+    const publishedCard = publishedById.get(card.id);
+    if (!publishedCard) return card;
+    return {
+      ...publishedCard,
+      staff: card.staff,
+      relievers: card.relievers
+    };
+  });
+}
 // Same "employees" collection admin-console.html registers accounts into
 // (doc id = staffId.toLowerCase(), fields include name/department), read
 // here only to resolve each participant's branch + team for the leaderboard.
@@ -1860,9 +2003,9 @@ const ROLE_LABELS = [
 // Choices offered in each role field's dropdown.
 const ROLE_OPTIONS = ["PHARMACIST", "PICKER", "ENCODER", "BILLING", "IT SPECIALIST"];
 
-// Store Reliever duty is Pharmacy Assistant work only — every reliever row
-// is simply "PHARMACY ASSISTANT", no separate Picker/Encoder distinction.
-const RELIEVER_ROLE_OPTIONS = ["PHARMACY ASSISTANT"];
+// Store Reliever rows display as Pharmacy Assistant work. Pharmacy Assistant
+// and Billing employees may both sign up to cover those rows.
+const RELIEVER_ROLE_OPTIONS = ["PHARMACY ASSISTANT", "BILLING"];
 
 // Default "Store Reliever" fields for a new site card — covers the store
 // roles left behind when their usual staff join the Event Team above.
@@ -1890,7 +2033,7 @@ function adminStaffRowHtml(s, sIdx, listKey, card) {
         ${roleOptionsHtml(s.label, listKey)}
       </select>
       <div style="flex:1;min-width:0;">
-        <input type="text" class="nameInput" style="width:100%;" list="roleNameList-${slug(s.label)}" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" placeholder="${s.emergency ? "URGENT — needs replacement" : (listKey === "relievers" ? "Assign reliever name" : "Assign staff name")}" value="${escapeAttr(s.name)}">
+        <input type="text" class="nameInput" style="width:100%;" list="roleNameList-${slug(s.label)}" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" placeholder="${s.emergency ? "URGENT — needs replacement" : (listKey === "relievers" ? "NO RELIEVER YET" : "Assign staff name")}" value="${escapeAttr(s.name)}">
         ${listKey === "relievers" ? `<input type="text" class="siteInput" list="siteNameList" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" placeholder="Store to relieve — e.g. Branch X" value="${escapeAttr(s.site || "")}">` : ""}
         ${s.emergency ? `<span class="emergency-note">🚨 ${escapeHtml(s.emergencyBy || "Employee")} reported unavailable (emergency) — needs replacement</span>` : ""}
       </div>
@@ -1978,7 +2121,7 @@ cards.forEach(c => {
     s.name = (s.name || "").toUpperCase();
     if (s.site === undefined) s.site = "";
   });
-  // Store Reliever duty is Pharmacy Assistant only — drop any leftover
+  // Store Reliever rows display as Pharmacy Assistant duty — drop any leftover
   // PHARMACIST/BILLING/IT SPECIALIST reliever rows from older cards, and
   // relabel whatever's left (old PICKER/ENCODER entries) to a single
   // "PHARMACY ASSISTANT" role, since there's no longer a Picker/Encoder
@@ -1986,9 +2129,14 @@ cards.forEach(c => {
   // (no name AND no site) from before Store Reliever rows were auto-added
   // per Picker/Encoder signup — a blank, site-less row is meaningless now.
   c.relievers = c.relievers
-    .filter(s => roleToTeam(s.label).toUpperCase() === "PHARMACY ASSISTANT")
+    .filter(s => ["PHARMACY ASSISTANT", "BILLING"].includes(roleToTeam(s.label).toUpperCase()))
     .filter(s => (s.name || "").trim() || (s.site || "").trim())
-    .map(s => ({ ...s, label: "PHARMACY ASSISTANT" }));
+    .map(s => ({
+      ...s,
+      label: (s.name || "").trim()
+        ? (roleToTeam(s.label).toUpperCase() === "BILLING" ? "BILLING" : "PHARMACY ASSISTANT")
+        : ""
+    }));
 });
 
 function saveCards() {
@@ -2255,6 +2403,15 @@ function groupCardsByDate(items) {
   return keys.map(key => ({ date: key, items: groups.get(key) }));
 }
 
+function branchMarkersForGroup(group) {
+  const branches = [...new Set(group.items
+    .map(({ card }) => card.region === "north" ? "NORTH" : card.region === "south" ? "SOUTH" : "")
+    .filter(Boolean))];
+  return branches.map(branch =>
+    `<span class="branch-marker ${branch.toLowerCase()}">${branch}</span>`
+  ).join("");
+}
+
 // Counts how many staff slots are still unfilled across a date bracket's
 // items. Works for both {card, idx} (admin) and {card} (employee) entries.
 function bracketOpenCount(items) {
@@ -2336,7 +2493,7 @@ function render() {
     tab.className = "date-tab" + (group.date === adminSelectedDate ? " active" : "") + (openCount > 0 ? " has-open" : "");
     tab.dataset.datekey = group.date || "";
     const label = group.date ? formatDateDisplay(group.date) : "Unscheduled";
-    tab.innerHTML = `${escapeHtml(label)} (${group.items.length})` +
+    tab.innerHTML = `${escapeHtml(label)} (${group.items.length}) ${branchMarkersForGroup(group)}` +
       (openCount > 0
         ? `<span class="tab-badge">${openCount} open</span>`
         : `<span class="tab-badge ok">✓ full</span>`);
@@ -2412,6 +2569,8 @@ function render() {
 
       const cardEl = document.createElement("div");
       cardEl.className = "site-card" + (card.cancelled ? " is-cancelled" : "");
+      cardEl.dataset.cardId = card.id;
+      cardEl.dataset.date = card.date || "";
       cardEl.dataset.region = card.region;
       cardEl.dataset.cardId = card.id;
 
@@ -2814,14 +2973,13 @@ function render() {
   updateStats();
 }
 
-// Read-only view shown to a logged-in employee: only sites matching their
-// own branch (south/north), no editing controls.
+// Read-only view shown to a logged-in employee. Employees can review every
+// published branch because department heads may deploy them to another site.
 function renderEmployeeSchedule(scheduleCards, branch) {
-  const branchLabel = branch === "south" ? "South Caloocan" : "North Caloocan";
   const headSub = document.querySelector(".page-head p");
-  if (headSub) headSub.textContent = `Deployment schedule for ${branchLabel} only.`;
+  if (headSub) headSub.textContent = "Deployment schedule for all branches.";
 
-  const filtered = (scheduleCards || []).filter(c => c.region === branch);
+  const filtered = scheduleCards || [];
 
   // Find the one slot (if any) this employee currently holds — Event Team
   // OR Store Reliever, across every branch/date. An employee can only hold
@@ -2832,7 +2990,7 @@ function renderEmployeeSchedule(scheduleCards, branch) {
     for (const listKey of ["staff", "relievers"]) {
       const list = c[listKey] || [];
       for (let i = 0; i < list.length; i++) {
-        if (employeeSession && list[i].filledByStaffId === employeeSession.staffId) {
+        if (slotBelongsToEmployee(list[i])) {
           myActiveSlot = { cardId: c.id, list: listKey, sIdx: i };
           return true;
         }
@@ -2859,7 +3017,7 @@ function renderEmployeeSchedule(scheduleCards, branch) {
     grid.innerHTML = `<div class="empty-state">
         <span class="stub">🎟️</span>
         <h2>Nothing posted yet</h2>
-        <p>No schedule has been sent yet for ${escapeHtml(branchLabel)}. Check back once the admin publishes the roster.</p>
+        <p>No schedule has been sent yet. Check back once the admin publishes the roster.</p>
       </div>`;
     return;
   }
@@ -2881,8 +3039,9 @@ function renderEmployeeSchedule(scheduleCards, branch) {
     tab.type = "button";
     const openCount = bracketOpenCount(group.items);
     tab.className = "date-tab" + (group.date === employeeSelectedDate ? " active" : "") + (openCount > 0 ? " has-open" : "");
+    tab.dataset.datekey = group.date || "";
     const label = group.date ? formatDateDisplay(group.date) : "Unscheduled";
-    tab.innerHTML = `${escapeHtml(label)} (${group.items.length})` +
+    tab.innerHTML = `${escapeHtml(label)} (${group.items.length}) ${branchMarkersForGroup(group)}` +
       (openCount > 0
         ? `<span class="tab-badge">${openCount} open</span>`
         : `<span class="tab-badge ok">✓ full</span>`);
@@ -2898,6 +3057,20 @@ function renderEmployeeSchedule(scheduleCards, branch) {
   const bracketGrid = document.createElement("div");
   bracketGrid.className = "bracket-grid";
   grid.appendChild(bracketGrid);
+
+  const branchSections = new Map();
+  ["north", "south"].forEach(branchKey => {
+    const branchItems = activeGroup.items.filter(({ card }) => card.region === branchKey);
+    if (!branchItems.length) return;
+    const section = document.createElement("section");
+    section.className = `branch-container ${branchKey}`;
+    section.innerHTML = `<h3 class="branch-container-head ${branchKey}">${branchKey === "north" ? "NORTH" : "SOUTH"} BRANCH</h3>`;
+    const sectionGrid = document.createElement("div");
+    sectionGrid.className = "branch-container-grid";
+    section.appendChild(sectionGrid);
+    bracketGrid.appendChild(section);
+    branchSections.set(branchKey, sectionGrid);
+  });
 
   activeGroup.items.forEach(({ card }, idx) => {
     const cardEl = document.createElement("div");
@@ -2952,7 +3125,7 @@ function renderEmployeeSchedule(scheduleCards, branch) {
         if (!isRoleAllowedForEmployee(roleLabel, btnListKey)) {
           const { team: myTeam } = employeeSession ? splitDepartmentClient(employeeSession.department) : { team: "—" };
           if (btnListKey === "relievers") {
-            await showAlert(`You can't sign up here. Store Reliever duty is for Pharmacy Assistant only, and your department is ${myTeam}.`);
+            await showAlert(`You can't sign up here. Store Reliever duty is for Pharmacy Assistant or Billing employees, and your department is ${myTeam}.`);
           } else {
             await showAlert(`You can't sign up here. This is a "${roleLabel}" role only, and your department is ${myTeam}.`);
           }
@@ -2975,7 +3148,8 @@ function renderEmployeeSchedule(scheduleCards, branch) {
         markUnavailable(btn.dataset.cardId, btn.dataset.list || "staff", parseInt(btn.dataset.sidx, 10), btn);
       });
     });
-    bracketGrid.appendChild(cardEl);
+    const sectionGrid = branchSections.get(card.region);
+    (sectionGrid || bracketGrid).appendChild(cardEl);
   });
 }
 
@@ -2984,13 +3158,17 @@ function renderEmployeeSchedule(scheduleCards, branch) {
 // leave / unavailable controls, scoped by listKey.
 function employeeStaffRowHtml(s, sIdx, listKey, card, myActiveSlot, cancelled) {
   const filled = (s.name || "").trim().length > 0;
-  const isMine = filled && employeeSession && s.filledByStaffId === employeeSession.staffId;
+  const isMine = filled && slotBelongsToEmployee(s);
   const isEmergencyOpen = !filled && s.emergency;
+  const blockedByOtherSlot = !filled && !!myActiveSlot &&
+    !(myActiveSlot.cardId === card.id && myActiveSlot.list === listKey && myActiveSlot.sIdx === sIdx);
+  const displayLabel = listKey === "relievers" ? relieverDisplayLabel(s) : s.label;
+  const allowed = isRoleAllowedForEmployee(s.label, listKey);
   return `
     <div class="staff-row${isEmergencyOpen ? " emergency" : ""}">
       <span class="status-dot ${filled ? "filled" : ""}"></span>
       <span style="min-width:120px;color:var(--ink-muted);font-size:12px;">
-        ${escapeHtml(s.label)}
+        ${escapeHtml(blockedByOtherSlot && allowed ? "Already assigned — department transfer required" : displayLabel)}
         ${listKey === "relievers" && (s.site || "").trim() ? `<span class="reliever-site-tag">📍 ${escapeHtml(s.site)}</span>` : ""}
         ${isEmergencyOpen ? `<span class="emergency-note">🚨 Previously: ${escapeHtml(s.emergencyBy || "Employee")} — unavailable</span>` : ""}
       </span>
@@ -3008,12 +3186,11 @@ function employeeStaffRowHtml(s, sIdx, listKey, card, myActiveSlot, cancelled) {
             if (cancelled) {
               return `<button type="button" class="claim-btn blocked" disabled title="This event has been cancelled">Cancelled</button>`;
             }
-            const allowed = isRoleAllowedForEmployee(s.label, listKey);
             const blockedByOtherSlot = !!myActiveSlot && !(myActiveSlot.cardId === card.id && myActiveSlot.list === listKey && myActiveSlot.sIdx === sIdx);
             const label = isEmergencyOpen ? "🚨 Take slot (URGENT)" : (listKey === "relievers" ? "+ Sign up as reliever" : "+ Sign me up");
-            const restrictionLabel = listKey === "relievers" ? "Pharmacy Assistant" : roleToTeam(s.label);
+            const restrictionLabel = listKey === "relievers" ? "Pharmacy Assistant or Billing" : roleToTeam(s.label);
             if (blockedByOtherSlot) {
-              return `<button type="button" class="claim-btn blocked" disabled title="You're already signed up for another slot — leave it first to sign up here">${label}</button>`;
+              return `<button type="button" class="claim-btn blocked" disabled title="You already have an assignment. Only the department can move you to another site.">${label}</button>`;
             }
             return `<button type="button" class="claim-btn${allowed ? "" : " blocked"}${isEmergencyOpen && allowed ? " urgent" : ""}" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" data-role-label="${escapeAttr(s.label)}"${allowed ? "" : ` title="This is for ${escapeAttr(restrictionLabel)} only"`}>${label}</button>`;
           })()
@@ -3035,6 +3212,23 @@ function escapeHtml(str) {
 // participant's branch (south/north) and team (IT / BILLING / Pharmacy
 // Assistant) for the leaderboard cards below.
 let employeesMap = new Map();
+
+function relieverDisplayLabel(slot) {
+  if (!(slot && (slot.name || "").trim())) return "";
+  const employee = slot.filledByStaffId
+    ? employeesMap.get(String(slot.filledByStaffId).trim().toLowerCase())
+    : [...employeesMap.values()].find(data =>
+        String((data && data.name) || "").trim().toUpperCase() === String(slot.name).trim().toUpperCase()
+      );
+  const employeeTeam = employee
+    ? roleToTeam(splitDepartmentClient(employee.department).team).toUpperCase()
+    : "";
+  const storedTeam = roleToTeam(slot.relieverDepartment || "").toUpperCase();
+  const labelTeam = roleToTeam(slot.label).toUpperCase();
+  return employeeTeam === "BILLING" || storedTeam === "BILLING" || labelTeam === "BILLING"
+    ? "BILLING"
+    : "PHARMACY ASSISTANT";
+}
 // Last full (unfiltered, both branches) schedule cards seen, so the
 // leaderboard can be re-rendered whenever either the schedule or the
 // employees list changes, without waiting for the other to also change.
@@ -3069,9 +3263,9 @@ function roleToTeam(label) {
 // Whether the currently logged-in employee's own department matches the
 // team a given role slot belongs to. Used to block signing up for roles
 // outside your own department (e.g. a BILLING employee can't sign up for
-// a PHARMACIST slot). Store Reliever ("relievers") slots are Pharmacy
-// Assistant duty only, regardless of the slot's role label — a Pharmacist,
-// Billing, or IT employee is never allowed to sign up as a store reliever.
+// a PHARMACIST slot). Store Reliever ("relievers") slots may be covered by
+// Pharmacy Assistant or Billing employees, regardless of the display role
+// label on the reliever row.
 function isRoleAllowedForEmployee(label, listKey) {
   if (!employeeSession) return false;
   const { team } = splitDepartmentClient(employeeSession.department);
@@ -3081,9 +3275,20 @@ function isRoleAllowedForEmployee(label, listKey) {
   // the broader "Pharmacy Assistant" label.
   const normalizedTeam = roleToTeam(team).toUpperCase();
   if (listKey === "relievers") {
-    return normalizedTeam === "PHARMACY ASSISTANT";
+    return normalizedTeam === "PHARMACY ASSISTANT" || normalizedTeam === "BILLING";
   }
   return normalizedTeam === roleToTeam(label).toUpperCase();
+}
+
+function normalizedEmployeeName(value) {
+  return String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function slotBelongsToEmployee(slot) {
+  if (!employeeSession || !slot) return false;
+  const staffId = String(employeeSession.staffId || "").trim().toLowerCase();
+  if (staffId && String(slot.filledByStaffId || "").trim().toLowerCase() === staffId) return true;
+  return normalizedEmployeeName(slot.name) === normalizedEmployeeName(employeeSession.name);
 }
 
 // Finds an employee record in employeesMap whose registered name matches
@@ -3535,12 +3740,12 @@ async function claimSlot(cardId, listKey, staffIdx, btn) {
       if ((slot.name || "").trim()) throw new Error("Someone already signed up here before you. Try refreshing.");
       if (!isRoleAllowedForEmployee(slot.label, listKey)) {
         throw new Error(listKey === "relievers"
-          ? "You can't sign up here. Store Reliever duty is for Pharmacy Assistant only."
+          ? "You can't sign up here. Store Reliever duty is for Pharmacy Assistant or Billing employees."
           : `You can't sign up here. This is a "${slot.label}" role only.`);
       }
       const alreadyHasSlot = remoteCards.some(c =>
-        (c.staff || []).some(s => s.filledByStaffId === employeeSession.staffId) ||
-        (c.relievers || []).some(s => s.filledByStaffId === employeeSession.staffId)
+        (c.staff || []).some(slotBelongsToEmployee) ||
+        (c.relievers || []).some(slotBelongsToEmployee)
       );
       if (alreadyHasSlot) throw new Error("You're already signed up for another slot. Leave that one first before signing up here.");
 
@@ -3560,6 +3765,14 @@ async function claimSlot(cardId, listKey, staffIdx, btn) {
 
       staffArr[staffIdx] = {
         ...slot,
+        label: listKey === "relievers"
+          ? (splitDepartmentClient(employeeSession.department).team.toUpperCase() === "BILLING"
+            ? "BILLING"
+            : "PHARMACY ASSISTANT")
+          : slot.label,
+        relieverDepartment: listKey === "relievers"
+          ? splitDepartmentClient(employeeSession.department).team
+          : (slot.relieverDepartment || null),
         name: (employeeSession.name || "").toUpperCase(),
         filledByStaffId: employeeSession.staffId,
         emergency: false,
@@ -3578,7 +3791,12 @@ async function claimSlot(cardId, listKey, staffIdx, btn) {
         });
         remoteCards[cIdx] = { ...remoteCards[cIdx], relievers: relieversArr };
       }
-      tx.set(scheduleDocRef, { cards: remoteCards, sentAt: serverTimestamp(), sentBy: data.sentBy || "admin" });
+      tx.set(scheduleDocRef, {
+        cards: scrubUndefined(remoteCards),
+        employeeCards: scrubUndefined(publishedCardsWithRosterChanges(data, remoteCards)),
+        sentAt: serverTimestamp(),
+        sentBy: data.sentBy || "admin"
+      });
     });
     // The slot may have been an emergency vacancy — clear any matching
     // open notification now that someone has covered it.
@@ -3644,7 +3862,12 @@ async function markUnavailable(cardId, listKey, staffIdx, btn) {
           remoteCards[cIdx] = { ...remoteCards[cIdx], relievers: relieversArr };
         }
       }
-      tx.set(scheduleDocRef, { cards: remoteCards, sentAt: serverTimestamp(), sentBy: data.sentBy || "admin" });
+      tx.set(scheduleDocRef, {
+        cards: scrubUndefined(remoteCards),
+        employeeCards: scrubUndefined(publishedCardsWithRosterChanges(data, remoteCards)),
+        sentAt: serverTimestamp(),
+        sentBy: data.sentBy || "admin"
+      });
       notifyPayload = {
         cardId,
         list: listKey,
@@ -3735,7 +3958,12 @@ async function adminRemoveEmployeeFromSlot(cardId, listKey, staffIdx, btn) {
           remoteCards[cIdx] = { ...remoteCards[cIdx], relievers: relieversArr };
         }
       }
-      tx.set(scheduleDocRef, { cards: remoteCards, sentAt: serverTimestamp(), sentBy: data.sentBy || "admin" });
+      tx.set(scheduleDocRef, {
+        cards: scrubUndefined(remoteCards),
+        employeeCards: scrubUndefined(publishedCardsWithRosterChanges(data, remoteCards)),
+        sentAt: serverTimestamp(),
+        sentBy: data.sentBy || "admin"
+      });
       if (removedStaffId) {
         notifyPayload = {
           type: "removed",
@@ -3815,7 +4043,12 @@ async function unclaimSlot(cardId, listKey, staffIdx, btn) {
           remoteCards[cIdx] = { ...remoteCards[cIdx], relievers: relieversArr };
         }
       }
-      tx.set(scheduleDocRef, { cards: remoteCards, sentAt: serverTimestamp(), sentBy: data.sentBy || "admin" });
+      tx.set(scheduleDocRef, {
+        cards: scrubUndefined(remoteCards),
+        employeeCards: scrubUndefined(publishedCardsWithRosterChanges(data, remoteCards)),
+        sentAt: serverTimestamp(),
+        sentBy: data.sentBy || "admin"
+      });
     });
   } catch (err) {
     await showAlert(err.message || "Failed to save. Please try again.");
@@ -3861,7 +4094,7 @@ async function sendAllToEmployees(btn) {
         `The "emergencyNotifications" collection's Firestore Security Rules may not allow the new notification types (dateChanged/eventUpdated). Please check the rules or message the developer.`
       );
     }
-    await showAlert("Schedule sent to employees. South will only see South, North will only see North.");
+    await showAlert("Schedule sent to employees. Employees can now view all branches.");
   } catch (err) {
     await showAlert("Saved to your browser, but not sent online: " + err.message);
   } finally {
@@ -4238,7 +4471,8 @@ function renderNotifPanel(items) {
     const isSiteRemoved = n.type === "siteRemoved";
     const isEventCancelled = n.type === "eventCancelled";
     const isEventReinstated = n.type === "eventReinstated";
-    const isPersonalNotice = isRemoved || isBranchChanged || isDateChanged || isEventUpdated || isEventDeleted || isSiteRemoved || isEventCancelled || isEventReinstated;
+    const isSlotAssigned = n.type === "slotAssigned";
+    const isPersonalNotice = isRemoved || isBranchChanged || isDateChanged || isEventUpdated || isEventDeleted || isSiteRemoved || isEventCancelled || isEventReinstated || isSlotAssigned;
     let title, statusLine, btnLabel;
     if (isRemoved) {
       title = `🔔 You've been removed from this slot`;
@@ -4274,6 +4508,10 @@ function renderNotifPanel(items) {
       title = `🔔 This event is back on`;
       statusLine = `The Event Team reinstated this event — you're good to go as scheduled.`;
       btnLabel = "Got it";
+    } else if (isSlotAssigned) {
+      title = `📌 You were assigned to this event slot`;
+      statusLine = `The event team added your name to this role.`;
+      btnLabel = "Got it";
     } else if (isResolved) {
       title = `✅ ${escapeHtml(n.backupName || "A teammate")} — FOR BACKUP`;
       statusLine = `Backing up for ${escapeHtml(n.employeeName || "the previous employee")}.`;
@@ -4306,7 +4544,7 @@ function renderUrgentBanner(items) {
   const banner = document.getElementById("urgentBanner");
   if (!banner) return;
   if (employeeSession) { banner.style.display = "none"; banner.innerHTML = ""; return; }
-  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "eventDeleted", "siteRemoved", "eventCancelled", "eventReinstated"];
+  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "eventDeleted", "siteRemoved", "eventCancelled", "eventReinstated", "slotAssigned", "siteMoved"];
   const openItems = items.filter(n => !n.resolved && !personalTypes.includes(n.type));
   if (!openItems.length) { banner.style.display = "none"; banner.innerHTML = ""; return; }
   banner.style.display = "block";
@@ -4327,27 +4565,58 @@ function renderUrgentBanner(items) {
 // notified.
 function getRelevantNotifications(items) {
   // "removed"/"branchChanged"/"dateChanged"/"eventUpdated"/"eventDeleted"/
-  // "siteRemoved" are all personal, addressed-to-one-employee notices — the
+  // "siteRemoved"/"slotAssigned" are all personal, addressed-to-one-employee notices — the
   // admin already knows they made the change, so none of these belong in
   // the Event Team's own bell/panel. Admins still see every open
   // emergency-vacancy ("unavailable") notification.
-  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "eventDeleted", "siteRemoved", "eventCancelled", "eventReinstated"];
+  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "eventDeleted", "siteRemoved", "eventCancelled", "eventReinstated", "slotAssigned", "siteMoved"];
   if (!employeeSession) {
     return items.filter(n => !personalTypes.includes(n.type));
   }
   const myTeam = splitDepartmentClient(employeeSession.department).team;
+  const myStaffId = String(employeeSession.staffId || "").trim().toLowerCase();
   return items.filter(n => {
     // Personal notices are addressed to the one employee whose slot was
     // taken away, moved, updated, or removed entirely — so show them to
     // that employee specifically, regardless of team/branch (unlike
     // "emergency" ones, which broadcast to teammates who could cover the
     // vacancy and never show up for the reporter).
-    if (personalTypes.includes(n.type)) return n.staffId === employeeSession.staffId;
+    if (personalTypes.includes(n.type)) {
+      return String(n.staffId || "").trim().toLowerCase() === myStaffId;
+    }
     return (
-      n.staffId !== employeeSession.staffId &&
+      String(n.staffId || "").trim().toLowerCase() !== myStaffId &&
       n.region === employeeSession.branch &&
       roleToTeam(n.role).toUpperCase() === String(myTeam).toUpperCase()
     );
+  });
+}
+
+function latestPersonalNotifications(items) {
+  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "eventDeleted", "siteRemoved", "eventCancelled", "eventReinstated", "slotAssigned", "siteMoved"];
+  const latestBySlot = new Map();
+  const ordered = [...items].sort((a, b) => {
+    const toMillis = value => {
+      if (!value) return 0;
+      if (typeof value.toMillis === "function") return value.toMillis();
+      if (value instanceof Date) return value.getTime();
+      const parsed = Date.parse(value);
+      return Number.isNaN(parsed) ? 0 : parsed;
+    };
+    return toMillis(b.createdAt) - toMillis(a.createdAt);
+  });
+  return ordered.filter(notification => {
+    if (!personalTypes.includes(notification.type)) return true;
+    // Prefer the exact slot when newer records include staffIdx. The
+    // role/location fallback keeps older records from appearing as separate
+    // historical states.
+    const slot = notification.staffIdx !== undefined
+      ? `index:${notification.staffIdx}`
+      : `legacy:${notification.role || ""}:${notification.location || ""}`;
+    const key = `${notification.cardId || ""}:${notification.list || "staff"}:${slot}`;
+    if (latestBySlot.has(key)) return false;
+    latestBySlot.set(key, notification);
+    return true;
   });
 }
 
@@ -4371,9 +4640,11 @@ function getRelevantNotifications(items) {
 //     notices now always alert once, checked against this persisted set,
 //     regardless of whether it's the first snapshot this session.
 let seenNotificationIds = null;
-const personalNotifTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "eventDeleted", "siteRemoved", "eventCancelled", "eventReinstated"];
+const personalNotifTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "eventDeleted", "siteRemoved", "eventCancelled", "eventReinstated", "slotAssigned", "siteMoved"];
 function alertedPersonalNotifIdsKey() {
-  return (employeeSession && employeeSession.staffId) ? `pdAlertedPersonalNotifIds_${employeeSession.staffId}` : null;
+  return (employeeSession && employeeSession.staffId)
+    ? `pdAlertedPersonalNotifIds_${String(employeeSession.staffId).trim().toLowerCase()}`
+    : null;
 }
 function loadAlertedPersonalNotifIds() {
   const key = alertedPersonalNotifIdsKey();
@@ -4397,23 +4668,29 @@ onSnapshot(
     // Keep resolved items too now (they're no longer deleted on cover) so
     // the panel can still show the green "FOR BACKUP" state.
     latestNotifications = all;
-    const relevant = getRelevantNotifications(latestNotifications);
+    const relevant = latestPersonalNotifications(getRelevantNotifications(latestNotifications));
     renderNotifPanel(relevant);
     renderUrgentBanner(relevant);
 
     // Pop up a modal right in front of an employee who is actively on the
-    // page for any brand-new notification addressed to them — e.g. "you've
-    // been removed" or a fresh emergency vacancy on their own team — so
-    // they're aware immediately instead of only noticing the bell badge
-    // later. (The bell/panel above already covers the case where they're
-    // away from the page and check back afterwards.)
+    // page for any brand-new notification addressed to them — such as a new
+    // assignment or schedule change — so they're aware immediately instead
+    // of only noticing the bell badge later. Removal remains visible in the
+    // bell, but is not shown as a stale modal when the slot is empty.
     if (employeeSession) {
       const openRelevant = relevant.filter(n => !n.resolved);
-      const freshPersonal = openRelevant.filter(n => personalNotifTypes.includes(n.type) && !alertedPersonalNotifIds.has(n.id));
+      const freshPersonal = openRelevant.filter(n =>
+        personalNotifTypes.includes(n.type) &&
+        n.type !== "removed" &&
+        !alertedPersonalNotifIds.has(n.id)
+      );
       const freshBroadcast = seenNotificationIds !== null
         ? openRelevant.filter(n => !personalNotifTypes.includes(n.type) && !seenNotificationIds.has(n.id))
         : [];
-      const freshOnes = [...freshPersonal, ...freshBroadcast];
+      // Show only the newest personal state in one login session. Older
+      // assignment/removal records are still coalesced in the bell, but must
+      // never stack modal dialogs and confuse an employee about their status.
+      const freshOnes = [...freshPersonal.slice(0, 1), ...freshBroadcast];
       for (const n of freshOnes) {
         const isRemoved = n.type === "removed";
         const isBranchChanged = n.type === "branchChanged";
@@ -4423,9 +4700,13 @@ onSnapshot(
         const isSiteRemoved = n.type === "siteRemoved";
         const isEventCancelled = n.type === "eventCancelled";
         const isEventReinstated = n.type === "eventReinstated";
+        const isSlotAssigned = n.type === "slotAssigned";
+        const isSiteMoved = n.type === "siteMoved";
         const where = `${n.role || ""}${n.list === "relievers" ? " (Store Reliever)" : ""} at ${n.location || "site"}${n.date ? " — " + formatDateDisplay(n.date) : ""}${n.time ? ", " + n.time : ""}`;
         let message;
-        if (isRemoved) {
+        if (isSiteMoved) {
+          message = `📍 You were moved to a new event site: ${where}.\n\nYour previous assignment was cleared and this is now your active deployment.`;
+        } else if (isRemoved) {
           message = `You've been removed from your slot: ${where}.\n\nYou're free to sign up for another slot now.`;
         } else if (isBranchChanged) {
           message = `The event team is changed the branch for: ${where}.\n\nYour slot was cleared — you're free to sign up for another slot now.`;
@@ -4442,15 +4723,24 @@ onSnapshot(
           message = `The event team cancelled this event: ${where}.\n\nYou're still on the roster — nothing to show up for unless it's reinstated.`;
         } else if (isEventReinstated) {
           message = `Good news — this event is back on: ${where}.\n\nYou're good to go as scheduled.`;
+        } else if (isSlotAssigned) {
+          message = `📌 You were assigned to an event slot: ${where}.\n\nThe event team added your name to this role.`;
         } else {
           message = `🚨 Emergency vacancy just opened for your team: ${where}.\n\n${n.employeeName || "A teammate"} became unavailable — sign up below if you can cover.`;
         }
-        await showAlert(message);
+        await showAlert(message, undefined,
+          (isSiteMoved || isSlotAssigned) && n.cardId
+            ? { cardId: n.cardId, date: n.date || "" }
+            : null
+        );
         if (personalNotifTypes.includes(n.type)) {
           alertedPersonalNotifIds.add(n.id);
         }
       }
-      if (freshPersonal.length) saveAlertedPersonalNotifIds(alertedPersonalNotifIds);
+      if (freshPersonal.length) {
+        freshPersonal.forEach(n => alertedPersonalNotifIds.add(n.id));
+        saveAlertedPersonalNotifIds(alertedPersonalNotifIds);
+      }
       seenNotificationIds = new Set(openRelevant.map(n => n.id));
     }
   },
@@ -4545,18 +4835,24 @@ if (employeeSession) {
   let lastEmployeeAllCards = [];
   onSnapshot(scheduleDocRef, snap => {
     const data = snap.exists() ? snap.data() : { cards: [] };
-    // Store Reliever duty is Pharmacy Assistant only — strip any leftover
+    // Store Reliever rows display as Pharmacy Assistant duty — strip any leftover
     // PHARMACIST/BILLING/IT SPECIALIST reliever rows pushed from older data,
     // relabel any old PICKER/ENCODER entries to "PHARMACY ASSISTANT", and
     // drop empty leftover placeholder rows (no name AND no site) from
     // before Store Reliever rows were auto-added per Picker/Encoder signup —
     // before showing the roster to employees.
-    const allCards = (data.cards || []).map(c => ({
+    const publishedCards = Array.isArray(data.employeeCards) ? data.employeeCards : (data.cards || []);
+    const allCards = publishedCards.map(c => ({
       ...c,
       relievers: (c.relievers || [])
-        .filter(s => roleToTeam(s.label).toUpperCase() === "PHARMACY ASSISTANT")
+        .filter(s => ["PHARMACY ASSISTANT", "BILLING"].includes(roleToTeam(s.label).toUpperCase()))
         .filter(s => (s.name || "").trim() || (s.site || "").trim())
-        .map(s => ({ ...s, label: "PHARMACY ASSISTANT" }))
+        .map(s => ({
+          ...s,
+          label: (s.name || "").trim()
+            ? (roleToTeam(s.label).toUpperCase() === "BILLING" ? "BILLING" : "PHARMACY ASSISTANT")
+            : ""
+        }))
     }));
     lastEmployeeAllCards = allCards;
     renderEmployeeSchedule(allCards, employeeSession.branch);
@@ -4696,14 +4992,19 @@ if (employeeSession) {
       cards.push({
         ...remoteCard,
         staff: (remoteCard.staff || []).map(s => ({ ...s })),
-        // Store Reliever duty is Pharmacy Assistant only — drop any
+        // Store Reliever rows display as Pharmacy Assistant duty — drop any
         // leftover PHARMACIST/BILLING/IT SPECIALIST reliever rows, relabel
         // any old PICKER/ENCODER entries to "PHARMACY ASSISTANT", and drop
         // empty leftover placeholder rows (no name AND no site).
         relievers: (remoteCard.relievers || [])
-          .filter(s => roleToTeam(s.label).toUpperCase() === "PHARMACY ASSISTANT")
+          .filter(s => ["PHARMACY ASSISTANT", "BILLING"].includes(roleToTeam(s.label).toUpperCase()))
           .filter(s => (s.name || "").trim() || (s.site || "").trim())
-          .map(s => ({ ...s, label: "PHARMACY ASSISTANT" }))
+          .map(s => ({
+            ...s,
+            label: (s.name || "").trim()
+              ? (roleToTeam(s.label).toUpperCase() === "BILLING" ? "BILLING" : "PHARMACY ASSISTANT")
+              : ""
+          }))
       });
       structuralChange = true;
       affectedDates.add(remoteCard.date || "");
