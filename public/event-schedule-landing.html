@@ -313,7 +313,7 @@
 // bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
 // doesn't match what this tab is currently running — shows a small banner
 // instead of silently staying on stale code.
-const APP_VERSION = "2026-09-11.1";
+const APP_VERSION = "2026-09-12.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -321,7 +321,9 @@ function startVersionWatch() {
       if (!res.ok) return;
       const text = await res.text();
       const match = text.match(/const APP_VERSION = "([^"]+)"/);
-      if (match && match[1] !== APP_VERSION) showUpdateBanner();
+      if (match && match[1] !== APP_VERSION) {
+        window.location.replace("update-waiting.html?next=" + encodeURIComponent(location.pathname) + "&version=" + encodeURIComponent(match[1]));
+      }
     } catch (err) {
       // Offline or a network hiccup — just try again on the next tick.
     }

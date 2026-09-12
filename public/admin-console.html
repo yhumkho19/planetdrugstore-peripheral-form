@@ -179,22 +179,6 @@
   .logout-btn:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.55);transform:translateY(-1px);}
   .logout-btn:active{transform:translateY(0);}
 
-  /* ---- Notification bell (topbar) ---- */
-  .notif-bell-btn{
-    border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.06);color:#fff;border-radius:9px;
-    padding:8px 12px;font-size:15px;cursor:pointer;line-height:1;position:relative;
-    transition:background .15s ease,border-color .15s ease,transform .15s ease;
-  }
-  .notif-bell-btn:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.55);}
-  .notif-bell-btn.is-on{background:rgba(95,217,138,0.20);border-color:rgba(95,217,138,0.55);}
-  .notif-bell-btn.is-off{opacity:0.7;}
-  .notif-bell-btn.is-muted{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.35);opacity:0.75;}
-  .notif-bell-btn .dot{
-    position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;
-    background:#5FD98A;border:1.5px solid var(--maroon);display:none;
-  }
-  .notif-bell-btn.is-on .dot{display:block;}
-
   /* ---- New-save notification toasts ---- */
   .pd-toast-stack{
     position:fixed; top:16px; right:16px; z-index:99999;
@@ -1131,9 +1115,6 @@
     <div class="sidebar-footer">
       <div class="who">Signed in as<br><strong id="whoEmail">…</strong></div>
       <div class="sidebar-footer-actions">
-        <button class="notif-bell-btn is-off" id="notifBellBtn" title="Notify me when a peripheral form is saved">
-          🔔<span class="dot"></span>
-        </button>
         <button class="logout-btn" id="logoutBtn">🚪 Log Out</button>
       </div>
     </div>
@@ -1144,12 +1125,6 @@
     <div class="content-topbar">
       <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Open menu">☰</button>
       <h1 id="pageTitle">IT Admin Console — Peripherals Entries</h1>
-    </div>
-
-    <div class="notif-prompt-banner" id="notifPromptBanner">
-      <span>🔔 Gusto mo bang bigyan ka ng notification tuwing may mag-save ng Peripheral Form?</span>
-      <button type="button" class="notif-prompt-enable" id="notifPromptEnableBtn">Enable</button>
-      <button type="button" class="notif-prompt-dismiss" id="notifPromptDismissBtn">Not now</button>
     </div>
 
     <div class="pd-toast-stack" id="pdToastStack"></div>
@@ -1761,7 +1736,7 @@
 // bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
 // doesn't match what this tab is currently running — shows a small banner
 // instead of silently staying on stale code.
-const APP_VERSION = "2026-09-11.1";
+const APP_VERSION = "2026-09-12.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -1769,7 +1744,9 @@ function startVersionWatch() {
       if (!res.ok) return;
       const text = await res.text();
       const match = text.match(/const APP_VERSION = "([^"]+)"/);
-      if (match && match[1] !== APP_VERSION) showUpdateBanner();
+      if (match && match[1] !== APP_VERSION) {
+        window.location.replace("update-waiting.html?next=" + encodeURIComponent(location.pathname) + "&version=" + encodeURIComponent(match[1]));
+      }
     } catch (err) {
       // Offline or a network hiccup — just try again on the next tick.
     }
@@ -2142,7 +2119,6 @@ startVersionWatch();
     }
     document.getElementById('whoEmail').textContent = user.email;
     window.currentAdminEmail = user.email;
-    maybeShowNotifPrompt();
     loadEntries();
     startControlNosListener(); // start early too, so pfVenue/pfPreparedBy suggestions
                                 // are ready as soon as the Generate form is used —
@@ -2306,12 +2282,6 @@ startVersionWatch();
       toastStack.lastElementChild.remove();
     }
   }
-  notifBellBtn.addEventListener('click', requestNotifPermission);
-  document.getElementById('notifPromptEnableBtn').addEventListener('click', requestNotifPermission);
-  document.getElementById('notifPromptDismissBtn').addEventListener('click', ()=>{
-    notifPromptBanner.classList.remove('show');
-    try{ sessionStorage.setItem(NOTIF_DISMISS_KEY, '1'); }catch(e){}
-  });
   function maybeShowNotifPrompt(){
     if(!notifSupported()) return;
     if(Notification.permission !== 'default') { updateBellUI(); return; }

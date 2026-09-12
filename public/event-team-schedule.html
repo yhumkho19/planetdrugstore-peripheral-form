@@ -620,98 +620,6 @@
   .urgent-banner-item:first-of-type { border-top: none; }
   .urgent-banner-item strong { color: var(--danger); }
 
-  /* ---------- Notification bell (admin) ---------- */
-  .notif-wrap { position: relative; display: inline-block; }
-  .notif-bell {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 42px;
-    height: 42px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
-    background: var(--surface);
-    cursor: pointer;
-    font-size: 17px;
-    box-shadow: var(--shadow-xs);
-    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
-  }
-  .notif-bell:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); border-color: var(--ink-faint); }
-  .notif-badge {
-    position: absolute;
-    top: -7px;
-    right: -7px;
-    background: var(--danger);
-    color: #fff;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    font-weight: 700;
-    min-width: 17px;
-    height: 17px;
-    border-radius: 9px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 0 4px;
-  }
-  .notif-badge.show { display: flex; }
-  .notif-panel {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    width: 320px;
-    max-width: 90vw;
-    max-height: 400px;
-    overflow-y: auto;
-    background: var(--surface);
-    border: 1.5px solid var(--ink);
-    border-radius: 8px;
-    box-shadow: var(--shadow-lg);
-    z-index: 500;
-    display: block;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-6px);
-    transition: opacity .15s ease, transform .15s ease, visibility .15s;
-  }
-  .notif-panel.open { opacity: 1; visibility: visible; transform: none; }
-  .notif-panel-empty { padding: 18px 16px; color: var(--ink-faint); font-size: 13px; font-style: italic; }
-  .notif-item { padding: 12px 14px; border-bottom: 1px solid var(--border); border-left: 3px solid var(--danger); }
-  .notif-item:last-child { border-bottom: none; }
-  /* Red = still unresolved (walang backup pa). Green = na-cover na. */
-  .notif-item.is-resolved { border-left-color: var(--ok); background: var(--ok-soft); }
-  .notif-item-title { font-size: 12.5px; font-weight: 600; color: var(--danger); margin-bottom: 3px; }
-  .notif-item.is-resolved .notif-item-title { color: var(--ok); }
-  .notif-item-body { font-size: 12px; color: var(--ink-muted); line-height: 1.5; margin-bottom: 6px; }
-  .notif-resolve-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10.5px;
-    font-weight: 600;
-    text-transform: uppercase;
-    padding: 4px 10px;
-    border: 1.5px solid var(--ok);
-    background: var(--ok-soft);
-    color: var(--ok);
-    cursor: pointer;
-    border-radius: 3px;
-  }
-  .notif-resolve-btn:hover { background: var(--ok); color: #fff; }
-  /* "Clear" — dismiss an already-resolved (green) item from the list for good. */
-  .notif-clear-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10.5px;
-    font-weight: 600;
-    text-transform: uppercase;
-    padding: 4px 10px;
-    border: 1.5px solid var(--ink-faint);
-    background: var(--surface);
-    color: var(--ink-muted);
-    cursor: pointer;
-    border-radius: 3px;
-  }
-  .notif-clear-btn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
-
   /* ---------- Card ---------- */
   .site-card {
     background: var(--surface);
@@ -1309,12 +1217,6 @@
       text-align: center;
       padding: 7px 10px;
     }
-    /* .page-head goes column + align-items:flex-start on mobile, which
-       pushes .notif-wrap to the LEFT edge. The dropdown panel anchors via
-       right:0 (opens leftward from the bell), so a left-aligned bell made
-       the panel render off-screen. Pin the bell to the right instead so
-       the panel always opens within the viewport. */
-    .notif-wrap { align-self: flex-end; }
     .urgent-banner { padding: 10px 12px; margin-bottom: 14px; }
     .urgent-banner-title { font-size: 10px; }
     .urgent-banner-item { font-size: 12.5px; }
@@ -1790,12 +1692,6 @@
     <div class="topbar">
       <!-- <div class="topbar-search">🔍 Search events, sites, or staff…</div> -->
       <div class="topbar-right">
-        <div class="notif-wrap" id="notifWrap">
-          <button type="button" class="notif-bell" id="notifBell" title="Emergency notifications" aria-label="Emergency notifications" aria-haspopup="true">
-            🔔<span class="notif-badge" id="notifBadge">0</span>
-          </button>
-          <div class="notif-panel" id="notifPanel"></div>
-        </div>
         <div class="admin-chip-wrap" id="adminChipWrap">
           <button type="button" class="admin-chip" id="adminChipBtn" aria-haspopup="true"><span class="avatar">ET</span>EVENT TEAM▾</button>
           <div class="admin-dropdown" id="adminDropdown">
@@ -1876,7 +1772,7 @@
 // copy, and — if it doesn't match what this tab is currently running —
 // shows a small "may bagong bersyon" banner instead of silently staying on
 // stale code (which is what caused needing a manual cache-clear before).
-const APP_VERSION = "2026-09-11.1";
+const APP_VERSION = "2026-09-12.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -1884,7 +1780,9 @@ function startVersionWatch() {
       if (!res.ok) return;
       const text = await res.text();
       const match = text.match(/const APP_VERSION = "([^"]+)"/);
-      if (match && match[1] !== APP_VERSION) showUpdateBanner();
+      if (match && match[1] !== APP_VERSION) {
+        window.location.replace("update-waiting.html?next=" + encodeURIComponent(location.pathname) + "&version=" + encodeURIComponent(match[1]));
+      }
     } catch (err) {
       // Offline or a network hiccup — just try again on the next tick,
       // nothing to show the event team for a failed background check.

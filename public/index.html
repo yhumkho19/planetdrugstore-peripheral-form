@@ -56,7 +56,7 @@
       // Same fix as the rest of the app's pages — see the comment in any of
       // the other .html files for the full explanation. Plain <script> here
       // (not type="module") to match this page's existing style.
-      var APP_VERSION = "2026-09-11.1";
+      var APP_VERSION = "2026-09-12.1";
       function startVersionWatch() {
         function checkForUpdate() {
           fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" })
@@ -64,7 +64,9 @@
             .then(function (text) {
               if (!text) return;
               var match = text.match(/APP_VERSION = "([^"]+)"/);
-              if (match && match[1] !== APP_VERSION) showUpdateBanner();
+              if (match && match[1] !== APP_VERSION) {
+                window.location.replace("update-waiting.html?next=" + encodeURIComponent(location.pathname) + "&version=" + encodeURIComponent(match[1]));
+              }
             })
             .catch(function () {});
         }
