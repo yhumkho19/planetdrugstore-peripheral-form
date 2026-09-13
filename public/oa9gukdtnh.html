@@ -110,7 +110,7 @@
       <div class="appbar-title">Register Employee</div>
     </div>
     <div class="appbar-right">
-      <a class="back-link" href="admin-console.html">&larr; Back to Admin Console</a>
+      <a class="back-link" href="/2mp58eri7h">&larr; Back to Admin Console</a>
     </div>
   </div>
 
@@ -265,11 +265,11 @@ startVersionWatch();
   // reach this page. Employees and signed-out visitors get sent elsewhere.
   onAuthStateChanged(auth, (user)=>{
     if(!user){
-      window.location.replace('admin-login.html');
+      window.location.replace('/839jgl8ang');
       return;
     }
     if(user.email && user.email.endsWith('@' + STAFF_DOMAIN)){
-      window.location.replace('peripheral-form.html');
+      window.location.replace('/gui2dtdgtb');
       return;
     }
     checkingScreen.style.display = 'none';

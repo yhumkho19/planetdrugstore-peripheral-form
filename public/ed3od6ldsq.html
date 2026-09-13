@@ -272,9 +272,9 @@
         One console for peripheral entries, control numbers, employee registration, and scheduling — built for Planet Drugstore's IT team to move faster and stay organized, event by event
       </p>
       <div class="hero-ctas">
-        <!-- <a href="peripheral-form.html" class="btn-primary">🧰 Open Peripheral Form</a> -->
-        <a href="employee-schedule.html" class="btn-primary">📅 Go to Event Schedule</a>
-        <a href="peripheral-form.html" class="btn-ghost">🧰 Go to Peripheral Form</a>
+        <!-- <a href="/gui2dtdgtb" class="btn-primary">🧰 Open Peripheral Form</a> -->
+        <a href="/47fto0gim6" class="btn-primary">📅 Go to Event Schedule</a>
+        <a href="/gui2dtdgtb" class="btn-ghost">🧰 Go to Peripheral Form</a>
         <button class="btn-ghost" id="OnLogout">🚪 Log Out</button> 
       </div>
       <div class="trust-row">
@@ -421,7 +421,7 @@ startVersionWatch();
         if(!snap.exists()){
           localStorage.removeItem('pdEmployeeSession');
           sessionStorage.removeItem('pdEmployeeSession');
-          window.location.replace('employee-login.html?deleted=1');
+          window.location.replace('/fu3hriaj0m?deleted=1');
         }
       }, err => {
         console.error('Employee account listener failed:', err);
@@ -433,7 +433,7 @@ startVersionWatch();
     localStorage.removeItem('pdEmployeeSession');
     sessionStorage.removeItem('pdEmployeeSession');
     await signOut(auth).catch(()=>{});
-    window.location.href = 'employee-login.html';
+    window.location.href = '/fu3hriaj0m';
   });
 
   // Planet orbit letters — spell PLANET while drifting around the logo,

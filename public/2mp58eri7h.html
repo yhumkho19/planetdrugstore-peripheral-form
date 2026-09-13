@@ -1097,7 +1097,7 @@
 
   <aside class="sidebar" id="appSidebar">
     <div class="sidebar-brand">
-      <a href="landing-page.html"><img src="logo.png" alt="Planet Drugstore" class="brand-mark"></a>
+      <a href="/8niuis7jih"><img src="logo.png" alt="Planet Drugstore" class="brand-mark"></a>
       <div class="brand-name">PLANET<span>DRUGSTORE</span></div>
       <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close menu">&times;</button>
     </div>
@@ -2114,7 +2114,7 @@ startVersionWatch();
   onAuthStateChanged(auth, (user)=>{
     const isStaffAccount = !!(user && user.email && user.email.endsWith('@' + STAFF_DOMAIN));
     if(!user || isStaffAccount){
-      window.location.replace('admin-login.html');
+      window.location.replace('/839jgl8ang');
       return;
     }
     document.getElementById('whoEmail').textContent = user.email;
@@ -2128,7 +2128,7 @@ startVersionWatch();
   document.getElementById('logoutBtn').addEventListener('click', async ()=>{
     PDLoader.show();
     await signOut(auth);
-    window.location.href = 'admin-login.html';
+    window.location.href = '/839jgl8ang';
   });
 
   // ---- Data loading ----

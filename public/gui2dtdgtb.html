@@ -1233,7 +1233,7 @@ startVersionWatch();
   (async function initEmployeeAuth(){
     const session = readSession();
     if(!session || !session.staffId){
-      window.location.replace('employee-login.html');
+      window.location.replace('/fu3hriaj0m');
       return;
     }
     const staffDocId = session.staffId.toLowerCase();
@@ -1244,7 +1244,7 @@ startVersionWatch();
         // profile was deleted by an Admin — treat that as the account being
         // deleted and refuse them the form.
         clearSession();
-        window.location.replace('employee-login.html?deleted=1');
+        window.location.replace('/fu3hriaj0m?deleted=1');
         return;
       }
       const profile = snap.data();
@@ -1280,7 +1280,7 @@ startVersionWatch();
     onSnapshot(doc(db, 'employees', staffDocId), snap => {
       if(!snap.exists()){
         clearSession();
-        window.location.replace('employee-login.html?deleted=1');
+        window.location.replace('/fu3hriaj0m?deleted=1');
       }
     }, err => {
       console.error('Employee account listener failed:', err);
@@ -1290,14 +1290,14 @@ startVersionWatch();
   window.fsSignOut = async function(){
     if(window.stopMyLogsListener) window.stopMyLogsListener();
     clearSession();
-    window.location.href = 'employee-login.html';
+    window.location.href = '/fu3hriaj0m';
   };
 </script>
 
 <div id="employeeBar" class="employee-bar">
   <span>Signed in as: <strong id="employeeBarName"></strong></span>
   <span class="employee-bar-actions">
-    <a href="landing-employee-page.html" class="bar-btn" style="text-decoration: none;">Home</a>
+    <a href="/ed3od6ldsq" class="bar-btn" style="text-decoration: none;">Home</a>
     <button id="myLogsBtn" class="bar-btn">📋 My Logs</button>
     <button id="employeeLogoutBtn" class="bar-btn">🚪 Log Out</button>
   </span>
@@ -3740,7 +3740,7 @@ document.getElementById('printBtn').addEventListener('click', ()=>window.print()
 document.getElementById('employeeLogoutBtn').addEventListener('click', async ()=>{
   PDLoader.show();
   if(window.fsSignOut) await window.fsSignOut();
-  window.location.href = 'employee-login.html';
+  window.location.href = '/fu3hriaj0m';
 });
 loadForm();
 // Flush the draft immediately (don't wait for the 400ms debounce) the
