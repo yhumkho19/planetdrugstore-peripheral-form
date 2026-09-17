@@ -168,7 +168,7 @@
     <h1>🏆 Leaderboard</h1>
     <p>Most-participate employees — Medical &amp; Dental Mission, South &amp; North Caloocan</p>
   </div>
-  <a class="back-link" href="event-schedule.html">← Back to Roster</a>
+  <a class="back-link" href="/47fto0gim6" id="backToRosterLink">← Back to Roster</a>
 </div>
 
 <div id="leaderboardSection">
@@ -177,6 +177,21 @@
   </div>
 </div>
 
+<script>
+// This page is opened with target="_blank" from BOTH the admin roster
+// (/apd2zu9bdf) and the employee roster (/47fto0gim6), so a single hardcoded
+// href here can't be right for everyone — that mismatch is what was showing
+// people an old/wrong page name. If this tab has an opener (i.e. it really
+// was opened from one of those pages), just close back to it; only fall
+// back to navigating to the employee roster if this tab was opened on its
+// own (e.g. bookmarked or shared link), where there's no opener to return to.
+document.getElementById('backToRosterLink').addEventListener('click', function (e) {
+  if (window.opener && !window.opener.closed) {
+    e.preventDefault();
+    window.close();
+  }
+});
+</script>
 <script type="module">
 // ---------- Update/version check ----------
 // This page is a single static HTML file served with no per-deploy hashed

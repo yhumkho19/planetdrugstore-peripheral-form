@@ -164,9 +164,9 @@
       <div class="live-pill"><span class="live-dot"></span> Updates in real time</div>
 
       <div class="panel-heading">
-        <div class="eyebrow">IT Access</div>
-        <h1>Track every peripheral you receive, issue, and return.</h1>
-        <p>See entries the moment employees save them, across every Medical Mission and Peoples Day.</p>
+        <div class="eyebrow">Department Access</div>
+        <h1>Welcome To The Planet Drugstore System Console.</h1>
+        <!-- <p>See entries the moment employees save them, across every Medical Mission and Peoples Day.</p> -->
       </div>
 
       <div class="feature-mark">
@@ -177,18 +177,18 @@
     <div>
       <ul class="feature-list">
         <li><span class="dot"></span> Entries update in real time.</li>
-        <li><span class="dot"></span> Full edit and audit history on every entry</li>
+        <li><span class="dot"></span> Manage Deployment Roster</li>
         <li><span class="dot"></span> Manage employee accounts and login access</li>
       </ul>
-      <div class="panel-foot">Planet Drugstore &middot; Peripherals Receiving &amp; Tracking</div>
+      <div class="panel-foot">Planet Drugstore &middot; Peripherals Receiving / Returning &amp; Deployment Roster</div>
     </div>
   </div>
 
   <div class="panel-form">
     <div class="form-card">
-      <div class="access-pill">IT Access</div>
+      <div class="access-pill">Department Access</div>
       <h2>Sign in to the console</h2>
-      <p class="sub">Authorized IT Only To Access The Console</p>
+      <p class="sub">Authorized Department Only To Access The Console</p>
 
       <form id="loginForm" autocomplete="on">
         <div class="lfield">
@@ -339,7 +339,7 @@ startVersionWatch();
   // between this page and the landing page in a loop.
   await auth.authStateReady();
   if(auth.currentUser){
-    window.location.replace(isEventScheduleUser(auth.currentUser) ? 'event-schedule-landing.html' : 'admin-console.html');
+    window.location.replace(isEventScheduleUser(auth.currentUser) ? '/dkjyg56lvm' : '/8niuis7jih');
   }
 
   loginForm.addEventListener('submit', async (e)=>{
@@ -360,7 +360,7 @@ startVersionWatch();
       }else{
         localStorage.removeItem(REMEMBER_KEY);
       }
-      window.location.href = isEventScheduleUser(auth.currentUser) ? 'event-schedule-landing.html' : 'landing-page.html';
+      window.location.href = isEventScheduleUser(auth.currentUser) ? '/dkjyg56lvm' : '/8niuis7jih';
     }catch(err){
       PDLoader.hide();
       loginError.textContent = friendlyAuthError(err);

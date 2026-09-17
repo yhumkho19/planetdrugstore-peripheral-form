@@ -313,9 +313,18 @@
 // APP_VERSION any time a new version of this file is uploaded. Every open
 // tab then periodically re-fetches this same page with cache forcibly
 // bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
-// doesn't match what this tab is currently running — shows a small banner
-// instead of silently staying on stale code.
-const APP_VERSION = "2026-09-12.1";
+// bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
+// doesn't match what this tab is currently running — shows a small in-page
+// banner with a manual "refresh now" button (showUpdateBanner below).
+//
+// This used to navigate away to a separate update-waiting.html interstitial
+// instead of showing the banner. That page isn't part of this file and was
+// sending people to employee-login.html instead of back to where they were
+// (including from this very landing page's "Go to Event Schedule" button),
+// so it's been dropped in favor of the in-page banner, which never
+// navigates away on its own -- the user stays on this page and refresh
+// only happens when they click the button.
+const APP_VERSION = "2026-09-17.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -324,7 +333,7 @@ function startVersionWatch() {
       const text = await res.text();
       const match = text.match(/const APP_VERSION = "([^"]+)"/);
       if (match && match[1] !== APP_VERSION) {
-        window.location.replace("update-waiting.html?next=" + encodeURIComponent(location.pathname) + "&version=" + encodeURIComponent(match[1]));
+        showUpdateBanner();
       }
     } catch (err) {
       // Offline or a network hiccup — just try again on the next tick.

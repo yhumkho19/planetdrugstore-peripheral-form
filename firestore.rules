@@ -50,5 +50,8 @@ service cloud.firestore {
     match /emergencyNotifications/{id} {
       allow read, write: if true;
     }
+    match /notifCenterCleared/{viewerKey} {
+      allow read, write: if true;
+    }
   }
 }
