@@ -15,7 +15,3 @@
 | `peripheral-form.html` | `4b912a36-2344-4640-b0b6-0a9d3dffe50b.html` | `gui2dtdgtb.html` | `https://planetdrugstore-peripher-d24c0.web.app/gui2dtdgtb` |
 | `register-employee.html` | `797f133b-b98e-4744-9668-d816426b85c6.html` | `oa9gukdtnh.html` | `https://planetdrugstore-peripher-d24c0.web.app/oa9gukdtnh` |
 
-## Paalala
-- Palitan mo lang yung 12 dating UUID files sa `public` folder mo ng mga bagong `.html` na ito (sinama ko na sa zip).
-- Yung `firebase.json` mo (na may `cleanUrls: true`) ay gagana pa rin nang walang pagbabago — hindi apektado ng pagpapalit ng pangalan.
-- Wala nang natitirang reference sa dating UUID sa buong set ng files — na-verify ko na.

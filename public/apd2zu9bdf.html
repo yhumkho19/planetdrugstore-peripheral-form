@@ -132,7 +132,7 @@
   }
   .sidebar-nav a .ic { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
   .sidebar-nav a:hover { background: rgba(255,255,255,0.06); color: #fff; }
-  .sidebar-nav a.active { background: var(--signal); color: #fff; box-shadow: 0 4px 12px -3px rgba(47,111,237,.6); }
+  .sidebar-nav a.active { color: #fff; }
   .sidebar-foot {
     display: flex;
     align-items: center;
@@ -377,6 +377,47 @@
     font-weight: 600;
     margin-top: 2px;
     display: block;
+  }
+  .stats .stat { cursor: pointer; }
+  .stat-tooltip {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 200px;
+    max-width: 280px;
+    max-height: 240px;
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    padding: 8px;
+    z-index: 60;
+    text-align: left;
+  }
+  .stats .stat:hover .stat-tooltip,
+  .stats .stat:focus-within .stat-tooltip,
+  .stats .stat.tip-open .stat-tooltip {
+    display: block;
+  }
+  .stat-tip-row {
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .stat-tip-row:hover { background: var(--surface-dim); }
+  .stat-tip-empty {
+    padding: 6px 8px;
+    font-size: 12px;
+    color: var(--ink-faint);
+    font-style: italic;
   }
 
   /* ---------- Toolbar ---------- */
@@ -653,7 +694,8 @@
       "perf   perf"
       "staff  staff"
       "reliever reliever"
-      "attach attach";
+      "attach attach"
+      "cardfoot cardfoot";
     align-items: start;
   }
   .region-line { grid-area: badge; margin-bottom: 0 !important; }
@@ -663,8 +705,18 @@
   .staff-section:not(.reliever-section) { grid-area: staff; margin-top: 0 !important; }
   .staff-section.reliever-section { grid-area: reliever; margin-top: 0 !important; }
   .attach-row { grid-area: attach; }
+  .card-foot { grid-area: cardfoot; margin-top: 2px; }
+  .card-update-btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-xs);
+  }
   @media (max-width: 620px) {
-    .card-inner { grid-template-columns: 1fr; grid-template-areas: "badge" "title" "sched" "perf" "staff" "reliever" "attach"; }
+    .card-inner { grid-template-columns: 1fr; grid-template-areas: "badge" "title" "sched" "perf" "staff" "reliever" "attach" "cardfoot"; }
   }
 
   .perforation {
@@ -1090,6 +1142,9 @@
     border-radius: 6px; cursor: pointer; font: 12px 'Inter', sans-serif;
   }
   .name-picker-option:hover { background: var(--signal-soft); color: var(--signal-dark); }
+  .name-picker-option.is-taken { color: #C81E2C; cursor: not-allowed; opacity: 0.85; }
+  .name-picker-option.is-taken:hover { background: #FBE7E9; color: #C81E2C; }
+  .name-picker-taken-tag { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .02em; margin-left: 4px; opacity: 0.85; }
   .name-picker-empty { padding: 8px; color: var(--ink-muted); font-size: 12px; }
   .staff-row input.siteInput {
     width: 100%;
@@ -1291,8 +1346,7 @@
     box-shadow: 8px 0 28px rgba(61,10,16,.12);
   }
   .sidebar-nav a.active {
-    background: #D61F2C;
-    box-shadow: 0 8px 18px rgba(214,31,44,.32);
+    /* no persistent background — highlight now shows on hover only */
   }
   .topbar { background: rgba(250,246,245,.92); backdrop-filter: blur(12px); }
   .content-scroll { max-width: 1480px; }
@@ -1447,14 +1501,109 @@
   }
   .modal-actions button:hover { background: var(--surface-dim); transform: translateY(-1px); }
   .modal-actions button.primary {
-    background: linear-gradient(180deg, #1E63B4, var(--signal) 65%);
-    border-color: var(--signal-dark);
+    background: linear-gradient(135deg, #D61F2C, #A5151F);
+    border-color: #A5151F;
     color: #fff;
-    box-shadow: 0 6px 14px -4px rgba(24,87,166,.5);
+    box-shadow: 0 8px 18px -6px rgba(214,31,44,.45);
   }
   .modal-actions button.primary:hover { opacity: 0.92; transform: translateY(-1px); }
   .modal-actions button.danger-outline { color: var(--danger); border-color: rgba(229,72,77,.55); }
   .modal-actions button.danger-outline:hover { background: var(--danger-soft); }
+
+  /* ---------- Form modal (Add date event / Edit date) ---------- */
+  .modal-box--form { max-width: 460px; padding: 28px 28px 22px; }
+  .modal-box--form .modal-icon { display: none; }
+  .modal-box--form #appModalMessage {
+    white-space: normal;
+    margin: 0 -10px 6px;
+    padding: 4px 10px 10px;   /* room so focus rings aren't clipped by the scroll area */
+    font-size: 14px;
+    scrollbar-width: thin;
+    scrollbar-color: #D9C3C5 transparent;
+  }
+  .bf-title {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 21px; font-weight: 700; line-height: 1.25;
+    letter-spacing: -.01em;
+    color: #3D0A10;
+  }
+  .bf-sub { margin: 5px 0 22px; font-size: 13.5px; line-height: 1.5; color: var(--ink-muted); }
+  .bf-field { margin-bottom: 18px; }
+  .bf-field:last-child { margin-bottom: 0; }
+  .bf-label { display: block; margin-bottom: 7px; font-size: 13px; font-weight: 600; color: var(--ink); }
+  .bf-input {
+    display: block; width: 100%; height: 44px;
+    padding: 0 13px;
+    font-family: 'Inter', 'Segoe UI', sans-serif; font-size: 15px; color: var(--ink);
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 11px;
+    color-scheme: light;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .bf-input::placeholder { color: var(--ink-faint); }
+  .bf-input:hover { border-color: #D3B9BB; }
+  .bf-input:focus { outline: none; border-color: #D61F2C; box-shadow: 0 0 0 4px rgba(214,31,44,.12); }
+  .bf-error { display: none; margin-top: 6px; font-size: 12.5px; color: var(--danger); }
+  .bf-field.invalid .bf-error { display: block; }
+  .bf-field.invalid .bf-input { border-color: var(--danger); }
+
+  .bf-seg {
+    position: relative;
+    display: flex; gap: 4px; padding: 4px;
+    background: #F6EEEE;
+    border-radius: 13px;
+  }
+  .bf-seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .bf-seg label {
+    flex: 1 1 0; min-width: 0;
+    padding: 10px 6px;
+    text-align: center; white-space: nowrap;
+    font-size: 13px; font-weight: 600; color: var(--ink-muted);
+    border-radius: 10px;
+    cursor: pointer; user-select: none;
+    transition: background-color .18s ease, color .18s ease, box-shadow .18s ease;
+  }
+  .bf-seg label:hover { color: var(--ink); background: rgba(110,22,32,.06); }
+  .bf-seg input:checked + label {
+    background: #6E1620; color: #fff;
+    box-shadow: 0 3px 8px -2px rgba(61,10,16,.4);
+  }
+  .bf-seg input:focus-visible + label { outline: 2px solid #D61F2C; outline-offset: 2px; }
+  .bf-custom { display: none; margin-top: 10px; }
+  .bf-custom.show { display: block; }
+
+  .modal-box--form .modal-actions {
+    margin-top: 6px; padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .modal-box--form .modal-actions button { padding: 11px 22px; }
+  .modal-box--form .modal-actions button:not(.primary):not(.danger-outline) {
+    border-color: var(--border); color: var(--ink-muted);
+  }
+  .modal-box--form .modal-actions button:not(.primary):not(.danger-outline):hover {
+    background: #FBF3F3; color: var(--ink);
+  }
+  @media (max-width: 520px) {
+    /* On phones the form slides up as a bottom sheet instead of a floating card. */
+    .modal-overlay:has(.modal-box--form) { align-items: flex-end; padding: 0; }
+    .modal-overlay .modal-box--form {
+      max-width: 100%;
+      max-height: 94dvh;
+      padding: 24px 20px max(20px, env(safe-area-inset-bottom));
+      border-radius: 22px 22px 0 0;
+      border-bottom: 0;
+      transform: translateY(40px);
+    }
+    .modal-overlay.open .modal-box--form { transform: translateY(0); }
+    .bf-input { font-size: 16px; }   /* stops iOS from zooming into the field */
+    .bf-seg label { font-size: 12.5px; padding: 10px 2px; }
+    .modal-overlay .modal-box--form .modal-actions { flex-wrap: nowrap; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .modal-box, .modal-icon { transition: none; animation: none; }
+  }
 
   /* ---------- Staff Directory ---------- */
   .staffdir-overlay {
@@ -1900,7 +2049,7 @@
       <button type="button" class="nc-chip" data-nc-filter="schedule">Date &amp; time<span class="nc-chip-count" id="ncCount-schedule">0</span></button>
       <button type="button" class="nc-chip" data-nc-filter="branch">Branch<span class="nc-chip-count" id="ncCount-branch">0</span></button>
       <button type="button" class="nc-chip" data-nc-filter="event">Event type<span class="nc-chip-count" id="ncCount-event">0</span></button>
-      <button type="button" class="nc-chip" data-nc-filter="staffing">Staffing<span class="nc-chip-count" id="ncCount-staffing">0</span></button>
+      <button type="button" class="nc-chip" data-nc-filter="staffing">Staff Status<span class="nc-chip-count" id="ncCount-staffing">0</span></button>
       <button type="button" class="nc-chip" data-nc-filter="status">Event status<span class="nc-chip-count" id="ncCount-status">0</span></button>
       <button type="button" class="nc-clear-all" id="notifCenterClearAll">Clear all</button>
     </div>
@@ -1916,9 +2065,10 @@
       <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Close menu">✕</button>
     </div>
     <nav class="sidebar-nav">
-      <a href="/dkjyg56lvm" class="active"><span class="ic">🏡</span>Home</a>
+      <a href="/dkjyg56lvm" data-current="true"><span class="ic">🏡</span>Home</a>
       <a href="#" id="staffNavBtn"><span class="ic">👥</span>Staff</a>
       <a href="#" id="notifNavBtn"><span class="ic">🔔</span>Notifications<span class="nav-badge" id="notifNavBadge">0</span></a>
+      <a href="/30k1jkejh3?from=%2Fapd2zu9bdf"><span class="ic">🏆</span>Leaderboard</a>
       <!-- <a href="#" class="active"><span class="ic">🗓️</span>Deployment Roster</a> -->
       <!-- <a href="#"><span class="ic">📅</span>Events</a> -->
       <!-- <a href="#"><span class="ic">📍</span>Sites</a>
@@ -1936,7 +2086,7 @@
       <!-- <div class="topbar-search">🔍 Search events, sites, or staff…</div> -->
       <div class="topbar-right">
         <div class="admin-chip-wrap" id="adminChipWrap">
-          <button type="button" class="admin-chip" id="adminChipBtn" aria-haspopup="true"><span class="avatar">ET</span>EVENT TEAM▾</button>
+          <button type="button" class="admin-chip" id="adminChipBtn" aria-haspopup="true"><span class="avatar" id="adminChipAvatar">ET</span><span id="adminChipLabel">EVENT TEAM</span>▾</button>
           <div class="admin-dropdown" id="adminDropdown">
             <button type="button" class="admin-dropdown-item" id="logoutBtn">🚪 Logout</button>
           </div>
@@ -1949,20 +2099,23 @@
       <div class="page-head">
         <div>
           <h1>Deployment Roster</h1>
-          <p>Medical &amp; Dental Mission — one ticket per site, staff assignment tracker</p>
+          <p>Medical Mission &amp; People's Day — one ticket per site, staff assignment tracker</p>
         </div>
         <div class="stats">
-          <div class="stat">
+          <div class="stat" tabindex="0">
             <span class="num" id="statSites">0</span>
             <span class="cap">Sites</span>
+            <div class="stat-tooltip" id="statSitesTip"></div>
           </div>
-          <div class="stat warn">
+          <div class="stat warn" tabindex="0">
             <span class="num" id="statUnfilled">0</span>
             <span class="cap">Unfilled roles</span>
+            <div class="stat-tooltip" id="statUnfilledTip"></div>
           </div>
-          <div class="stat good">
+          <div class="stat good" tabindex="0">
             <span class="num" id="statReady">0</span>
             <span class="cap">Fully staffed</span>
+            <div class="stat-tooltip" id="statReadyTip"></div>
           </div>
         </div>
       </div>
@@ -1986,9 +2139,9 @@
         <button class="btn primary" id="saveBtn">📤 Send</button>
         <button class="btn" id="updateAllBtn">💾 Save</button>
         <span id="unsavedIndicator" class="unsaved-badge" style="display:none;">● There are unsaved changes.</span>
-        <button class="btn ghost" id="printBtn">🖨️ Print / Export PDF</button>
+        <!-- <button class="btn ghost" id="printBtn">🖨️ Print / Export PDF</button> -->
         <button class="btn danger-outline" id="resetBtn">Reset all</button>
-        <a class="btn" id="leaderboardBtn" href="/30k1jkejh3" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;margin-left:auto;">🏆 Leaderboard</a>
+        <!-- <a class="btn" id="leaderboardBtn" href="/30k1jkejh3?from=%2Fapd2zu9bdf" style="text-decoration:none;display:inline-flex;align-items:center;margin-left:auto;">🏆 Leaderboard</a> -->
       </div>
 
       <div id="datalistContainer" style="display:none" aria-hidden="true"></div>
@@ -2028,7 +2181,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-09-17.1";
+const APP_VERSION = "2026-09-22.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -2079,6 +2232,7 @@ const appModal = document.getElementById("appModal");
 const appModalMessage = document.getElementById("appModalMessage");
 const appModalActions = document.getElementById("appModalActions");
 const appModalIcon = document.getElementById("appModalIcon");
+const appModalBox = appModal.querySelector(".modal-box");
 
 function closeModal() {
   appModal.classList.remove("open");
@@ -2091,6 +2245,9 @@ function closeModal() {
 // prompts, "date" (📅) for the date picker. Re-triggers the pop-in animation
 // each time so repeat modals (e.g. two alerts in a row) still animate.
 function setModalIcon(kind) {
+  // Every modal starts as the compact dialog; the form prompts opt back in
+  // to the wider "form" layout right after calling this.
+  appModalBox.classList.remove("modal-box--form");
   const glyphs = { ok: "✓", warn: "!", question: "?", date: "📅" };
   appModalIcon.textContent = glyphs[kind] || glyphs.ok;
   appModalIcon.className = "modal-icon" + (kind === "warn" || kind === "question" ? " " + kind : "");
@@ -2110,7 +2267,16 @@ function showAlert(message, kind) {
     okBtn.addEventListener("click", () => { closeModal(); resolve(); });
     appModalActions.appendChild(okBtn);
     appModal.classList.add("open");
-    okBtn.focus();
+    // Deferred, not synchronous — same reason as the date-prompt inputs
+    // below. Calling .focus() in the same tick as adding "open" fires
+    // before the modal has actually been painted at its fixed, centered
+    // position (it's still mid opacity/transform transition), so the
+    // browser's focus-scroll heuristic scrolls the underlying PAGE by
+    // whatever the button's stale/pre-paint position was, instead of just
+    // focusing it in place — leaving the modal itself off-screen until the
+    // person scrolls the page down to "catch up" to where it actually
+    // rendered. A tick's delay lets the modal finish laying out first.
+    setTimeout(() => okBtn.focus(), 30);
   });
 }
 
@@ -2129,7 +2295,10 @@ function showConfirm(message) {
     appModalActions.appendChild(cancelBtn);
     appModalActions.appendChild(okBtn);
     appModal.classList.add("open");
-    okBtn.focus();
+    // See the matching comment in showAlert above — deferred so the focus
+    // call doesn't fire mid-transition and scroll the page instead of the
+    // modal.
+    setTimeout(() => okBtn.focus(), 30);
   });
 }
 
@@ -2160,114 +2329,191 @@ function showUnsavedChangesPrompt() {
     appModalActions.appendChild(discardBtn);
     appModalActions.appendChild(saveBtn);
     appModal.classList.add("open");
-    saveBtn.focus();
+    // See the matching comment in showAlert above.
+    setTimeout(() => saveBtn.focus(), 30);
   });
 }
 
-// Prompts for a single date, used to create a new date-event bracket (or
-// edit an existing one's date, when a different confirmBtnLabel is passed).
-// Resolves to the chosen ISO date string, or null if cancelled/empty.
+// Prompts for a single date (used by a bracket's "Edit date"). Resolves to
+// the chosen ISO date string, or null if cancelled/empty.
 function showDatePrompt(message, defaultIso, confirmBtnLabel) {
   return new Promise(resolve => {
     setModalIcon("date");
+    appModalBox.classList.add("modal-box--form");
     appModalMessage.innerHTML = `
-      <div style="margin-bottom:14px;">${escapeHtml(message)}</div>
-      <input type="date" id="datePromptInput" value="${escapeAttr(defaultIso || "")}"
-        style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:14px;padding:9px 10px;border:1px solid var(--border);background:var(--surface-dim);color:var(--ink);">
+      <h2 class="bf-title">Change event date</h2>
+      <div class="bf-sub">${escapeHtml(String(message || "").replace(/:\s*$/, "."))}</div>
+      <div class="bf-field" id="datePromptField">
+        <label class="bf-label" for="datePromptInput">New date</label>
+        <input type="date" id="datePromptInput" class="bf-input" value="${escapeAttr(defaultIso || "")}">
+        <div class="bf-error">Choose a date.</div>
+      </div>
     `;
+    const input = document.getElementById("datePromptInput");
+    const field = document.getElementById("datePromptField");
+    input.addEventListener("input", () => field.classList.remove("invalid"));
+
+    const finish = val => {
+      document.removeEventListener("keydown", onKey);
+      closeModal();
+      resolve(val);
+    };
+    const submit = () => {
+      if (!input.value) { field.classList.add("invalid"); input.focus(); return; }
+      finish(input.value);
+    };
+    const onKey = e => {
+      if (e.key === "Escape") { e.preventDefault(); finish(null); }
+      else if (e.key === "Enter") { e.preventDefault(); submit(); }
+    };
+    document.addEventListener("keydown", onKey);
+
     appModalActions.innerHTML = "";
     const cancelBtn = document.createElement("button");
     cancelBtn.textContent = "Cancel";
-    cancelBtn.addEventListener("click", () => { closeModal(); resolve(null); });
+    cancelBtn.addEventListener("click", () => finish(null));
     const okBtn = document.createElement("button");
     okBtn.className = "primary";
-    okBtn.textContent = confirmBtnLabel || "Create bracket";
-    okBtn.addEventListener("click", () => {
-      const input = document.getElementById("datePromptInput");
-      const val = input ? input.value : "";
-      closeModal();
-      resolve(val || null);
-    });
+    okBtn.textContent = confirmBtnLabel || "Save date";
+    okBtn.addEventListener("click", submit);
     appModalActions.appendChild(cancelBtn);
     appModalActions.appendChild(okBtn);
     appModal.classList.add("open");
-    setTimeout(() => document.getElementById("datePromptInput") && document.getElementById("datePromptInput").focus(), 30);
+    setTimeout(() => input.focus(), 30);
   });
 }
 
-// "+ Add date event" used to only ask for the date, leaving branch, mission
-// type, and site name to be filled in afterward on the new (blank) card
-// before it was really ready to Send. Event Team asked for all of that up
-// front instead — branch right under the date picker, plus mission type and
-// site name — so a new bracket is fully filled in and can just be sent with
-// nothing left to change. Resolves to
-// { date, region, regionCustom, mission, location } or null if cancelled.
+// "+ Add date event" asks for everything up front — date, branch, event type
+// and site name — so a new bracket is fully filled in and can just be sent
+// with nothing left to change. Resolves to
+// { date, region, regionCustom, mission, missionCustom, location } or null if cancelled.
 function showAddDateEventPrompt() {
   return new Promise(resolve => {
     setModalIcon("date");
-    const fieldLabel = "display:block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-muted);margin:14px 0 5px;";
-    const fieldInput = "width:100%;font-family:'IBM Plex Sans',sans-serif;font-size:14px;padding:9px 10px;border:1px solid var(--border);background:var(--surface-dim);color:var(--ink);border-radius:6px;";
+    appModalBox.classList.add("modal-box--form");
+    const startRegion = currentFilter === "north" ? "north" : "south";
+    const chk = (cond) => cond ? "checked" : "";
     appModalMessage.innerHTML = `
-      <div style="margin-bottom:14px;">Set up the new event bracket:</div>
+      <h2 class="bf-title">New event bracket</h2>
+      <div class="bf-sub">Set the date and the first site. You can add more sites to this date afterward.</div>
 
-      <label style="${fieldLabel}margin-top:0;">Date</label>
-      <input type="date" id="addEventDateInput" style="${fieldInput}font-family:'IBM Plex Mono',monospace;">
+      <div class="bf-field" id="addEventDateField">
+        <label class="bf-label" for="addEventDateInput">Date</label>
+        <input type="date" id="addEventDateInput" class="bf-input">
+        <div class="bf-error">Choose the event date.</div>
+      </div>
 
-      <label style="${fieldLabel}">Branch</label>
-      <select id="addEventRegionSelect" style="${fieldInput}">
-        <option value="south" ${currentFilter === "south" ? "selected" : ""}>South Caloocan</option>
-        <option value="north" ${currentFilter === "north" ? "selected" : ""}>North Caloocan</option>
-        <option value="other">Custom…</option>
-      </select>
-      <input type="text" id="addEventRegionCustomInput" placeholder="Area name" style="${fieldInput}margin-top:8px;display:none;">
+      <div class="bf-field" id="addEventRegionField">
+        <span class="bf-label" id="addEventRegionLabel">Branch</span>
+        <div class="bf-seg" role="radiogroup" aria-labelledby="addEventRegionLabel">
+          <input type="radio" name="addEventRegion" id="addEventRegionSouth" value="south" ${chk(startRegion === "south")}>
+          <label for="addEventRegionSouth">South Caloocan</label>
+          <input type="radio" name="addEventRegion" id="addEventRegionNorth" value="north" ${chk(startRegion === "north")}>
+          <label for="addEventRegionNorth">North Caloocan</label>
+          <input type="radio" name="addEventRegion" id="addEventRegionOther" value="other">
+          <label for="addEventRegionOther">Other area</label>
+        </div>
+        <div class="bf-custom" id="addEventRegionCustomWrap">
+          <input type="text" id="addEventRegionCustomInput" class="bf-input" placeholder="Area name" aria-label="Area name" autocomplete="off">
+          <div class="bf-error">Enter the area name.</div>
+        </div>
+      </div>
 
-      <label style="${fieldLabel}">Event type</label>
-      <select id="addEventMissionSelect" style="${fieldInput}">
-        <option value="medical">Medical Mission</option>
-        <option value="peoples_day">People's Day</option>
-      </select>
+      <div class="bf-field" id="addEventMissionField">
+        <span class="bf-label" id="addEventMissionLabel">Event type</span>
+        <div class="bf-seg" role="radiogroup" aria-labelledby="addEventMissionLabel">
+          <input type="radio" name="addEventMission" id="addEventMissionMedical" value="medical" checked>
+          <label for="addEventMissionMedical">Medical Mission</label>
+          <input type="radio" name="addEventMission" id="addEventMissionPeoples" value="peoples_day">
+          <label for="addEventMissionPeoples">People's Day</label>
+          <input type="radio" name="addEventMission" id="addEventMissionOther" value="other">
+          <label for="addEventMissionOther">Other</label>
+        </div>
+        <div class="bf-custom" id="addEventMissionCustomWrap">
+          <input type="text" id="addEventMissionCustomInput" class="bf-input" placeholder="Event type name, e.g. Vaccination Drive" aria-label="Event type name" autocomplete="off">
+          <div class="bf-error">Enter the event type name.</div>
+        </div>
+      </div>
 
-      <label style="${fieldLabel}">Site name</label>
-      <input type="text" id="addEventLocationInput" placeholder="e.g. Brgy. 91 Hall" style="${fieldInput}">
+      <div class="bf-field" id="addEventLocationField">
+        <label class="bf-label" for="addEventLocationInput">Site name</label>
+        <input type="text" id="addEventLocationInput" class="bf-input" placeholder="e.g. Brgy. 91 Hall" autocomplete="off">
+        <div class="bf-error">Enter the site name.</div>
+      </div>
     `;
-    const regionSelect = document.getElementById("addEventRegionSelect");
-    const regionCustomInput = document.getElementById("addEventRegionCustomInput");
-    regionSelect.addEventListener("change", () => {
-      regionCustomInput.style.display = regionSelect.value === "other" ? "" : "none";
+    const $ = id => document.getElementById(id);
+    const dateInput = $("addEventDateInput");
+    const customWrap = $("addEventRegionCustomWrap");
+    const customInput = $("addEventRegionCustomInput");
+    const locationInput = $("addEventLocationInput");
+    const missionCustomWrap = $("addEventMissionCustomWrap");
+    const missionCustomInput = $("addEventMissionCustomInput");
+    const checkedVal = name => (appModalMessage.querySelector(`input[name="${name}"]:checked`) || {}).value;
+
+    // Show the area-name box only for "Other area".
+    appModalMessage.querySelectorAll('input[name="addEventRegion"]').forEach(r => {
+      r.addEventListener("change", () => {
+        const isOther = checkedVal("addEventRegion") === "other";
+        customWrap.classList.toggle("show", isOther);
+        if (isOther) customInput.focus();
+      });
     });
+    // Same for event type: the name box only shows for "Other".
+    appModalMessage.querySelectorAll('input[name="addEventMission"]').forEach(r => {
+      r.addEventListener("change", () => {
+        const isOther = checkedVal("addEventMission") === "other";
+        missionCustomWrap.classList.toggle("show", isOther);
+        if (isOther) missionCustomInput.focus();
+      });
+    });
+    // Clear a field's error as soon as the person starts fixing it.
+    [[dateInput, "addEventDateField"], [locationInput, "addEventLocationField"], [customInput, "addEventRegionField"], [missionCustomInput, "addEventMissionField"]]
+      .forEach(([el, fieldId]) => el.addEventListener("input", () => $(fieldId).classList.remove("invalid")));
+
+    const finish = val => {
+      document.removeEventListener("keydown", onKey);
+      closeModal();
+      resolve(val);
+    };
+    const flag = (fieldId, input) => { $(fieldId).classList.add("invalid"); input.focus(); };
+    const submit = () => {
+      const dateVal = dateInput.value;
+      const region = checkedVal("addEventRegion");
+      const customVal = customInput.value.trim();
+      const locationVal = locationInput.value.trim();
+      const mission = checkedVal("addEventMission");
+      const missionCustomVal = missionCustomInput.value.trim();
+      if (!dateVal) return flag("addEventDateField", dateInput);
+      if (region === "other" && !customVal) return flag("addEventRegionField", customInput);
+      if (mission === "other" && !missionCustomVal) return flag("addEventMissionField", missionCustomInput);
+      if (!locationVal) return flag("addEventLocationField", locationInput);
+      finish({
+        date: dateVal,
+        region,
+        regionCustom: region === "other" ? customVal : "",
+        mission,
+        missionCustom: mission === "other" ? missionCustomVal : "",
+        location: locationVal
+      });
+    };
+    const onKey = e => {
+      if (e.key === "Escape") { e.preventDefault(); finish(null); }
+      else if (e.key === "Enter" && e.target.type !== "radio") { e.preventDefault(); submit(); }
+    };
+    document.addEventListener("keydown", onKey);
 
     appModalActions.innerHTML = "";
     const cancelBtn = document.createElement("button");
     cancelBtn.textContent = "Cancel";
-    cancelBtn.addEventListener("click", () => { closeModal(); resolve(null); });
+    cancelBtn.addEventListener("click", () => finish(null));
     const okBtn = document.createElement("button");
     okBtn.className = "primary";
     okBtn.textContent = "Create bracket";
-    okBtn.addEventListener("click", async () => {
-      const dateVal = document.getElementById("addEventDateInput").value;
-      const locationVal = document.getElementById("addEventLocationInput").value.trim();
-      if (!dateVal) {
-        await showAlert("Please choose a date for the event.", "warn");
-        return;
-      }
-      if (!locationVal) {
-        await showAlert("Please enter the site name.", "warn");
-        return;
-      }
-      const result = {
-        date: dateVal,
-        region: regionSelect.value,
-        regionCustom: regionSelect.value === "other" ? document.getElementById("addEventRegionCustomInput").value.trim() : "",
-        mission: document.getElementById("addEventMissionSelect").value,
-        location: locationVal
-      };
-      closeModal();
-      resolve(result);
-    });
+    okBtn.addEventListener("click", submit);
     appModalActions.appendChild(cancelBtn);
     appModalActions.appendChild(okBtn);
     appModal.classList.add("open");
-    setTimeout(() => document.getElementById("addEventDateInput") && document.getElementById("addEventDateInput").focus(), 30);
+    setTimeout(() => dateInput.focus(), 30);
   });
 }
 
@@ -2313,6 +2559,23 @@ if (!scheduleAccessRole) {
   window.location.replace("/839jgl8ang");
   throw new Error("Unauthorized event schedule account.");
 }
+// Badge in the topbar used to always read "ET / EVENT TEAM" no matter which
+// department head signed in. Swap it to reflect whichever account is
+// actually logged in (pharmacist/billing/information), so IT sees its own
+// initials + name instead of a generic Event Team label.
+const SCHEDULE_ROLE_BADGE = {
+  pharmacist: { avatar: "RPh", label: "PHARMACY" },
+  billing: { avatar: "BI", label: "BILLING" },
+  information: { avatar: "IT", label: "INFORMATION TECHNOLOGY" }
+};
+(function applyScheduleRoleBadge() {
+  const badge = SCHEDULE_ROLE_BADGE[scheduleAccessRole];
+  if (!badge) return;
+  const avatarEl = document.getElementById("adminChipAvatar");
+  const labelEl = document.getElementById("adminChipLabel");
+  if (avatarEl) avatarEl.textContent = badge.avatar;
+  if (labelEl) labelEl.textContent = badge.label;
+})();
 const isPharmacistScheduleUser = scheduleAccessRole === "pharmacist";
 if (!isPharmacistScheduleUser) {
   ["addDateBtn", "saveBtn", "resetBtn"].forEach(id => {
@@ -2326,6 +2589,23 @@ function canEditScheduleSlot(label, listKey) {
   const role = roleToTeam(label).toUpperCase();
   return (scheduleAccessRole === "billing" && role === "BILLING") ||
     (scheduleAccessRole === "information" && role === "IT");
+}
+// Which role labels the CURRENTLY logged-in head is allowed to add/switch a
+// slot to. Pharmacist and billing keep full reign (billing manages Store
+// Reliever company-wide and its own BILLING slots); every other head
+// (currently just information/IT) is boxed into its own department only —
+// it can add a field, but only ever as its own role, never anyone else's.
+function scheduleRoleOptionsForCurrentUser(listKey) {
+  if (isPharmacistScheduleUser) return listKey === "relievers" ? RELIEVER_ROLE_OPTIONS : ROLE_OPTIONS;
+  if (scheduleAccessRole === "billing") {
+    return listKey === "relievers" ? RELIEVER_ROLE_OPTIONS : ["BILLING"];
+  }
+  if (listKey === "relievers") return []; // Store Reliever stays pharmacist/billing-only
+  if (scheduleAccessRole === "information") return ["IT SPECIALIST"];
+  return [];
+}
+function canAddScheduleField(listKey) {
+  return scheduleRoleOptionsForCurrentUser(listKey).length > 0;
 }
 function requirePharmacistScheduleAccess() {
   if (isPharmacistScheduleUser) return true;
@@ -2405,7 +2685,11 @@ const RELIEVER_LABELS = ["PHARMACY ASSISTANT"];
 // standard options (e.g. older "ENCODER/PICKER" entries). Store Reliever
 // rows only ever offer Pharmacy Assistant roles (PICKER/ENCODER).
 function roleOptionsHtml(current, listKey) {
-  const base = listKey === "relievers" ? RELIEVER_ROLE_OPTIONS : ROLE_OPTIONS;
+  // Restrict the dropdown itself to whatever this head is allowed to
+  // switch a slot into — otherwise an editable row (already scoped to
+  // their own department by canEditScheduleSlot) could still be flipped
+  // into a different department's role via this same dropdown.
+  const base = scheduleRoleOptionsForCurrentUser(listKey);
   const opts = base.includes(current) ? base : [current, ...base];
   return opts.map(r => `<option value="${escapeAttr(r)}" ${r === current ? "selected" : ""}>${escapeHtml(r)}</option>`).join("");
 }
@@ -2426,6 +2710,102 @@ function registeredNamesForTeam(team) {
   return names.sort((a, b) => a.localeCompare(b));
 }
 
+// Finds the OTHER slot (any site card, Event Team or Store Reliever list)
+// that `name` currently occupies, besides the slot identified by
+// excludeCardId/excludeListKey/excludeSIdx. Returns null if `name` isn't
+// sitting anywhere else right now.
+function findSlotByName(name, excludeCardId, excludeListKey, excludeSIdx) {
+  const target = String(name || "").trim().toLowerCase();
+  if (!target) return null;
+  for (let cIdx = 0; cIdx < cards.length; cIdx++) {
+    const card = cards[cIdx];
+    for (const listKey of ["staff", "relievers"]) {
+      const list = card[listKey] || [];
+      for (let idx = 0; idx < list.length; idx++) {
+        if (card.id === excludeCardId && listKey === excludeListKey && idx === excludeSIdx) continue;
+        if (String(list[idx].name || "").trim().toLowerCase() === target) {
+          return { card, cardIdx: cIdx, listKey, sIdx: idx, slot: list[idx] };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+// True if `name` is already sitting in some OTHER slot. Used so the
+// name-picker can flag an employee as unavailable instead of letting a
+// HEAD/pharmacy-department admin silently double-book them into a second
+// slot at the same time — picking a flagged name instead offers to MOVE
+// them here (see moveEmployeeIntoSlot below).
+function nameTakenElsewhere(name, excludeCardId, excludeListKey, excludeSIdx) {
+  return !!findSlotByName(name, excludeCardId, excludeListKey, excludeSIdx);
+}
+
+// Clears whatever slot `name` currently occupies (mirroring the manual-clear
+// branch of the .nameInput "input" handler, auto-added-reliever cleanup
+// included), then fills the target slot with `name`, after the HEAD/PD admin
+// confirms the move in a modal. Resolves true if the move happened.
+async function moveEmployeeIntoSlot(name, targetCardId, targetListKey, targetSIdx) {
+  const source = findSlotByName(name, targetCardId, targetListKey, targetSIdx);
+  if (!source) return false; // no longer taken elsewhere — nothing to move
+  const targetCard = cards.find(c => c.id === targetCardId);
+  if (!targetCard) return false;
+  const targetSlot = targetCard[targetListKey][targetSIdx];
+
+  const sourceRoleLabel = source.listKey === "relievers" ? relieverDisplayLabel(source.slot) : source.slot.label;
+  const sourceSiteLabel = source.listKey === "relievers" && (source.slot.site || "").trim()
+    ? source.slot.site
+    : (source.card.location || "Unnamed site");
+  const targetRoleLabel = targetListKey === "relievers" ? relieverDisplayLabel(targetSlot) : targetSlot.label;
+  const targetSiteLabel = targetCard.location || "Unnamed site";
+
+  const confirmed = await showConfirm(
+    `Ilipat si ${name} mula sa "${sourceRoleLabel}" slot sa ${sourceSiteLabel} papunta sa "${targetRoleLabel}" slot dito sa ${targetSiteLabel}? Mababakante ang dati nyang slot.`
+  );
+  if (!confirmed) return false;
+
+  // Clear the source slot.
+  const sourceArr = source.card[source.listKey];
+  const sourceSlot = sourceArr[source.sIdx];
+  const hadStaffId = sourceSlot.filledByStaffId;
+  sourceArr[source.sIdx] = {
+    ...sourceSlot,
+    name: "",
+    filledByStaffId: null,
+    emergency: false,
+    emergencyBy: null,
+    emergencyByStaffId: null,
+    _touched: true
+  };
+  if (source.listKey === "relievers") {
+    sourceArr[source.sIdx].relieverDepartment = null;
+    sourceArr[source.sIdx].label = "";
+  }
+  if (hadStaffId && source.listKey === "staff" && roleToTeam(sourceSlot.label).toUpperCase() === "PHARMACY ASSISTANT") {
+    const relieversArr = source.card.relievers || [];
+    const autoIdx = relieversArr.findIndex(s => s.addedForStaffId === hadStaffId && !(s.name || "").trim());
+    if (autoIdx !== -1) relieversArr.splice(autoIdx, 1);
+  }
+
+  // Fill the target slot.
+  const upperName = name.toUpperCase();
+  targetCard[targetListKey][targetSIdx] = { ...targetSlot, name: upperName, _touched: true };
+  if (targetListKey === "relievers") {
+    const matchedEmployee = findEmployeeByName(upperName);
+    const relieverTeam = matchedEmployee ? roleToTeam(matchedEmployee.team).toUpperCase() : "";
+    targetCard[targetListKey][targetSIdx].relieverDepartment = relieverTeam || null;
+    targetCard[targetListKey][targetSIdx].label = relieverTeam === "BILLING" ? "BILLING" : "PHARMACY ASSISTANT";
+  }
+  addRoleHistory(targetSlot.label, upperName);
+  if (targetListKey === "staff" && roleToTeam(targetSlot.label).toUpperCase() === "PHARMACY ASSISTANT") {
+    syncAutoRelieverForSlot(targetCard, targetSIdx, upperName);
+  }
+
+  saveCards();
+  render();
+  return true;
+}
+
 function setupStaffNamePickers(container) {
   container.querySelectorAll(".name-picker").forEach(picker => {
     const input = picker.querySelector(".nameInput");
@@ -2440,8 +2820,14 @@ function setupStaffNamePickers(container) {
       const queryText = search.value.trim().toLowerCase();
       const names = registeredNamesForTeam(input.dataset.pickerTeam || "");
       const filtered = names.filter(name => name.toLowerCase().includes(queryText));
+      const cardId = input.dataset.cardId || "";
+      const listKey = input.dataset.list || "";
+      const sIdx = Number(input.dataset.sidx);
       options.innerHTML = filtered.length
-        ? filtered.map(name => `<button type="button" class="name-picker-option" data-name="${escapeAttr(name)}">${escapeHtml(name)}</button>`).join("")
+        ? filtered.map(name => {
+            const taken = nameTakenElsewhere(name, cardId, listKey, sIdx);
+            return `<button type="button" class="name-picker-option${taken ? " is-taken" : ""}" data-name="${escapeAttr(name)}"${taken ? ' data-taken="1" title="Already assigned to another slot — click to move here"' : ""}>${escapeHtml(name)}${taken ? ' <span class="name-picker-taken-tag">(Move Slot)</span>' : ""}</button>`;
+          }).join("")
         : `<div class="name-picker-empty">No registered employees found.</div>`;
     };
     const open = () => {
@@ -2456,10 +2842,28 @@ function setupStaffNamePickers(container) {
     });
     input.addEventListener("focus", renderOptions);
     search.addEventListener("input", renderOptions);
-    options.addEventListener("click", e => {
+    options.addEventListener("click", async e => {
       const option = e.target.closest(".name-picker-option");
       if (!option) return;
-      input.value = option.dataset.name || "";
+      const name = option.dataset.name || "";
+      if (option.dataset.taken === "1") {
+        // Already sitting in another slot — ask for confirmation before
+        // pulling the employee out of it and dropping them in here. Leave
+        // the dropdown open while the confirm modal is up, so a "Cancel"
+        // leaves the admin free to pick a different, unclaimed name instead.
+        const moved = await moveEmployeeIntoSlot(
+          name,
+          input.dataset.cardId || "",
+          input.dataset.list || "",
+          Number(input.dataset.sidx)
+        );
+        // moveEmployeeIntoSlot calls render() on success, which rebuilds
+        // this whole row (and this picker) from scratch — nothing left to
+        // close/update on this now-detached instance either way.
+        if (!moved) close();
+        return;
+      }
+      input.value = name;
       input.dispatchEvent(new Event("input", { bubbles: true }));
       input.dispatchEvent(new Event("change", { bubbles: true }));
       close();
@@ -2513,6 +2917,7 @@ function blankCard() {
     region: "south",
     regionCustom: "",
     mission: "medical",
+    missionCustom: "",
     location: "",
     date: "",
     time: "7:00PM - ONWARDS",
@@ -2672,8 +3077,8 @@ function clearCardLevelDirty(ids) {
 // (id itself never changes, and there's nothing else on a card that isn't
 // one of these).
 function snapshotKeyFor(card) {
-  const { region, regionCustom, mission, location, date, time, staff, relievers, photo, photoName, cancelled } = card;
-  return JSON.stringify({ region, regionCustom, mission, location, date, time, staff, relievers, photo, photoName, cancelled });
+  const { region, regionCustom, mission, missionCustom, location, date, time, staff, relievers, photo, photoName, cancelled } = card;
+  return JSON.stringify({ region, regionCustom, mission, missionCustom, location, date, time, staff, relievers, photo, photoName, cancelled });
 }
 
 // Replaces the entire snapshot — used after a full Send/Save All push, and
@@ -3041,21 +3446,109 @@ function regionLabel(card) {
 }
 function missionLabel(card) {
   if (card.mission === "peoples_day") return "People's Day";
+  if (card.mission === "other") return (card.missionCustom || "").trim() || "Other event";
   return "Medical Mission";
 }
+// The event type to show on an event-related notice (deployed, assigned,
+// moved, cancelled, date/time/branch changed, ...). Prefers what was
+// stamped on the notice when it was filed; otherwise looks it up from the
+// card the notice points at. "Event type changed" notices already show
+// old => new, so they're skipped.
+function notifEventTypeLabel(n) {
+  if (!n || n.type === "missionChanged") return "";
+  if (n.missionLabel) return String(n.missionLabel);
+  const c = (cards || []).find(x => x && x.id === n.cardId);
+  return c ? missionLabel(c) : "";
+}
 
-function updateStats() {
-  document.getElementById("statSites").textContent = cards.length;
+// ---- Shared layout for every event notice (popup, bell panel) ----
+// Reason first, then the same labelled lines every time:
+//   Role / Event Site / Event Date / Time / Event Type
+function notifTitleCase(str) {
+  return String(str || "").toLowerCase()
+    .replace(/\b([a-z])/g, (m, c) => c.toUpperCase())
+    .replace(/\bIt\b/g, "IT");
+}
+function notifDetailRows(n, opts) {
+  const includeBranch = !!(opts && opts.includeBranch);
+  const rows = [];
+  const role = n.list === "schedule" ? "" : notifTitleCase(n.role);
+  if (role) rows.push(["Role", role + (n.list === "relievers" ? " (Store Reliever)" : "")]);
+  if (includeBranch && n.region) rows.push(["Branch", regionLabelFromValue(n.region)]);
+  if (n.location) rows.push(["Event Site", n.location]);
+  if (n.date) rows.push(["Event Date", formatDateDisplay(n.date)]);
+  if (n.time) rows.push(["Time", n.time]);
+  if (n.type === "missionChanged") {
+    if (n.newMissionLabel) rows.push(["Event Type", `${n.oldMissionLabel || ""} => ${n.newMissionLabel}`]);
+  } else {
+    const t = notifEventTypeLabel(n);
+    if (t) rows.push(["Event Type", t]);
+  }
+  return rows;
+}
+function notifDetailText(n, opts) {
+  return notifDetailRows(n, opts).map(([k, v]) => `${k}: ${v}`).join("\n");
+}
+function notifDetailHtml(n, opts) {
+  return notifDetailRows(n, opts).map(([k, v]) => `${k}: <b>${escapeHtml(v)}</b>`).join("<br>");
+}
+// Stamp the event type onto a notice before it's written, so it survives
+// even after the card itself is deleted.
+function stampEventType(n) {
+  if (!n || n.missionLabel || n.type === "missionChanged") return n;
+  const c = (cards || []).find(x => x && x.id === n.cardId);
+  return c ? { ...n, mission: c.mission || "medical", missionLabel: missionLabel(c) } : n;
+}
+
+// Fills a stat's hover/tap tooltip with the list of matching site names.
+function setStatTooltip(id, sites, emptyMessage) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!sites.length) {
+    el.innerHTML = `<div class="stat-tip-empty">${escapeHtml(emptyMessage || "No sites")}</div>`;
+    return;
+  }
+  el.innerHTML = sites.map(s => `<div class="stat-tip-row">${escapeHtml(s)}</div>`).join("");
+}
+
+// Sets the three stat counts AND their hover tooltips from one list of
+// cards: "Sites" lists every site, "Unfilled roles" lists only sites that
+// still have an empty staff/reliever slot, "Fully staffed" lists only
+// sites where every slot is filled.
+function applyStats(list) {
+  const arr = list || [];
+  document.getElementById("statSites").textContent = arr.length;
   let unfilled = 0, ready = 0;
-  cards.forEach(c => {
-    const empty = c.staff.filter(s => !s.name.trim()).length +
-      (c.relievers || []).filter(s => !s.name.trim()).length;
+  const allSites = [], unfilledSites = [], readySites = [];
+  arr.forEach(c => {
+    const empty = (c.staff || []).filter(s => !(s.name || "").trim()).length +
+      (c.relievers || []).filter(s => !(s.name || "").trim()).length;
     unfilled += empty;
-    if (empty === 0) ready++;
+    const site = (c.location || "").trim() || "Untitled site";
+    allSites.push(site);
+    if (empty === 0) { ready++; readySites.push(site); }
+    else { unfilledSites.push(site); }
   });
   document.getElementById("statUnfilled").textContent = unfilled;
   document.getElementById("statReady").textContent = ready;
+  setStatTooltip("statSitesTip", allSites, "No sites posted yet");
+  setStatTooltip("statUnfilledTip", unfilledSites, "No unfilled roles \u2014 everything's staffed");
+  setStatTooltip("statReadyTip", readySites, "No sites are fully staffed yet");
 }
+
+function updateStats() {
+  applyStats(cards);
+}
+
+// Touch devices don't have :hover, so tapping a stat toggles its tooltip
+// open; tapping elsewhere (or another stat) closes it again.
+document.addEventListener("click", (e) => {
+  const tappedStat = e.target.closest(".stats .stat");
+  document.querySelectorAll(".stats .stat.tip-open").forEach(el => {
+    if (el !== tappedStat) el.classList.remove("tip-open");
+  });
+  if (tappedStat) tappedStat.classList.toggle("tip-open");
+});
 
 // Groups an array of {card, idx} entries into date brackets, sorted
 // chronologically with cards that have no date pushed to the end.
@@ -3284,7 +3777,9 @@ function render() {
           <select class="missionSelect"${isPharmacistScheduleUser ? "" : " disabled"}>
             <option value="medical" ${card.mission === "medical" ? "selected" : ""}>Medical Mission</option>
             <option value="peoples_day" ${card.mission === "peoples_day" ? "selected" : ""}>People's Day</option>
+            <option value="other" ${card.mission === "other" ? "selected" : ""}>Other…</option>
           </select>
+          ${card.mission === "other" ? `<input type="text" class="customText missionCustomInput" placeholder="Event type name" value="${escapeAttr(card.missionCustom)}"${isPharmacistScheduleUser ? "" : " disabled"}>` : ""}
         </div>
 
         <input type="text" class="locationInput" list="siteNameList" placeholder="Site name — e.g. Brgy. 91 Hall" value="${escapeAttr(card.location)}"${isPharmacistScheduleUser ? "" : " disabled"}>
@@ -3315,7 +3810,7 @@ function render() {
           <div class="staff-grid" data-list="staff">
             ${card.staff.map((s, sIdx) => adminStaffRowHtml(s, sIdx, "staff", card)).join("")}
           </div>
-          ${isPharmacistScheduleUser ? `<button type="button" class="addFieldBtn" data-list="staff">+ Add field</button>` : ""}
+          ${canAddScheduleField("staff") ? `<button type="button" class="addFieldBtn" data-list="staff">+ Add field</button>` : ""}
         </div>
 
         <div class="staff-section reliever-section">
@@ -3323,7 +3818,7 @@ function render() {
           <div class="staff-grid" data-list="relievers">
             ${(card.relievers || []).map((s, sIdx) => adminStaffRowHtml(s, sIdx, "relievers", card)).join("")}
           </div>
-          ${isPharmacistScheduleUser ? `<button type="button" class="addFieldBtn" data-list="relievers">+ Add field</button>` : ""}
+          ${canAddScheduleField("relievers") ? `<button type="button" class="addFieldBtn" data-list="relievers">+ Add field</button>` : ""}
         </div>
 
         <div class="attach-row ${card.photo ? "has-photo" : ""}">
@@ -3331,6 +3826,10 @@ function render() {
           <div class="attach-text">${card.photo ? `<span class="fname">${escapeHtml(card.photoName || "Photo attached")}</span>` : "Attach site photo"}</div>
           <button class="attach-clear" type="button">Remove</button>
           <input type="file" accept="image/*" class="hiddenFile">
+        </div>
+
+        <div class="card-foot">
+          <button type="button" class="btn card-update-btn" title="Push only this site's changes online">💾 Update this site</button>
         </div>
       </div>
     `;
@@ -3381,6 +3880,19 @@ function render() {
       }
     });
 
+    // Per-site push: same underlying updateDateOnRemote() the bracket's own
+    // "Update" button uses, but scoped to just this one card's id instead of
+    // every site in the bracket — so editing one site and pressing its own
+    // button only touches that site on the remote doc, leaving every other
+    // site (in this bracket or any other) exactly as it was. The first
+    // argument (dateKey) is unused inside updateDateOnRemote — it already
+    // selects purely by the id list passed in — so it's safe to pass null.
+    cardEl.querySelector(".card-update-btn")?.addEventListener("click", e => {
+      saveCards();
+      const siteLabel = (cards[idx].location || "").trim() || "this site";
+      updateDateOnRemote(null, siteLabel, e.currentTarget, [card.id]);
+    });
+
     cardEl.querySelector(".regionSelect").addEventListener("change", e => {
       cards[idx].region = e.target.value;
       markCardLevelDirty(card.id);
@@ -3397,6 +3909,12 @@ function render() {
       cards[idx].mission = e.target.value;
       markCardLevelDirty(card.id);
       saveCards(); render();
+    });
+    const missionCustomInput = cardEl.querySelector(".missionCustomInput");
+    if (missionCustomInput) missionCustomInput.addEventListener("input", e => {
+      cards[idx].missionCustom = e.target.value;
+      markCardLevelDirty(card.id);
+      saveCards();
     });
 
     const locationInput = cardEl.querySelector(".locationInput");
@@ -3626,10 +4144,16 @@ function render() {
       btn.addEventListener("click", () => {
         const listKey = btn.dataset.list || "staff";
         if (!Array.isArray(cards[idx][listKey])) cards[idx][listKey] = [];
+        // Default the new slot's role to the first (and, for non-billing,
+        // non-pharmacist heads, ONLY) role they're allowed to add — so an
+        // information/IT head's new field always starts out as its own
+        // "IT SPECIALIST" slot, never someone else's department.
+        const defaultLabel = scheduleRoleOptionsForCurrentUser(listKey)[0];
+        if (!defaultLabel) return; // this head can't add to this section at all
         cards[idx][listKey].push(
           listKey === "relievers"
-            ? { label: RELIEVER_ROLE_OPTIONS[0], name: "", site: "" }
-            : { label: ROLE_OPTIONS[0], name: "" }
+            ? { label: defaultLabel, name: "", site: "" }
+            : { label: defaultLabel, name: "" }
         );
         saveCards();
         render();
@@ -3733,16 +4257,7 @@ function renderEmployeeSchedule(scheduleCards, branch) {
     return false;
   });
 
-  document.getElementById("statSites").textContent = filtered.length;
-  let unfilled = 0, ready = 0;
-  filtered.forEach(c => {
-    const empty = (c.staff || []).filter(s => !(s.name || "").trim()).length +
-      (c.relievers || []).filter(s => !(s.name || "").trim()).length;
-    unfilled += empty;
-    if (empty === 0) ready++;
-  });
-  document.getElementById("statUnfilled").textContent = unfilled;
-  document.getElementById("statReady").textContent = ready;
+  applyStats(filtered);
 
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
@@ -4113,7 +4628,11 @@ function renderStaffDirectory() {
 function openStaffDirectory() {
   staffDirOverlay.classList.add("open");
   renderStaffDirectory();
-  staffDirSearch.focus();
+  // Deferred — same reason as the appModal focus calls (see showAlert):
+  // focusing synchronously, before the overlay has finished its open
+  // transition, made the browser scroll the underlying page instead of
+  // just focusing the search box in place.
+  setTimeout(() => staffDirSearch.focus(), 30);
 }
 
 function closeStaffDirectory() {
@@ -4337,6 +4856,7 @@ document.getElementById("addDateBtn").addEventListener("click", async () => {
   newCard.region = details.region;
   newCard.regionCustom = details.regionCustom;
   newCard.mission = details.mission;
+  newCard.missionCustom = details.missionCustom || "";
   newCard.location = details.location;
   cards.push(newCard);
   sessionNewCardIds.add(newCard.id);
@@ -4433,6 +4953,23 @@ function mergePublishedRosterChanges(publishedCards, liveCards) {
   });
 }
 
+// Used by a bracket's own Update. Unlike mergePublishedRosterChanges above
+// (which only syncs staff/relievers), this replaces the WHOLE card for any
+// id that's already in publishedCards — so once a site has been sent at
+// least once, every later Update (date/time/location/mission/region/
+// cancelled, not just staff) keeps syncing to employees without needing
+// another explicit Send. It only ever touches ids already present in
+// publishedCards: a card that was never sent isn't in publishedCards, so
+// mapping over publishedCards alone can never add it — it stays hidden
+// from employees until Send, exactly like a brand-new site should.
+function mergePublishedCardChanges(publishedCards, liveCards) {
+  return (publishedCards || []).map(publishedCard => {
+    const liveCard = liveCards.find(card => card.id === publishedCard.id);
+    if (!liveCard) return publishedCard;
+    return { ...liveCard };
+  });
+}
+
 function markEmployeeVisibleNotifications(notifications, publishedCards, isPharmacist) {
   const publishedIds = new Set((publishedCards || []).map(card => card.id));
   return notifications.map(notification => ({
@@ -4477,7 +5014,7 @@ async function writeScheduleNotifications(notifications) {
   });
   let failures = 0;
   await Promise.all(unique.map(notification =>
-    addDoc(notificationsCollRef, notification).catch(err => {
+    addDoc(notificationsCollRef, stampEventType(notification)).catch(err => {
       failures++;
       console.error("Failed to file schedule-change notification:", err);
     })
@@ -4652,10 +5189,12 @@ function applyScheduleChangeNotifications(localCardsSubset, remoteCards) {
     // date/time/location edit.
     const oldMission = remoteCard.mission || "medical";
     const newMission = card.mission || "medical";
-    const missionChanged = oldMission !== newMission;
+    // Compare the displayed label too, so renaming an "Other" event type
+    // (same mission value, different custom name) still counts as a change.
+    const oldMissionLabel = missionLabel({ mission: oldMission, missionCustom: remoteCard.missionCustom });
+    const newMissionLabel = missionLabel({ mission: newMission, missionCustom: card.missionCustom });
+    const missionChanged = oldMission !== newMission || oldMissionLabel !== newMissionLabel;
     if (missionChanged) {
-      const oldMissionLabel = missionLabel({ mission: oldMission });
-      const newMissionLabel = missionLabel({ mission: newMission });
       notifyPayloads.push({
         type: "missionChanged",
         cardId: card.id,
@@ -4883,6 +5422,49 @@ function applyPublishedMoveNotifications(previousPublishedCards, publishedCards)
           oldRegion: previous.card.region || "",
           employeeName: slot.name || "",
           staffId: employee ? employee.staffId : (previous.slot.filledByStaffId || slot.filledByStaffId || null),
+          visibleToEmployees: true,
+          createdAt: serverTimestamp(),
+          resolved: false
+        });
+      });
+    });
+  });
+  return notifyPayloads;
+}
+
+// Cancelling/reinstating a card flips the live admin roster (cards) the
+// instant the pharmacist clicks the button, so every department head sees
+// it right away — but it must stay OFF the employee-visible roster
+// (employeeCards) until the pharmacist actually presses Update/Send for
+// that bracket. This compares what was last published to employees
+// (previousPublishedCards) against what's about to be published
+// (publishedCards) and files an eventCancelled/eventReinstated notice for
+// each self-signed-up employee only at that publish moment, so the message
+// and the CANCELLED stamp always reach employees together.
+function applyPublishedCancelledNotifications(previousPublishedCards, publishedCards) {
+  const previousById = new Map((previousPublishedCards || []).map(c => [c.id, c]));
+  const notifyPayloads = [];
+  (publishedCards || []).forEach(card => {
+    const previousCard = previousById.get(card.id);
+    const wasCancelled = !!(previousCard && previousCard.cancelled);
+    const nowCancelled = !!card.cancelled;
+    if (wasCancelled === nowCancelled) return;
+    ["staff", "relievers"].forEach(listKey => {
+      (card[listKey] || []).forEach((slot, staffIdx) => {
+        const notifyStaffId = resolveSlotStaffId(slot);
+        if (!notifyStaffId) return;
+        notifyPayloads.push({
+          type: nowCancelled ? "eventCancelled" : "eventReinstated",
+          cardId: card.id,
+          list: listKey,
+          staffIdx,
+          role: slot.label || "",
+          location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (card.location || "Unnamed site"),
+          date: card.date || "",
+          time: card.time || "",
+          region: card.region || "",
+          employeeName: slot.name || "",
+          staffId: notifyStaffId,
           visibleToEmployees: true,
           createdAt: serverTimestamp(),
           resolved: false
@@ -5129,6 +5711,37 @@ async function adminRemoveEmployeeFromSlot(cardId, listKey, staffIdx, btn) {
         sentAt: serverTimestamp(),
         sentBy: data.sentBy || "admin"
       });
+      // Mirror this removal into the LOCAL admin dashboard state right away,
+      // instead of relying only on the onSnapshot listener further below to
+      // pick it back up. That listener deliberately skips any slot marked
+      // `_touched` (a slot this browser edited locally this session) — and
+      // a slot that was only ever saved locally via "Save"/"Update All"
+      // (never actually pushed to Firestore with Send or a bracket's own
+      // Update) stays `_touched: true` in this browser's localStorage
+      // forever, since nothing ever ran clearTouchedMarkers() for it. That
+      // left the just-confirmed remote removal silently ignored by the
+      // merge, so the name never disappeared on screen here — not even
+      // after a full refresh, since a refresh reloads `cards` from that
+      // same stuck localStorage copy. This is the "removing takes forever /
+      // survives a refresh" bug for names a head typed in directly and only
+      // ever locally saved before removing them.
+      const localCardForRemoval = cards.find(c => c.id === cardId);
+      if (localCardForRemoval) {
+        const localArr = localCardForRemoval[listKey] || [];
+        if (localArr[staffIdx]) {
+          localArr[staffIdx] = { ...localArr[staffIdx], name: "", filledByStaffId: null };
+          delete localArr[staffIdx]._touched;
+        }
+        if (removedStaffId && listKey === "staff" && roleToTeam(slot.label).toUpperCase() === "PHARMACY ASSISTANT") {
+          const localRelievers = localCardForRemoval.relievers || [];
+          const localAutoIdx = localRelievers.findIndex(s =>
+            s.addedForStaffId === removedStaffId && !(s.name || "").trim()
+          );
+          if (localAutoIdx !== -1) localRelievers.splice(localAutoIdx, 1);
+        }
+        saveCards();
+        render();
+      }
       if (removedStaffId && wasPublished) {
         notifyPayload = {
           type: "removed",
@@ -5290,8 +5903,11 @@ async function sendAllToEmployees(btn) {
     markSaved();
     render();
     const publishedBeforeAll = Array.isArray(snap.data().employeeCards) ? snap.data().employeeCards : [];
+    const publishedCancelledNotifications = scheduleAccessRole === "pharmacist"
+      ? applyPublishedCancelledNotifications(publishedBeforeAll, stripForRemote(merged))
+      : [];
     const allChangeNotifications = markEmployeeVisibleNotifications(
-      [...branchChangeNotifications, ...scheduleChangeNotifications, ...moveNotifications, ...assignmentNotifications, ...publishedAssignmentNotifications, ...publishedMoveNotifications],
+      [...branchChangeNotifications, ...scheduleChangeNotifications, ...moveNotifications, ...assignmentNotifications, ...publishedAssignmentNotifications, ...publishedMoveNotifications, ...publishedCancelledNotifications],
       publishedBeforeAll,
       scheduleAccessRole === "pharmacist"
     );
@@ -5311,10 +5927,14 @@ async function sendAllToEmployees(btn) {
   }
 }
 
-// Pushes only one date bracket's cards to the remote doc, leaving whatever
-// the remote already has for every other date completely untouched — so an
-// edit to one event doesn't clobber another admin's edits on a different
-// date.
+// Pushes only the given card id(s) to the remote doc, leaving whatever the
+// remote already has for every other card completely untouched — so an
+// edit to one event/site doesn't clobber another admin's edits elsewhere.
+// Shared by both a bracket's own "Update" button (groupCardIds = every site
+// in that date bracket) and a single site's own "💾 Update this site" button
+// (groupCardIds = just that one card's id) — the selection is entirely by
+// id, so it works the same either way. dateKey is unused; kept as the first
+// parameter only so the bracket call site doesn't need to change.
 async function updateDateOnRemote(dateKey, dateLabelForMsg, btn, groupCardIds) {
   const originalLabel = btn.textContent;
   btn.disabled = true;
@@ -5361,15 +5981,22 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn, groupCardIds) {
     const mergedThisDate = mergeRemoteClaims(thisDateLocal, remoteCards);
     const publishedBefore = (Array.isArray(snap.data().employeeCards) ? snap.data().employeeCards : [])
       .filter(card => thisDateLocalIds.has(card.id));
-    const publishedMoveNotifications = scheduleAccessRole === "pharmacist"
-      ? applyPublishedMoveNotifications(publishedBefore, mergedThisDate)
-      : [];
+    // A bracket's own Update must never make a BRAND-NEW site (or a
+    // brand-new assignment on one) visible to employees on its own — that's
+    // what Send is for. But once a site has already been sent at least once
+    // (its id is already in publishedBefore), later Updates should keep
+    // syncing it live without needing another explicit Send. So only
+    // compute these "published" notification families over the subset of
+    // this bracket that's already published — never over a card that isn't
+    // in publishedBefore yet.
+    const alreadyPublishedIds = new Set(publishedBefore.map(c => c.id));
+    const alreadyPublishedMergedThisDate = mergedThisDate.filter(c => alreadyPublishedIds.has(c.id));
+    const publishedMoveNotifications = applyPublishedMoveNotifications(publishedBefore, alreadyPublishedMergedThisDate);
     const publishedMovedKeys = new Set(publishedMoveNotifications.map(n => `${n.cardId}:${n.list}:${n.staffIdx}`));
-    const publishedAssignmentNotifications = scheduleAccessRole === "pharmacist"
-      ? applyPublishedAssignmentNotifications(publishedBefore, mergedThisDate)
-          .filter(n => !movedKeys.has(`${n.cardId}:${n.list}:${n.staffIdx}`) &&
-            !publishedMovedKeys.has(`${n.cardId}:${n.list}:${n.staffIdx}`))
-      : [];
+    const publishedAssignmentNotifications = applyPublishedAssignmentNotifications(publishedBefore, alreadyPublishedMergedThisDate)
+      .filter(n => !movedKeys.has(`${n.cardId}:${n.list}:${n.staffIdx}`) &&
+        !publishedMovedKeys.has(`${n.cardId}:${n.list}:${n.staffIdx}`));
+    const publishedCancelledNotifications = applyPublishedCancelledNotifications(publishedBefore, alreadyPublishedMergedThisDate);
     // Same fix as sendAllToEmployees above: reflect the merged (self-signup
     // filled-in) cards back into the local `cards` array for this date, so
     // local state doesn't diverge from what was just pushed and falsely
@@ -5379,12 +6006,22 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn, groupCardIds) {
     const merged = [...kept, ...stripForRemote(mergedThisDate)];
     await setDoc(scheduleDocRef, {
       cards: merged,
-      employeeCards: scheduleAccessRole === "pharmacist"
-        ? merged
-        : mergePublishedRosterChanges(
-            Array.isArray(snap.data().employeeCards) ? snap.data().employeeCards : [],
-            merged
-          ),
+      // Bug fix: this used to fully overwrite employeeCards with `merged`
+      // whenever a pharmacist clicked a bracket's own Update — so a brand
+      // new site, or a newly-assigned employee on one, went live to
+      // employees immediately, even though the pharmacist only meant to save
+      // it for heads/pharmacy to review (Send/Save All was the deliberate
+      // "publish to employees" action). Now: a site that was never sent
+      // stays completely off employeeCards until Send, for ANY role — but a
+      // site that's already been sent before keeps getting its full changes
+      // (date/time/location/mission/region/cancelled/staff/relievers) synced
+      // on every later Update, no extra Send needed. mergePublishedCardChanges
+      // only ever touches ids already present in employeeCards, so a
+      // never-sent site can't slip in through this call.
+      employeeCards: mergePublishedCardChanges(
+        Array.isArray(snap.data().employeeCards) ? snap.data().employeeCards : [],
+        merged
+      ),
       sentAt: serverTimestamp(),
       sentBy: "admin"
     });
@@ -5412,9 +6049,14 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn, groupCardIds) {
     render();
     const publishedBeforeAll = Array.isArray(snap.data().employeeCards) ? snap.data().employeeCards : [];
     const allChangeNotifications = markEmployeeVisibleNotifications(
-      [...branchChangeNotifications, ...scheduleChangeNotifications, ...moveNotifications, ...assignmentNotifications, ...publishedAssignmentNotifications, ...publishedMoveNotifications],
+      [...branchChangeNotifications, ...scheduleChangeNotifications, ...moveNotifications, ...assignmentNotifications, ...publishedAssignmentNotifications, ...publishedMoveNotifications, ...publishedCancelledNotifications],
       publishedBeforeAll,
-      scheduleAccessRole === "pharmacist"
+      // Update never publishes a brand-new site to employees on its own
+      // (see the employeeCards write above), so pass false here — a
+      // notification still ends up visible whenever its card's id is
+      // already in publishedBeforeAll (an already-sent site), same as it
+      // would for a false-passing non-pharmacist Update before this fix.
+      false
     );
     const notifFailCount = await writeScheduleNotifications(allChangeNotifications);
     if (notifFailCount > 0) {
@@ -5424,9 +6066,23 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn, groupCardIds) {
       );
     }
     const updateSummary = summarizeScheduleChangeNotifications([...branchChangeNotifications, ...scheduleChangeNotifications]);
-    await showAlert(updateSummary
-      ? `Update complete: ${updateSummary} updated for "${dateLabelForMsg}". Other event dates were left as they were.`
-      : `Update complete for "${dateLabelForMsg}". Other event dates were left as they were.`);
+    // Tell the person exactly what did and didn't reach employees: sites
+    // that were already sent before keep syncing live on every Update, but
+    // a site that's never been sent still needs an explicit Send.
+    const newSiteCount = thisDateLocal.length - alreadyPublishedMergedThisDate.length;
+    let publishNote;
+    if (newSiteCount > 0 && alreadyPublishedMergedThisDate.length > 0) {
+      publishNote = ` Already-sent site(s) here are updated for employees now; ${newSiteCount} new site(s) stay hidden from them until you press "Send".`;
+    } else if (newSiteCount > 0) {
+      publishNote = " This hasn't been sent to employees yet — press \"Send\" to publish it.";
+    } else if (alreadyPublishedMergedThisDate.length > 0) {
+      publishNote = " Employees who already had this event can see the update now.";
+    } else {
+      publishNote = "";
+    }
+    await showAlert((updateSummary
+      ? `Update complete: ${updateSummary} updated for "${dateLabelForMsg}". Everything else was left untouched.`
+      : `Update complete for "${dateLabelForMsg}". Everything else was left untouched.`) + publishNote);
   } catch (err) {
     await showAlert("Failed to update online: " + err.message);
   } finally {
@@ -5465,6 +6121,7 @@ async function deleteDateFromRemote(dateKey) {
               date: removedCard.date || "",
               time: removedCard.time || "",
               region: removedCard.region || "",
+              missionLabel: missionLabel(removedCard),
               employeeName: slot.name || "",
               staffId: notifyStaffId,
               createdAt: serverTimestamp(),
@@ -5546,27 +6203,61 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard, publishTo
       const wasCancelled = !!cardBeforePatch.cancelled;
       const nowCancelled = !!patch.cancelled;
       if (wasCancelled !== nowCancelled) {
-        ["staff", "relievers"].forEach(listKey => {
-          (cardBeforePatch[listKey] || []).forEach(slot => {
-            const notifyStaffId = resolveSlotStaffId(slot);
-            if (notifyStaffId) {
-              notifyPayloads.push({
-                type: nowCancelled ? "eventCancelled" : "eventReinstated",
-                cardId: cardBeforePatch.id,
-                list: listKey,
-                role: slot.label || "",
-                location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (cardBeforePatch.location || "Unnamed site"),
-                date: cardBeforePatch.date || "",
-                time: cardBeforePatch.time || "",
-                region: cardBeforePatch.region || "",
-                employeeName: slot.name || "",
-                staffId: notifyStaffId,
-                createdAt: serverTimestamp(),
-                resolved: false
-              });
-            }
+        // Only file the per-employee notice here when this patch is itself
+        // publishing to employees. The click-to-cancel/reinstate button
+        // always calls this with publishToEmployees=false (see its handler
+        // above), so on that path no employee-facing notice goes out yet —
+        // it's filed later, by applyPublishedCancelledNotifications, at the
+        // moment the pharmacist actually presses Update/Send and the
+        // employeeCards roster changes. Otherwise an employee would get the
+        // "event cancelled" message before the CANCELLED stamp itself was
+        // ever published, i.e. a message with nothing yet to back it up.
+        if (publishToEmployees) {
+          ["staff", "relievers"].forEach(listKey => {
+            (cardBeforePatch[listKey] || []).forEach(slot => {
+              const notifyStaffId = resolveSlotStaffId(slot);
+              if (notifyStaffId) {
+                notifyPayloads.push({
+                  type: nowCancelled ? "eventCancelled" : "eventReinstated",
+                  cardId: cardBeforePatch.id,
+                  list: listKey,
+                  role: slot.label || "",
+                  location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (cardBeforePatch.location || "Unnamed site"),
+                  date: cardBeforePatch.date || "",
+                  time: cardBeforePatch.time || "",
+                  region: cardBeforePatch.region || "",
+                  missionLabel: missionLabel(cardBeforePatch),
+                  employeeName: slot.name || "",
+                  staffId: notifyStaffId,
+                  createdAt: serverTimestamp(),
+                  resolved: false
+                });
+              }
+            });
           });
-        });
+        }
+        // Same department-wide broadcast as pushNewCardToRemote's
+        // "eventCreated" doc (staffId-less, targetRoles set) — otherwise
+        // billing/information only ever found out a site was cancelled or
+        // reinstated by noticing the stamp on the card themselves, since
+        // every payload above is addressed to one signed-up employee, not
+        // to the other heads.
+        if (isPharmacistScheduleUser) {
+          notifyPayloads.push({
+            type: nowCancelled ? "eventCancelled" : "eventReinstated",
+            targetRoles: ["billing", "information"],
+            cardId: cardBeforePatch.id,
+            role: "",
+            location: cardBeforePatch.location || "Unnamed site",
+            date: cardBeforePatch.date || "",
+            time: cardBeforePatch.time || "",
+            region: cardBeforePatch.region || "",
+                  missionLabel: missionLabel(cardBeforePatch),
+            createdBy: signedInScheduleEmail,
+            createdAt: serverTimestamp(),
+            resolved: false
+          });
+        }
       }
     }
     const update = {
@@ -5626,6 +6317,7 @@ async function deleteSiteFromRemote(cardId) {
               date: removedCard.date || "",
               time: removedCard.time || "",
               region: removedCard.region || "",
+              missionLabel: missionLabel(removedCard),
               employeeName: slot.name || "",
               staffId: notifyStaffId,
               createdAt: serverTimestamp(),
@@ -5695,6 +6387,8 @@ async function pushNewCardToRemote(card) {
         date: card.date || "",
         time: card.time || "",
         region: card.region || "",
+        mission: card.mission || "medical",
+        missionLabel: missionLabel(card),
         createdBy: signedInScheduleEmail,
         createdAt: serverTimestamp(),
         resolved: false
@@ -5708,6 +6402,8 @@ async function pushNewCardToRemote(card) {
         date: card.date || "",
         time: card.time || "",
         region: card.region || "",
+        mission: card.mission || "medical",
+        missionLabel: missionLabel(card),
         createdBy: signedInScheduleEmail,
         createdAt: serverTimestamp(),
         resolved: false
@@ -5962,11 +6658,15 @@ function renderNotifPanel(items) {
       btnLabel = "Got it";
     } else if (isEventCancelled) {
       title = `🔔 This event was cancelled`;
-      statusLine = `The Event Team cancelled this event — you're still on the roster, but there's nothing to show up for unless it's reinstated.`;
+      statusLine = scheduleChangeAudience(n) === "department"
+        ? `The pharmacist department has cancelled this event.`
+        : `The Event Team cancelled this event — you're still on the roster, but there's nothing to show up for unless it's reinstated.`;
       btnLabel = "Got it";
     } else if (isEventReinstated) {
       title = `🔔 This event is back on`;
-      statusLine = `The Event Team reinstated this event — you're good to go as scheduled.`;
+      statusLine = scheduleChangeAudience(n) === "department"
+        ? `The pharmacist department has reinstated this event.`
+        : `The Event Team reinstated this event — you're good to go as scheduled.`;
       btnLabel = "Got it";
     } else if (isEventCreated) {
       title = `📅 New event schedule available`;
@@ -5994,8 +6694,8 @@ function renderNotifPanel(items) {
     <div class="notif-item ${(isResolved || isPersonalNotice) ? "is-resolved" : ""}">
       <div class="notif-item-title">${title}</div>
       <div class="notif-item-body">
-        ${escapeHtml(n.role || "")}${n.list === "relievers" ? " (Store Reliever)" : ""} at ${escapeHtml(n.location || "site")}${n.date ? " — " + escapeHtml(formatDateDisplay(n.date)) : ""}${n.time ? ", " + escapeHtml(n.time) : ""}<br>
-        ${isPersonalNotice ? "" : `Region: ${escapeHtml(regionLabelFromValue(n.region))}. `}${statusLine}
+        ${statusLine}<br><br>
+        ${notifDetailHtml(n, { includeBranch: !isPersonalNotice })}
       </div>
       <button type="button" class="${btnClass}" data-id="${escapeAttr(n.id)}">${btnLabel}</button>
     </div>`;
@@ -6023,7 +6723,7 @@ function getRelevantNotifications(items) {
       personalTypes.includes(n.type) &&
       !["slotAssigned", "siteMoved"].includes(n.type) &&
       n.employeeOnly !== true &&
-      (["eventCreated", "deploymentConfirmed"].includes(n.type)
+      (["eventCreated", "deploymentConfirmed", "eventCancelled", "eventReinstated"].includes(n.type)
         ? Array.isArray(n.targetRoles) && n.targetRoles.includes(scheduleAccessRole)
         // "removed" writes one doc per removal that doubles as the
         // employee's personal notice (staffId) AND, when the removed
@@ -6044,10 +6744,14 @@ function getRelevantNotifications(items) {
         // entirely.
         : ["dateChanged", "eventUpdated", "missionChanged", "branchChanged"].includes(n.type)
           ? !n.staffId && Array.isArray(n.targetRoles) && n.targetRoles.includes(scheduleAccessRole)
-          // "removed"/"eventDeleted"/"siteRemoved"/"eventCancelled"/
-          // "eventReinstated" have no department-wide broadcast
-          // counterpart — every doc of these types is addressed to exactly
-          // one employee (staffId set, phrased as "your slot").
+          // "removed"/"eventDeleted"/"siteRemoved" still have no
+          // department-wide broadcast counterpart — every doc of these
+          // types is addressed to exactly one employee (staffId set,
+          // phrased as "your slot"). eventCancelled/eventReinstated used
+          // to be lumped in here too, but they now also write one
+          // department-wide broadcast doc each (handled by the
+          // eventCreated/deploymentConfirmed branch above), so only the
+          // remaining personal-only types fall through to false here.
           // This used to fall through to `true`, which contradicted the
           // comment above this function and meant any head signed in
           // (billing, information, or even pharmacist) saw every one of
@@ -6119,24 +6823,24 @@ onSnapshot(
           const isEventCreated = n.type === "eventCreated";
           const isDepartmentRemovalNotice = isRemoved && !employeeSession &&
             Array.isArray(n.targetRoles) && n.targetRoles.includes(scheduleAccessRole);
-          const where = `${n.role || ""}${n.list === "relievers" ? " (Store Reliever)" : ""} at ${n.location || "site"}${n.date ? " — " + formatDateDisplay(n.date) : ""}${n.time ? ", " + n.time : ""}`;
           let message;
+          let showBranchRow = false;
           if (isSiteMoved) {
-            message = `📍 You were moved to a new event site: ${where}.\n\nYour previous assignment was cleared and this is now your active deployment.`;
+            message = `📍 You were moved to a new event site.\n\nYour previous assignment was cleared and this is now your active deployment.`;
           } else if (isRemoved) {
             message = isDepartmentRemovalNotice
-              ? `${n.employeeName || "An employee"} was removed from their slot: ${where}.`
-              : `You've been removed from your slot: ${where}.\n\nYou're free to sign up for another slot now.`;
+              ? `${n.employeeName || "An employee"} was removed from their slot.`
+              : `You've been removed from your slot.\n\nYou're free to sign up for another slot now.`;
           } else if (isBranchChanged) {
             message = scheduleChangeAudience(n) === "department"
-              ? `The pharmacist department has changed the branch for this event: ${where}.\n\n${regionLabel({ region: n.oldRegion, regionCustom: n.oldRegionCustom })} \u2192 ${regionLabel({ region: n.newRegion, regionCustom: n.newRegionCustom })}.`
-              : `The event team is changed the branch for: ${where}.\n\nYour slot was cleared — you're free to sign up for another slot now.`;
+              ? `The pharmacist department has changed the branch for this event.\n\nBranch changed: ${regionLabel({ region: n.oldRegion, regionCustom: n.oldRegionCustom })} \u2192 ${regionLabel({ region: n.newRegion, regionCustom: n.newRegionCustom })}.`
+              : `The event team changed the branch for this event.\n\nYour slot was cleared — you're free to sign up for another slot now.`;
           } else if (isDateChanged) {
             const moved = n.oldDate ? `moved from ${formatDateDisplay(n.oldDate)} to ${formatDateDisplay(n.newDate)}` : `changed`;
             if (scheduleChangeAudience(n) === "department") {
-              message = `The pharmacist department has changed the ${changedFieldsPhrase(n)} for this event: ${where}.`;
+              message = `The pharmacist department has changed the ${changedFieldsPhrase(n)} for this event.`;
             } else {
-              message = `The event team changed the date for your slot: ${where}.\n\nThe date was ${moved}. You're still booked — just on the new date.`;
+              message = `The event team changed the date for your slot.\n\nThe date was ${moved}. You're still booked — just on the new date.`;
               if (n.timeChanged || n.locationChanged) {
                 const extra = [n.timeChanged && "time", n.locationChanged && "site name"].filter(Boolean).join(" and ");
                 message += ` The ${extra} changed too.`;
@@ -6144,30 +6848,37 @@ onSnapshot(
             }
           } else if (isEventUpdated) {
             message = scheduleChangeAudience(n) === "department"
-              ? `The pharmacist department has changed the ${changedFieldsPhrase(n, { includeDate: false })} for this event: ${where}.`
-              : `The event team updated your slot: ${where}.\n\nThe ${changedFieldsPhrase(n, { includeDate: false })} changed. You're still booked.`;
+              ? `The pharmacist department has changed the ${changedFieldsPhrase(n, { includeDate: false })} for this event.`
+              : `The event team updated your slot.\n\nThe ${changedFieldsPhrase(n, { includeDate: false })} changed. You're still booked.`;
           } else if (isMissionChanged) {
             message = scheduleChangeAudience(n) === "department"
-              ? `The event type is changed by the pharmacy department. ${n.oldMissionLabel || ""} => ${n.newMissionLabel || ""}: ${where}.`
-              : `The event type is changed by the pharmacy department. ${n.oldMissionLabel || ""} => ${n.newMissionLabel || ""}: ${where}.\n\nBut you're still on a bracket/event.`;
+              ? `The event type was changed by the pharmacy department.`
+              : `The event type was changed by the pharmacy department.\n\nBut you're still on a bracket/event.`;
           } else if (isEventDeleted) {
-            message = `The event team deleted this event: ${where}.\n\nYou're free to sign up for another slot now.`;
+            message = `The event team deleted this event.\n\nYou're free to sign up for another slot now.`;
           } else if (isSiteRemoved) {
-            message = `The event team removed this site: ${where}.\n\nYou're free to sign up for another slot now.`;
+            message = `The event team removed this site.\n\nYou're free to sign up for another slot now.`;
           } else if (isEventCreated) {
-            message = `📅 The Pharmacy Department has deployed a new site: ${where}.`;
+            message = `📅 The Pharmacy Department has deployed a new site.`;
           } else if (isEventCancelled) {
-            message = `The event team cancelled this event: ${where}.\n\nYou're still on the roster — nothing to show up for unless it's reinstated.`;
+            message = scheduleChangeAudience(n) === "department"
+              ? `⛔ The Pharmacy Department has cancelled this event.`
+              : `The event team cancelled this event.\n\nYou're still on the roster — nothing to show up for unless it's reinstated.`;
           } else if (isEventReinstated) {
-            message = `Good news — this event is back on: ${where}.\n\nYou're good to go as scheduled.`;
+            message = scheduleChangeAudience(n) === "department"
+              ? `✅ The Pharmacy Department has reinstated this event.`
+              : `Good news — this event is back on.\n\nYou're good to go as scheduled.`;
           } else if (isSlotAssigned) {
-            message = `📌 You were assigned to an event slot: ${where}.\n\nThe pharmacist department assigned your name to this slot.`;
+            message = `📌 You were assigned to an event slot.\n\nThe pharmacist department assigned your name to this slot.`;
           } else if (isDeploymentConfirmed) {
-            message = `✅ The site has been successfully deployed: ${where}.`;
+            message = `✅ The site has been successfully deployed.`;
           } else {
-            message = `🚨 Emergency vacancy just opened for your team: ${where}.\n\n${n.employeeName || "A teammate"} became unavailable — sign up below if you can cover.`;
+            showBranchRow = true;
+            message = `🚨 Emergency vacancy just opened for your team.\n\n${n.employeeName || "A teammate"} became unavailable — sign up below if you can cover.`;
           }
-        void showAlert(message);
+          const detailText = notifDetailText(n, { includeBranch: showBranchRow });
+          if (detailText) message += `\n\n${detailText}`;
+          void showAlert(message);
       }
     }
     seenNotificationIds = new Set(openRelevant.map(n => n.id));
@@ -6229,6 +6940,32 @@ if (notifBellBtn) {
   if (closeBtn) closeBtn.addEventListener("click", closeSidebar);
   backdropEl.addEventListener("click", closeSidebar);
   sidebarEl.querySelectorAll(".sidebar-nav a").forEach(a => a.addEventListener("click", closeSidebar));
+
+  // Highlight the nav link that matches the current page instead of a
+  // hardcoded "active" class in the markup. A link with a real href is
+  // matched against the current path; a link with href="#" that is meant
+  // to represent *this* page (not a JS-triggered panel) carries
+  // data-current="true" and is used as the fallback when no real href matches.
+  (function highlightCurrentNavLink() {
+    const navLinks = sidebarEl.querySelectorAll(".sidebar-nav a");
+    const currentPath = window.location.pathname.replace(/\/+$/, "") || "/";
+    let matched = false;
+    navLinks.forEach(a => a.classList.remove("active"));
+    navLinks.forEach(a => {
+      const href = a.getAttribute("href");
+      if (href && href !== "#") {
+        const linkPath = href.replace(/\/+$/, "") || "/";
+        if (linkPath === currentPath) {
+          a.classList.add("active");
+          matched = true;
+        }
+      }
+    });
+    if (!matched) {
+      const fallback = sidebarEl.querySelector('.sidebar-nav a[data-current="true"]');
+      if (fallback) fallback.classList.add("active");
+    }
+  })();
   window.addEventListener("resize", () => { if (window.innerWidth > 900) closeSidebar(); });
 })();
 
@@ -6407,7 +7144,18 @@ document.getElementById("updateAllBtn").addEventListener("click", async () => {
   await showAlert("Saved on this device. This has NOT been sent to employees yet — use \"Send\" or a bracket's \"Update\" button to publish it.", "ok");
 });
 
-document.getElementById("printBtn").addEventListener("click", () => window.print());
+// printBtn is commented out in the markup above (no Print/Export PDF button
+// in this build), but this used to attach unconditionally — a hard crash on
+// "Cannot read properties of null (reading 'addEventListener')" the moment
+// the script reached this line. Since that happened during initial module
+// evaluation, it silently killed every line after it too, including the
+// onSnapshot(scheduleDocRef, ...) listener further below that actually
+// fills in the grid — which is why the dashboard was stuck forever on
+// "Loading… Fetching the latest roster." even though Firestore itself was
+// fine and other heads' notification modals still fired (those listeners
+// are registered earlier, before this line).
+const printBtn = document.getElementById("printBtn");
+if (printBtn) printBtn.addEventListener("click", () => window.print());
 
 document.getElementById("resetBtn").addEventListener("click", async () => {
   if (!requirePharmacistScheduleAccess()) return;
@@ -6543,7 +7291,7 @@ if (employeeSession) {
       // in region-filtered views.
       const cardLevelFieldsOk = card.id !== activeCardIdForFields && !locallyDirtyCardLevelIds.has(card.id);
       if (cardLevelFieldsOk) {
-        const cardLevelFields = ["region", "regionCustom", "mission", "location", "date", "time"];
+        const cardLevelFields = ["region", "regionCustom", "mission", "missionCustom", "location", "date", "time"];
         cardLevelFields.forEach(field => {
           const remoteVal = remoteCard[field] || "";
           const localVal = card[field] || "";
@@ -6893,6 +7641,9 @@ function notifCenterRows(n) {
 
   if (n.type === "missionChanged") {
     push("Event type", notifCenterChangeCell(n.oldMissionLabel, n.newMissionLabel));
+  } else {
+    const eventTypeLabel = notifEventTypeLabel(n);
+    if (eventTypeLabel) push("Event type", escapeHtml(eventTypeLabel));
   }
 
   if (n.employeeName) push("Employee", escapeHtml(n.employeeName));

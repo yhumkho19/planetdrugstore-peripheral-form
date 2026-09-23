@@ -168,7 +168,7 @@
     <h1>🏆 Leaderboard</h1>
     <p>Most-participate employees — Medical &amp; Dental Mission, South &amp; North Caloocan</p>
   </div>
-  <a class="back-link" href="/47fto0gim6" id="backToRosterLink">← Back to Roster</a>
+  <a class="back-link" id="backToRosterLink" href="/47fto0gim6">← Back to Roster</a>
 </div>
 
 <div id="leaderboardSection">
@@ -179,12 +179,23 @@
 
 <script>
 // This page is opened with target="_blank" from BOTH the admin roster
-// (/apd2zu9bdf) and the employee roster (/47fto0gim6), so a single hardcoded
-// href here can't be right for everyone — that mismatch is what was showing
-// people an old/wrong page name. If this tab has an opener (i.e. it really
-// was opened from one of those pages), just close back to it; only fall
-// back to navigating to the employee roster if this tab was opened on its
-// own (e.g. bookmarked or shared link), where there's no opener to return to.
+// (/apd2zu9bdf) and the employee roster (/47fto0gim6). Which one a given
+// visitor should return to isn't guessable from this page alone — an admin
+// account has no employee session and vice versa — so the linking page
+// passes it explicitly via ?from=. Only a known, safe, same-site path is
+// ever accepted; anything else (missing, tampered, external) falls back to
+// the employee roster, the more common case.
+const ALLOWED_RETURN_PATHS = ["/apd2zu9bdf", "/47fto0gim6"];
+const requestedReturnPath = new URLSearchParams(location.search).get("from");
+const returnPath = ALLOWED_RETURN_PATHS.includes(requestedReturnPath) ? requestedReturnPath : "/47fto0gim6";
+document.getElementById('backToRosterLink').setAttribute('href', returnPath);
+
+// If this tab has an opener (i.e. it really was opened from one of those
+// pages and that tab is still alive), just close back to it — no need to
+// spend a fresh page load reloading the roster from scratch. Only fall back
+// to navigating to returnPath above when there's no live opener to return
+// to (opened on its own, or the opener tab was discarded in the background —
+// common on mobile browsers under memory pressure).
 document.getElementById('backToRosterLink').addEventListener('click', function (e) {
   if (window.opener && !window.opener.closed) {
     e.preventDefault();
@@ -365,7 +376,7 @@ function deptBoardHtml(deptLabel, rows) {
           <span class="dept-count">${row.count}</span>
         </li>
       `).join("")
-    : `<li class="dept-empty">Wala pang data.</li>`;
+    : `<li class="dept-empty">No data yet.</li>`;
   return `
     <div class="dept-board">
       <div class="dept-board-title">${escapeHtml(deptLabel)}</div>
@@ -426,7 +437,7 @@ function renderLeaderboard() {
   section.innerHTML = `
     <div class="leaderboard-wrap">
       <h2 class="leaderboard-title">🏆 Most Participate Employee</h2>
-      <p class="leaderboard-sub">Batay sa bilang ng slot na personal na sinign-up-an, South &amp; North Caloocan.</p>
+      <p class="leaderboard-sub">Only sign in on a slot themselves will be countable on leaderboard points, South &amp; North Caloocan.</p>
       <div class="podium">${podiumHtml}</div>
       <div class="dept-boards">${deptBoardsHtml}</div>
     </div>

@@ -124,7 +124,7 @@
   }
   .sidebar-nav a .ic { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
   .sidebar-nav a:hover { background: rgba(255,255,255,0.06); color: #fff; }
-  .sidebar-nav a.active { background: var(--signal); color: #fff; box-shadow: 0 4px 12px -3px rgba(47,111,237,.6); }
+  .sidebar-nav a.active { color: #fff; }
   .sidebar-foot {
     display: flex;
     align-items: center;
@@ -150,6 +150,65 @@
   }
   .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
   .content-scroll { padding: 4px clamp(16px, 3vw, 36px) 64px; max-width: 1440px; }
+
+  /* ---------- Employee chip (department/branch badge) + dropdown (logout) ---------- */
+  .admin-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 12px 6px 6px;
+    box-shadow: var(--shadow-xs);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .admin-chip .avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: linear-gradient(145deg, var(--signal), #6D4AC7);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+  }
+  .admin-chip-wrap { position: relative; display: inline-block; }
+  .admin-chip:hover { border-color: var(--ink-faint); }
+  .admin-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 180px;
+    background: var(--surface);
+    border: 1.5px solid var(--ink);
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    z-index: 500;
+    padding: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity .15s ease, transform .15s ease, visibility .15s;
+  }
+  .admin-dropdown.open { opacity: 1; visibility: visible; transform: none; }
+  .admin-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    padding: 9px 10px;
+    border: none;
+    background: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--danger);
+    cursor: pointer;
+    text-align: left;
+  }
+  .admin-dropdown-item:hover { background: var(--danger-soft); }
 
   /* ---------- Mobile nav (hamburger + off-canvas sidebar) ---------- */
   .menu-toggle {
@@ -295,6 +354,47 @@
     font-weight: 600;
     margin-top: 2px;
     display: block;
+  }
+  .stats .stat { cursor: pointer; }
+  .stat-tooltip {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 200px;
+    max-width: 280px;
+    max-height: 240px;
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    padding: 8px;
+    z-index: 60;
+    text-align: left;
+  }
+  .stats .stat:hover .stat-tooltip,
+  .stats .stat:focus-within .stat-tooltip,
+  .stats .stat.tip-open .stat-tooltip {
+    display: block;
+  }
+  .stat-tip-row {
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .stat-tip-row:hover { background: var(--surface-dim); }
+  .stat-tip-empty {
+    padding: 6px 8px;
+    font-size: 12px;
+    color: var(--ink-faint);
+    font-style: italic;
   }
 
   /* ---------- Toolbar ---------- */
@@ -1344,8 +1444,7 @@
     box-shadow: 8px 0 28px rgba(61,10,16,.12);
   }
   .sidebar-nav a.active {
-    background: #D61F2C;
-    box-shadow: 0 8px 18px rgba(214,31,44,.32);
+    /* no persistent background — highlight now shows on hover only */
   }
   .topbar { background: rgba(250,246,245,.92); backdrop-filter: blur(12px); }
   .content-scroll { max-width: 1480px; }
@@ -1611,7 +1710,7 @@
       <button type="button" class="nc-chip" data-nc-filter="schedule">Date &amp; time<span class="nc-chip-count" id="ncCount-schedule">0</span></button>
       <button type="button" class="nc-chip" data-nc-filter="branch">Branch<span class="nc-chip-count" id="ncCount-branch">0</span></button>
       <button type="button" class="nc-chip" data-nc-filter="event">Event type<span class="nc-chip-count" id="ncCount-event">0</span></button>
-      <button type="button" class="nc-chip" data-nc-filter="staffing">Staffing<span class="nc-chip-count" id="ncCount-staffing">0</span></button>
+      <button type="button" class="nc-chip" data-nc-filter="staffing">Staff Status<span class="nc-chip-count" id="ncCount-staffing">0</span></button>
       <button type="button" class="nc-chip" data-nc-filter="status">Event status<span class="nc-chip-count" id="ncCount-status">0</span></button>
       <button type="button" class="nc-clear-all" id="notifCenterClearAll">Clear all</button>
     </div>
@@ -1627,9 +1726,9 @@
       <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Close menu">✕</button>
     </div>
     <nav class="sidebar-nav">
-      <a href="/ed3od6ldsq" class="active"><span class="ic">🏠</span>Home</a>
-      <a href="#" class="active"><span class="ic">🗓️</span>My Schedule</a>
-      <a href="/30k1jkejh3" target="_blank" rel="noopener"><span class="ic">🏆</span>Leaderboard</a>
+      <a href="/ed3od6ldsq"><span class="ic">🏠</span>Home</a>
+      <a href="#" data-current="true"><span class="ic">🗓️</span>My Schedule</a>
+      <a href="/30k1jkejh3?from=%2F47fto0gim6"><span class="ic">🏆</span>Leaderboard</a>
       <a href="#" id="notifNavBtn"><span class="ic">🔔</span>Notifications<span class="nav-badge" id="notifNavBadge">0</span></a>
     </nav>
     <div class="sidebar-foot">✚ One ticket per site,<br>Staff assignment tracker</div>
@@ -1639,7 +1738,14 @@
   <div class="main-area">
     <div class="topbar">
       <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">☰</button>
-      <div class="topbar-right"></div>
+      <div class="topbar-right">
+        <div class="admin-chip-wrap" id="empChipWrap">
+          <button type="button" class="admin-chip" id="empChipBtn" aria-haspopup="true"><span class="avatar" id="empChipAvatar">—</span><span id="empChipLabel">—</span>▾</button>
+          <div class="admin-dropdown" id="empDropdown">
+            <button type="button" class="admin-dropdown-item" id="empLogoutBtn">🚪 Logout</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="content-scroll">
@@ -1650,17 +1756,20 @@
           <p>Medical &amp; Dental Mission — one ticket per site, staff assignment tracker</p>
         </div>
         <div class="stats">
-          <div class="stat">
+          <div class="stat" tabindex="0">
             <span class="num" id="statSites">0</span>
             <span class="cap">Sites</span>
+            <div class="stat-tooltip" id="statSitesTip"></div>
           </div>
-          <div class="stat warn">
+          <div class="stat warn" tabindex="0">
             <span class="num" id="statUnfilled">0</span>
             <span class="cap">Unfilled roles</span>
+            <div class="stat-tooltip" id="statUnfilledTip"></div>
           </div>
-          <div class="stat good">
+          <div class="stat good" tabindex="0">
             <span class="num" id="statReady">0</span>
             <span class="cap">Fully staffed</span>
+            <div class="stat-tooltip" id="statReadyTip"></div>
           </div>
         </div>
       </div>
@@ -1686,7 +1795,7 @@
         <button class="btn ghost" id="printBtn">🖨️ Print / Export PDF</button>
         <button class="btn danger-outline" id="resetBtn">Reset all</button>
       </div>
-      <a class="btn" id="leaderboardBtn" href="/30k1jkejh3" target="_blank" rel="noopener" style="display:none;">🏆 Leaderboard</a>
+      <a class="btn" id="leaderboardBtn" href="/30k1jkejh3?from=%2F47fto0gim6" style="display:none;">🏆 Leaderboard</a>
 
       <div id="datalistContainer" style="display:none" aria-hidden="true"></div>
 
@@ -1821,7 +1930,16 @@ function showAlert(message, kind, siteTarget) {
       appModalActions.appendChild(viewBtn);
     }
     appModal.classList.add("open");
-    okBtn.focus();
+    // Deferred, not synchronous — calling .focus() in the same tick as
+    // adding "open" fires before the modal has actually been painted at
+    // its fixed, centered position (it's still mid opacity/transform
+    // transition), so the browser's focus-scroll heuristic scrolls the
+    // underlying PAGE by whatever the button's stale/pre-paint position
+    // was, instead of just focusing it in place — leaving the modal
+    // itself off-screen until the person scrolls the page down to "catch
+    // up" to where it actually rendered. A tick's delay lets the modal
+    // finish laying out first.
+    setTimeout(() => okBtn.focus(), 30);
   });
 }
 
@@ -1840,7 +1958,8 @@ function showConfirm(message) {
     appModalActions.appendChild(cancelBtn);
     appModalActions.appendChild(okBtn);
     appModal.classList.add("open");
-    okBtn.focus();
+    // See the matching comment in showAlert above.
+    setTimeout(() => okBtn.focus(), 30);
   });
 }
 
@@ -2052,6 +2171,32 @@ function getEmployeeSession() {
   if (closeBtn) closeBtn.addEventListener("click", closeSidebar);
   backdropEl.addEventListener("click", closeSidebar);
   sidebarEl.querySelectorAll(".sidebar-nav a").forEach(a => a.addEventListener("click", closeSidebar));
+
+  // Highlight the nav link that matches the current page instead of a
+  // hardcoded "active" class in the markup. A link with a real href is
+  // matched against the current path; a link with href="#" that is meant
+  // to represent *this* page (not a JS-triggered panel) carries
+  // data-current="true" and is used as the fallback when no real href matches.
+  (function highlightCurrentNavLink() {
+    const navLinks = sidebarEl.querySelectorAll(".sidebar-nav a");
+    const currentPath = window.location.pathname.replace(/\/+$/, "") || "/";
+    let matched = false;
+    navLinks.forEach(a => a.classList.remove("active"));
+    navLinks.forEach(a => {
+      const href = a.getAttribute("href");
+      if (href && href !== "#") {
+        const linkPath = href.replace(/\/+$/, "") || "/";
+        if (linkPath === currentPath) {
+          a.classList.add("active");
+          matched = true;
+        }
+      }
+    });
+    if (!matched) {
+      const fallback = sidebarEl.querySelector('.sidebar-nav a[data-current="true"]');
+      if (fallback) fallback.classList.add("active");
+    }
+  })();
   window.addEventListener("resize", () => { if (window.innerWidth > 900) closeSidebar(); });
 })();
 
@@ -2059,6 +2204,52 @@ const employeeSession = getEmployeeSession();
 if (!employeeSession) {
   window.location.href = "/fu3hriaj0m";
   throw new Error("No employee session — redirecting to employee-login.html.");
+}
+
+// Topbar chip shows this employee's own team + branch (e.g. "IT NORTH"),
+// derived from their department field, instead of a generic label — same
+// chip pattern as the admin/department-head pages, with a Logout item in
+// its dropdown. Runs once employeeSession is confirmed above.
+(function applyEmployeeChipBadge() {
+  const { team, branch } = splitDepartmentClient(employeeSession.department);
+  const words = String(team || "").trim().split(/\s+/).filter(Boolean);
+  const avatar = words.length >= 2
+    ? (words[0][0] + words[1][0]).toUpperCase()
+    : String(team || "—").slice(0, 2).toUpperCase();
+  const label = branch && branch !== "—" ? `${team.toUpperCase()} ${branch}` : team.toUpperCase();
+  const avatarEl = document.getElementById("empChipAvatar");
+  const labelEl = document.getElementById("empChipLabel");
+  if (avatarEl) avatarEl.textContent = avatar;
+  if (labelEl) labelEl.textContent = label;
+})();
+
+// Employee chip dropdown (Logout) — same open/close-on-outside-click
+// pattern as the admin chip on the department-head pages.
+const empChipBtn = document.getElementById("empChipBtn");
+if (empChipBtn) {
+  empChipBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    document.getElementById("empDropdown").classList.toggle("open");
+  });
+  document.addEventListener("click", e => {
+    const wrap = document.getElementById("empChipWrap");
+    if (wrap && !wrap.contains(e.target)) {
+      const dropdown = document.getElementById("empDropdown");
+      if (dropdown) dropdown.classList.remove("open");
+    }
+  });
+}
+const empLogoutBtn = document.getElementById("empLogoutBtn");
+if (empLogoutBtn) {
+  empLogoutBtn.addEventListener("click", async () => {
+    document.getElementById("empDropdown").classList.remove("open");
+    if (!(await showConfirm("Mag-logout ka ba? Kailangan mo ulit mag-sign in para makabalik dito."))) {
+      return;
+    }
+    localStorage.removeItem("pdEmployeeSession");
+    sessionStorage.removeItem("pdEmployeeSession");
+    window.location.href = "/fu3hriaj0m";
+  });
 }
 
 const STORAGE_KEY = "medicalMissionCardsV2";
@@ -2444,21 +2635,104 @@ function regionLabel(card) {
 }
 function missionLabel(card) {
   if (card.mission === "peoples_day") return "People's Day";
+  if (card.mission === "other") return (card.missionCustom || "").trim() || "Other event";
   return "Medical Mission";
 }
+// The event type to show on an event-related notice (assigned, moved,
+// cancelled, date/time/branch changed, ...). Prefers what was stamped on the
+// notice when it was filed; otherwise looks it up from the published card
+// the notice points at. "Event type changed" notices already show
+// old => new, so they're skipped.
+let employeePublishedCardsForLookup = [];   // kept in sync with the published roster below
+function notifEventTypeLabel(n) {
+  if (!n || n.type === "missionChanged") return "";
+  if (n.missionLabel) return String(n.missionLabel);
+  const pool = employeePublishedCardsForLookup.length ? employeePublishedCardsForLookup : cards;
+  const c = (pool || []).find(x => x && x.id === n.cardId);
+  return c ? missionLabel(c) : "";
+}
 
-function updateStats() {
-  document.getElementById("statSites").textContent = cards.length;
+// ---- Shared layout for every event notice (popup, bell panel) ----
+// Reason first, then the same labelled lines every time:
+//   Role / Event Site / Event Date / Time / Event Type
+function notifTitleCase(str) {
+  return String(str || "").toLowerCase()
+    .replace(/\b([a-z])/g, (m, c) => c.toUpperCase())
+    .replace(/\bIt\b/g, "IT");
+}
+function notifDetailRows(n, opts) {
+  const includeBranch = !!(opts && opts.includeBranch);
+  const rows = [];
+  const role = n.list === "schedule" ? "" : notifTitleCase(n.role);
+  if (role) rows.push(["Role", role + (n.list === "relievers" ? " (Store Reliever)" : "")]);
+  if (includeBranch && n.region) rows.push(["Branch", regionLabelFromValue(n.region)]);
+  if (n.location) rows.push(["Event Site", n.location]);
+  if (n.date) rows.push(["Event Date", formatDateDisplay(n.date)]);
+  if (n.time) rows.push(["Time", n.time]);
+  if (n.type === "missionChanged") {
+    if (n.newMissionLabel) rows.push(["Event Type", `${n.oldMissionLabel || ""} => ${n.newMissionLabel}`]);
+  } else {
+    const t = notifEventTypeLabel(n);
+    if (t) rows.push(["Event Type", t]);
+  }
+  return rows;
+}
+function notifDetailText(n, opts) {
+  return notifDetailRows(n, opts).map(([k, v]) => `${k}: ${v}`).join("\n");
+}
+function notifDetailHtml(n, opts) {
+  return notifDetailRows(n, opts).map(([k, v]) => `${k}: <b>${escapeHtml(v)}</b>`).join("<br>");
+}
+
+// Fills a stat's hover/tap tooltip with the list of matching site names.
+function setStatTooltip(id, sites, emptyMessage) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!sites.length) {
+    el.innerHTML = `<div class="stat-tip-empty">${escapeHtml(emptyMessage || "No sites")}</div>`;
+    return;
+  }
+  el.innerHTML = sites.map(s => `<div class="stat-tip-row">${escapeHtml(s)}</div>`).join("");
+}
+
+// Sets the three stat counts AND their hover tooltips from one list of
+// cards: "Sites" lists every site, "Unfilled roles" lists only sites that
+// still have an empty staff/reliever slot, "Fully staffed" lists only
+// sites where every slot is filled.
+function applyStats(list) {
+  const arr = list || [];
+  document.getElementById("statSites").textContent = arr.length;
   let unfilled = 0, ready = 0;
-  cards.forEach(c => {
-    const empty = c.staff.filter(s => !s.name.trim()).length +
-      (c.relievers || []).filter(s => !s.name.trim()).length;
+  const allSites = [], unfilledSites = [], readySites = [];
+  arr.forEach(c => {
+    const empty = (c.staff || []).filter(s => !(s.name || "").trim()).length +
+      (c.relievers || []).filter(s => !(s.name || "").trim()).length;
     unfilled += empty;
-    if (empty === 0) ready++;
+    const site = (c.location || "").trim() || "Untitled site";
+    allSites.push(site);
+    if (empty === 0) { ready++; readySites.push(site); }
+    else { unfilledSites.push(site); }
   });
   document.getElementById("statUnfilled").textContent = unfilled;
   document.getElementById("statReady").textContent = ready;
+  setStatTooltip("statSitesTip", allSites, "No sites posted yet");
+  setStatTooltip("statUnfilledTip", unfilledSites, "No unfilled roles \u2014 everything's staffed");
+  setStatTooltip("statReadyTip", readySites, "No sites are fully staffed yet");
 }
+
+function updateStats() {
+  applyStats(cards);
+}
+
+// Touch devices don't have :hover, so tapping a stat toggles its tooltip
+// open; tapping elsewhere (or another stat) closes it again.
+document.addEventListener("click", (e) => {
+  const tappedStat = e.target.closest(".stats .stat");
+  document.querySelectorAll(".stats .stat.tip-open").forEach(el => {
+    if (el !== tappedStat) el.classList.remove("tip-open");
+  });
+  if (tappedStat) tappedStat.classList.toggle("tip-open");
+});
 
 // Groups an array of {card, idx} entries into date brackets, sorted
 // chronologically with cards that have no date pushed to the end.
@@ -3092,16 +3366,7 @@ function renderEmployeeSchedule(scheduleCards, branch) {
 
   // Global stats stay unfiltered — they reflect the whole roster, not just
   // whichever branch's accordion happens to be open right now.
-  document.getElementById("statSites").textContent = (scheduleCards || []).length;
-  let unfilled = 0, ready = 0;
-  (scheduleCards || []).forEach(c => {
-    const empty = (c.staff || []).filter(s => !(s.name || "").trim()).length +
-      (c.relievers || []).filter(s => !(s.name || "").trim()).length;
-    unfilled += empty;
-    if (empty === 0) ready++;
-  });
-  document.getElementById("statUnfilled").textContent = unfilled;
-  document.getElementById("statReady").textContent = ready;
+  applyStats(scheduleCards || []);
 
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
@@ -3109,8 +3374,8 @@ function renderEmployeeSchedule(scheduleCards, branch) {
   if (!employeeRegionFilter) {
     grid.innerHTML = `<div class="empty-state">
         <span class="stub">👆</span>
-        <h2>Piliin ang North o South Caloocan</h2>
-        <p>Pindutin ang isa sa itaas para makita ang mga petsa ng event at ang mga site.</p>
+        <h2>Choose North or South Caloocan</h2>
+        <p>Click on one of the above to see the event dates and sites.</p>
       </div>`;
     return;
   }
@@ -3771,10 +4036,10 @@ function applyScheduleChangeNotifications(localCardsSubset, remoteCards) {
     // switched its event type (Medical Mission <-> People's Day).
     const oldMission = remoteCard.mission || "medical";
     const newMission = card.mission || "medical";
-    const missionChanged = oldMission !== newMission;
+    const oldMissionLabel = missionLabel({ mission: oldMission, missionCustom: remoteCard.missionCustom });
+    const newMissionLabel = missionLabel({ mission: newMission, missionCustom: card.missionCustom });
+    const missionChanged = oldMission !== newMission || oldMissionLabel !== newMissionLabel;
     if (missionChanged) {
-      const oldMissionLabel = missionLabel({ mission: oldMission });
-      const newMissionLabel = missionLabel({ mission: newMission });
       ["staff", "relievers"].forEach(listKey => {
         (remoteCard[listKey] || []).forEach(slot => {
           if (slot && slot.filledByStaffId) {
@@ -3924,6 +4189,13 @@ async function adminRemoveEmployeeFromSlot(cardId, listKey, staffIdx, btn) {
   btn.disabled = true;
   btn.textContent = "Removing…";
   let notifyPayload = null;
+  // Captured from inside the transaction so the LOCAL mirror below (run
+  // after a successful commit) knows exactly which slot/role was cleared,
+  // without re-deriving it from data that may have moved on by then. A
+  // transaction can retry its callback on contention, so this is simply
+  // overwritten each attempt — only the values from the attempt that
+  // actually commits matter.
+  let removalInfo = null;
   try {
     await runTransaction(db, async (tx) => {
       const snap = await tx.get(scheduleDocRef);
@@ -3937,6 +4209,7 @@ async function adminRemoveEmployeeFromSlot(cardId, listKey, staffIdx, btn) {
       if (!slot) throw new Error("Role slot not found — try refreshing.");
       const removedStaffId = slot.filledByStaffId || null;
       const removedName = slot.name || "";
+      removalInfo = { removedStaffId, roleLabel: slot.label || "" };
       staffArr[staffIdx] = {
         ...slot,
         name: "",
@@ -3986,6 +4259,47 @@ async function adminRemoveEmployeeFromSlot(cardId, listKey, staffIdx, btn) {
         };
       }
     });
+    // Mirror this removal into the LOCAL admin dashboard state right away,
+    // instead of relying only on the onSnapshot listener further below to
+    // pick it back up. That listener deliberately skips any slot marked
+    // `_touched` (a slot this browser edited locally this session) — and a
+    // slot that was only ever saved locally via "Update All" (never
+    // actually pushed to Firestore with Send or a bracket's own Update)
+    // stays `_touched: true` in this browser's localStorage forever, since
+    // nothing ever ran clearTouchedMarkers() for it. That left the
+    // just-confirmed remote removal silently ignored by the merge, so the
+    // name never disappeared on screen here — not even after a full
+    // refresh, since a refresh reloads `cards` from that same stuck
+    // localStorage copy. This is the "removing takes forever / survives a
+    // refresh" bug for names a head typed in directly and only ever locally
+    // saved before removing them.
+    if (removalInfo) {
+      const localCardForRemoval = cards.find(c => c.id === cardId);
+      if (localCardForRemoval) {
+        const localArr = localCardForRemoval[listKey] || [];
+        if (localArr[staffIdx]) {
+          localArr[staffIdx] = {
+            ...localArr[staffIdx],
+            name: "",
+            filledByStaffId: null,
+            emergency: false,
+            emergencyBy: null,
+            emergencyByStaffId: null,
+            emergencyAt: null
+          };
+          delete localArr[staffIdx]._touched;
+        }
+        if (removalInfo.removedStaffId && listKey === "staff" && roleToTeam(removalInfo.roleLabel).toUpperCase() === "PHARMACY ASSISTANT") {
+          const localRelievers = localCardForRemoval.relievers || [];
+          const localAutoIdx = localRelievers.findIndex(s =>
+            s.addedForStaffId === removalInfo.removedStaffId && !(s.name || "").trim()
+          );
+          if (localAutoIdx !== -1) localRelievers.splice(localAutoIdx, 1);
+        }
+        saveCards();
+        render();
+      }
+    }
     if (notifyPayload) {
       try {
         await addDoc(notificationsCollRef, notifyPayload);
@@ -4003,9 +4317,6 @@ async function adminRemoveEmployeeFromSlot(cardId, listKey, staffIdx, btn) {
     btn.disabled = false;
     btn.textContent = originalLabel;
   }
-  // The admin dashboard's own onSnapshot listener (further below) picks up
-  // this write and merges it into the local `cards` view automatically —
-  // no manual re-render needed here.
 }
 
 // Lets an employee back out of a slot she signed up for herself. Admin-
@@ -4585,8 +4896,8 @@ function renderNotifPanel(items) {
     <div class="notif-item ${(isResolved || isPersonalNotice) ? "is-resolved" : ""}">
       <div class="notif-item-title">${title}</div>
       <div class="notif-item-body">
-        ${escapeHtml(n.role || "")}${n.list === "relievers" ? " (Store Reliever)" : ""} at ${escapeHtml(n.location || "site")}${n.date ? " — " + escapeHtml(formatDateDisplay(n.date)) : ""}${n.time ? ", " + escapeHtml(n.time) : ""}<br>
-        ${isPersonalNotice ? "" : `Region: ${escapeHtml(regionLabelFromValue(n.region))}. `}${statusLine}
+        ${statusLine}<br><br>
+        ${notifDetailHtml(n, { includeBranch: !isPersonalNotice })}
       </div>
       <button type="button" class="${btnClass}" data-id="${escapeAttr(n.id)}">${btnLabel}</button>
     </div>`;
@@ -4715,38 +5026,41 @@ onSnapshot(
         const isEventReinstated = n.type === "eventReinstated";
         const isSlotAssigned = n.type === "slotAssigned";
         const isSiteMoved = n.type === "siteMoved";
-        const where = `${n.role || ""}${n.list === "relievers" ? " (Store Reliever)" : ""} at ${n.location || "site"}${n.date ? " — " + formatDateDisplay(n.date) : ""}${n.time ? ", " + n.time : ""}`;
         let message;
+        let showBranchRow = false;
         if (isSiteMoved) {
-          message = `📍 You were moved to a new event site: ${where}.\n\nYour previous assignment was cleared and this is now your active deployment.`;
+          message = `📍 You were moved to a new event site.\n\nYour previous assignment was cleared and this is now your active deployment.`;
         } else if (isRemoved) {
-          message = `You've been removed from your slot: ${where}.\n\nYou're free to sign up for another slot now.`;
+          message = `You've been removed from your slot.\n\nYou're free to sign up for another slot now.`;
         } else if (isBranchChanged) {
-          message = `The event team is changed the branch for: ${where}.\n\nYour slot was cleared — you're free to sign up for another slot now.`;
+          message = `The event team changed the branch for this event.\n\nYour slot was cleared — you're free to sign up for another slot now.`;
         } else if (isDateChanged) {
           const moved = n.oldDate ? `moved from ${formatDateDisplay(n.oldDate)} to ${formatDateDisplay(n.newDate)}` : `changed`;
-          message = `The event team changed the date for your slot: ${where}.\n\nThe date was ${moved}. You're still booked — just on the new date.`;
+          message = `The event team changed the date for your slot.\n\nThe date was ${moved}. You're still booked — just on the new date.`;
           if (n.timeChanged || n.locationChanged) {
             const extra = [n.timeChanged && "time", n.locationChanged && "site name"].filter(Boolean).join(" and ");
             message += ` The ${extra} changed too.`;
           }
         } else if (isEventUpdated) {
-          message = `The event team updated your slot: ${where}.\n\nThe ${changedFieldsPhrase(n, { includeDate: false })} changed. You're still booked.`;
+          message = `The event team updated your slot.\n\nThe ${changedFieldsPhrase(n, { includeDate: false })} changed. You're still booked.`;
         } else if (isMissionChanged) {
-          message = `The event type is changed by the pharmacy department. ${n.oldMissionLabel || ""} => ${n.newMissionLabel || ""}: ${where}.\n\nBut you're still on a bracket/event.`;
+          message = `The event type was changed by the pharmacy department.\n\nBut you're still on a bracket/event.`;
         } else if (isEventDeleted) {
-          message = `The event team deleted this event: ${where}.\n\nYou're free to sign up for another slot now.`;
+          message = `The event team deleted this event.\n\nYou're free to sign up for another slot now.`;
         } else if (isSiteRemoved) {
-          message = `The event team removed this site: ${where}.\n\nYou're free to sign up for another slot now.`;
+          message = `The event team removed this site.\n\nYou're free to sign up for another slot now.`;
         } else if (isEventCancelled) {
-          message = `The event team cancelled this event: ${where}.\n\nYou're still on the roster — nothing to show up for unless it's reinstated.`;
+          message = `The event team cancelled this event.\n\nYou're still on the roster — nothing to show up for unless it's reinstated.`;
         } else if (isEventReinstated) {
-          message = `Good news — this event is back on: ${where}.\n\nYou're good to go as scheduled.`;
+          message = `Good news — this event is back on.\n\nYou're good to go as scheduled.`;
         } else if (isSlotAssigned) {
-          message = `📌 You were assigned to an event slot: ${where}.\n\nThe event team added your name to this role.`;
+          message = `📌 You were assigned to an event slot.\n\nThe event team added your name to this role.`;
         } else {
-          message = `🚨 Emergency vacancy just opened for your team: ${where}.\n\n${n.employeeName || "A teammate"} became unavailable — sign up below if you can cover.`;
+          showBranchRow = true;
+          message = `🚨 Emergency vacancy just opened for your team.\n\n${n.employeeName || "A teammate"} became unavailable — sign up below if you can cover.`;
         }
+        const detailText = notifDetailText(n, { includeBranch: showBranchRow });
+        if (detailText) message += `\n\n${detailText}`;
         await showAlert(message, isRemoved ? "warn" : undefined,
           (isSiteMoved || isSlotAssigned) && n.cardId
             ? { cardId: n.cardId, date: n.date || "" }
@@ -4882,6 +5196,7 @@ if (employeeSession) {
         }))
     }));
     lastEmployeeAllCards = allCards;
+    employeePublishedCardsForLookup = allCards;
     renderEmployeeSchedule(allCards, employeeSession.branch);
     renderLeaderboard(allCards);
   });
@@ -4942,7 +5257,7 @@ if (employeeSession) {
       // affects the card's color/badge and site name affects its position
       // in region-filtered views.
       if (card.id !== activeCardIdForFields) {
-        const cardLevelFields = ["region", "regionCustom", "mission", "location", "date", "time"];
+        const cardLevelFields = ["region", "regionCustom", "mission", "missionCustom", "location", "date", "time"];
         cardLevelFields.forEach(field => {
           const remoteVal = remoteCard[field] || "";
           const localVal = card[field] || "";
@@ -5260,6 +5575,9 @@ function notifCenterRows(n) {
 
   if (n.type === "missionChanged") {
     push("Event type", notifCenterChangeCell(n.oldMissionLabel, n.newMissionLabel));
+  } else {
+    const eventTypeLabel = notifEventTypeLabel(n);
+    if (eventTypeLabel) push("Event type", escapeHtml(eventTypeLabel));
   }
 
   if (n.employeeName) push("Employee", escapeHtml(n.employeeName));
