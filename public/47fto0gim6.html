@@ -1840,7 +1840,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-09-28.4";
+const APP_VERSION = "2026-09-28.6";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -1902,7 +1902,7 @@ function closeModal() {
 // prompts, "date" (📅) for the date picker. Re-triggers the pop-in animation
 // each time so repeat modals (e.g. two alerts in a row) still animate.
 function setModalIcon(kind) {
-  const glyphs = { ok: "✓", warn: "!", question: "?", date: "📅" };
+  const glyphs = { ok: "✓", warn: "!", question: "?", date: "📅", bell: "🔔" };
   appModalIcon.textContent = glyphs[kind] || glyphs.ok;
   appModalIcon.className = "modal-icon" + (kind === "warn" || kind === "question" ? " " + kind : "");
   appModalIcon.style.animation = "none";
@@ -2333,6 +2333,7 @@ if (empLogoutBtn) {
     if (!(await showConfirm("Mag-logout ka ba? Kailangan mo ulit mag-sign in para makabalik dito."))) {
       return;
     }
+    clearLoginNotifPromptFlag();
     localStorage.removeItem("pdEmployeeSession");
     sessionStorage.removeItem("pdEmployeeSession");
     window.location.href = "/fu3hriaj0m";
@@ -2750,6 +2751,12 @@ function notifTitleCase(str) {
 function notifDetailRows(n, opts) {
   const includeBranch = !!(opts && opts.includeBranch);
   const rows = [];
+  if (n.type === "eventsDeployed") {
+    if (n.siteCount) rows.push(["Sites deployed", String(n.siteCount)]);
+    const ds = (Array.isArray(n.dates) ? n.dates : []).map(d => formatDateDisplay(d));
+    if (ds.length) rows.push([ds.length > 1 ? "Event Dates" : "Event Date", ds.join(", ")]);
+    return rows;
+  }
   const role = n.list === "schedule" ? "" : notifTitleCase(n.role);
   if (role) rows.push(["Role", role + (n.list === "relievers" ? " (Store Reliever)" : "")]);
   if (includeBranch && n.region) rows.push(["Branch", regionLabelFromValue(n.region)]);
@@ -4926,7 +4933,23 @@ function applyScheduleChangeHighlights() {
   });
 }
 
+// The "events deployed" broadcast is ONE Firestore doc shared by every
+// employee, so dismissing it must never delete the doc (that would wipe it
+// for everyone). It is cleared per-viewer through the same synced
+// notifCenterCleared list the Notification Center already uses.
+function isBroadcastCleared(n) {
+  try { return n.type === "eventsDeployed" && notifCenterCleared.has(n.id); }
+  catch (e) { return false; } // notifCenterCleared not initialised yet
+}
+function refreshBellPanel() {
+  if (!notificationsFirstSnapshotLoaded) return;
+  try {
+    renderNotifPanel(latestPersonalNotifications(getRelevantNotifications(latestNotifications)).filter(n => !isBroadcastCleared(n)));
+  } catch (err) { console.error("Bell refresh failed:", err); }
+}
+
 function renderNotifPanel(items) {
+  items = (items || []).filter(n => !isBroadcastCleared(n));
   const badge = document.getElementById("notifBadge");
   const wrap = document.getElementById("notifWrap");
   const panel = document.getElementById("notifPanel");
@@ -4953,9 +4976,14 @@ function renderNotifPanel(items) {
     const isEventReinstated = n.type === "eventReinstated";
     const isSlotAssigned = n.type === "slotAssigned";
     const isSiteMoved = n.type === "siteMoved";
-    const isPersonalNotice = isRemoved || isBranchChanged || isDateChanged || isEventUpdated || isMissionChanged || isEventDeleted || isSiteRemoved || isSiteAutoDeleted || isEventCancelled || isEventReinstated || isSlotAssigned || isSiteMoved;
+    const isEventsDeployed = n.type === "eventsDeployed";
+    const isPersonalNotice = isRemoved || isBranchChanged || isDateChanged || isEventUpdated || isMissionChanged || isEventDeleted || isSiteRemoved || isSiteAutoDeleted || isEventCancelled || isEventReinstated || isSlotAssigned || isSiteMoved || isEventsDeployed;
     let title, statusLine, btnLabel;
-    if (isRemoved) {
+    if (isEventsDeployed) {
+      title = `📅 New events deployed`;
+      statusLine = `The pharmacy department deployed the events. Check the schedule for the available slots.`;
+      btnLabel = "Got it";
+    } else if (isRemoved) {
       title = `🔔 You've been removed from this slot`;
       statusLine = `You're free to sign up for another slot now.`;
       btnLabel = "Got it";
@@ -5034,7 +5062,11 @@ function renderNotifPanel(items) {
     </div>`;
   }).join("");
   panel.querySelectorAll(".notif-resolve-btn, .notif-clear-btn").forEach(btn => {
-    btn.addEventListener("click", () => resolveNotification(btn.dataset.id));
+    btn.addEventListener("click", () => {
+      const target = items.find(x => x.id === btn.dataset.id);
+      if (target && target.type === "eventsDeployed") notifCenterClear([target.id]); // per-viewer only
+      else resolveNotification(btn.dataset.id);
+    });
   });
 }
 
@@ -5047,6 +5079,15 @@ function getRelevantNotifications(items) {
   const myTeam = splitDepartmentClient(employeeSession.department).team;
   const myStaffId = String(employeeSession.staffId || "").trim().toLowerCase();
   return items.filter(n => {
+    // Broadcast: every employee gets it EXCEPT the ones the pharmacy
+    // department placed in a slot in that same Send -- they already have
+    // their own personal "assigned" notice and keep just that one.
+    if (n.type === "eventsDeployed") {
+      const assigned = Array.isArray(n.assignedStaffIds)
+        ? n.assignedStaffIds.map(id => String(id || "").trim().toLowerCase())
+        : [];
+      return n.visibleToEmployees !== false && !assigned.includes(myStaffId);
+    }
     return personalTypes.includes(n.type) &&
       String(n.staffId || "").trim().toLowerCase() === myStaffId &&
       n.visibleToEmployees !== false;
@@ -5119,7 +5160,8 @@ onSnapshot(
     // the panel can still show the green "FOR BACKUP" state.
     latestNotifications = all;
     notificationsFirstSnapshotLoaded = true;
-    const relevant = latestPersonalNotifications(getRelevantNotifications(latestNotifications));
+    const relevant = latestPersonalNotifications(getRelevantNotifications(latestNotifications))
+      .filter(n => !isBroadcastCleared(n));
     renderNotifPanel(relevant);
     applyScheduleChangeHighlights();
 
@@ -5158,9 +5200,12 @@ onSnapshot(
         const isEventReinstated = n.type === "eventReinstated";
         const isSlotAssigned = n.type === "slotAssigned";
         const isSiteMoved = n.type === "siteMoved";
+        const isEventsDeployed = n.type === "eventsDeployed";
         let message;
         let showBranchRow = false;
-        if (isSiteMoved) {
+        if (isEventsDeployed) {
+          message = `📅 The pharmacy department deployed the events.\n\nCheck the schedule for the available sites and slots.`;
+        } else if (isSiteMoved) {
           message = n.list === "relievers"
               ? `\u{1F3EC} You were assigned as Store Reliever.\n\nYou'll be covering ${n.location || "the store"}.\n\nYour previous assignment was cleared and this is now your active deployment.`
               : `\u{1F4CD} You were moved to a new event site.\n\nYour previous assignment was cleared and this is now your active deployment.`;
@@ -5199,6 +5244,7 @@ onSnapshot(
         }
         const detailText = notifDetailText(n, { includeBranch: showBranchRow });
         if (detailText) message += `\n\n${detailText}`;
+        if (loginNotifPromptPromise) await loginNotifPromptPromise; // don't replace the login prompt while it's open
         await showAlert(message, isRemoved ? "warn" : undefined,
           (isSiteMoved || isSlotAssigned) && n.cardId
             ? { cardId: n.cardId, date: n.date || "" }
@@ -5551,6 +5597,7 @@ const NOTIF_CENTER_META = {
   branchChanged:       { icon: "\uD83D\uDCCD", title: "Branch changed",                tone: "warn",   cat: "branch"   },
   missionChanged:      { icon: "\uD83C\uDFF7\uFE0F", title: "Event type changed",      tone: "warn",   cat: "event"    },
   slotAssigned:        { icon: "\uD83D\uDCCC", title: "Assigned to a slot",            tone: "info",   cat: "staffing" },
+  eventsDeployed:      { icon: "\uD83D\uDCC5", title: "Events deployed",               tone: "info",   cat: "status"   },
   siteMoved:           { icon: "\uD83D\uDD00", title: "Moved to another site",         tone: "info",   cat: "staffing" },
   removed:             { icon: "\uD83D\uDEAB", title: "Removed from slot",             tone: "danger", cat: "staffing" },
   eventDeleted:        { icon: "\uD83D\uDDD1\uFE0F", title: "Event deleted",           tone: "danger", cat: "status"   },
@@ -5584,13 +5631,13 @@ function notifCenterLoadLastSeen() {
   // First time on this device: baseline at "now" instead of 0. Otherwise a
   // fresh login would open with the entire backlog counted as unread, which
   // is the same wall-of-past-updates problem in badge form.
+  // NOTE: the baseline is NOT persisted here anymore -- the synced
+  // "lastSeenMs" from Firestore (see the notifCenterCleared listener) gets a
+  // chance to override it first, so logging in from another device doesn't
+  // hide or resurrect notifications wrongly.
   try {
     const raw = localStorage.getItem(notifCenterLastSeenKey());
-    if (raw === null) {
-      const now = Date.now();
-      localStorage.setItem(notifCenterLastSeenKey(), String(now));
-      return now;
-    }
+    if (raw === null) return Date.now();
     return Number(raw) || 0;
   } catch (e) { return Date.now(); }
 }
@@ -5634,9 +5681,23 @@ let notifCenterClearedSynced = false;
 onSnapshot(notifCenterClearedDocRef(), snap => {
   const remoteIds = (snap.exists() && Array.isArray(snap.data().ids)) ? snap.data().ids : [];
   notifCenterCleared = new Set(remoteIds);
+  // Sync the "already opened" marker across devices/logins. The account-level
+  // value in Firestore wins (max of remote + what this browser stored), so a
+  // notification the viewer already opened never comes back as "new" on the
+  // next login -- even on another device or after browser storage was wiped.
+  {
+    const remoteSeen = snap.exists() ? (Number(snap.data().lastSeenMs) || 0) : 0;
+    let storedSeen = 0;
+    try { storedSeen = Number(localStorage.getItem(notifCenterLastSeenKey())) || 0; } catch (e) {}
+    if (remoteSeen || storedSeen) {
+      notifCenterLastSeen = Math.max(remoteSeen, storedSeen);
+    } // else: first ever visit -> keep the "now" baseline set at load
+    notifCenterSaveLastSeen(notifCenterLastSeen);
+  }
   notifCenterClearedSynced = true;
   notifCenterSaveCleared();
   renderNotifCenter();
+  refreshBellPanel();
 }, err => {
   // Most likely Firestore Security Rules don't allow this collection yet.
   // Fall back to the local-only cache already loaded above instead of
@@ -5696,6 +5757,11 @@ function notifCenterChangeCell(oldVal, newVal) {
 function notifCenterRows(n) {
   const rows = [];
   const push = (label, html) => { if (html) rows.push({ label, html }); };
+  if (n.type === "eventsDeployed") {
+    push("Update", "The pharmacy department deployed the events.");
+    notifDetailRows(n).forEach(([k, v]) => push(k, escapeHtml(v)));
+    return rows;
+  }
   const roleLabel = `${n.role || "\u2014"}${n.list === "relievers" ? " (Store Reliever)" : ""}`;
 
   if (n.list === "relievers" && (n.type === "siteMoved" || n.type === "slotAssigned")) {
@@ -5794,6 +5860,7 @@ function notifCenterClear(ids) {
   list.forEach(id => notifCenterCleared.add(id));
   notifCenterSaveCleared();
   renderNotifCenter();
+  refreshBellPanel(); // a cleared broadcast must also leave the bell dropdown
   setDoc(notifCenterClearedDocRef(), { ids: arrayUnion(...list), updatedAt: serverTimestamp() }, { merge: true })
     .catch(err => {
       console.error("Failed to sync cleared notifications:", err);
@@ -5895,6 +5962,25 @@ function renderNotifCenter() {
   });
 }
 
+// Marks everything the viewer can currently see as read -- locally AND in
+// their synced Firestore doc. Uses the newest notification's own createdAt
+// (server time) instead of this device's clock, so a device clock that runs
+// behind can't leave the notification looking "unread" after it was opened.
+function notifCenterMarkSeen() {
+  let newest = 0;
+  try {
+    notifCenterItems({ includeCleared: true }).forEach(n => {
+      const ms = notifCenterMillis(n.createdAt);
+      if (ms > newest) newest = ms;
+    });
+  } catch (e) { /* fall through with what we have */ }
+  const next = Math.max(notifCenterLastSeen, newest);
+  notifCenterLastSeen = next;
+  notifCenterSaveLastSeen(next);
+  setDoc(notifCenterClearedDocRef(), { lastSeenMs: next, updatedAt: serverTimestamp() }, { merge: true })
+    .catch(err => console.error("Failed to sync notification last-seen:", err));
+}
+
 function openNotifCenter() {
   const overlay = document.getElementById("notifCenterOverlay");
   if (!overlay) return;
@@ -5903,8 +5989,7 @@ function openNotifCenter() {
   // Mark everything currently listed as read, then repaint so the "New"
   // tags clear on the next open instead of on this one (the user should
   // still see what was new when they walked in).
-  notifCenterLastSeen = Date.now();
-  notifCenterSaveLastSeen(notifCenterLastSeen);
+  notifCenterMarkSeen();
   const badge = document.getElementById("notifNavBadge");
   if (badge) { badge.textContent = "0"; badge.classList.remove("show"); }
 }
@@ -5967,6 +6052,99 @@ renderNotifPanel = function (items) {
   try { renderNotifCenter(); } catch (err) { console.error("Notification center render failed:", err); }
 };
 renderNotifCenter();
+
+// ---------- Login notification prompt ----------
+// Once per login (per browser tab session), if this employee / department
+// head has notifications they haven't opened yet, show ONE modal:
+// "May notification ka mula sa event" -> [Cancel] [Go to notification].
+//   - Go to notification -> opens the Notification Center (which also marks
+//     everything as read, same as clicking the sidebar 🔔 Notifications).
+//   - Cancel -> just closes; nothing else happens.
+// "Notifications" here = exactly what the sidebar 🔔 badge counts (unread,
+// not cleared by this viewer). It's a single summary modal, NOT one modal
+// per notification, so it can't turn into the old wall of stacked popups.
+// The decision is made once per login: a plain page reload in the same tab
+// won't show it again. Logout clears the flag so the next login prompts
+// again. Declared with `var` because the live-alert code higher up in this
+// file reads loginNotifPromptPromise from inside async snapshot callbacks.
+var loginNotifPromptPromise = null;
+var loginNotifPromptDone = false;
+var loginNotifClearedWaitExpired = false;
+var loginNotifClearedTimer = null;
+
+function loginNotifPromptKey() { return "pdLoginNotifPrompt_" + notifCenterViewerKey(); }
+function loginNotifPromptAlreadyHandled() {
+  try { return sessionStorage.getItem(loginNotifPromptKey()) === "1"; } catch (e) { return false; }
+}
+function markLoginNotifPromptHandled() {
+  try { sessionStorage.setItem(loginNotifPromptKey(), "1"); } catch (e) { /* non-fatal */ }
+}
+// Called from the Logout handlers so the NEXT login prompts again.
+function clearLoginNotifPromptFlag() {
+  try { sessionStorage.removeItem(loginNotifPromptKey()); } catch (e) { /* non-fatal */ }
+}
+
+async function showLoginNotifPrompt(count) {
+  // appModal is shared by every dialog on the page. If something else is
+  // open right now (e.g. a live alert), wait for it instead of replacing it.
+  while (appModal.classList.contains("open")) {
+    await new Promise(r => setTimeout(r, 500));
+  }
+  return new Promise(resolve => {
+    setModalIcon("bell");
+    appModalMessage.textContent =
+      "You have a notification from the event.\n\n" +
+      "You have 2 new notifications that you haven't opened yet. Would you like to view them now?";
+    appModalActions.innerHTML = "";
+    const cancelBtn = document.createElement("button");
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.addEventListener("click", () => { closeModal(); resolve(); });
+    const goBtn = document.createElement("button");
+    goBtn.className = "primary";
+    goBtn.textContent = "Go to notification";
+    goBtn.addEventListener("click", () => { closeModal(); resolve(); openNotifCenter(); });
+    appModalActions.appendChild(cancelBtn);
+    appModalActions.appendChild(goBtn);
+    appModal.classList.add("open");
+    // Deferred focus -- see the note in showAlert about focusing mid-transition.
+    setTimeout(() => goBtn.focus(), 30);
+  });
+}
+
+function maybeShowLoginNotifPrompt() {
+  if (loginNotifPromptDone) return;
+  // Wait for the notifications collection's first snapshot...
+  if (!notificationsFirstSnapshotLoaded) return;
+  if (loginNotifPromptAlreadyHandled()) { loginNotifPromptDone = true; return; }
+  // ...and for this viewer's synced "cleared" list, so we don't count
+  // notifications they already cleared on another device. If that listener
+  // never answers (rules/offline), stop waiting after 2.5s and use the local
+  // cache -- same fallback the Notification Center itself uses.
+  if (!notifCenterClearedSynced && !loginNotifClearedWaitExpired) {
+    if (!loginNotifClearedTimer) {
+      loginNotifClearedTimer = setTimeout(() => {
+        loginNotifClearedWaitExpired = true;
+        try { maybeShowLoginNotifPrompt(); } catch (e) { console.error(e); }
+      }, 2500);
+    }
+    return;
+  }
+  loginNotifPromptDone = true;
+  markLoginNotifPromptHandled(); // decided for this login, prompt or not
+  const unread = notifCenterItems().filter(n => notifCenterMillis(n.createdAt) > notifCenterLastSeen).length;
+  if (!unread) return;
+  loginNotifPromptPromise = showLoginNotifPrompt(unread).finally(() => { loginNotifPromptPromise = null; });
+}
+
+// Re-check every time the Notification Center repaints (it repaints on every
+// notifications snapshot and on every cleared-list sync), same wrap-once
+// pattern used for renderNotifPanel above.
+const baseRenderNotifCenterForLoginPrompt = renderNotifCenter;
+renderNotifCenter = function () {
+  baseRenderNotifCenterForLoginPrompt.apply(this, arguments);
+  try { maybeShowLoginNotifPrompt(); } catch (err) { console.error("Login notification prompt failed:", err); }
+};
+maybeShowLoginNotifPrompt();
 </script>
 
 </body>
