@@ -2068,7 +2068,7 @@
       <a href="/dkjyg56lvm" data-current="true"><span class="ic">🏡</span>Home</a>
       <a href="#" id="staffNavBtn"><span class="ic">👥</span>Staff</a>
       <a href="#" id="notifNavBtn"><span class="ic">🔔</span>Notifications<span class="nav-badge" id="notifNavBadge">0</span></a>
-      <a href="/30k1jkejh3?from=%2Fapd2zu9bdf"><span class="ic">🏆</span>Leaderboard</a>
+      <a href="/30k1jkejh3?from=%2Ftz8lc2ct4y"><span class="ic">🏆</span>Leaderboard</a>
       <!-- <a href="#" class="active"><span class="ic">🗓️</span>Deployment Roster</a> -->
       <!-- <a href="#"><span class="ic">📅</span>Events</a> -->
       <!-- <a href="#"><span class="ic">📍</span>Sites</a>
@@ -2141,7 +2141,7 @@
         <span id="unsavedIndicator" class="unsaved-badge" style="display:none;">● There are unsaved changes.</span>
         <!-- <button class="btn ghost" id="printBtn">🖨️ Print / Export PDF</button> -->
         <button class="btn danger-outline" id="resetBtn">Reset all</button>
-        <!-- <a class="btn" id="leaderboardBtn" href="/30k1jkejh3?from=%2Fapd2zu9bdf" style="text-decoration:none;display:inline-flex;align-items:center;margin-left:auto;">🏆 Leaderboard</a> -->
+        <!-- <a class="btn" id="leaderboardBtn" href="/30k1jkejh3?from=%2Ftz8lc2ct4y" style="text-decoration:none;display:inline-flex;align-items:center;margin-left:auto;">🏆 Leaderboard</a> -->
       </div>
 
       <div id="datalistContainer" style="display:none" aria-hidden="true"></div>
@@ -2181,7 +2181,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-09-22.1";
+const APP_VERSION = "2026-09-23.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -2552,12 +2552,28 @@ const SCHEDULE_ACCESS = {
   billing: "billingdepart@planetdrugstore.ph",
   information: "informationdepart@planetdrugstore.ph"
 };
+// Pharmacy, Billing, and IT each now have their own dedicated file
+// (previously all three shared this one file, told apart only by
+// scheduleAccessRole checks scattered throughout below). This map is
+// just for bouncing a signed-in head who lands on the WRONG department's
+// file over to their own, instead of showing them someone else's console.
+const SCHEDULE_DEPARTMENT_FILES = {
+  pharmacist: "/tz8lc2ct4y",
+  billing: "/jszdttqedv",
+  information: "/51qx617jve"
+};
+const THIS_SCHEDULE_DEPARTMENT = "pharmacist";
 const signedInScheduleEmail = String(auth.currentUser && auth.currentUser.email || "").trim().toLowerCase();
 const scheduleAccessRole = Object.entries(SCHEDULE_ACCESS)
   .find(([, email]) => email === signedInScheduleEmail)?.[0] || "";
 if (!scheduleAccessRole) {
   window.location.replace("/839jgl8ang");
   throw new Error("Unauthorized event schedule account.");
+} else if (scheduleAccessRole !== THIS_SCHEDULE_DEPARTMENT) {
+  // Signed in fine, just not as THIS department's head — send them to
+  // their own file instead of showing this one.
+  window.location.replace(SCHEDULE_DEPARTMENT_FILES[scheduleAccessRole]);
+  throw new Error("Wrong department schedule file for this account.");
 }
 // Badge in the topbar used to always read "ET / EVENT TEAM" no matter which
 // department head signed in. Swap it to reflect whichever account is

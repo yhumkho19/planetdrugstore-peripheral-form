@@ -14,4 +14,6 @@
 | `leaderboard.html` | `afee64d5-e1c6-4843-b51b-06ae167ffa1f.html` | `30k1jkejh3.html` | `https://planetdrugstore-peripher-d24c0.web.app/30k1jkejh3` |
 | `peripheral-form.html` | `4b912a36-2344-4640-b0b6-0a9d3dffe50b.html` | `gui2dtdgtb.html` | `https://planetdrugstore-peripher-d24c0.web.app/gui2dtdgtb` |
 | `register-employee.html` | `797f133b-b98e-4744-9668-d816426b85c6.html` | `oa9gukdtnh.html` | `https://planetdrugstore-peripher-d24c0.web.app/oa9gukdtnh` |
-
+| `pharmacy-schedule.html` *(new — split from `event-team-schedule.html`)* | — | `tz8lc2ct4y.html` | `https://planetdrugstore-peripher-d24c0.web.app/tz8lc2ct4y` |
+| `billing-schedule.html` *(new — split from `event-team-schedule.html`)* | — | `jszdttqedv.html` | `https://planetdrugstore-peripher-d24c0.web.app/jszdttqedv` |
+| `it-schedule.html` *(new — split from `event-team-schedule.html`)* | — | `51qx617jve.html` | `https://planetdrugstore-peripher-d24c0.web.app/51qx617jve` |

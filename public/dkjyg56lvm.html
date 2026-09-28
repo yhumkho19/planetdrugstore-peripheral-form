@@ -307,7 +307,7 @@
         One console for staff deployment across every Medical Mission and People's Day — built for Planet Drugstore's Event team to move faster and stay organized, site by site
       </p>
       <div class="hero-ctas">
-        <a href="/apd2zu9bdf" class="btn-ghost">📅 Go to Event Schedule</a>
+        <a href="/tz8lc2ct4y" id="goToScheduleBtn" class="btn-ghost">📅 Go to Event Schedule</a>
       </div>
       <div class="trust-row">
         <div><strong>2</strong>Branches Covered</div>
@@ -347,7 +347,7 @@
 // bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
 // doesn't match what this tab is currently running — shows a small banner
 // instead of silently staying on stale code.
-const APP_VERSION = "2026-09-12.1";
+const APP_VERSION = "2026-09-23.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -423,9 +423,9 @@ startVersionWatch();
   // "ES / EVENT TEAM" placeholder that showed the same thing no matter
   // who was actually signed in.
   const EVENT_SCHEDULE_ACCOUNTS = {
-    'pharmacistdepart@planetdrugstore.ph': { label: 'Pharmacy Department', initials: 'PD' },
-    'billingdepart@planetdrugstore.ph':    { label: 'Billing Department',  initials: 'BD' },
-    'informationdepart@planetdrugstore.ph':{ label: 'Information Technology', initials: 'IT' }
+    'pharmacistdepart@planetdrugstore.ph': { label: 'Pharmacy Department', initials: 'PD', file: '/tz8lc2ct4y' },
+    'billingdepart@planetdrugstore.ph':    { label: 'Billing Department',  initials: 'BD', file: '/jszdttqedv' },
+    'informationdepart@planetdrugstore.ph':{ label: 'Information Technology', initials: 'IT', file: '/51qx617jve' }
   };
 
   // Only the Event Schedule account belongs on this page — anyone else
@@ -444,6 +444,10 @@ startVersionWatch();
   } else {
     document.getElementById('welcomeName').textContent = account.label.toUpperCase();
     document.getElementById('welcomeAvatar').textContent = account.initials;
+    // Pharmacy, Billing, and IT each got their own file now — send this
+    // head to theirs instead of the one combined file it used to be.
+    const goBtn = document.getElementById('goToScheduleBtn');
+    if (goBtn) goBtn.href = account.file;
   }
 
   document.getElementById('OnLogout').addEventListener('click', async (e)=>{
