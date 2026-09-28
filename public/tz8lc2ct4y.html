@@ -2011,6 +2011,16 @@
     .notifcenter-box { width: 100%; min-height: 100vh; border-radius: 0; border: none; }
     .notifcenter-body { max-height: none; }
   }
+
+  /* ---- Site auto-delete countdown (12:00 AM the day after the site's date) ---- */
+  .site-expiry { display:inline-flex; align-items:center; gap:6px; font: 600 11px/1.2 'IBM Plex Mono', ui-monospace, monospace; padding:4px 9px; border-radius:999px; background: var(--signal-soft); color: var(--signal-dark); white-space:nowrap; max-width:100%; }
+  .site-expiry .se-t { font-variant-numeric: tabular-nums; }
+  .site-expiry.is-soon { background: var(--north-soft); color: var(--north); }
+  .site-expiry.is-urgent { background: var(--danger-soft); color: var(--danger); animation: seBlink 1.2s ease-in-out infinite; }
+  .site-expiry.is-gone { background: var(--danger-soft); color: var(--danger); animation: none; }
+  .card-expiry-row { margin: 0 0 8px; }
+  .bracket-expiry { margin-left: 8px; }
+  @keyframes seBlink { 50% { opacity: .55; } }
 </style>
 </head>
 <body class="is-ready">
@@ -2181,7 +2191,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-09-23.1";
+const APP_VERSION = "2026-09-28.4";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -2640,6 +2650,232 @@ const employeesCollRef = collection(db, "employees");
 // noticed without anyone needing to refresh.
 const notificationsCollRef = collection(db, "emergencyNotifications");
 
+// ==========================================================================
+// SITE AUTO-DELETE (countdown + midnight expiry)
+// --------------------------------------------------------------------------
+// A site dated Sep 29 is deleted at 12:00 AM Sep 30 (Philippine time, fixed
+// UTC+8 so every device agrees no matter its own clock/timezone setting).
+// Every site card and date bracket shows a live countdown to that moment.
+// ==========================================================================
+const SITE_EXPIRY_TZ_OFFSET_MS = 8 * 60 * 60 * 1000;
+function siteExpiryMs(card) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String((card && card.date) || ""));
+  if (!m) return null; // no date yet -> never expires
+  return Date.UTC(+m[1], +m[2] - 1, +m[3] + 1, 0, 0, 0) - SITE_EXPIRY_TZ_OFFSET_MS;
+}
+function siteIsExpired(card) {
+  const t = siteExpiryMs(card);
+  return t !== null && Date.now() >= t;
+}
+function siteExpiryLabel(card) {
+  const t = siteExpiryMs(card);
+  if (t === null) return "";
+  const d = new Date(t + SITE_EXPIRY_TZ_OFFSET_MS); // shift so UTC getters read Manila wall-clock
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return `${months[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()} 12:00 AM`;
+}
+function formatSiteExpiryCountdown(ms) {
+  if (ms <= 0) return "Deleting…";
+  const s = Math.floor(ms / 1000);
+  const days = Math.floor(s / 86400);
+  const hh = String(Math.floor((s % 86400) / 3600)).padStart(2, "0");
+  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+  const ss = String(s % 60).padStart(2, "0");
+  return (days > 0 ? days + "d " : "") + hh + ":" + mm + ":" + ss;
+}
+function siteExpiryBadgeHtml(card, extraClass) {
+  const t = siteExpiryMs(card);
+  if (t === null) return "";
+  const label = siteExpiryLabel(card);
+  return `<span class="site-expiry ${extraClass || ""}" data-expire-at="${t}" title="This site is automatically deleted on ${escapeAttr(label)}">` +
+    `🗑️ <span class="se-lbl">Deletes in</span> <span class="se-t">${formatSiteExpiryCountdown(t - Date.now())}</span></span>`;
+}
+function tickSiteExpiryBadges() {
+  const now = Date.now();
+  document.querySelectorAll(".site-expiry[data-expire-at]").forEach(el => {
+    const left = Number(el.dataset.expireAt) - now;
+    const t = el.querySelector(".se-t");
+    const lbl = el.querySelector(".se-lbl");
+    if (t) t.textContent = formatSiteExpiryCountdown(left);
+    if (lbl) lbl.style.display = left <= 0 ? "none" : "";
+    el.classList.toggle("is-gone", left <= 0);
+    el.classList.toggle("is-urgent", left > 0 && left <= 60 * 60 * 1000);
+    el.classList.toggle("is-soon", left > 60 * 60 * 1000 && left <= 6 * 60 * 60 * 1000);
+  });
+}
+setInterval(tickSiteExpiryBadges, 1000);
+
+// ---- Sweep: who actually deletes the site ------------------------------
+// There is no server in this app, so the deletion is performed by whichever
+// department page (Pharmacy / Billing / IT) is open when midnight passes —
+// or the first one opened afterwards. One Firestore TRANSACTION removes the
+// expired sites AND writes their notifications together (deterministic doc
+// ids), so two heads open at once can never double-delete or double-notify.
+//   * Employees who held a slot on the site  -> one personal notice each
+//   * Pharmacy + Billing + IT heads          -> one department notice per site
+//   * Employees NOT on the site              -> nothing
+let siteExpirySweepBusy = false;
+let siteExpiryTimer = null;
+let siteExpiryLatestData = null;
+let siteExpiryPermissionAlerted = false;
+
+function siteExpiryStaffIdsFor(cardCopies) {
+  // Union of every account that held a slot on this site (either copy of the
+  // card — the head copy and the employee-published copy — can differ).
+  const out = new Map(); // staffId -> { name, role, list, staffIdx }
+  cardCopies.forEach(card => {
+    ["staff", "relievers"].forEach(listKey => {
+      (card[listKey] || []).forEach((slot, idx) => {
+        const id = resolveSlotStaffId(slot);
+        if (!id) return;
+        const key = String(id).trim().toLowerCase();
+        if (!out.has(key)) out.set(key, { staffId: id, name: slot.name || "", role: slot.label || "", list: listKey, staffIdx: idx });
+      });
+    });
+  });
+  return [...out.values()];
+}
+
+function siteExpiryPayloadBase(card) {
+  return {
+    type: "siteAutoDeleted",
+    cardId: card.id,
+    location: card.location || "Unnamed site",
+    date: card.date || "",
+    time: card.time || "",
+    region: card.region || "",
+    mission: card.mission || "medical",
+    missionLabel: missionLabel(card),
+    autoDeleted: true,
+    resolved: false
+  };
+}
+
+async function runSiteExpirySweep() {
+  if (siteExpirySweepBusy) return;
+  siteExpirySweepBusy = true;
+  try {
+    const attempt = async (withNotifications) => {
+      return await runTransaction(db, async tx => {
+        const snap = await tx.get(scheduleDocRef);
+        if (!snap.exists()) return [];
+        const data = snap.data() || {};
+        const headCards = Array.isArray(data.cards) ? data.cards : [];
+        const empCards = Array.isArray(data.employeeCards) ? data.employeeCards : [];
+        const expiredIds = new Set();
+        headCards.concat(empCards).forEach(c => { if (c && siteIsExpired(c)) expiredIds.add(c.id); });
+        if (!expiredIds.size) return [];
+        const removed = [];
+        expiredIds.forEach(id => {
+          const copies = [headCards.find(c => c.id === id), empCards.find(c => c.id === id)].filter(Boolean);
+          removed.push({ card: copies[0], copies });
+        });
+        tx.update(scheduleDocRef, {
+          cards: headCards.filter(c => !expiredIds.has(c.id)),
+          employeeCards: empCards.filter(c => !expiredIds.has(c.id))
+        });
+        if (withNotifications) {
+          removed.forEach(({ card, copies }) => {
+            const people = siteExpiryStaffIdsFor(copies);
+            // Department notice — Pharmacy, Billing and IT heads always get it,
+            // listing the deleted site.
+            tx.set(doc(db, "emergencyNotifications", `siteAutoDeleted_${card.id}_dept`), {
+              ...siteExpiryPayloadBase(card),
+              targetRoles: ["pharmacist", "billing", "information"],
+              staffId: null,
+              list: "", role: "",
+              affectedCount: people.length,
+              affectedNames: people.map(p => p.name).filter(Boolean).slice(0, 30),
+              createdAt: serverTimestamp()
+            });
+            // Personal notice — ONLY for employees who were in a slot here.
+            people.forEach(p => {
+              tx.set(doc(db, "emergencyNotifications", `siteAutoDeleted_${card.id}_${String(p.staffId).trim().toLowerCase()}`), {
+                ...siteExpiryPayloadBase(card),
+                staffId: p.staffId,
+                employeeName: p.name,
+                role: p.role,
+                list: p.list,
+                staffIdx: p.staffIdx,
+                createdAt: serverTimestamp()
+              });
+            });
+          });
+        }
+        return removed.map(r => r.card);
+      });
+    };
+    let removed;
+    try {
+      removed = await attempt(true);
+    } catch (err) {
+      const denied = err && (err.code === "permission-denied" || /permission/i.test(String(err.message || "")));
+      if (!denied) throw err;
+      // Firestore rules don't allow the new notification type yet. Don't leave
+      // an expired site standing forever: delete it anyway and tell the head.
+      removed = await attempt(false);
+      if (removed.length && !siteExpiryPermissionAlerted) {
+        siteExpiryPermissionAlerted = true;
+        showAlert(
+          `${removed.length} expired site(s) were deleted, but their notifications could not be sent.\n\n` +
+          `The "emergencyNotifications" collection's Firestore Security Rules need to allow the "siteAutoDeleted" notification type.`
+        );
+      }
+    }
+    if (removed && removed.length) {
+      try { updateSavedSnapshotForIds(removed.map(c => c.id)); } catch (e) { /* best-effort */ }
+    }
+  } catch (err) {
+    console.error("Site auto-delete sweep failed:", err);
+  } finally {
+    siteExpirySweepBusy = false;
+  }
+}
+
+function scheduleSiteExpiryTimer() {
+  if (siteExpiryTimer) { clearTimeout(siteExpiryTimer); siteExpiryTimer = null; }
+  const d = siteExpiryLatestData;
+  if (!d) return;
+  const all = (Array.isArray(d.cards) ? d.cards : []).concat(Array.isArray(d.employeeCards) ? d.employeeCards : []);
+  let next = Infinity;
+  all.forEach(c => { const t = siteExpiryMs(c); if (t !== null && t < next) next = t; });
+  if (next === Infinity) return;
+  const wait = Math.max(0, next - Date.now()) + 800; // just after midnight
+  // setTimeout can't hold more than ~24.8 days; re-arm at that limit.
+  siteExpiryTimer = setTimeout(() => {
+    siteExpiryTimer = null;
+    if (Date.now() >= next) runSiteExpirySweep().finally(scheduleSiteExpiryTimer);
+    else scheduleSiteExpiryTimer();
+  }, Math.min(wait, 2147000000));
+}
+
+// Exact-moment trigger driven by the live schedule doc, plus a light
+// once-a-minute safety net for sleeping laptops / throttled background tabs.
+onSnapshot(scheduleDocRef, snap => {
+  siteExpiryLatestData = snap.exists() ? snap.data() : null;
+  scheduleSiteExpiryTimer();
+  const anyExpired = siteExpiryLatestData &&
+    (Array.isArray(siteExpiryLatestData.cards) ? siteExpiryLatestData.cards : [])
+      .concat(Array.isArray(siteExpiryLatestData.employeeCards) ? siteExpiryLatestData.employeeCards : [])
+      .some(c => c && siteIsExpired(c));
+  if (anyExpired) {
+    // Wait for the employee directory so hand-typed names resolve to accounts.
+    const go = () => runSiteExpirySweep().finally(scheduleSiteExpiryTimer);
+    let directoryReady = false;
+    try { directoryReady = !!employeesSnapshotSeen; } catch (e) { /* not initialised yet */ }
+    if (directoryReady) go(); else setTimeout(go, 4000);
+  }
+});
+setInterval(() => {
+  const d = siteExpiryLatestData;
+  if (!d || siteExpirySweepBusy) return;
+  const anyExpired = (Array.isArray(d.cards) ? d.cards : [])
+    .concat(Array.isArray(d.employeeCards) ? d.employeeCards : [])
+    .some(c => c && siteIsExpired(c));
+  if (anyExpired) runSiteExpirySweep();
+}, 60000);
+
+
 // The logged-in employee's session, expected to be set by employee-login.html
 // after a successful sign-in, shaped like:
 //   { staffId, name, department, branch }  where branch is "south" or "north"
@@ -2716,14 +2952,27 @@ function roleOptionsHtml(current, listKey) {
 // know which array on the card to update.
 function registeredNamesForTeam(team) {
   const names = [];
+  // A picker may allow several teams, e.g. "PHARMACY ASSISTANT|BILLING" for
+  // Store Reliever slots (Pharmacy Assistants AND Billing employees).
+  const allowedTeams = String(team || "").split("|").map(s => s.trim().toUpperCase()).filter(Boolean);
   for (const data of employeesMap.values()) {
     const employee = data || {};
     const { team: employeeTeam } = splitDepartmentClient(employee.department);
-    if (employeeTeam.toUpperCase() !== team) continue;
+    if (!allowedTeams.includes(employeeTeam.toUpperCase())) continue;
     const name = String(employee.name || "").trim();
     if (name && !names.includes(name)) names.push(name);
   }
   return names.sort((a, b) => a.localeCompare(b));
+}
+
+function isBillingEmployeeName(name) {
+  const wanted = String(name || "").trim().toUpperCase().replace(/\s+/g, " ");
+  for (const data of employeesMap.values()) {
+    const employee = data || {};
+    if (String(employee.name || "").trim().toUpperCase().replace(/\s+/g, " ") !== wanted) continue;
+    return splitDepartmentClient(employee.department).team.toUpperCase() === "BILLING";
+  }
+  return false;
 }
 
 // Finds the OTHER slot (any site card, Event Team or Store Reliever list)
@@ -2776,7 +3025,9 @@ async function moveEmployeeIntoSlot(name, targetCardId, targetListKey, targetSId
   const targetSiteLabel = targetCard.location || "Unnamed site";
 
   const confirmed = await showConfirm(
-    `Ilipat si ${name} mula sa "${sourceRoleLabel}" slot sa ${sourceSiteLabel} papunta sa "${targetRoleLabel}" slot dito sa ${targetSiteLabel}? Mababakante ang dati nyang slot.`
+    targetListKey === "relievers"
+      ? `Ilipat si ${name} mula sa "${sourceRoleLabel}" slot sa ${sourceSiteLabel} papunta sa Store Reliever slot para sa ${(targetSlot.site || "").trim() || targetSiteLabel}? Mababakante ang dati nyang slot.`
+      : `Ilipat si ${name} mula sa "${sourceRoleLabel}" slot sa ${sourceSiteLabel} papunta sa "${targetRoleLabel}" slot dito sa ${targetSiteLabel}? Mababakante ang dati nyang slot.`
   );
   if (!confirmed) return false;
 
@@ -2842,7 +3093,7 @@ function setupStaffNamePickers(container) {
       options.innerHTML = filtered.length
         ? filtered.map(name => {
             const taken = nameTakenElsewhere(name, cardId, listKey, sIdx);
-            return `<button type="button" class="name-picker-option${taken ? " is-taken" : ""}" data-name="${escapeAttr(name)}"${taken ? ' data-taken="1" title="Already assigned to another slot — click to move here"' : ""}>${escapeHtml(name)}${taken ? ' <span class="name-picker-taken-tag">(Move Slot)</span>' : ""}</button>`;
+            return `<button type="button" class="name-picker-option${taken ? " is-taken" : ""}" data-name="${escapeAttr(name)}"${taken ? ' data-taken="1" title="Already assigned to another slot — click to move here"' : ""}>${escapeHtml(name)}${listKey === "relievers" && isBillingEmployeeName(name) ? ' <span class="name-picker-taken-tag" style="background:var(--signal-soft);color:var(--signal-dark);">Billing</span>' : ""}${taken ? ' <span class="name-picker-taken-tag">(Move Slot)</span>' : ""}</button>`;
           }).join("")
         : `<div class="name-picker-empty">No registered employees found.</div>`;
     };
@@ -2895,8 +3146,8 @@ function setupStaffNamePickers(container) {
 function adminStaffRowHtml(s, sIdx, listKey, card) {
   const slotEditable = canEditScheduleSlot(s.label, listKey);
   const displayRole = listKey === "relievers" ? relieverDisplayLabel(s) : s.label;
-  const pickerTeam = listKey === "relievers" && scheduleAccessRole === "billing"
-    ? "BILLING"
+  const pickerTeam = listKey === "relievers"
+    ? (scheduleAccessRole === "billing" ? "BILLING" : "PHARMACY ASSISTANT|BILLING")
     : roleToTeam(s.label).toUpperCase();
   const emptyPlaceholder = listKey === "relievers"
     ? "NO RELIEVER YET"
@@ -3491,10 +3742,12 @@ function notifDetailRows(n, opts) {
   const role = n.list === "schedule" ? "" : notifTitleCase(n.role);
   if (role) rows.push(["Role", role + (n.list === "relievers" ? " (Store Reliever)" : "")]);
   if (includeBranch && n.region) rows.push(["Branch", regionLabelFromValue(n.region)]);
-  if (n.location) rows.push(["Event Site", n.location]);
+  if (n.location) rows.push([n.list === "relievers" ? "Site Relief" : "Event Site", n.location]);
   if (n.date) rows.push(["Event Date", formatDateDisplay(n.date)]);
   if (n.time) rows.push(["Time", n.time]);
-  if (n.type === "missionChanged") {
+  if (n.list === "relievers") {
+    // Store Reliever notices: no event type (they cover the store, not the event)
+  } else if (n.type === "missionChanged") {
     if (n.newMissionLabel) rows.push(["Event Type", `${n.oldMissionLabel || ""} => ${n.newMissionLabel}`]);
   } else {
     const t = notifEventTypeLabel(n);
@@ -3699,6 +3952,7 @@ function render() {
       <div class="bracket-head">
         <span class="bracket-date">${escapeHtml(dateLabel)}</span>
         <span class="bracket-count">${group.items.length} site${group.items.length === 1 ? "" : "s"}</span>
+        ${siteExpiryBadgeHtml({ date: group.date }, "bracket-expiry")}
         <div class="bracket-actions">
           ${isPharmacistScheduleUser ? `<button type="button" class="btn bracket-edit-date-btn">✎ Edit date</button>` : ""}
           ${isPharmacistScheduleUser ? `<button type="button" class="btn danger-outline bracket-delete-btn">Delete event</button>` : ""}
@@ -3782,6 +4036,7 @@ function render() {
         ${isPharmacistScheduleUser ? `<button class="cancel-event-btn ${card.cancelled ? "is-cancelled" : ""}" title="${card.cancelled ? "Reinstate this event" : "Cancel this event"}" aria-label="${card.cancelled ? "Reinstate this event" : "Cancel this event"}">${card.cancelled ? "↺" : "🚫"}</button>` : ""}
         ${isPharmacistScheduleUser ? `<button class="remove-btn" title="Remove this site" aria-label="Remove this site">×</button>` : ""}
 
+        <div class="card-expiry-row">${siteExpiryBadgeHtml(card)}</div>
         <div class="region-line">
           <select class="regionSelect"${isPharmacistScheduleUser ? "" : " disabled"}>
             <option value="south" ${card.region === "south" ? "selected" : ""}>South Caloocan</option>
@@ -6604,13 +6859,14 @@ function renderNotifPanel(items) {
     const isMissionChanged = n.type === "missionChanged";
     const isEventDeleted = n.type === "eventDeleted";
     const isSiteRemoved = n.type === "siteRemoved";
+    const isSiteAutoDeleted = n.type === "siteAutoDeleted";
     const isEventCreated = n.type === "eventCreated";
     const isEventCancelled = n.type === "eventCancelled";
     const isEventReinstated = n.type === "eventReinstated";
     const isDeploymentConfirmed = n.type === "deploymentConfirmed";
     const isSlotAssigned = n.type === "slotAssigned";
     const isSiteMoved = n.type === "siteMoved";
-    const isPersonalNotice = isRemoved || isBranchChanged || isDateChanged || isEventUpdated || isMissionChanged || isEventDeleted || isSiteRemoved || isEventCancelled || isEventReinstated || isEventCreated || isDeploymentConfirmed || isSlotAssigned || isSiteMoved;
+    const isPersonalNotice = isRemoved || isBranchChanged || isDateChanged || isEventUpdated || isMissionChanged || isEventDeleted || isSiteRemoved || isSiteAutoDeleted || isEventCancelled || isEventReinstated || isEventCreated || isDeploymentConfirmed || isSlotAssigned || isSiteMoved;
     const isDepartmentRemovalNotice = isRemoved && !employeeSession &&
       Array.isArray(n.targetRoles) && n.targetRoles.includes(scheduleAccessRole);
     // Describes what kind of slot this was for the department-facing
@@ -6672,6 +6928,16 @@ function renderNotifPanel(items) {
       title = `🔔 This site was removed`;
       statusLine = `The Event Team removed this site from the schedule — you're free to sign up for another slot now.`;
       btnLabel = "Got it";
+    } else if (isSiteAutoDeleted) {
+      if (!n.staffId) {
+        title = `🗑️ Site deleted — ${escapeHtml(n.location || "Unnamed site")}`;
+        statusLine = `This site reached 12:00 AM after its event date (${escapeHtml(formatDateDisplay(n.date) || "—")}) and was deleted automatically.` +
+          (n.affectedCount ? ` ${n.affectedCount} employee${n.affectedCount === 1 ? "" : "s"} on this site ${n.affectedCount === 1 ? "was" : "were"} notified.` : ` No employees were signed up on it.`);
+      } else {
+        title = `🗑️ Your site was deleted`;
+        statusLine = `${escapeHtml(n.location || "This site")} was automatically deleted at 12:00 AM after its event date. You're free to sign up for another slot now.`;
+      }
+      btnLabel = "Got it";
     } else if (isEventCancelled) {
       title = `🔔 This event was cancelled`;
       statusLine = scheduleChangeAudience(n) === "department"
@@ -6693,8 +6959,10 @@ function renderNotifPanel(items) {
       statusLine = `The site has been successfully deployed to the schedule.`;
       btnLabel = "Got it";
     } else if (isSlotAssigned) {
-      title = `📌 You were assigned to an event slot`;
-      statusLine = `The pharmacist department assigned your name to this slot.`;
+      title = n.list === "relievers" ? `\u{1F3EC} You were assigned as Store Reliever` : `\u{1F4CC} You were assigned to an event slot`;
+      statusLine = n.list === "relievers"
+        ? `The pharmacist department assigned you to cover ${escapeHtml(n.location || "the store")}.`
+        : `The pharmacist department assigned your name to this slot.`;
       btnLabel = "Got it";
     } else if (isResolved) {
       title = `✅ ${escapeHtml(n.backupName || "A teammate")} — FOR BACKUP`;
@@ -6733,13 +7001,13 @@ function getRelevantNotifications(items) {
   // admin already knows they made the change, so none of these belong in
   // the Event Team's own bell/panel. Admins still see every open
   // emergency-vacancy ("unavailable") notification.
-  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "eventCancelled", "eventReinstated", "eventCreated", "deploymentConfirmed", "slotAssigned", "siteMoved"];
+  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "eventCreated", "deploymentConfirmed", "slotAssigned", "siteMoved"];
   if (!employeeSession) {
     return items.filter(n =>
       personalTypes.includes(n.type) &&
       !["slotAssigned", "siteMoved"].includes(n.type) &&
       n.employeeOnly !== true &&
-      (["eventCreated", "deploymentConfirmed", "eventCancelled", "eventReinstated"].includes(n.type)
+      (["eventCreated", "deploymentConfirmed", "eventCancelled", "eventReinstated", "siteAutoDeleted"].includes(n.type)
         ? Array.isArray(n.targetRoles) && n.targetRoles.includes(scheduleAccessRole)
         // "removed" writes one doc per removal that doubles as the
         // employee's personal notice (staffId) AND, when the removed
@@ -6828,6 +7096,7 @@ onSnapshot(
           const isMissionChanged = n.type === "missionChanged";
           const isEventDeleted = n.type === "eventDeleted";
           const isSiteRemoved = n.type === "siteRemoved";
+          const isSiteAutoDeleted = n.type === "siteAutoDeleted";
           const isEventCancelled = n.type === "eventCancelled";
           const isEventReinstated = n.type === "eventReinstated";
           const isDeploymentConfirmed = n.type === "deploymentConfirmed";
@@ -6842,7 +7111,9 @@ onSnapshot(
           let message;
           let showBranchRow = false;
           if (isSiteMoved) {
-            message = `📍 You were moved to a new event site.\n\nYour previous assignment was cleared and this is now your active deployment.`;
+            message = n.list === "relievers"
+              ? `\u{1F3EC} You were assigned as Store Reliever.\n\nYou'll be covering ${n.location || "the store"}.\n\nYour previous assignment was cleared and this is now your active deployment.`
+              : `\u{1F4CD} You were moved to a new event site.\n\nYour previous assignment was cleared and this is now your active deployment.`;
           } else if (isRemoved) {
             message = isDepartmentRemovalNotice
               ? `${n.employeeName || "An employee"} was removed from their slot.`
@@ -6874,6 +7145,10 @@ onSnapshot(
             message = `The event team deleted this event.\n\nYou're free to sign up for another slot now.`;
           } else if (isSiteRemoved) {
             message = `The event team removed this site.\n\nYou're free to sign up for another slot now.`;
+          } else if (isSiteAutoDeleted) {
+            message = !n.staffId
+              ? `🗑️ A site was deleted automatically.\n\n${n.location || "This site"} reached 12:00 AM after its event date.`
+              : `🗑️ Your site was deleted.\n\n${n.location || "This site"} was automatically deleted at 12:00 AM after its event date. You're free to sign up for another slot now.`;
           } else if (isEventCreated) {
             message = `📅 The Pharmacy Department has deployed a new site.`;
           } else if (isEventCancelled) {
@@ -6885,7 +7160,9 @@ onSnapshot(
               ? `✅ The Pharmacy Department has reinstated this event.`
               : `Good news — this event is back on.\n\nYou're good to go as scheduled.`;
           } else if (isSlotAssigned) {
-            message = `📌 You were assigned to an event slot.\n\nThe pharmacist department assigned your name to this slot.`;
+            message = n.list === "relievers"
+              ? `\u{1F3EC} You were assigned as Store Reliever.\n\nYou'll be covering ${n.location || "the store"}.\n\nThe Pharmacy Department assigned you to this slot.`
+              : `\u{1F4CC} You were assigned to an event slot.\n\nThe pharmacist department assigned your name to this slot.`;
           } else if (isDeploymentConfirmed) {
             message = `✅ The site has been successfully deployed.`;
           } else {
@@ -7487,6 +7764,7 @@ const NOTIF_CENTER_META = {
   siteMoved:           { icon: "\uD83D\uDD00", title: "Moved to another site",         tone: "info",   cat: "staffing" },
   removed:             { icon: "\uD83D\uDEAB", title: "Removed from slot",             tone: "danger", cat: "staffing" },
   eventDeleted:        { icon: "\uD83D\uDDD1\uFE0F", title: "Event deleted",           tone: "danger", cat: "status"   },
+  siteAutoDeleted:     { icon: "\uD83D\uDDD1\uFE0F", title: "Site deleted (auto)",       tone: "danger", cat: "status"   },
   siteRemoved:         { icon: "\u2796",       title: "Site removed",                  tone: "danger", cat: "status"   },
   eventCancelled:      { icon: "\u26D4",       title: "Event cancelled",               tone: "danger", cat: "status"   },
   eventReinstated:     { icon: "\u2705",       title: "Event reinstated",              tone: "ok",     cat: "status"   },
@@ -7496,6 +7774,11 @@ const NOTIF_CENTER_META = {
 };
 
 function notifCenterMeta(n) {
+  // Being put into a Store Reliever slot is not a "site move" or a plain event
+  // slot -- word it as what it is.
+  if (n.list === "relievers" && (n.type === "siteMoved" || n.type === "slotAssigned")) {
+    return { icon: "\uD83C\uDFEC", title: "Assigned as Store Reliever", tone: "info", cat: "staffing" };
+  }
   return NOTIF_CENTER_META[n.type] || NOTIF_CENTER_META.unavailable;
 }
 
@@ -7625,7 +7908,10 @@ function notifCenterRows(n) {
   const push = (label, html) => { if (html) rows.push({ label, html }); };
   const roleLabel = `${n.role || "\u2014"}${n.list === "relievers" ? " (Store Reliever)" : ""}`;
 
-  if (n.type === "siteMoved") {
+  if (n.list === "relievers" && (n.type === "siteMoved" || n.type === "slotAssigned")) {
+    if (n.type === "siteMoved" && n.oldLocation) push("Moved from", escapeHtml(n.oldLocation));
+    push("Store to cover", escapeHtml(n.location || "\u2014"));
+  } else if (n.type === "siteMoved") {
     push("Site", notifCenterChangeCell(n.oldLocation, n.location));
   } else {
     push("Site", escapeHtml(n.location || "\u2014"));
@@ -7663,6 +7949,7 @@ function notifCenterRows(n) {
   }
 
   if (n.employeeName) push("Employee", escapeHtml(n.employeeName));
+  if (n.type === "siteAutoDeleted" && !n.staffId) push("Employees on site", n.affectedCount ? escapeHtml(String(n.affectedCount)) + (Array.isArray(n.affectedNames) && n.affectedNames.length ? " — " + escapeHtml(n.affectedNames.join(", ")) : "") : "None");
   if (n.resolved && n.backupName) push("Backed up by", escapeHtml(n.backupName));
   return rows;
 }
