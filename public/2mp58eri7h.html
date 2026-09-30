@@ -1109,6 +1109,7 @@
       <button id="tabRegisterBtn"><span class="tab-icon">👤</span><span class="tab-label">Register Employee</span></button>
       <button id="tabPeripheralFormBtn"><span class="tab-icon">🧰</span><span class="tab-label">Peripheral Form</span></button>
       <button id="tabControlNosBtn"><span class="tab-icon">🔑</span><span class="tab-label">Control Numbers (Used &amp; Unused)</span></button>
+      <button id="tabOrderingBtn"><span class="tab-icon">📦</span><span class="tab-label">Ordering System</span></button>
       <button id="tabDangerZoneBtn" class="danger-tab"><span class="tab-icon">⚠️</span><span class="tab-label">Delete All Data</span></button>
     </nav>
 
@@ -2115,6 +2116,11 @@ startVersionWatch();
     const isStaffAccount = !!(user && user.email && user.email.endsWith('@' + STAFF_DOMAIN));
     if(!user || isStaffAccount){
       window.location.replace('/839jgl8ang');
+      return;
+    }
+    // Stock Request account: sarili nitong landing page (Ordering System lang ang access), hindi ang buong admin console.
+    if((user.email || '').toLowerCase() === 'adminstockreq@planetdrugstore.ph'){
+      window.location.replace('/r5c8j2ndxa');
       return;
     }
     document.getElementById('whoEmail').textContent = user.email;
@@ -3462,6 +3468,7 @@ startVersionWatch();
   tabPeripheralFormBtn.addEventListener('click', ()=> switchTab('peripheralForm'));
   tabControlNosBtn.addEventListener('click', ()=> switchTab('controlNos'));
   tabDangerZoneBtn.addEventListener('click', ()=> switchTab('dangerZone'));
+  document.getElementById('tabOrderingBtn').addEventListener('click', ()=>{ window.location.href = '/h9b4t2zvfe'; });
 
   // ---- Sidebar: mobile open/close drawer ----
   const appSidebar = document.getElementById('appSidebar');

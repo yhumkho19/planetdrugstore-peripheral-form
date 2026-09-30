@@ -17,3 +17,6 @@
 | `pharmacy-schedule.html` *(new — split from `event-team-schedule.html`)* | — | `tz8lc2ct4y.html` | `https://planetdrugstore-peripher-d24c0.web.app/tz8lc2ct4y` |
 | `billing-schedule.html` *(new — split from `event-team-schedule.html`)* | — | `jszdttqedv.html` | `https://planetdrugstore-peripher-d24c0.web.app/jszdttqedv` |
 | `it-schedule.html` *(new — split from `event-team-schedule.html`)* | — | `51qx617jve.html` | `https://planetdrugstore-peripher-d24c0.web.app/51qx617jve` |
+| `employee-ordering.html` *(new — Stock Request, employee)* | — | `w6n3d8ycrq.html` | `https://planetdrugstore-peripher-d24c0.web.app/w6n3d8ycrq` |
+| `ordering.html` *(new — Ordering System / Stock Req., admin)* | — | `h9b4t2zvfe.html` | `https://planetdrugstore-peripher-d24c0.web.app/h9b4t2zvfe` |
+| `stock-request-landing.html` *(new — landing ng Stock Request admin)* | — | `r5c8j2ndxa.html` | `https://planetdrugstore-peripher-d24c0.web.app/r5c8j2ndxa` |

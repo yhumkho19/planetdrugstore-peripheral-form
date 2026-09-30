@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stock Requests — Planet Drugstore Ordering System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+
+:root{--maroon:#6E1620;--dark:#3D0A10;--red:#d61f2c;--paper:#FBF5F4;--line:#E8D7D8;--ink:#2A1416;--muted:#8C6B6E;--amber:#9A4B08;--amber-bg:#FFF6E5;--amber-line:#F0D9A8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Figtree','Segoe UI',Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+#checking{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--dark);color:#EDD9DA;font-size:14px}
+.app{max-width:1120px;margin:0 auto;padding:16px 16px 48px}
+.top{display:flex;align-items:center;background:var(--maroon);border-bottom:3px solid var(--red);border-radius:14px;padding:14px 18px}
+.top .tag{display:none}
+.banner{display:flex;align-items:center;gap:14px}
+.logo{width:46px;height:46px;border-radius:50%;background:#fff;color:var(--red);font-size:8px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;flex:none;overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:contain}
+.banner h1{margin:0;color:#fff;font-size:clamp(16px,2.6vw,22px);font-weight:700;letter-spacing:.2px}
+.body{display:flex;flex-direction:column;gap:14px;margin-top:14px}
+.side{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.side a,.btn{font-family:inherit;font-size:14px;font-weight:600;text-decoration:none;text-align:center;cursor:pointer;padding:9px 16px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--maroon);line-height:1.2}
+.side a:hover,.btn:hover{border-color:var(--maroon)}
+.btn.on{background:var(--maroon);border-color:var(--maroon);color:#fff}
+#logoutBtn{margin-left:auto}
+:is(a,button):focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.days{display:flex;gap:4px;overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:12px;padding:5px}
+.days hr,.days .btn:first-child{display:none}
+.days .btn{flex:1 0 auto;border:0;border-radius:8px;padding:11px 14px;background:transparent;text-transform:lowercase}
+.days .btn::first-letter{text-transform:uppercase}
+.days .btn:hover{background:var(--paper)}
+.days .btn.on{background:var(--maroon);color:#fff}
+.panel{margin-top:18px}
+.head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+.day{font-size:26px;font-weight:800;color:var(--maroon);text-transform:lowercase;line-height:1.15}
+.day::first-letter{text-transform:uppercase}
+.day small{display:block;text-transform:none;font-size:14px;font-weight:500;color:var(--muted);margin-top:2px}
+.lock{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:var(--amber-bg);border:1px solid var(--amber-line);color:var(--amber);font-size:13px;font-weight:700}
+.lock::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.lock.closed{background:#fdecec;border-color:#f3c2c6;color:#a5151f}
+.cut{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--maroon)}
+.cut input{font-family:inherit;font-size:14px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.act{font-size:14px;font-weight:700;padding:10px 18px;border-radius:999px;border:0;background:var(--red);color:#fff;cursor:pointer;font-family:inherit}
+.act:hover{background:#a5151f}
+.act.isOn{background:#e6f5ea;color:#1f8a4c;border:1px solid #bfe6cb}
+.act:disabled{opacity:.5;cursor:default}
+.mbox.wide{max-width:640px;max-height:88vh;display:flex;flex-direction:column}
+.sfind{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:15px;font-family:inherit;margin-bottom:10px;background:var(--paper)}
+.slist{overflow:auto;flex:1;border:1px solid var(--line);border-radius:10px}
+.srow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.srow:last-child{border-bottom:0}
+.sinfo b{display:block;font-size:15px}
+.sinfo small{color:var(--muted);font-size:12px}
+.sdays{display:flex;gap:4px}
+.sdays label{display:flex;flex-direction:column;align-items:center;font-size:11px;font-weight:700;color:var(--muted);gap:2px;cursor:pointer;padding:4px 6px;border-radius:6px}
+.sdays input{width:18px;height:18px;accent-color:var(--maroon);cursor:pointer}
+.sdays.unset label{opacity:.55}
+.snote{font-size:12px;color:var(--muted);margin:8px 0 0;line-height:1.4}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+.card{position:relative;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;word-break:break-word}
+.card.edited{border-left:4px solid #E0A030;padding-right:60px}
+.nm{font-size:16px;font-weight:700}
+.st{font-size:13px;color:var(--muted);margin-top:2px}
+.sr{display:inline-flex;align-items:baseline;gap:8px;margin-top:12px;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:19px;font-weight:800}
+.sr small{font-size:12px;font-weight:600;color:var(--muted)}
+.fold{position:absolute;top:10px;right:10px;width:40px;height:40px;padding:6px;border:1px solid var(--amber-line);border-radius:10px;background:var(--amber-bg);color:var(--amber);cursor:pointer}
+.fold:hover{border-color:var(--amber)}
+.fold svg{width:100%;height:100%;display:block}
+.fold .cnt{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center}
+.empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:40px 12px;font-size:15px;border:1px dashed var(--line);border-radius:12px;background:#fff}
+.modal{position:fixed;inset:0;background:rgba(42,20,22,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal.show{display:flex}
+.mbox{background:#fff;border-radius:14px;max-width:420px;width:100%;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.mbox h2{margin:0 0 6px;font-size:18px;color:var(--maroon)}
+.mwho{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.4}
+.mchg{font-size:18px;font-weight:800;background:var(--amber-bg);border:1px solid var(--amber-line);border-radius:8px;padding:10px 12px;margin-bottom:14px;word-break:break-word}
+.mchg span{font-weight:500;color:var(--muted);font-size:13px}
+.mlabel{font-size:13px;font-weight:700;color:var(--maroon);margin-bottom:5px}
+.mreason{font-size:15px;line-height:1.5;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--paper);word-break:break-word;white-space:pre-wrap}
+.mact{display:flex;justify-content:flex-end;margin-top:16px}
+.mact .btn{background:var(--red);border-color:var(--red);color:#fff}
+@media(max-width:720px){
+ .grid{grid-template-columns:1fr}
+ .app{padding:10px 10px 40px}
+ .day{font-size:22px}
+}
+
+</style>
+</head>
+<body>
+<div id="checking">Checking your session…</div>
+
+<div class="app" id="app" style="display:none">
+  <div class="top">
+    <div class="tag">ORDERING</div>
+    <div class="banner">
+      <div class="logo"><img src="logo.png" alt="Planet Drugstore" onerror="this.parentNode.innerHTML='<span>PLANET</span><span>DRUGSTORE</span>'"></div>
+      <h1>Planet Drugstore Ordering System</h1>
+    </div>
+  </div>
+
+  <div class="body">
+    <nav class="side">
+      <a href="/2mp58eri7h" id="homeLink">Home</a>
+      <button class="btn on" type="button">Stock requests</button>
+      <button class="btn" type="button" id="schedBtn">Employee days</button>
+      <button class="btn" type="button" id="logoutBtn">Log out</button>
+    </nav>
+
+    <div class="green">
+      <nav class="days" id="days">
+        <button class="btn on" type="button">STOCK REQ.</button>
+        <hr>
+      </nav>
+
+      <section class="panel">
+        <div class="head">
+          <div class="day" id="dayTitle"></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><div class="lock" id="lockMsg"></div><label class="cut">Cutoff <input type="time" id="cutIn" value="14:00"></label><button type="button" class="act" id="actBtn">Activate this day</button></div>
+        </div>
+        <div class="grid" id="grid"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="reasonModal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="mbox">
+    <h2 id="mTitle">Reason ng pagbabago</h2>
+    <div class="mwho" id="mWho"></div>
+    <div class="mchg" id="mChg"></div>
+    <div class="mlabel">Reason</div>
+    <div class="mreason" id="mReason"></div>
+    <div class="mact"><button type="button" class="btn" id="mClose">Close</button></div>
+  </div>
+</div>
+
+<div class="modal" id="schedModal" role="dialog" aria-modal="true" aria-labelledby="sTitle">
+  <div class="mbox wide">
+    <h2 id="sTitle">Employee request days</h2>
+    <div class="mwho">Check the days each employee is allowed to send a stock request. Saves automatically.</div>
+    <input class="sfind" id="sFind" placeholder="Search name or site…" autocomplete="off">
+    <div class="slist" id="sList"><div class="empty" style="border:0">Loading…</div></div>
+    <div class="snote">Faded rows = not set yet (currently allowed on all days). Checking or unchecking any box sets that employee's schedule.</div>
+    <div class="mact"><button type="button" class="btn" id="sClose">Close</button></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeFirestore, collection, query, where, onSnapshot, doc, setDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
+  authDomain: "planetdrugstore-peripher-d24c0.firebaseapp.com",
+  projectId: "planetdrugstore-peripher-d24c0",
+  storageBucket: "planetdrugstore-peripher-d24c0.firebasestorage.app",
+  messagingSenderId: "115454971026",
+  appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
+};
+const STAFF_DOMAIN = 'staff.planetdrugstore.local';
+const app = initializeApp(firebaseConfig);
+const db = initializeFirestore(app, { experimentalForceLongPolling: true, useFetchStreams: false });
+const auth = getAuth(app);
+
+const DAYS = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY'];
+// Ang cutoff ay itinatakda ng admin (time input) at sine-save sa stockDays/<petsa>.cutoffMin (minutes mula midnight, PH time)
+const cutIn = document.getElementById('cutIn');
+const toMin = v => { const p = String(v || '14:00').split(':').map(Number); return (p[0]||0)*60 + (p[1]||0); };
+const minToInput = m => String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
+const fmtMin = m => new Date(2000,0,1,Math.floor(m/60),m%60).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+
+// Susunod na petsa (today included) ng weekday; index 0 = Monday
+function dateForDay(i){
+  const t = new Date(); t.setHours(0,0,0,0);
+  t.setDate(t.getDate() + ((i + 1 - t.getDay() + 7) % 7));
+  return t;
+}
+const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const isLocked = d => { const m = toMin(cutIn.value), c = new Date(d); c.setHours(Math.floor(m/60), m%60, 0, 0); return new Date() >= c; };
+const esc = s => String(s ?? '').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+
+const nav = document.getElementById('days');
+DAYS.forEach((n,i)=>{
+  const b = document.createElement('button');
+  b.className='btn'; b.type='button'; b.textContent=n; b.dataset.i=i;
+  b.onclick=()=>select(i);
+  nav.appendChild(b);
+});
+
+const grid = document.getElementById('grid');
+let current = -1, unsub = null, unsubDay = null, dayActive = false;
+
+function paintHeader(){
+  const d = dateForDay(current), locked = isLocked(d);
+  document.getElementById('dayTitle').innerHTML =
+    DAYS[current] + '<small>' + d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) + '</small>';
+  const lm = document.getElementById('lockMsg');
+  lm.textContent = locked ? 'Order is locked' : (dayActive ? 'Active — locks at ' + fmtMin(toMin(cutIn.value)) : 'Not activated — employees cannot request yet');
+  lm.classList.toggle('closed', locked || !dayActive);
+  const ab = document.getElementById('actBtn');
+  ab.textContent = locked ? (dayActive ? 'Closed' : 'Cutoff time passed') : (dayActive ? 'Active ✓ (tap to deactivate)' : 'Activate this day');
+  ab.classList.toggle('isOn', dayActive && !locked);
+  ab.disabled = locked;
+}
+
+const fmtAt = ms => new Date(ms).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+const FOLDER_SVG = '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 14h18l5 6h29v8H6z"/><path d="M6 14v38h46l6-24H14L6 52"/></svg>';
+let rowsNow = [];
+function cardHtml(r, idx){
+  const h = Array.isArray(r.history) ? r.history : [];
+  const btn = h.length
+    ? '<button type="button" class="fold" data-idx="' + idx + '" title="Tingnan ang reason ng pagbabago" aria-label="Tingnan ang reason ng pagbabago">' +
+      FOLDER_SVG + (h.length > 1 ? '<span class="cnt">' + h.length + '</span>' : '') + '</button>'
+    : '';
+  return '<div class="card' + (h.length ? ' edited' : '') + '"><div class="nm">' + esc(r.name) + '</div>' +
+    '<div class="st">' + esc(r.siteName) + '</div><div class="sr"><small>SR#</small>' + esc(r.sr) + '</div>' + btn + '</div>';
+}
+
+// Modal: pinakahuling edit lang ang ipinapakita
+const $m = id => document.getElementById(id);
+function openReason(r){
+  const h = Array.isArray(r.history) ? r.history : [];
+  if(!h.length) return;
+  const last = h[h.length - 1];
+  $m('mWho').textContent = (r.name || '') + ' — ' + (r.siteName || '') + (h.length > 1 ? ' (na-edit ' + h.length + '×)' : '');
+  $m('mChg').textContent = (last.oldSr ?? '') + ' → ' + (last.newSr ?? '');
+  const sp = document.createElement('span'); sp.textContent = '  (' + fmtAt(last.at) + ')';
+  $m('mChg').appendChild(sp);
+  $m('mReason').textContent = last.reason || '';
+  $m('reasonModal').classList.add('show');
+  $m('mClose').focus();
+}
+function closeReason(){ $m('reasonModal').classList.remove('show'); }
+$m('mClose').addEventListener('click', closeReason);
+$m('reasonModal').addEventListener('click', e=>{ if(e.target === $m('reasonModal')) closeReason(); });
+document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeReason(); });
+grid.addEventListener('click', e=>{
+  const b = e.target.closest('.fold');
+  if(b && rowsNow[+b.dataset.idx]) openReason(rowsNow[+b.dataset.idx]);
+});
+
+function select(i){
+  current = i;
+  dayActive = false;
+  nav.querySelectorAll('button[data-i]').forEach(b=>b.classList.toggle('on', +b.dataset.i===i));
+  paintHeader();
+  grid.innerHTML = '<div class="empty">Loading…</div>';
+  if(unsub) unsub();
+  if(unsubDay) unsubDay();
+  unsubDay = onSnapshot(doc(db,'stockDays', iso(dateForDay(i))), snap=>{
+    const dd = snap.exists() ? snap.data() : null;
+    dayActive = !!dd && dd.active === true;
+    if(document.activeElement !== cutIn) cutIn.value = minToInput(dd && Number.isInteger(dd.cutoffMin) ? dd.cutoffMin : 840);
+    paintHeader();
+  }, ()=>{});
+  // Live: lalabas agad dito pag nag-submit na si employee
+  unsub = onSnapshot(query(collection(db,'stockRequests'), where('date','==',iso(dateForDay(i)))), snap=>{
+    const rows = snap.docs.map(d=>d.data()).sort((a,b)=>
+      String(a.siteName).localeCompare(String(b.siteName)) || String(a.name).localeCompare(String(b.name)));
+    rowsNow = rows;
+    grid.innerHTML = rows.length
+      ? rows.map((r,i)=>cardHtml(r,i)).join('')
+      : '<div class="empty">Wala pang stock request para sa araw na ito.</div>';
+  }, err=>{
+    grid.innerHTML = '<div class="empty">Failed to load ('+esc(err.code||err.message)+'). Check Firestore rules / connection.</div>';
+  });
+}
+
+cutIn.addEventListener('change', async ()=>{
+  if(!cutIn.value) cutIn.value = '14:00';
+  paintHeader();
+  if(!dayActive) return;
+  try{ await updateDoc(doc(db,'stockDays', iso(dateForDay(current))), { cutoffMin: toMin(cutIn.value) }); }
+  catch(ex){ alert('Could not update the cutoff (' + (ex.code || ex.message) + ').'); }
+});
+
+document.getElementById('actBtn').addEventListener('click', async ()=>{
+  const d = dateForDay(current);
+  if(isLocked(d)) return;
+  const ref = doc(db,'stockDays', iso(d));
+  try{
+    if(dayActive){
+      if(!confirm('Deactivate this day? Employees will no longer be able to submit or edit.')) return;
+      await deleteDoc(ref);
+    } else {
+      await setDoc(ref, { active:true, date: iso(d), day: DAYS[current], cutoffMin: toMin(cutIn.value), activatedAt: serverTimestamp() });
+    }
+  }catch(ex){ alert('Could not update (' + (ex.code || ex.message) + ').'); }
+});
+
+// ---- Employee days (schedule) ----
+const SHORT = ['Mon','Tue','Wed','Thu','Fri'];
+let empRows = [], unsubEmp = null;
+const sList = document.getElementById('sList'), sFind = document.getElementById('sFind'), sModal = document.getElementById('schedModal');
+function paintSched(){
+  const q = sFind.value.trim().toLowerCase();
+  const rows = empRows.filter(r=>!q || (String(r.name)+' '+String(r.siteName)).toLowerCase().includes(q));
+  sList.innerHTML = rows.length ? rows.map(r=>{
+    const set = Array.isArray(r.requestDays);
+    return '<div class="srow" data-id="'+esc(r.id)+'"><div class="sinfo"><b>'+esc(r.name)+'</b><small>'+esc(r.siteName)+'</small></div>' +
+      '<div class="sdays'+(set?'':' unset')+'">' + DAYS.map((d,k)=>
+        '<label>'+SHORT[k]+'<input type="checkbox" data-day="'+d+'"'+((!set || r.requestDays.includes(d))?' checked':'')+'></label>').join('') + '</div></div>';
+  }).join('') : '<div class="empty" style="border:0">No employees found.</div>';
+}
+function openSched(){
+  sModal.classList.add('show'); sFind.value = '';
+  if(unsubEmp) unsubEmp();
+  unsubEmp = onSnapshot(collection(db,'employees'), snap=>{
+    empRows = snap.docs.map(d=>({ id:d.id, ...d.data() })).sort((x,y)=>
+      String(x.siteName||'').localeCompare(String(y.siteName||'')) || String(x.name||'').localeCompare(String(y.name||'')));
+    paintSched();
+  }, err=>{ sList.innerHTML = '<div class="empty" style="border:0">Failed to load ('+esc(err.code||err.message)+').</div>'; });
+}
+function closeSched(){ sModal.classList.remove('show'); if(unsubEmp){ unsubEmp(); unsubEmp = null; } }
+document.getElementById('schedBtn').addEventListener('click', openSched);
+document.getElementById('sClose').addEventListener('click', closeSched);
+sModal.addEventListener('click', e=>{ if(e.target === sModal) closeSched(); });
+document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeSched(); });
+sFind.addEventListener('input', paintSched);
+sList.addEventListener('change', async e=>{
+  const row = e.target.closest('.srow'); if(!row) return;
+  const days = [...row.querySelectorAll('input[data-day]')].filter(i=>i.checked).map(i=>i.dataset.day);
+  try{ await updateDoc(doc(db,'employees',row.dataset.id), { requestDays: days }); }
+  catch(ex){ alert('Could not save (' + (ex.code || ex.message) + ').'); }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+  await Promise.race([signOut(auth).catch(()=>{}), new Promise(r=>setTimeout(r,1500))]);
+  location.replace('/839jgl8ang');
+});
+
+// Admin-only guard (same as admin console)
+onAuthStateChanged(auth, user=>{
+  const isStaff = !user || (user.email && user.email.endsWith('@'+STAFF_DOMAIN));
+  if(isStaff){
+    // Naka-login na bilang employee? Ipasa sa employee page, wag na humingi ng admin login.
+    let emp = null;
+    try{ emp = localStorage.getItem('pdEmployeeSession') || sessionStorage.getItem('pdEmployeeSession'); }catch(e){}
+    location.replace(emp ? '/w6n3d8ycrq' : '/839jgl8ang');
+    return;
+  }
+  // Stock Request account: ang HOME nito ay ang sarili nitong landing page
+  if((user.email||'').toLowerCase() === 'adminstockreq@planetdrugstore.ph'){
+    document.getElementById('homeLink').href='/r5c8j2ndxa';
+  }
+  document.getElementById('checking').style.display='none';
+  document.getElementById('app').style.display='block';
+  if(current === -1){
+    const g = new Date().getDay();
+    select(g>=1 && g<=5 ? g-1 : 0);
+    setInterval(paintHeader, 60000); // auto-update ng lock status
+  }
+});
+</script>
+</body>
+</html>

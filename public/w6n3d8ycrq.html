@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stock Request — Planet Drugstore</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--maroon:#6E1620;--dark:#3D0A10;--red:#d61f2c;--red-dark:#a5151f;--paper:#FBF5F4;--line:#E8D7D8;--ink:#2A1416;--muted:#8C6B6E;--good:#1f8a4c;--amber:#7a5200}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Figtree','Segoe UI',Roboto,Arial,sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+.appbar{background:var(--maroon);color:#fff;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:3px solid var(--red)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:14px;letter-spacing:.4px}
+.brand img{width:38px;height:38px;border-radius:9px;object-fit:cover}
+.brand span{color:#ffb3b8}
+.out{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600}
+.out:hover{background:rgba(255,255,255,.14)}
+:is(a,button,input,textarea):focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.wrap{max-width:540px;margin:22px auto;padding:0 14px 50px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 6px 24px rgba(110,22,32,.07)}
+.card h1{margin:0;padding:18px 22px;font-size:20px;font-weight:800;color:var(--maroon);border-bottom:1px solid var(--line)}
+.body{padding:18px 22px 24px}
+.days{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:6px;margin-bottom:16px}
+.days button{padding:11px 6px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--maroon);font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;text-transform:lowercase}
+.days button::first-letter{text-transform:uppercase}
+.days button.off{opacity:.45}
+.days button.mine::after{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-left:6px;vertical-align:middle}
+.days button.on.mine::after{background:#fff}
+.who{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:10px 12px;background:var(--paper);border:1px solid var(--line);border-radius:12px}
+.av{flex:none;width:38px;height:38px;border-radius:50%;background:var(--maroon);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:16px}
+.wn{font-weight:800;font-size:15px;line-height:1.2}
+.ws{font-size:13px;color:var(--muted);margin-top:2px}
+form.locked .hint,form.locked #saveBtn,form.locked #delBtn{display:none!important}
+form.locked #fSr{opacity:.75}
+form.locked.noreq .field-sr{display:none}
+.days button:hover{border-color:var(--maroon)}
+.days button.on{background:var(--maroon);color:#fff;border-color:var(--maroon)}
+.date{font-size:18px;font-weight:800;margin-bottom:10px}
+.lockbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;font-size:14px;font-weight:600;margin-bottom:16px;background:#e6f5ea;border:1px solid #bfe6cb;color:var(--good)}
+.lockbar.wait{background:#fff6e5;border-color:#f0d9a8;color:var(--amber)}
+.lockbar.off{background:#f1eded;border-color:#ddd2d3;color:#6b5a5c}
+.lockbar::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:currentColor}
+.lockbar.closed{background:#fdecec;border-color:#f3c2c6;color:var(--red-dark)}
+.field{margin-bottom:16px}
+label{display:block;font-size:14px;font-weight:700;color:var(--ink);margin-bottom:6px}
+input,textarea{width:100%;padding:12px 14px;font-size:16px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-family:inherit}
+input:focus,textarea:focus{outline:2px solid var(--red);outline-offset:0;background:#fff}
+input[readonly]{background:#f3ecea;color:#5a4547}
+#fSr{font-size:20px;font-weight:700;padding:14px}
+.hint{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.45}
+.btn{width:100%;border:none;border-radius:10px;padding:14px 18px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;background:var(--red);color:#fff}
+.btn:hover{background:var(--red-dark)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.ghost{background:#fff;color:var(--red-dark);border:1px solid #f3c2c6;margin-top:8px}
+.btn.ghost:hover{background:#fdecec}
+.hist{margin-top:10px;font-size:13px;color:var(--amber)}
+.hist div{background:#fff6e5;border:1px solid #f0d9a8;border-left:4px solid #E0A030;border-radius:8px;padding:8px 10px;margin-top:6px;line-height:1.4}
+.modal{position:fixed;inset:0;background:rgba(42,20,22,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal.show{display:flex}
+.mbox{background:#fff;border-radius:16px;max-width:440px;width:100%;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.mbox h2{margin:0 0 6px;font-size:19px;color:var(--maroon)}
+.mbox p{margin:0 0 14px;font-size:14px;color:var(--muted);line-height:1.5}
+.chgline{font-size:18px;font-weight:800;background:#fff6e5;border:1px solid #f0d9a8;border-radius:10px;padding:10px 12px;margin-bottom:14px;word-break:break-word}
+textarea{min-height:90px;resize:vertical}
+.mact{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.mact .btn{width:auto;padding:12px 18px;font-size:15px}
+.mact .btn.ghost{margin-top:0}
+.merr{color:var(--red-dark);font-size:13px;margin-top:6px;min-height:16px}
+.msg{margin-top:14px;font-size:14px;font-weight:600;padding:11px 14px;border-radius:10px;display:none}
+.msg.err{background:#fdecec;border:1px solid #f3c2c6;color:var(--red-dark)}
+.msg.ok{background:#e6f5ea;border:1px solid #bfe6cb;color:var(--good)}
+</style>
+</head>
+<body>
+<div class="appbar">
+  <div class="brand"><img src="logo.png" alt="" onerror="this.style.display='none'"><div>PLANET<span> DRUGSTORE</span></div></div>
+  <a class="out" href="/ed3od6ldsq">&larr; Back to Home</a>
+</div>
+
+<div class="wrap">
+  <div class="card" id="formView" style="display:none">
+    <h1>Stock Request</h1>
+    <div class="body">
+      <div class="days" id="days"></div>
+      <div class="date" id="dateLbl"></div>
+      <div class="lockbar" id="lockbar"></div>
+      <form id="reqForm">
+        <div class="who"><div class="av" id="fAv"></div><div><div class="wn" id="fName"></div><div class="ws" id="fSite"></div></div></div>
+        <div class="field field-sr">
+          <label for="fSr">SR#</label>
+          <input id="fSr" maxlength="100" required autocomplete="off" placeholder="e.g. 12345">
+          <div class="hint">Multiple SR#s? Separate with commas. Edits allowed until the cutoff; changes after submitting need a reason.</div>
+          <div class="hist" id="hist"></div>
+        </div>
+        <button class="btn" id="saveBtn">Submit request</button>
+        <button class="btn ghost" id="delBtn" type="button" style="display:none">Remove</button>
+        <div class="msg" id="msg"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="reasonModal" role="dialog" aria-modal="true" aria-labelledby="rmTitle">
+  <div class="mbox">
+    <h2 id="rmTitle">Why are you changing the SR#?</h2>
+    <p>This request has already been submitted and the admin can see it. Enter the reason for the change so they understand.</p>
+    <div class="chgline" id="rmChange"></div>
+    <label for="rmReason">Reason</label>
+    <textarea id="rmReason" maxlength="200" placeholder="e.g. I typed the wrong SR#"></textarea>
+    <div class="merr" id="rmErr"></div>
+    <div class="mact">
+      <button type="button" class="btn ghost" id="rmCancel">Cancel</button>
+      <button type="button" class="btn" id="rmOk">Confirm update</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
+  authDomain: "planetdrugstore-peripher-d24c0.firebaseapp.com",
+  projectId: "planetdrugstore-peripher-d24c0",
+  storageBucket: "planetdrugstore-peripher-d24c0.firebasestorage.app",
+  messagingSenderId: "115454971026",
+  appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
+});
+const db = initializeFirestore(app, { experimentalForceLongPolling: true, useFetchStreams: false });
+
+const DAYS = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY'];
+let cutoffMin = 840; // default 2 PM; ang admin ang nagtatakda ng totoong cutoff kada araw
+const fmtCut = () => new Date(2000,0,1,Math.floor(cutoffMin/60),cutoffMin%60).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+function dateForDay(i){
+  const t = new Date(); t.setHours(0,0,0,0);
+  t.setDate(t.getDate() + ((i + 1 - t.getDay() + 7) % 7));
+  return t;
+}
+const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const dayAllowed = i => !emp || !Array.isArray(emp.requestDays) || emp.requestDays.includes(DAYS[i]);
+const blocked = d => isLocked(d) || !dayActive || !dayAllowed(current);
+const isLocked = d => { const c = new Date(d); c.setHours(Math.floor(cutoffMin/60), cutoffMin%60, 0, 0); return new Date() >= c; };
+const $ = id => document.getElementById(id);
+
+function readSession(){
+  try{
+    const raw = localStorage.getItem('pdEmployeeSession') || sessionStorage.getItem('pdEmployeeSession');
+    const s = raw ? JSON.parse(raw) : null;
+    return s && s.staffId ? s : null;
+  }catch(e){ return null; }
+}
+function kickToLogin(deleted){
+  try{ localStorage.removeItem('pdEmployeeSession'); sessionStorage.removeItem('pdEmployeeSession'); }catch(e){}
+  location.replace('/fu3hriaj0m' + (deleted ? '?deleted=1' : ''));
+}
+
+let emp = null, current = -1, unsub = null, unsubDay = null, dayActive = false, existing = null;
+const esc = s => String(s ?? '').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const MIN_REASON = 5;
+
+let msgTimer = null;
+function showMsg(text, ok){
+  const m = $('msg'); m.textContent = text; m.className = 'msg ' + (ok ? 'ok' : 'err'); m.style.display = 'block';
+  clearTimeout(msgTimer); msgTimer = setTimeout(()=>{ m.style.display = 'none'; }, 5000);
+}
+
+async function loadEmployee(id){
+  const snap = await getDoc(doc(db,'employees',id));
+  return snap.exists() ? snap.data() : null;
+}
+
+async function init(){
+  const sess = readSession();
+  if(!sess) return kickToLogin(false);
+  const id = String(sess.staffId).toLowerCase();
+  let data;
+  try{ data = await loadEmployee(id); }
+  catch(ex){ document.body.insertAdjacentHTML('beforeend','<p style="text-align:center;color:#a5151f">Unable to load ('+(ex.code||ex.message)+'). Please refresh the page.</p>'); return; }
+  if(!data) return kickToLogin(true);
+  emp = { ...data, id };
+  $('fName').textContent = emp.name || '';
+  $('fSite').textContent = emp.siteName || '';
+  $('fAv').textContent = (emp.name || '?').trim().charAt(0).toUpperCase();
+  $('formView').style.display = 'block';
+  onSnapshot(doc(db,'employees',id), snap=>{
+    if(!snap.exists()) return kickToLogin(true);
+    emp = { ...snap.data(), id };
+    if(current >= 0){ paintDays(); paintLock(); }
+  }, ()=>{});
+  const g = new Date().getDay();
+  let start = g>=1 && g<=5 ? g-1 : 0;
+  if(!dayAllowed(start)){ const f = DAYS.findIndex((_,k)=>dayAllowed(k)); if(f >= 0) start = f; }
+  paintDays();
+  select(start);
+}
+
+const daysEl = $('days');
+DAYS.forEach((n,i)=>{
+  const b = document.createElement('button');
+  b.type='button'; b.textContent=n; b.dataset.i=i; b.onclick=()=>select(i);
+  daysEl.appendChild(b);
+});
+
+function paintDays(){
+  const scheduled = emp && Array.isArray(emp.requestDays);
+  daysEl.querySelectorAll('button').forEach(b=>{
+    const ok = dayAllowed(+b.dataset.i);
+    b.classList.toggle('off', !ok);
+    b.classList.toggle('mine', ok && scheduled);
+  });
+}
+function paintLock(){
+  const d = dateForDay(current), timeUp = isLocked(d), notMine = !dayAllowed(current), locked = timeUp || !dayActive || notMine;
+  $('dateLbl').textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const lb = $('lockbar');
+  lb.textContent = notMine ? 'You are not scheduled to send a stock request on this day.' : timeUp ? 'This order is locked — you can no longer submit or edit.' : (!dayActive ? 'This day is not open yet — waiting for the admin to activate it.' : 'This order locks at ' + fmtCut() + '.');
+  lb.className = 'lockbar' + (timeUp ? ' closed' : notMine ? ' off' : !dayActive ? ' wait' : '');
+  $('reqForm').classList.toggle('locked', locked);
+  $('reqForm').classList.toggle('noreq', !existing);
+  $('fSr').disabled = locked; $('saveBtn').disabled = locked; $('delBtn').disabled = locked;
+}
+
+function select(i){
+  current = i;
+  dayActive = false; cutoffMin = 840;
+  daysEl.querySelectorAll('button').forEach(b=>b.classList.toggle('on', +b.dataset.i===i));
+  $('msg').style.display = 'none';
+  paintLock();
+  if(unsub) unsub();
+  if(unsubDay) unsubDay();
+  unsubDay = onSnapshot(doc(db,'stockDays', iso(dateForDay(i))), snap=>{
+    const dd = snap.exists() ? snap.data() : null;
+    dayActive = !!dd && dd.active === true;
+    cutoffMin = dd && Number.isInteger(dd.cutoffMin) ? dd.cutoffMin : 840;
+    paintLock();
+  }, ()=>{});
+  existing = null; $('hist').innerHTML = '';
+  unsub = onSnapshot(doc(db,'stockRequests', iso(dateForDay(i)) + '_' + emp.id), snap=>{
+    const has = snap.exists();
+    existing = has ? snap.data() : null;
+    if(document.activeElement !== $('fSr')) $('fSr').value = has ? (snap.data().sr || '') : '';
+    const h = has && Array.isArray(existing.history) ? existing.history : [];
+    $('hist').innerHTML = h.map(c=>'<div>Changed: '+esc(c.oldSr)+' → '+esc(c.newSr)+' — '+esc(c.reason)+'</div>').join('');
+    $('delBtn').style.display = has ? 'inline-block' : 'none';
+    $('saveBtn').textContent = has ? 'Update request' : 'Submit request';
+    paintLock();
+  }, ex=>showMsg('Failed to load (' + (ex.code || ex.message) + ').', false));
+}
+
+function askReason(oldSr, newSr){
+  return new Promise(resolve=>{
+    const m = $('reasonModal'), ta = $('rmReason'), err = $('rmErr');
+    $('rmChange').textContent = oldSr + '  →  ' + newSr;
+    ta.value = ''; err.textContent = '';
+    m.classList.add('show'); ta.focus();
+    function done(v){
+      m.classList.remove('show');
+      $('rmOk').onclick = $('rmCancel').onclick = m.onclick = null;
+      document.removeEventListener('keydown', onKey);
+      resolve(v);
+    }
+    function onKey(e){ if(e.key === 'Escape') done(null); }
+    document.addEventListener('keydown', onKey);
+    $('rmCancel').onclick = ()=>done(null);
+    m.onclick = e=>{ if(e.target === m) done(null); };
+    $('rmOk').onclick = ()=>{
+      const r = ta.value.trim().replace(/\s+/g,' ');
+      if(r.length < MIN_REASON){ err.textContent = 'Please enter a reason (at least ' + MIN_REASON + ' characters).'; ta.focus(); return; }
+      done(r);
+    };
+  });
+}
+
+async function saveRequest(sr, reason){
+  const d = dateForDay(current);
+  $('saveBtn').disabled = true;
+  try{
+    const fresh = await loadEmployee(emp.id); if(fresh) emp = { ...fresh, id: emp.id };
+    if(!dayAllowed(current)) return showMsg('You are not scheduled to send a stock request on this day.', false);
+    const data = {
+      staffId: emp.staffId || emp.id, name: emp.name || '', siteName: emp.siteName || '',
+      sr, date: iso(d), day: DAYS[current], updatedAt: serverTimestamp()
+    };
+    const history = existing && Array.isArray(existing.history) ? existing.history.slice() : [];
+    if(reason){
+      if(history.length >= 10) return showMsg('This request has reached the limit of 10 changes. Please contact the admin.', false);
+      history.push({ oldSr: existing.sr, newSr: sr, reason, at: Date.now() });
+    }
+    if(history.length) data.history = history;
+    await setDoc(doc(db,'stockRequests', iso(d) + '_' + emp.id), data);
+    showMsg(reason ? 'Updated. The admin can see the reason for the change.' : 'Submitted. The admin can now see it.', true);
+  }catch(ex){
+    showMsg('Could not save (' + (ex.code || ex.message) + ').', false);
+  }finally{ paintLock(); }
+}
+
+$('reqForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const d = dateForDay(current);
+  if(blocked(d)){ paintLock(); return showMsg(isLocked(d) ? 'The order for this day is already locked.' : 'This day has not been activated by the admin yet.', false); }
+  const sr = $('fSr').value.trim();
+  if(!sr) return showMsg('Please enter the SR#.', false);
+  if(existing){
+    if(sr === existing.sr) return showMsg('The SR# has not changed.', false);
+    $('saveBtn').disabled = true;
+    const reason = await askReason(existing.sr, sr);
+    paintLock();
+    if(reason === null) return;
+    if(blocked(d)){ return showMsg(isLocked(d) ? 'The order for this day is already locked.' : 'This day is no longer active.', false); }
+    return saveRequest(sr, reason);
+  }
+  saveRequest(sr, null);
+});
+
+$('delBtn').addEventListener('click', async ()=>{
+  if(blocked(dateForDay(current)) || !confirm('Remove the request for this day?')) return;
+  try{ await deleteDoc(doc(db,'stockRequests', iso(dateForDay(current)) + '_' + emp.id)); $('fSr').value=''; showMsg('Removed.', true); }
+  catch(ex){ showMsg('Could not remove (' + (ex.code || ex.message) + ').', false); }
+});
+
+setInterval(()=>{ if(emp) paintLock(); }, 60000);
+init();
+</script>
+</body>
+</html>
