@@ -53,5 +53,87 @@ service cloud.firestore {
     match /notifCenterCleared/{viewerKey} {
       allow read, write: if true;
     }
+
+    // ---- Stock requests (Ordering System) ----
+    // Doc ID = "<YYYY-MM-DD>_<staffId lowercase>" -> isang request kada employee kada araw.
+    // Employees walang Firebase Auth kaya bukas ang read/write, pero:
+    //  - fixed fields lang, may size limits
+    //  - doc ID dapat tugma sa date + staffId
+    //  - LOCKED sa server side pagkatapos ng cutoff (Philippine time) ng mismong araw ng request.
+    //    Ang cutoff ay itinatakda ng admin sa stockDays/<petsa>.cutoffMin (minuto mula midnight; default 840 = 2PM).
+    function phNow() { return request.time + duration.time(8, 0, 0, 0); }
+    function pad2(n) { return n < 10 ? '0' + string(n) : string(n); }
+    function phDayStr(k) {
+      let t = request.time + duration.time(8, 0, 0, 0) + duration.value(k, 'd');
+      return string(t.year()) + '-' + pad2(t.month()) + '-' + pad2(t.day());
+    }
+    // Open kung: (1) ngayong araw (PH) at hindi pa lampas sa cutoff, o (2) sa susunod na 7 araw.
+    function stockOpen(d, cm) {
+      return (d == phDayStr(0) && (phNow().hours() * 60 + phNow().minutes()) < cm)
+          || d in [phDayStr(1), phDayStr(2), phDayStr(3), phDayStr(4), phDayStr(5), phDayStr(6), phDayStr(7)];
+    }
+    function stockDataOk(reqId) {
+      return request.resource.data.keys().hasOnly(['staffId','name','siteName','sr','date','day','updatedAt','history'])
+          && request.resource.data.staffId is string
+          && request.resource.data.name is string
+          && request.resource.data.siteName is string
+          && request.resource.data.sr is string
+          && request.resource.data.sr.size() > 0
+          && request.resource.data.sr.size() <= 100
+          && request.resource.data.date is string
+          && request.resource.data.day is string
+          && reqId == request.resource.data.date + '_' + request.resource.data.staffId.lower();
+    }
+    // Kapag nagbago ang SR# sa existing request: kailangang may bagong entry sa history
+    // (oldSr, newSr, reason 5-200 chars). Kapag hindi nagbago ang SR#, dapat hindi gagalawin ang history.
+    function stockChangeOk() {
+      let h = request.resource.data.get('history', []);
+      let old = resource.data.get('history', []);
+      return request.resource.data.sr == resource.data.sr
+        ? h == old
+        : (h is list && h.size() == old.size() + 1 && h.size() <= 10
+           && h[h.size() - 1].oldSr == resource.data.sr
+           && h[h.size() - 1].newSr == request.resource.data.sr
+           && h[h.size() - 1].reason is string
+           && h[h.size() - 1].reason.size() >= 5
+           && h[h.size() - 1].reason.size() <= 200);
+    }
+    // Admin ang nag-a-activate ng araw: stockDays/<YYYY-MM-DD> = { active: true }.
+    // Hangga't walang active na doc para sa petsa, bawal mag-create/update/delete ng stock request.
+    // Per-employee schedule: employees/<staffId>.requestDays = ['TUESDAY', ...]
+    // Kapag walang requestDays field -> allowed sa lahat ng araw.
+    function empAllowedDay(staffId, day) {
+      let e = get(/databases/$(database)/documents/employees/$(staffId.lower())).data;
+      return e.get('requestDays', null) == null || day in e.requestDays;
+    }
+    // Active ang petsa (admin), tugma ang weekday, at nasa schedule ng employee ang araw na iyon.
+    function stockDayActive(d, staffId, day) {
+      return exists(/databases/$(database)/documents/stockDays/$(d))
+          && get(/databases/$(database)/documents/stockDays/$(d)).data.active == true
+          && get(/databases/$(database)/documents/stockDays/$(d)).data.day == day
+          && stockOpen(d, get(/databases/$(database)/documents/stockDays/$(d)).data.get('cutoffMin', 840))
+          && empAllowedDay(staffId, day);
+    }
+    match /stockDays/{day} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+                            && request.resource.data.keys().hasOnly(['active','date','day','activatedAt','cutoffMin'])
+                            && (!('cutoffMin' in request.resource.data) || (request.resource.data.cutoffMin is int
+                                && request.resource.data.cutoffMin >= 0 && request.resource.data.cutoffMin <= 1439))
+                            && request.resource.data.active is bool
+                            && day == request.resource.data.date;
+      allow delete: if isAdmin();
+    }
+    match /stockRequests/{reqId} {
+      allow read: if true;
+      allow create: if stockDataOk(reqId)
+                    && !('history' in request.resource.data)
+                    && stockDayActive(request.resource.data.date, request.resource.data.staffId, request.resource.data.day);
+      allow update: if stockDataOk(reqId)
+                    && stockChangeOk()
+                    && request.resource.data.date == resource.data.date
+                    && stockDayActive(request.resource.data.date, request.resource.data.staffId, request.resource.data.day);
+      allow delete: if stockDayActive(resource.data.date, resource.data.staffId, resource.data.day);
+    }
   }
 }
