@@ -603,6 +603,22 @@
   .team-card-head h3{margin:0;font-size:15.5px;color:var(--maroon);letter-spacing:0.2px;}
   .team-card-head .team-count{font-size:13px;font-weight:700;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 9px;}
   .team-table{width:100%;}
+  .request-days-btn{
+    border:1px solid var(--line);background:#fff;color:var(--maroon);font-family:inherit;font-size:13px;font-weight:600;line-height:1.4;
+    border-radius:7px;padding:6px 9px;cursor:pointer;text-align:left;
+  }
+  .request-days-btn:hover{background:#F6ECEC;border-color:var(--maroon);}
+  .request-days-btn:disabled{opacity:.6;cursor:wait;}
+  .request-days-na{color:var(--muted);font-size:13px;}
+  .request-days-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+  .request-days-options label{
+    display:flex;align-items:center;gap:9px;padding:10px 12px;border:1px solid var(--line);
+    border-radius:8px;background:#fff;font-size:14px;font-weight:600;cursor:pointer;
+  }
+  .request-days-options input{width:17px;height:17px;accent-color:var(--red);}
+  .request-days-note{font-size:13px;line-height:1.55;color:var(--muted);margin:0 0 14px;}
+  .request-days-error{display:none;background:#FBE7E9;border:1px solid #F3C2C6;color:var(--red-dark);
+    font-size:12.5px;padding:10px 12px;border-radius:8px;margin-top:12px;}
   .branch-block + .branch-block{border-top:1px solid var(--line);}
   .branch-head{
     padding:8px 18px;display:flex;align-items:center;gap:8px;
@@ -628,14 +644,14 @@
   .branch-filter-btn.active{background:var(--red);border-color:var(--red);color:#fff;}
   .team-card.empty-hidden{display:none;}
 
-  /* Mobile: the 5-column employee table (Name/Staff ID/Email/Registered/
-     Action) is wider than a phone screen, and .team-card has
+  /* Mobile: the employee table is wider than a phone screen, and .team-card has
      overflow:hidden for its rounded corners — so on mobile the Action
      column (Change Password / Delete) was getting silently clipped off
      the edge with no way to scroll to it. Stack each row into a labeled
      card instead, with full-width action buttons, same pattern as the
      other tables in this file. */
   @media (max-width:700px){
+    .request-days-options{grid-template-columns:1fr 1fr;}
     .team-table{border-collapse:separate;border-spacing:0;}
     .team-table thead{display:none;}
     .team-table, .team-table tbody, .team-table tr{display:block;width:100%;}
@@ -1284,6 +1300,7 @@
 
     <div class="recent-head">
       <h2>Recently Registered</h2>
+      <p class="request-days-note" style="margin-top:6px;">Billing, Pharmacist, and Pharmacy Assistant employees have individual stock request days in separate department containers. Eligible employees without a saved schedule are allowed every day. IT employees do not have request-day settings.</p>
     </div>
     <div class="emp-toolbar">
       <input type="text" id="empSearchInput" class="emp-search-input" placeholder="Search by name…">
@@ -1539,6 +1556,7 @@
       <h2>Change Password — <span id="pwModalEmpName"></span></h2>
       <button class="close-btn" id="pwModalCloseBtn">&times;</button>
     </div>
+
     <div class="modal-body" style="padding:20px 22px;">
       <p style="font-size:13px;color:var(--muted);margin:0 0 16px;">
         Set a new password for Staff ID <strong id="pwModalStaffId"></strong>. They will need to sign in with this new password next time.
@@ -1555,6 +1573,27 @@
       <div style="display:flex;gap:8px;">
         <button class="btn ghost" id="pwModalCancelBtn">Cancel</button>
         <button class="btn red" id="pwModalSaveBtn">Save New Password</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="requestDaysModalOverlay">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-head">
+      <h2>Request Days — <span id="requestDaysEmpName"></span></h2>
+      <button class="close-btn" id="requestDaysCloseBtn" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px 22px;">
+      <p class="request-days-note">Staff ID: <strong id="requestDaysStaffId"></strong>. Piliin kung aling weekdays puwedeng mag-submit ng stock request. Kapag walang pinili, hindi siya makakapag-request sa alinmang araw.</p>
+      <div class="request-days-options" id="requestDaysOptions"></div>
+      <div class="request-days-error" id="requestDaysError" role="alert"></div>
+    </div>
+    <div class="modal-foot">
+      <span></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn ghost" id="requestDaysCancelBtn">Cancel</button>
+        <button class="btn red" id="requestDaysSaveBtn">Save Request Days</button>
       </div>
     </div>
   </div>
@@ -4689,6 +4728,34 @@ startVersionWatch();
   // employees are registered. Any unexpected/legacy department value still
   // gets its own card, just appended after the known teams.
   const TEAM_ORDER = ['IT', 'BILLING', 'PHARMACIST', 'Pharmacy Assistant'];
+  const REQUEST_DAY_OPTIONS = [
+    { value: 'MONDAY', label: 'Monday' },
+    { value: 'TUESDAY', label: 'Tuesday' },
+    { value: 'WEDNESDAY', label: 'Wednesday' },
+    { value: 'THURSDAY', label: 'Thursday' },
+    { value: 'FRIDAY', label: 'Friday' },
+    { value: 'SATURDAY', label: 'Saturday' },
+    { value: 'SUNDAY', label: 'Sunday' }
+  ];
+  const REQUEST_DAY_TEAMS = new Set(['BILLING', 'PHARMACIST', 'PHARMACY ASSISTANT']);
+
+  function requestDaysButton(team, id, emp){
+    if(!REQUEST_DAY_TEAMS.has(String(team).toUpperCase())){
+      return '<span class="request-days-na">Not applicable</span>';
+    }
+    const hasSavedSchedule = Object.prototype.hasOwnProperty.call(emp, 'requestDays') && emp.requestDays != null;
+    const days = hasSavedSchedule ? emp.requestDays : REQUEST_DAY_OPTIONS.map(day => day.value);
+    if(!Array.isArray(days) || !days.every(day => REQUEST_DAY_OPTIONS.some(option => option.value === day))){
+      return `<button type="button" class="request-days-btn" data-request-days-emp="${escapeAttr(id)}">Invalid schedule</button>`;
+    }
+    const selectedDays = REQUEST_DAY_OPTIONS.filter(day => days.includes(day.value));
+    const summary = selectedDays.length === REQUEST_DAY_OPTIONS.length
+      ? 'All days'
+      : selectedDays.length
+        ? selectedDays.map(day => day.label.slice(0, 3)).join(', ')
+        : 'No days';
+    return `<button type="button" class="request-days-btn" data-request-days-emp="${escapeAttr(id)}">${escapeHtml(summary)}</button>`;
+  }
 
   // Search (by name) and branch filter (All / North / South) apply across
   // every team card at once — one toolbar controls IT, BILLING, and
@@ -4782,6 +4849,7 @@ startVersionWatch();
             <td data-label="Staff ID">${escapeHtml(emp.staffId)}</td>
             <td data-label="Email">${escapeHtml(emp.email)}</td>
             <td data-label="Registered">${when}</td>
+            <td data-label="Request Days">${requestDaysButton(team, id, emp)}</td>
             <td data-label="Action">
               <button type="button" class="row-btn" data-pw-emp="${id}" data-emp-name="${escapeAttr(emp.name)}" data-emp-staffid="${escapeAttr(emp.staffId)}">Change Password</button>
               <button type="button" class="row-btn del" data-del-emp="${id}" data-emp-name="${escapeAttr(emp.name)}">Delete</button>
@@ -4791,7 +4859,7 @@ startVersionWatch();
         return `<div class="branch-block">
           <div class="branch-head">${escapeHtml(branch)} <span class="branch-count">${branchRows.length}</span></div>
           <table class="team-table">
-            <thead><tr><th>Name</th><th>Staff ID</th><th>Email</th><th>Registered</th><th>Action</th></tr></thead>
+            <thead><tr><th>Name</th><th>Staff ID</th><th>Email</th><th>Registered</th><th>Request Days</th><th>Action</th></tr></thead>
             <tbody>${rowsHtml}</tbody>
           </table>
         </div>`;
@@ -4866,7 +4934,51 @@ startVersionWatch();
   // already filled up and saved are untouched: each saved entry keeps its
   // own copy of the filler's name/Staff ID/department, so "Filled by" on
   // past entries still shows their name even after their account is deleted.
+  const requestDaysModalOverlay = document.getElementById('requestDaysModalOverlay');
+  const requestDaysOptions = document.getElementById('requestDaysOptions');
+  const requestDaysError = document.getElementById('requestDaysError');
+  const requestDaysSaveBtn = document.getElementById('requestDaysSaveBtn');
+  let requestDaysDocId = null;
+
+  function closeRequestDaysModal(){
+    requestDaysModalOverlay.classList.remove('open');
+    requestDaysDocId = null;
+  }
+
+  function openRequestDaysModal(docId){
+    const employeeDoc = lastEmpDocs.find(employee => employee.id === docId);
+    if(!employeeDoc){
+      showAppAlert('Could not find this employee. Refresh the employee list and try again.', 'Employee Not Found');
+      return;
+    }
+    const emp = employeeDoc.data();
+    const hasSavedSchedule = Object.prototype.hasOwnProperty.call(emp, 'requestDays') && emp.requestDays != null;
+    const savedDays = hasSavedSchedule ? emp.requestDays : REQUEST_DAY_OPTIONS.map(day => day.value);
+    const validDays = Array.isArray(savedDays)
+      && savedDays.every(day => REQUEST_DAY_OPTIONS.some(option => option.value === day));
+
+    requestDaysDocId = docId;
+    document.getElementById('requestDaysEmpName').textContent = emp.name || 'Employee';
+    document.getElementById('requestDaysStaffId').textContent = emp.staffId || docId;
+    requestDaysOptions.innerHTML = REQUEST_DAY_OPTIONS.map(day => `
+      <label>
+        <input class="request-days-day" type="checkbox" value="${day.value}" ${validDays && savedDays.includes(day.value) ? 'checked' : ''}>
+        ${day.label}
+      </label>
+    `).join('');
+    requestDaysError.textContent = validDays ? '' : 'The saved request-day schedule is invalid. It was left unchanged; correct the employee document before editing.';
+    requestDaysError.style.display = validDays ? 'none' : 'block';
+    requestDaysSaveBtn.disabled = !validDays;
+    requestDaysSaveBtn.textContent = 'Save Request Days';
+    requestDaysModalOverlay.classList.add('open');
+  }
+
   document.getElementById('empGroups').addEventListener('click', async (e)=>{
+    const requestDaysBtn = e.target.closest('[data-request-days-emp]');
+    if(requestDaysBtn){
+      openRequestDaysModal(requestDaysBtn.dataset.requestDaysEmp);
+      return;
+    }
     const pwBtn = e.target.closest('[data-pw-emp]');
     if(pwBtn){
       openPwModal(pwBtn.dataset.pwEmp, pwBtn.dataset.empName || 'this employee', pwBtn.dataset.empStaffid || '');
@@ -4892,6 +5004,36 @@ startVersionWatch();
     }finally{
       PDLoader.hide();
     }
+  });
+
+  document.getElementById('requestDaysCloseBtn').addEventListener('click', closeRequestDaysModal);
+  document.getElementById('requestDaysCancelBtn').addEventListener('click', closeRequestDaysModal);
+  requestDaysModalOverlay.addEventListener('click', e=>{
+    if(e.target === requestDaysModalOverlay) closeRequestDaysModal();
+  });
+  requestDaysSaveBtn.addEventListener('click', async ()=>{
+    if(!requestDaysDocId) return;
+    const requestDays = [...requestDaysOptions.querySelectorAll('.request-days-day:checked')]
+      .map(input => input.value);
+    requestDaysError.style.display = 'none';
+    requestDaysSaveBtn.disabled = true;
+    requestDaysSaveBtn.textContent = 'Saving…';
+    PDLoader.show();
+    try{
+      await setDoc(doc(db, 'employees', requestDaysDocId), { requestDays }, { merge: true });
+    }catch(err){
+      requestDaysError.textContent = 'Could not save request days (' + (err.code || err.message) + '). Please try again.';
+      requestDaysError.style.display = 'block';
+      requestDaysSaveBtn.disabled = false;
+      requestDaysSaveBtn.textContent = 'Save Request Days';
+      return;
+    }finally{
+      PDLoader.hide();
+    }
+    const employee = lastEmpDocs.find(item => item.id === requestDaysDocId);
+    const name = employee ? employee.data().name : 'Employee';
+    closeRequestDaysModal();
+    await showAppAlert(`Request days saved for ${name}.`, 'Saved');
   });
 
   // ---- Change Password modal ----
