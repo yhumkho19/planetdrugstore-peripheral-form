@@ -17,5 +17,8 @@
 | `pharmacy-schedule.html` *(new — split from `event-team-schedule.html`)* | — | `tz8lc2ct4y.html` | `public/pages/pharmacy-schedule.html` | `https://planetdrugstore-peripher-d24c0.web.app/tz8lc2ct4y` |
 | `billing-schedule.html` *(new — split from `event-team-schedule.html`)* | — | `jszdttqedv.html` | `public/pages/billing-schedule.html` | `https://planetdrugstore-peripher-d24c0.web.app/jszdttqedv` |
 | `it-schedule.html` *(new — split from `event-team-schedule.html`)* | — | `51qx617jve.html` | `public/pages/it-schedule.html` | `https://planetdrugstore-peripher-d24c0.web.app/51qx617jve` |
+| `employee-ordering.html` *(new — Stock Request, employee)* | — | `w6n3d8ycrq.html` | `public/pages/employee-ordering.html` | `https://planetdrugstore-peripher-d24c0.web.app/w6n3d8ycrq` |
+| `ordering.html` *(new — Ordering System / Stock Req., admin)* | — | `h9b4t2zvfe.html` | `public/pages/ordering.html` | `https://planetdrugstore-peripher-d24c0.web.app/h9b4t2zvfe` |
+| `stock-request-landing.html` *(new — landing ng Stock Request admin)* | — | `r5c8j2ndxa.html` | `public/pages/stock-request-landing.html` | `https://planetdrugstore-peripher-d24c0.web.app/r5c8j2ndxa` |
 
 Ang mga rewrite sa `firebase.json` ay nagpapanatili sa kasalukuyang public URLs kahit nasa `public/pages/` na ang mga HTML file. May asset rewrites din para manatiling gumana ang mga dating root URL habang nasa `public/assets/` na ang images at JavaScript.

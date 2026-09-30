@@ -303,6 +303,12 @@ startVersionWatch();
   function isEventScheduleUser(user){
     return EVENT_SCHEDULE_EMAILS.includes((user && user.email || '').toLowerCase());
   }
+  const STOCK_REQ_EMAIL = 'adminstockreq@planetdrugstore.ph';
+  function landingFor(user){
+    const email = (user && user.email || '').toLowerCase();
+    if(email === STOCK_REQ_EMAIL) return '/r5c8j2ndxa';
+    return isEventScheduleUser(user) ? '/dkjyg56lvm' : '/8niuis7jih';
+  }
 
   const loginForm = document.getElementById('loginForm');
   const loginBtn = document.getElementById('loginBtn');
@@ -339,7 +345,7 @@ startVersionWatch();
   // between this page and the landing page in a loop.
   await auth.authStateReady();
   if(auth.currentUser){
-    window.location.replace(isEventScheduleUser(auth.currentUser) ? '/dkjyg56lvm' : '/8niuis7jih');
+    window.location.replace(landingFor(auth.currentUser));
   }
 
   loginForm.addEventListener('submit', async (e)=>{
@@ -360,7 +366,7 @@ startVersionWatch();
       }else{
         localStorage.removeItem(REMEMBER_KEY);
       }
-      window.location.href = isEventScheduleUser(auth.currentUser) ? '/dkjyg56lvm' : '/8niuis7jih';
+      window.location.href = landingFor(auth.currentUser);
     }catch(err){
       PDLoader.hide();
       loginError.textContent = friendlyAuthError(err);

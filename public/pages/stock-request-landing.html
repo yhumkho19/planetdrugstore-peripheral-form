@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Planet Drugstore — System Console</title>
+<title>Stock Request Admin — Planet Drugstore</title>
 <link rel="icon" type="image/x-icon" href="logo-transparent.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -64,6 +64,7 @@
     padding:1px;
     background:linear-gradient(160deg, rgba(255,255,255,0.18), rgba(255,255,255,0) 40%);
     -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite:xor; mask-composite:exclude;
     pointer-events:none;
   }
@@ -276,7 +277,7 @@
   @keyframes float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
 </style>
 </head>
-<body>
+<body style="visibility:hidden">
 
 <div class="stage">
 
@@ -286,10 +287,10 @@
       <div class="brand-name">PLANET<span>DRUGSTORE SYSTEMS</span></div>
     </div>
     <div class="welcome-badge" id="welcomeBadge">
-      <div class="welcome-avatar" id="welcomeAvatar">IT</div>
+      <div class="welcome-avatar" id="welcomeAvatar">SR</div>
       <div class="welcome-text">
         <span class="wt-hi">Welcome back</span>
-        <span class="wt-name" id="welcomeName">IT ADMIN</span>
+        <span class="wt-name" id="welcomeName">STOCK REQ ADMIN</span>
       </div>
       <span class="welcome-dot"></span>
       <span class="badge-chevron"></span>
@@ -301,16 +302,13 @@
 
   <div class="hero">
     <div class="hero-text">
-      <div class="kicker">Introducing <b>Planet Drugstore Employee Systems</b></div>
-      <h1 class="headline">Welcome back,<span class="accent">Team</span></h1>
+      <div class="kicker">Introducing <b>Planet Drugstore Stock Request Admin</b></div>
+      <h1 class="headline">Welcome back,<span class="accent">Stock Req</span></h1>
       <p class="subtext">
-        One log-in for your event schedule sign-ups and the peripherals entry form — everything you need for Medical Mission and People's Day, all in the same system as the rest of the team
+        One log-in for all stock requests from every branch — see who submitted, from which site, and their SR#, day by day, updated live as employees submit
       </p>
       <div class="hero-ctas">
-        <!-- <a href="/gui2dtdgtb" class="btn-primary">🧰 Open Entry Form</a> -->
-        <a href="/47fto0gim6" class="btn-primary">📅 Go to Event Schedule</a>
-        <a href="/gui2dtdgtb" class="btn-ghost">🧰 Go to Entry Form</a>
-        <a href="/w6n3d8ycrq" class="btn-ghost">📦 Go to Stock Request</a>
+        <a href="/h9b4t2zvfe" class="btn-primary">📦 Open Ordering System</a>
       </div>
       <div class="trust-row">
         <div><strong>2</strong>Branches Covered</div>
@@ -359,7 +357,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-09-23.1";
+const APP_VERSION = "2026-09-29.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -430,48 +428,19 @@ startVersionWatch();
   });
   const auth = getAuth(app);
 
-  // Fill the welcome badge with the signed-in employee's own name/role
-  // (from employee-login.html's session), instead of the old hardcoded
-  // "IT ADMIN" placeholder.
-  (function fillWelcomeBadge(){
-    try{
-      const raw = localStorage.getItem('pdEmployeeSession') || sessionStorage.getItem('pdEmployeeSession');
-      const session = raw ? JSON.parse(raw) : null;
-      if(session){
-        const name = session.name || session.staffId || 'Employee';
-        const role = session.department || 'Employee';
-        document.getElementById('welcomeName').textContent = role.toUpperCase();
-        document.getElementById('welcomeAvatar').textContent =
-          name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase() || 'EM';
-      }
-    }catch(e){ /* keep default badge if session is missing/unreadable */ }
-  })();
-
-  // Live guard: this landing page never checked whether the signed-in
-  // employee's account still exists — an Admin deleting it while the
-  // employee was sitting right here did nothing until they happened to
-  // navigate to peripheral-form.html and it reloaded. Listen on their own
-  // employee doc and, the moment it's deleted, kick them to
-  // employee-login.html?deleted=1 (same "account deleted" message shown
-  // there), mirroring the pattern already used in peripheral-form.html and
-  // event-schedule.html.
-  (function watchForAccountDeletion(){
-    try{
-      const raw = localStorage.getItem('pdEmployeeSession') || sessionStorage.getItem('pdEmployeeSession');
-      const session = raw ? JSON.parse(raw) : null;
-      if(!session || !session.staffId) return;
-      const staffDocId = session.staffId.toLowerCase();
-      onSnapshot(doc(db, 'employees', staffDocId), snap => {
-        if(!snap.exists()){
-          localStorage.removeItem('pdEmployeeSession');
-          sessionStorage.removeItem('pdEmployeeSession');
-          window.location.replace('/fu3hriaj0m?deleted=1');
-        }
-      }, err => {
-        console.error('Employee account listener failed:', err);
-      });
-    }catch(e){ /* best-effort — no listener if session is unreadable */ }
-  })();
+  // Admin guard: real admin account lang (galing sa admin login). Walang login o
+  // employee (staff) account = balik sa admin login. Hidden ang page hanggang ma-verify.
+  onAuthStateChanged(auth, (user)=>{
+    if(!user || (user.email && user.email.endsWith('@' + STAFF_DOMAIN))){
+      window.location.replace('/839jgl8ang');
+      return;
+    }
+    const email = user.email || '';
+    document.getElementById('welcomeName').textContent = 'STOCK REQ ADMIN';
+    document.getElementById('welcomeAvatar').textContent =
+      (email.split('@')[0].replace(/[^a-zA-Z]/g,'').slice(0,2) || 'SR').toUpperCase();
+    document.body.style.visibility = 'visible';
+  });
 
   document.getElementById('OnLogout').addEventListener('click', async (e)=>{
     e.preventDefault();
@@ -480,17 +449,13 @@ startVersionWatch();
     if(btn.disabled) return;
     btn.disabled = true;
     btn.textContent = 'Logging out...';
-    try{
-      localStorage.removeItem('pdEmployeeSession');
-      sessionStorage.removeItem('pdEmployeeSession');
-    }catch(err){}
     // Don't let a slow/hanging signOut keep the user stuck here: wait at
     // most 1.5s, then redirect regardless.
     await Promise.race([
       signOut(auth).catch(()=>{}),
       new Promise(res => setTimeout(res, 1500))
     ]);
-    window.location.replace('/fu3hriaj0m');
+    window.location.replace('/839jgl8ang');
   });
 
   // Clicking the welcome badge opens/closes its dropdown (which now holds
