@@ -1,0 +1,15 @@
+name = "peripherals-push"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+FIREBASE_PROJECT_ID = "planetdrugstore-peripher-d24c0"
+APP_ORIGIN = "https://planetdrugstore-peripher-d24c0.web.app"
+APP_URL = "https://planetdrugstore-peripher-d24c0.web.app/47fto0gim6"
+
+[triggers]
+crons = ["* * * * *"]
+
+[[kv_namespaces]]
+binding = "PUSH_SUBSCRIPTIONS"
+id = "e99801d2972d488c882ab33663479b16"
