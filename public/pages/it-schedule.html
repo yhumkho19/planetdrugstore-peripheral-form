@@ -2180,7 +2180,7 @@
 // signed-in tab then periodically re-fetches this same page with cache
 // forcibly bypassed, reads whatever APP_VERSION is embedded in THAT fresh
 // copy, and — if it doesn't match what this tab is currently running —
-// shows a small "may bagong bersyon" in-page banner with a manual
+// shows a small "new version available" in-page banner with a manual
 // "refresh now" button (showUpdateBanner below), instead of silently
 // staying on stale code (which is what caused needing a manual cache-clear
 // before).
@@ -2216,15 +2216,15 @@ function startVersionWatch() {
       "padding:10px 16px;font:600 14px/1.4 Inter,sans-serif;display:flex;gap:12px;" +
       "align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);";
     bar.innerHTML =
-      `<span>May bagong bersyon ng page na available.</span>` +
+      `<span>A new page version is available.</span>` +
       `<button type="button" id="updateBannerBtn" style="background:#fff;color:#1F2937;border:none;` +
-      `border-radius:6px;padding:6px 14px;font:600 13px/1 Inter,sans-serif;cursor:pointer;">I-refresh ngayon</button>`;
+      `border-radius:6px;padding:6px 14px;font:600 13px/1 Inter,sans-serif;cursor:pointer;">Refresh now</button>`;
     document.body.prepend(bar);
     document.getElementById("updateBannerBtn").addEventListener("click", () => {
       // Reuse the same guard as the Logout button so an event team member
       // mid-edit doesn't lose a not-yet-saved change to a surprise refresh.
       if (typeof hasUnsavedChanges !== "undefined" && hasUnsavedChanges) {
-        showAlert("May unsaved changes ka pa. I-Save o i-Update/Send muna bago mag-refresh.", "warn");
+        showAlert("You have unsaved changes. Save or Update/Send them before refreshing.", "warn");
         return;
       }
       location.reload();
@@ -2321,8 +2321,8 @@ function showUnsavedChangesPrompt() {
   return new Promise(resolve => {
     setModalIcon("warn");
     appModalMessage.textContent =
-      "May mga hindi pa na-Send/Update na pagbabago (bagong date event, site, o edit). " +
-      "Kapag nag-logout ka nang hindi muna sina-save, mawawala ang mga ito. Kung i-\"Save\" mo, mase-save lang ito sa browser na ito bilang draft — HINDI pa ito makikita ng mga empleyado hanggang sa i-Send o i-Update mo.";
+      "You have changes that have not been sent or updated (a new event date, site, or edit). " +
+      "If you log out before saving them, they will be lost. Selecting \"Save\" stores them as a draft in this browser only — employees will NOT see them until you Send or Update.";
     appModalActions.innerHTML = "";
     const cancelBtn = document.createElement("button");
     cancelBtn.textContent = "Cancel";
@@ -3026,8 +3026,8 @@ async function moveEmployeeIntoSlot(name, targetCardId, targetListKey, targetSId
 
   const confirmed = await showConfirm(
     targetListKey === "relievers"
-      ? `Ilipat si ${name} mula sa "${sourceRoleLabel}" slot sa ${sourceSiteLabel} papunta sa Store Reliever slot para sa ${(targetSlot.site || "").trim() || targetSiteLabel}? Mababakante ang dati nyang slot.`
-      : `Ilipat si ${name} mula sa "${sourceRoleLabel}" slot sa ${sourceSiteLabel} papunta sa "${targetRoleLabel}" slot dito sa ${targetSiteLabel}? Mababakante ang dati nyang slot.`
+      ? `Move ${name} from the "${sourceRoleLabel}" slot at ${sourceSiteLabel} to the Store Reliever slot for ${(targetSlot.site || "").trim() || targetSiteLabel}? Their previous slot will become vacant.`
+      : `Move ${name} from the "${sourceRoleLabel}" slot at ${sourceSiteLabel} to the "${targetRoleLabel}" slot at ${targetSiteLabel}? Their previous slot will become vacant.`
   );
   if (!confirmed) return false;
 
@@ -7376,7 +7376,7 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
       const reverted = await revertUnsavedLocalChanges();
       if (!reverted) return; // couldn't confirm the live version — stay logged in, nothing lost
     }
-  } else if (!(await showConfirm("Mag-logout ka ba? Kailangan mo ulit mag-sign in para makabalik dito."))) {
+  } else if (!(await showConfirm("Are you sure you want to log out? You will need to sign in again to return here."))) {
     return;
   }
   clearLoginNotifPromptFlag();

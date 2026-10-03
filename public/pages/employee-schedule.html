@@ -1864,15 +1864,15 @@ function startVersionWatch() {
       "padding:10px 16px;font:600 14px/1.4 Inter,sans-serif;display:flex;gap:12px;" +
       "align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);";
     bar.innerHTML =
-      `<span>May bagong bersyon ng page na available.</span>` +
+      `<span>A new page version is available.</span>` +
       `<button type="button" id="updateBannerBtn" style="background:#fff;color:#1F2937;border:none;` +
-      `border-radius:6px;padding:6px 14px;font:600 13px/1 Inter,sans-serif;cursor:pointer;">I-refresh ngayon</button>`;
+      `border-radius:6px;padding:6px 14px;font:600 13px/1 Inter,sans-serif;cursor:pointer;">Refresh now</button>`;
     document.body.prepend(bar);
     document.getElementById("updateBannerBtn").addEventListener("click", () => {
       // Generic guard: only files that track unsaved local edits define
       // `hasUnsavedChanges` — for everything else this simply reloads.
       if (typeof hasUnsavedChanges !== "undefined" && hasUnsavedChanges) {
-        if (!confirm("May unsaved changes ka pa. Sigurado ka bang mag-refresh?")) return;
+        if (!confirm("You have unsaved changes. Are you sure you want to refresh?")) return;
       }
       location.reload();
     });
@@ -2330,7 +2330,7 @@ const empLogoutBtn = document.getElementById("empLogoutBtn");
 if (empLogoutBtn) {
   empLogoutBtn.addEventListener("click", async () => {
     document.getElementById("empDropdown").classList.remove("open");
-    if (!(await showConfirm("Mag-logout ka ba? Kailangan mo ulit mag-sign in para makabalik dito."))) {
+    if (!(await showConfirm("Are you sure you want to log out? You will need to sign in again to return here."))) {
       return;
     }
     clearLoginNotifPromptFlag();
@@ -6056,7 +6056,7 @@ renderNotifCenter();
 // ---------- Login notification prompt ----------
 // Once per login (per browser tab session), if this employee / department
 // head has notifications they haven't opened yet, show ONE modal:
-// "May notification ka mula sa event" -> [Cancel] [Go to notification].
+// "You have an event notification" -> [Cancel] [Go to notification].
 //   - Go to notification -> opens the Notification Center (which also marks
 //     everything as read, same as clicking the sidebar 🔔 Notifications).
 //   - Cancel -> just closes; nothing else happens.

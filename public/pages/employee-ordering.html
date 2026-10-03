@@ -6,97 +6,204 @@
 <title>Stock Request — Planet Drugstore</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--maroon:#6E1620;--dark:#3D0A10;--red:#d61f2c;--red-dark:#a5151f;--paper:#FBF5F4;--line:#E8D7D8;--ink:#2A1416;--muted:#8C6B6E;--good:#1f8a4c;--amber:#7a5200}
+:root{--maroon:#6E1620;--dark:#3D0A10;--red:#d61f2c;--red-dark:#a5151f;--paper:#FBF5F4;--line:#E8D7D8;--ink:#2A1416;--muted:#8C6B6E;--good:#1f8a4c;--amber:#9A4B08;--amber-bg:#FFF6E5;--amber-line:#F0D9A8}
 *{box-sizing:border-box}
-body{margin:0;font-family:'Figtree','Segoe UI',Roboto,Arial,sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
-.appbar{background:var(--maroon);color:#fff;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:3px solid var(--red)}
+body{margin:0;font-family:'Figtree','Segoe UI',Roboto,Arial,sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;min-height:100vh}
+.appbar{background:var(--maroon);color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:3px solid var(--red)}
+.appbar-actions{display:flex;align-items:center;gap:8px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:14px;letter-spacing:.4px}
 .brand img{width:38px;height:38px;border-radius:9px;object-fit:cover}
 .brand span{color:#ffb3b8}
-.out{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600}
-.out:hover{background:rgba(255,255,255,.14)}
+.out{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:8px 15px;font-size:13px;font-weight:600}
+.out-btn{background:transparent;font-family:inherit;cursor:pointer}
+.out:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.65)}
 :is(a,button,input,textarea):focus-visible{outline:2px solid var(--red);outline-offset:2px}
-.wrap{max-width:540px;margin:22px auto;padding:0 14px 50px}
-.card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 6px 24px rgba(110,22,32,.07)}
-.card h1{margin:0;padding:18px 22px;font-size:20px;font-weight:800;color:var(--maroon);border-bottom:1px solid var(--line)}
-.body{padding:18px 22px 24px}
-.days{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:6px;margin-bottom:16px}
-.days button{padding:11px 6px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--maroon);font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;text-transform:lowercase}
+.wrap{max-width:1280px;margin:22px auto;padding:0 20px 40px}
+.request-shell{display:grid;grid-template-columns:minmax(0,1fr);overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 36px rgba(61,10,16,.08)}
+.request-heading{grid-column:1;position:relative;display:flex;align-items:center;gap:17px;min-height:108px;padding:18px 28px;border-bottom:3px solid var(--red);background:var(--maroon)}
+.request-heading::after{content:"";position:absolute;right:24px;top:0;width:150px;height:100%;opacity:.28;background:linear-gradient(135deg,transparent 48%,rgba(255,179,184,.28) 48%,rgba(255,179,184,.28) 70%,transparent 70%);pointer-events:none}
+.heading-mark{display:flex;align-items:center;justify-content:center;flex:none;width:54px;height:54px;border:1px solid rgba(255,255,255,.5);border-radius:50%;background:#fff;color:var(--maroon);font-size:19px;font-weight:800}
+.request-heading h1{margin:0;color:#fff;font-size:27px;font-weight:800;line-height:1.15}
+.heading-kicker{margin:0 0 5px;color:#ffb3b8;font-size:11px;font-weight:700;text-transform:uppercase}
+.heading-subtitle{margin:5px 0 0;color:rgba(255,255,255,.78);font-size:13px}
+.body{display:grid;grid-template-columns:minmax(0,1fr)}
+.day-rail{grid-column:1;padding:20px 22px 8px;background:#fff}
+.rail-label{margin:0 0 11px;color:var(--maroon);font-size:13px;font-weight:800;text-transform:uppercase}
+.days{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.days button{position:relative;display:flex;min-width:0;min-height:78px;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:11px 8px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--maroon);font-family:inherit;font-weight:700;font-size:13px;text-align:center;cursor:pointer;text-transform:lowercase;transition:border-color .15s,background .15s,color .15s}
+.days button svg{width:21px;height:21px;fill:none;stroke:#9d686e;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.days button:hover{border-color:#c99398;background:#fffafa}
+.days button.on{border:2px solid var(--maroon);background:var(--maroon);color:#fff}
+.days button.on svg{stroke:#fff}
+.days button.on::before{content:"✓";position:absolute;top:6px;right:7px;display:flex;width:18px;height:18px;align-items:center;justify-content:center;border-radius:50%;background:#ff637b;color:#fff;font-size:11px}
 .days button::first-letter{text-transform:uppercase}
-.days button.off{opacity:.45}
-.days button.mine::after{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-left:6px;vertical-align:middle}
+.days button.off{opacity:.55}
+.days button.mine::after{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);position:absolute;bottom:7px;left:9px}
 .days button.on.mine::after{background:#fff}
-.who{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:10px 12px;background:var(--paper);border:1px solid var(--line);border-radius:12px}
-.av{flex:none;width:38px;height:38px;border-radius:50%;background:var(--maroon);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:16px}
+.request-main{grid-column:1;min-width:0;padding:10px 22px 22px}
+.date{font-size:21px;font-weight:800;margin:3px 0 12px;color:var(--maroon)}
+.who{display:flex;align-items:center;gap:13px;margin-bottom:14px;padding:12px 14px;border:1px solid var(--line);border-radius:9px;background:var(--paper)}
+.av{flex:none;width:48px;height:48px;border-radius:50%;background:var(--maroon);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:19px}
 .wn{font-weight:800;font-size:15px;line-height:1.2}
-.ws{font-size:13px;color:var(--muted);margin-top:2px}
+.ws{font-size:13px;color:var(--muted);margin-top:3px}
 form.locked .hint,form.locked #saveBtn,form.locked #delBtn{display:none!important}
 form.locked #fSr{opacity:.75}
 form.locked.noreq .field-sr{display:none}
-.days button:hover{border-color:var(--maroon)}
-.days button.on{background:var(--maroon);color:#fff;border-color:var(--maroon)}
-.date{font-size:18px;font-weight:800;margin-bottom:10px}
-.lockbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;font-size:14px;font-weight:600;margin-bottom:16px;background:#e6f5ea;border:1px solid #bfe6cb;color:var(--good)}
-.lockbar.wait{background:#fff6e5;border-color:#f0d9a8;color:var(--amber)}
-.lockbar.off{background:#f1eded;border-color:#ddd2d3;color:#6b5a5c}
-.lockbar::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:currentColor}
+.lockbar{position:relative;display:flex;align-items:center;gap:10px;min-height:46px;padding:10px 13px;border:1px solid #bfe6cb;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:14px;background:#eaf7ef;color:#1f8a4c}
+.lockbar.wait{background:var(--amber-bg);border-color:var(--amber-line);color:var(--amber)}
+.lockbar.off{background:#f2eeee;border-color:#ddd2d3;color:#6b5a5c}
+.lock-state{flex:none;width:9px;height:9px;border-radius:50%;background:currentColor}
+.lock-clock{width:21px;height:21px;margin-left:auto;fill:none;stroke:var(--red);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .lockbar.closed{background:#fdecec;border-color:#f3c2c6;color:var(--red-dark)}
-.field{margin-bottom:16px}
-label{display:block;font-size:14px;font-weight:700;color:var(--ink);margin-bottom:6px}
-input,textarea{width:100%;padding:12px 14px;font-size:16px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-family:inherit}
-input:focus,textarea:focus{outline:2px solid var(--red);outline-offset:0;background:#fff}
+.field{margin-bottom:15px;padding:0;border:0;border-radius:0;background:transparent}
+label{display:block;font-size:14px;font-weight:700;color:var(--maroon);margin-bottom:7px}
+input,textarea{width:100%;padding:12px 14px;font-size:16px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-family:inherit}
+input:focus,textarea:focus{outline:2px solid #bdcceb;outline-offset:0;background:#fff}
 input[readonly]{background:#f3ecea;color:#5a4547}
-#fSr{font-size:20px;font-weight:700;padding:14px}
-.hint{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.45}
-.btn{width:100%;border:none;border-radius:10px;padding:14px 18px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;background:var(--red);color:#fff}
+#fSr{font-size:20px;font-weight:700;padding:12px 14px}
+.sr-input-row{display:flex;align-items:center;gap:8px}
+.sr-field-control{position:relative;flex:1;min-width:0}
+.sr-input-row #fSr{width:100%;min-width:0;padding-right:112px}
+.request-status-badge{position:absolute;top:50%;right:12px;transform:translateY(-50%);padding:5px 9px;border:1px solid #f0d7d8;border-radius:999px;background:#f8eceb;color:var(--maroon);font-size:11px;font-weight:700;line-height:1;pointer-events:none}
+.request-status-badge.completed{border-color:#bfe6cb;background:#e6f5ea;color:#1f7040}
+.request-status-badge[hidden]{display:none}
+.edit-sr-btn{display:inline-flex;flex:none;width:46px;height:46px;align-items:center;justify-content:center;padding:0;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--maroon);cursor:pointer}
+.edit-sr-btn:hover{border-color:var(--maroon);background:#fffafa}
+.edit-sr-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.edit-sr-btn .icon-close{display:none}
+.edit-sr-btn.is-editing .icon-pencil{display:none}
+.edit-sr-btn.is-editing .icon-close{display:block}
+.edit-sr-btn:disabled{opacity:.45;cursor:default}
+.hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.45}
+.btn{width:100%;border:none;border-radius:8px;padding:13px 18px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;background:var(--red);color:#fff}
 .btn:hover{background:var(--red-dark)}
 .btn:disabled{opacity:.5;cursor:default}
 .btn.ghost{background:#fff;color:var(--red-dark);border:1px solid #f3c2c6;margin-top:8px}
 .btn.ghost:hover{background:#fdecec}
 .hist{margin-top:10px;font-size:13px;color:var(--amber)}
-.hist div{background:#fff6e5;border:1px solid #f0d9a8;border-left:4px solid #E0A030;border-radius:8px;padding:8px 10px;margin-top:6px;line-height:1.4}
-.modal{position:fixed;inset:0;background:rgba(42,20,22,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+.hist div{background:var(--amber-bg);border:1px solid var(--amber-line);border-left:4px solid #E0A030;border-radius:7px;padding:8px 10px;margin-top:6px;line-height:1.4;color:#684600}
+.modal{position:fixed;inset:0;background:rgba(42,20,22,.58);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
 .modal.show{display:flex}
-.mbox{background:#fff;border-radius:16px;max-width:440px;width:100%;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.mbox{background:#fff;border:1px solid var(--line);border-radius:12px;max-width:440px;width:100%;padding:22px;color:var(--ink);box-shadow:0 20px 50px rgba(0,0,0,.25)}
 .mbox h2{margin:0 0 6px;font-size:19px;color:var(--maroon)}
 .mbox p{margin:0 0 14px;font-size:14px;color:var(--muted);line-height:1.5}
-.chgline{font-size:18px;font-weight:800;background:#fff6e5;border:1px solid #f0d9a8;border-radius:10px;padding:10px 12px;margin-bottom:14px;word-break:break-word}
+.chgline{font-size:18px;font-weight:800;background:var(--amber-bg);border:1px solid var(--amber-line);border-radius:8px;padding:10px 12px;margin-bottom:14px;word-break:break-word;color:var(--ink)}
 textarea{min-height:90px;resize:vertical}
 .mact{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
 .mact .btn{width:auto;padding:12px 18px;font-size:15px}
 .mact .btn.ghost{margin-top:0}
 .merr{color:var(--red-dark);font-size:13px;margin-top:6px;min-height:16px}
+.history-filters{display:grid;grid-template-columns:1fr 1fr auto;align-items:end;gap:10px;margin-bottom:14px}
+.history-filters label{font-size:12px}
+.history-filters input{font-size:14px;padding:10px}
+.history-filters .btn{width:auto;white-space:nowrap;padding:10px 18px}
+.history-status-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:0 0 8px;padding:4px;border:1px solid var(--line);border-radius:9px;background:#faf6f5}
+.history-status-tab{min-width:0;padding:8px 6px;border:0;border-radius:6px;background:transparent;color:var(--maroon);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.history-status-tab[aria-pressed="true"]{background:var(--maroon);color:#fff}
+.history-status-count{margin-left:3px;opacity:.75;font-variant-numeric:tabular-nums}
+.history-results{overflow:auto;max-height:55vh;border:1px solid var(--line);border-radius:8px;background:#fff}
+.history-row{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.history-row:last-child{border-bottom:0}
+.history-row strong{display:block;overflow-wrap:anywhere;font-size:14px}
+.history-row small{display:block;margin-bottom:3px;color:var(--muted);font-size:11px}
+.history-row .removed-reason{grid-column:1/-1;padding:9px 11px;border-left:3px solid var(--amber);background:var(--amber-bg);color:#684600;font-size:13px;overflow-wrap:anywhere}
+.history-empty{padding:24px 14px;text-align:center;color:var(--muted);font-size:14px}
+.history-note{margin:9px 0 0;color:var(--muted);font-size:12px;line-height:1.4}
 .msg{margin-top:14px;font-size:14px;font-weight:600;padding:11px 14px;border-radius:10px;display:none}
 .msg.err{background:#fdecec;border:1px solid #f3c2c6;color:var(--red-dark)}
 .msg.ok{background:#e6f5ea;border:1px solid #bfe6cb;color:var(--good)}
+@media(max-width:700px){
+  .appbar{padding:10px 13px}
+  .brand{font-size:12px}
+  .brand img{width:34px;height:34px}
+  .out{padding:7px 10px;font-size:12px}
+  .appbar-actions{gap:6px}
+  .wrap{margin:14px auto;padding:0 10px 26px}
+  .request-shell{grid-template-columns:minmax(0,1fr)}
+  .request-heading{min-height:94px;padding:14px 16px}
+  .heading-mark{width:48px;height:48px}
+  .request-heading h1{font-size:23px}
+  .heading-subtitle{font-size:12px}
+  .request-heading::after{right:8px;width:100px}
+  .day-rail{grid-column:1;padding:14px 12px 6px;border-right:0;border-bottom:0}
+  .rail-label{margin-bottom:8px}
+  .days{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;overflow:visible;padding-bottom:2px}
+  .days button{width:100%;min-height:72px;padding:9px 3px;font-size:11px;gap:7px}
+  .days button svg{width:19px;height:19px}
+  .request-main{grid-column:1;padding:10px 12px 16px}
+  .date{font-size:19px}
+  .who{padding:11px 12px}
+  .field{padding:12px}
+  .history-filters{grid-template-columns:1fr 1fr}
+  .history-filters .btn{grid-column:1/-1;width:100%}
+  .history-row{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
 <div class="appbar">
   <div class="brand"><img src="logo.png" alt="" onerror="this.style.display='none'"><div>PLANET<span> DRUGSTORE</span></div></div>
-  <a class="out" href="/ed3od6ldsq">&larr; Back to Home</a>
+  <div class="appbar-actions"><button class="out out-btn" id="historyBtn" type="button">History</button><a class="out" href="/ed3od6ldsq">&larr; Back to Home</a></div>
 </div>
 
 <div class="wrap">
-  <div class="card" id="formView" style="display:none">
-    <h1>Stock Request</h1>
+  <div class="request-shell" id="formView" style="display:none">
+    <header class="request-heading">
+      <span class="heading-mark" aria-hidden="true">SR</span>
+      <div><p class="heading-kicker">Employee Supply Request</p><h1>Stock Request</h1><p class="heading-subtitle">Request supplies. Keep your work moving.</p></div>
+    </header>
     <div class="body">
-      <div class="days" id="days"></div>
-      <div class="date" id="dateLbl"></div>
-      <div class="lockbar" id="lockbar"></div>
-      <form id="reqForm">
-        <div class="who"><div class="av" id="fAv"></div><div><div class="wn" id="fName"></div><div class="ws" id="fSite"></div></div></div>
-        <div class="field field-sr">
-          <label for="fSr">SR#</label>
-          <input id="fSr" maxlength="100" required autocomplete="off" placeholder="e.g. 12345">
-          <div class="hint">Multiple SR#s? Separate with commas. Edits allowed until the cutoff; changes after submitting need a reason.</div>
-          <div class="hist" id="hist"></div>
-        </div>
-        <button class="btn" id="saveBtn">Submit request</button>
-        <button class="btn ghost" id="delBtn" type="button" style="display:none">Remove</button>
-        <div class="msg" id="msg"></div>
-      </form>
+      <aside class="day-rail" aria-label="Request day">
+        <p class="rail-label">Request day</p>
+        <div class="days" id="days"></div>
+      </aside>
+      <main class="request-main">
+        <div class="date" id="dateLbl"></div>
+        <div class="lockbar" id="lockbar"><span class="lock-state" aria-hidden="true"></span><span id="lockText"></span><svg class="lock-clock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <form id="reqForm">
+          <div class="who"><div class="av" id="fAv"></div><div><div class="wn" id="fName"></div><div class="ws" id="fSite"></div></div></div>
+          <div class="field field-sr">
+            <label for="fSr">SR#</label>
+            <div class="sr-input-row">
+              <div class="sr-field-control">
+                <input id="fSr" maxlength="100" required autocomplete="off" inputmode="numeric" placeholder="e.g. 12345">
+                <span class="request-status-badge" id="requestStatus" aria-live="polite" hidden></span>
+              </div>
+              <button class="edit-sr-btn" id="editSrBtn" type="button" aria-label="Edit SR#" title="Edit SR#" style="display:none">
+                <svg class="icon-pencil" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 4 4 4L8 20l-4 1 1-4L16 4Z"/><path d="m14.5 5.5 4 4"/></svg>
+                <svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div class="hint">Multiple SR#s? Separate with commas. Edits allowed until the cutoff; changes after submitting need a reason.</div>
+            <div class="hist" id="hist"></div>
+          </div>
+          <button class="btn" id="saveBtn">Submit request</button>
+          <button class="btn ghost" id="delBtn" type="button" style="display:none">Remove</button>
+          <div class="msg" id="msg"></div>
+        </form>
+      </main>
     </div>
+  </div>
+</div>
+
+<div class="modal" id="employeeHistoryModal" role="dialog" aria-modal="true" aria-labelledby="employeeHistoryTitle">
+  <div class="mbox history-modal">
+    <h2 id="employeeHistoryTitle">My SR# History</h2>
+    <p>Choose a date range to find your requests and removals.</p>
+    <div class="history-filters">
+      <label for="historyFrom">From<input id="historyFrom" type="date"></label>
+      <label for="historyTo">To<input id="historyTo" type="date"></label>
+      <button class="btn" id="historySearchBtn" type="button">Search</button>
+    </div>
+    <div class="history-status-tabs" role="group" aria-label="Filter my history by status">
+      <button type="button" class="history-status-tab" data-employee-history-status="all" aria-pressed="true">All <span class="history-status-count" data-employee-status-count="all">0</span></button>
+      <button type="button" class="history-status-tab" data-employee-history-status="pending" aria-pressed="false">Pending <span class="history-status-count" data-employee-status-count="pending">0</span></button>
+      <button type="button" class="history-status-tab" data-employee-history-status="completed" aria-pressed="false">Completed <span class="history-status-count" data-employee-status-count="completed">0</span></button>
+      <button type="button" class="history-status-tab" data-employee-history-status="removed" aria-pressed="false">Removed <span class="history-status-count" data-employee-status-count="removed">0</span></button>
+    </div>
+    <div class="history-results" id="employeeHistoryResults"><div class="history-empty">Choose dates to search your history.</div></div>
+    <p class="history-note">Archived requests are included here so your SR# history stays visible.</p>
+    <div class="mact"><button type="button" class="btn ghost" id="historyClose">Close</button></div>
   </div>
 </div>
 
@@ -117,7 +224,7 @@ textarea{min-height:90px;resize:vertical}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { initializeFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initializeFirestore, collection, query, where, limit, getDocs, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
@@ -130,7 +237,11 @@ const app = initializeApp({
 const db = initializeFirestore(app, { experimentalForceLongPolling: true, useFetchStreams: false });
 
 const DAYS = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY'];
-let cutoffMin = 840; // default 2 PM; ang admin ang nagtatakda ng totoong cutoff kada araw
+let cutoffMin = 840; // Default cutoff is 2 PM; the admin sets the actual cutoff for each day.
+function canRequestStock(department){
+  const team = String(department || '').trim().toLowerCase().replace(/\s+(north|south)$/i, '').trim();
+  return ['billing', 'pharmacist', 'pharmacy assistant'].includes(team);
+}
 const fmtCut = () => new Date(2000,0,1,Math.floor(cutoffMin/60),cutoffMin%60).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
 function dateForDay(i){
   const t = new Date(); t.setHours(0,0,0,0);
@@ -139,7 +250,7 @@ function dateForDay(i){
 }
 const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const dayAllowed = i => !emp || !Array.isArray(emp.requestDays) || emp.requestDays.includes(DAYS[i]);
-const blocked = d => isLocked(d) || !dayActive || !dayAllowed(current);
+const blocked = d => isLocked(d) || !!existing?.adminCompleted || !dayActive || !dayAllowed(current);
 const isLocked = d => { const c = new Date(d); c.setHours(Math.floor(cutoffMin/60), cutoffMin%60, 0, 0); return new Date() >= c; };
 const $ = id => document.getElementById(id);
 
@@ -147,17 +258,65 @@ function readSession(){
   try{
     const raw = localStorage.getItem('pdEmployeeSession') || sessionStorage.getItem('pdEmployeeSession');
     const s = raw ? JSON.parse(raw) : null;
-    return s && s.staffId ? s : null;
+    if(s && s.staffId){
+      localStorage.removeItem('pdStockRequestSessionHandoff');
+      return s;
+    }
+    const handoffRaw = localStorage.getItem('pdStockRequestSessionHandoff');
+    localStorage.removeItem('pdStockRequestSessionHandoff');
+    const handoff = handoffRaw ? JSON.parse(handoffRaw) : null;
+    return handoff && handoff.expiresAt > Date.now() && handoff.session && handoff.session.staffId
+      ? handoff.session
+      : null;
   }catch(e){ return null; }
 }
 function kickToLogin(deleted){
-  try{ localStorage.removeItem('pdEmployeeSession'); sessionStorage.removeItem('pdEmployeeSession'); }catch(e){}
+  try{
+    localStorage.removeItem('pdEmployeeSession');
+    sessionStorage.removeItem('pdEmployeeSession');
+    localStorage.removeItem('pdStockRequestSessionHandoff');
+  }catch(e){}
   location.replace('/fu3hriaj0m' + (deleted ? '?deleted=1' : ''));
 }
 
-let emp = null, current = -1, unsub = null, unsubDay = null, dayActive = false, existing = null;
+let emp = null, current = -1, unsub = null, unsubDay = null, selectedDateKey = '', dayActive = false, existing = null, editingRequest = false;
+let lastAdminRemovalNotice = '';
 const esc = s => String(s ?? '').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 const MIN_REASON = 5;
+const SR_NUMBER_PATTERN = /^\d+(?:\s*,\s*\d+)*$/;
+const srInput = $('fSr');
+function validSrNumbers(value){ return SR_NUMBER_PATTERN.test(String(value || '').trim()); }
+function buildSrSearchTerms(sr, history=[]){
+  const terms = new Set();
+  const add = value=>String(value || '').split(',').map(term=>term.trim()).filter(Boolean).forEach(term=>terms.add(term));
+  add(sr);
+  history.forEach(change=>{ add(change.oldSr); add(change.newSr); });
+  return [...terms];
+}
+function showSrNumberError(){
+  showMsg('SR# must contain numbers only. Separate multiple SR#s with commas.', false);
+}
+
+srInput.addEventListener('beforeinput', event=>{
+  if(event.inputType.startsWith('delete') || !event.data) return;
+  if(/[^\d,\s]/.test(event.data)){
+    event.preventDefault();
+    showSrNumberError();
+  }
+});
+srInput.addEventListener('paste', event=>{
+  const pasted = event.clipboardData && event.clipboardData.getData('text');
+  if(pasted && /[^\d,\s]/.test(pasted)){
+    event.preventDefault();
+    showSrNumberError();
+  }
+});
+srInput.addEventListener('input', ()=>{
+  if(/[^\d,\s]/.test(srInput.value)){
+    srInput.value = srInput.value.replace(/[^\d,\s]/g, '');
+    showSrNumberError();
+  }
+});
 
 let msgTimer = null;
 function showMsg(text, ok){
@@ -170,6 +329,137 @@ async function loadEmployee(id){
   return snap.exists() ? snap.data() : null;
 }
 
+function manilaDateAndMinutes(now = new Date()){
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone:'Asia/Manila', year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', hourCycle:'h23'
+  }).formatToParts(now).map(part=>[part.type, part.value]));
+  return {
+    date: parts.year + '-' + parts.month + '-' + parts.day,
+    minutes: Number(parts.hour) * 60 + Number(parts.minute)
+  };
+}
+
+async function loadCutoffsForRecords(records){
+  const dates = [...new Set(records.map(request=>String(request.date || '')).filter(date=>/^\d{4}-\d{2}-\d{2}$/.test(date)))];
+  const entries = await Promise.all(dates.map(async date=>{
+    const snapshot = await getDoc(doc(db,'stockDays',date));
+    const cutoffMin = snapshot.exists() ? snapshot.data().cutoffMin : null;
+    return [date, Number.isInteger(cutoffMin) ? cutoffMin : null];
+  }));
+  return Object.fromEntries(entries);
+}
+
+function requestStatusLabel(request, dayCutoffMin){
+  if(request.adminCompleted === true) return 'Completed';
+  if(!request.date) return 'Pending';
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone:'Asia/Manila', year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', hourCycle:'h23'
+  }).formatToParts(new Date()).reduce((values, part)=>{ values[part.type] = part.value; return values; }, {});
+  const today = parts.year + '-' + parts.month + '-' + parts.day;
+  const nowMinutes = Number(parts.hour) * 60 + Number(parts.minute);
+  const cutoffMin = Number.isInteger(dayCutoffMin) ? dayCutoffMin : Number.isInteger(request.cutoffMin) ? request.cutoffMin : 840;
+  if(request.date < today || (request.date === today && nowMinutes >= cutoffMin)) return 'Completed';
+  if(request.status === 'removed') return 'Removed by ' + (request.removedBy === 'admin' ? 'admin' : 'employee');
+  return 'Pending';
+}
+
+let employeeHistoryStatusFilter = 'all';
+let cachedEmployeeHistoryRecords = [];
+let cachedEmployeeHistoryCutoffs = {};
+
+function employeeHistoryStatusKey(status){
+  if(status === 'Completed') return 'completed';
+  if(status.startsWith('Removed by')) return 'removed';
+  return 'pending';
+}
+
+function renderEmployeeHistory(records, cutoffs){
+  const results = $('employeeHistoryResults');
+  cachedEmployeeHistoryRecords = records;
+  cachedEmployeeHistoryCutoffs = cutoffs;
+  const matchingRecords = records.map(request=>({
+    request,
+    status: requestStatusLabel(request, cutoffs[request.date])
+  }));
+  const counts = { all:matchingRecords.length, pending:0, completed:0, removed:0 };
+  matchingRecords.forEach(item=>counts[employeeHistoryStatusKey(item.status)]++);
+  Object.entries(counts).forEach(([key,count])=>{
+    const countEl = document.querySelector('[data-employee-status-count="' + key + '"]');
+    if(countEl) countEl.textContent = count;
+  });
+  const filteredRecords = employeeHistoryStatusFilter === 'all'
+    ? matchingRecords
+    : matchingRecords.filter(item=>employeeHistoryStatusKey(item.status) === employeeHistoryStatusFilter);
+  if(!filteredRecords.length){
+    const label = employeeHistoryStatusFilter === 'all' ? 'requests' : employeeHistoryStatusFilter + ' requests';
+    results.innerHTML = '<div class="history-empty">No '+esc(label)+' found in this date range.</div>';
+    return;
+  }
+  results.innerHTML = filteredRecords.map(({request,status})=>{
+    const removed = request.status === 'removed';
+    const sr = removed ? (request.removedSr || 'Removed') : (request.sr || '—');
+    const reason = removed && request.removalReason
+      ? '<div class="removed-reason">Reason: '+esc(request.removalReason)+'</div>'
+      : '';
+    return '<article class="history-row"><div><small>Date</small><strong>'+esc(request.date)+'</strong></div>' +
+      '<div><small>SR#</small><strong>'+esc(sr)+'</strong></div><div><small>Status</small><strong>'+esc(status)+'</strong></div>' + reason + '</article>';
+  }).join('');
+}
+
+async function searchEmployeeHistory(){
+  const from = $('historyFrom').value;
+  const to = $('historyTo').value;
+  const results = $('employeeHistoryResults');
+  if(!from || !to){ results.innerHTML = '<div class="history-empty">Select both start and end dates.</div>'; return; }
+  if(from > to){ results.innerHTML = '<div class="history-empty">The start date must be on or before the end date.</div>'; return; }
+  results.innerHTML = '<div class="history-empty">Searching…</div>';
+  try{
+    const staffId = String(emp.staffId || emp.id);
+    const [activeSnapshot, archivedSnapshot] = await Promise.all([
+      getDocs(query(collection(db,'stockRequests'), where('staffId','==',staffId), limit(500))),
+      getDocs(query(collection(db,'stockRequestHistory'), where('staffId','==',staffId), limit(500)))
+    ]);
+    const recordsByKey = new Map();
+    [...activeSnapshot.docs, ...archivedSnapshot.docs].forEach(docSnap => {
+      const record = docSnap.data();
+      const key = String(record.date || '') + '|' + String(record.sr || record.removedSr || docSnap.id);
+      if(!recordsByKey.has(key)) recordsByKey.set(key, record);
+    });
+    const records = [...recordsByKey.values()]
+      .filter(request => String(request.date || '') >= from && String(request.date || '') <= to)
+      .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    const cutoffs = await loadCutoffsForRecords(records);
+    renderEmployeeHistory(records, cutoffs);
+  }catch(error){
+    results.innerHTML = '<div class="history-empty">History search failed ('+esc(error.code || error.message)+').</div>';
+  }
+}
+
+function openEmployeeHistory(){
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  $('historyFrom').value = iso(monthStart);
+  $('historyTo').value = iso(now);
+  $('employeeHistoryModal').classList.add('show');
+  searchEmployeeHistory();
+}
+function closeEmployeeHistory(){ $('employeeHistoryModal').classList.remove('show'); }
+$('historyBtn').addEventListener('click', openEmployeeHistory);
+$('historySearchBtn').addEventListener('click', searchEmployeeHistory);
+document.querySelectorAll('[data-employee-history-status]').forEach(button=>button.addEventListener('click', ()=>{
+  employeeHistoryStatusFilter = button.dataset.employeeHistoryStatus;
+  document.querySelectorAll('[data-employee-history-status]').forEach(tab=>tab.setAttribute('aria-pressed', String(tab === button)));
+  renderEmployeeHistory(cachedEmployeeHistoryRecords, cachedEmployeeHistoryCutoffs);
+}));
+$('historyClose').addEventListener('click', closeEmployeeHistory);
+$('employeeHistoryModal').addEventListener('click', event=>{
+  if(event.target === $('employeeHistoryModal')) closeEmployeeHistory();
+});
+$('historyFrom').addEventListener('keydown', event=>{ if(event.key === 'Enter') searchEmployeeHistory(); });
+$('historyTo').addEventListener('keydown', event=>{ if(event.key === 'Enter') searchEmployeeHistory(); });
+
 async function init(){
   const sess = readSession();
   if(!sess) return kickToLogin(false);
@@ -179,6 +469,7 @@ async function init(){
   catch(ex){ document.body.insertAdjacentHTML('beforeend','<p style="text-align:center;color:#a5151f">Unable to load ('+(ex.code||ex.message)+'). Please refresh the page.</p>'); return; }
   if(!data) return kickToLogin(true);
   emp = { ...data, id };
+  if(!canRequestStock(emp.department)) return location.replace('/ed3od6ldsq');
   $('fName').textContent = emp.name || '';
   $('fSite').textContent = emp.siteName || '';
   $('fAv').textContent = (emp.name || '?').trim().charAt(0).toUpperCase();
@@ -186,6 +477,7 @@ async function init(){
   onSnapshot(doc(db,'employees',id), snap=>{
     if(!snap.exists()) return kickToLogin(true);
     emp = { ...snap.data(), id };
+    if(!canRequestStock(emp.department)) return location.replace('/ed3od6ldsq');
     if(current >= 0){ paintDays(); paintLock(); }
   }, ()=>{});
   const g = new Date().getDay();
@@ -196,9 +488,10 @@ async function init(){
 }
 
 const daysEl = $('days');
+const DAY_CALENDAR_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>';
 DAYS.forEach((n,i)=>{
   const b = document.createElement('button');
-  b.type='button'; b.textContent=n; b.dataset.i=i; b.onclick=()=>select(i);
+  b.type='button'; b.innerHTML='<span>'+n.charAt(0)+n.slice(1).toLowerCase()+'</span>'+DAY_CALENDAR_SVG; b.dataset.i=i; b.onclick=()=>select(i);
   daysEl.appendChild(b);
 });
 
@@ -211,47 +504,96 @@ function paintDays(){
   });
 }
 function paintLock(){
-  const d = dateForDay(current), timeUp = isLocked(d), notMine = !dayAllowed(current), locked = timeUp || !dayActive || notMine;
+  const d = dateForDay(current), adminCompleted = !!existing?.adminCompleted, timeUp = isLocked(d) || adminCompleted, notMine = !dayAllowed(current), locked = timeUp || !dayActive || notMine;
   $('dateLbl').textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
   const lb = $('lockbar');
-  lb.textContent = notMine ? 'You are not scheduled to send a stock request on this day.' : timeUp ? 'This order is locked — you can no longer submit or edit.' : (!dayActive ? 'This day is not open yet — waiting for the admin to activate it.' : 'This order locks at ' + fmtCut() + '.');
+  $('lockText').textContent = notMine ? 'You are not scheduled to send a stock request on this day.' : adminCompleted ? 'The admin marked this SR# as Completed — it can no longer be edited.' : timeUp ? 'This order is locked — you can no longer submit or edit.' : (!dayActive ? 'This day is not open yet — waiting for the admin to activate it.' : 'This order locks at ' + fmtCut() + '.');
   lb.className = 'lockbar' + (timeUp ? ' closed' : notMine ? ' off' : !dayActive ? ' wait' : '');
   $('reqForm').classList.toggle('locked', locked);
   $('reqForm').classList.toggle('noreq', !existing);
-  $('fSr').disabled = locked; $('saveBtn').disabled = locked; $('delBtn').disabled = locked;
+  const hasRequest = !!existing;
+  const statusBadge = $('requestStatus');
+  const status = hasRequest ? requestStatusLabel(existing, cutoffMin) : '';
+  statusBadge.textContent = status;
+  statusBadge.classList.toggle('completed', status === 'Completed');
+  statusBadge.hidden = !hasRequest;
+  $('fSr').disabled = locked || (hasRequest && !editingRequest);
+  $('editSrBtn').style.display = hasRequest && !locked ? 'inline-flex' : 'none';
+  $('editSrBtn').disabled = locked || !hasRequest;
+  $('editSrBtn').classList.toggle('is-editing', editingRequest);
+  $('editSrBtn').title = editingRequest ? 'Cancel editing' : 'Edit SR#';
+  $('editSrBtn').setAttribute('aria-label', $('editSrBtn').title);
+  $('saveBtn').style.display = hasRequest && !editingRequest ? 'none' : '';
+  $('saveBtn').disabled = locked || (hasRequest && !editingRequest);
+  $('delBtn').disabled = locked || !hasRequest;
 }
 
 function select(i){
   current = i;
+  const selectedDate = iso(dateForDay(i));
+  selectedDateKey = selectedDate;
+  existing = null;
+  editingRequest = false;
   dayActive = false; cutoffMin = 840;
   daysEl.querySelectorAll('button').forEach(b=>b.classList.toggle('on', +b.dataset.i===i));
   $('msg').style.display = 'none';
   paintLock();
   if(unsub) unsub();
   if(unsubDay) unsubDay();
-  unsubDay = onSnapshot(doc(db,'stockDays', iso(dateForDay(i))), snap=>{
+  unsubDay = onSnapshot(doc(db,'stockDays', selectedDate), snap=>{
     const dd = snap.exists() ? snap.data() : null;
     dayActive = !!dd && dd.active === true;
     cutoffMin = dd && Number.isInteger(dd.cutoffMin) ? dd.cutoffMin : 840;
     paintLock();
   }, ()=>{});
-  existing = null; $('hist').innerHTML = '';
-  unsub = onSnapshot(doc(db,'stockRequests', iso(dateForDay(i)) + '_' + emp.id), snap=>{
-    const has = snap.exists();
-    existing = has ? snap.data() : null;
-    if(document.activeElement !== $('fSr')) $('fSr').value = has ? (snap.data().sr || '') : '';
+  $('hist').innerHTML = '';
+  unsub = onSnapshot(doc(db,'stockRequests', selectedDate + '_' + emp.id), snap=>{
+    const request = snap.exists() ? snap.data() : null;
+    const removed = request && request.status === 'removed';
+    const has = !!request && !removed;
+    existing = has ? request : null;
+    editingRequest = false;
+    if(document.activeElement !== $('fSr')) $('fSr').value = has ? (request.sr || '') : '';
     const h = has && Array.isArray(existing.history) ? existing.history : [];
     $('hist').innerHTML = h.map(c=>'<div>Changed: '+esc(c.oldSr)+' → '+esc(c.newSr)+' — '+esc(c.reason)+'</div>').join('');
     $('delBtn').style.display = has ? 'inline-block' : 'none';
     $('saveBtn').textContent = has ? 'Update request' : 'Submit request';
     paintLock();
+    if(removed && request.removedBy === 'admin'){
+      const removalKey = request.removedAt && typeof request.removedAt.toMillis === 'function'
+        ? String(request.removedAt.toMillis())
+        : String(request.removalReason || 'removed');
+      if(removalKey !== lastAdminRemovalNotice){
+        lastAdminRemovalNotice = removalKey;
+        showMsg('The admin removed your SR#. Reason: ' + (request.removalReason || 'No reason provided.'), false);
+      }
+    }else if(removed){
+      showMsg('Request removed. The admin can see your reason.', true);
+    }
   }, ex=>showMsg('Failed to load (' + (ex.code || ex.message) + ').', false));
 }
 
-function askReason(oldSr, newSr){
+$('editSrBtn').addEventListener('click', ()=>{
+  if(!existing || blocked(dateForDay(current))) return;
+  if(editingRequest){
+    editingRequest = false;
+    $('fSr').value = existing.sr || '';
+  }else{
+    editingRequest = true;
+  }
+  paintLock();
+  if(editingRequest) $('fSr').focus();
+});
+
+function askReason(oldSr, newSr, removal=false){
   return new Promise(resolve=>{
     const m = $('reasonModal'), ta = $('rmReason'), err = $('rmErr');
-    $('rmChange').textContent = oldSr + '  →  ' + newSr;
+    $('rmTitle').textContent = removal ? 'Why are you removing this SR#?' : 'Why are you changing the SR#?';
+    m.querySelector('p').textContent = removal
+      ? 'The admin will be notified that you removed this request. Enter a reason.'
+      : 'This request has already been submitted and the admin can see it. Enter the reason for the change so they understand.';
+    $('rmChange').textContent = removal ? oldSr + '  →  Removed' : oldSr + '  →  ' + newSr;
+    $('rmOk').textContent = removal ? 'Confirm removal' : 'Confirm update';
     ta.value = ''; err.textContent = '';
     m.classList.add('show'); ta.focus();
     function done(v){
@@ -282,13 +624,24 @@ async function saveRequest(sr, reason){
       staffId: emp.staffId || emp.id, name: emp.name || '', siteName: emp.siteName || '',
       sr, date: iso(d), day: DAYS[current], updatedAt: serverTimestamp()
     };
+    const branch = String(emp.branch || '').trim().toLowerCase();
+    const departmentBranch = String(emp.department || '').trim().match(/\s+(north|south)$/i);
+    if(branch.includes('north')) data.branch = 'north';
+    else if(branch.includes('south')) data.branch = 'south';
+    else if(departmentBranch) data.branch = departmentBranch[1].toLowerCase();
     const history = existing && Array.isArray(existing.history) ? existing.history.slice() : [];
     if(reason){
       if(history.length >= 10) return showMsg('This request has reached the limit of 10 changes. Please contact the admin.', false);
       history.push({ oldSr: existing.sr, newSr: sr, reason, at: Date.now() });
     }
     if(history.length) data.history = history;
+    data.srSearchTerms = buildSrSearchTerms(sr, history);
     await setDoc(doc(db,'stockRequests', iso(d) + '_' + emp.id), data);
+    if(reason){
+      editingRequest = false;
+      $('fSr').value = sr;
+      paintLock();
+    }
     showMsg(reason ? 'Updated. The admin can see the reason for the change.' : 'Submitted. The admin can now see it.', true);
   }catch(ex){
     showMsg('Could not save (' + (ex.code || ex.message) + ').', false);
@@ -301,25 +654,59 @@ $('reqForm').addEventListener('submit', async e=>{
   if(blocked(d)){ paintLock(); return showMsg(isLocked(d) ? 'The order for this day is already locked.' : 'This day has not been activated by the admin yet.', false); }
   const sr = $('fSr').value.trim();
   if(!sr) return showMsg('Please enter the SR#.', false);
+  if(!validSrNumbers(sr)){ $('fSr').focus(); return showSrNumberError(); }
   if(existing){
+    if(!editingRequest) return;
     if(sr === existing.sr) return showMsg('The SR# has not changed.', false);
     $('saveBtn').disabled = true;
     const reason = await askReason(existing.sr, sr);
-    paintLock();
-    if(reason === null) return;
-    if(blocked(d)){ return showMsg(isLocked(d) ? 'The order for this day is already locked.' : 'This day is no longer active.', false); }
+    if(reason === null){
+      editingRequest = false;
+      $('fSr').value = existing.sr;
+      paintLock();
+      return;
+    }
+    if(blocked(d)){
+      editingRequest = false;
+      paintLock();
+      return showMsg(isLocked(d) ? 'The order for this day is already locked.' : 'This day is no longer active.', false);
+    }
     return saveRequest(sr, reason);
   }
   saveRequest(sr, null);
 });
 
 $('delBtn').addEventListener('click', async ()=>{
-  if(blocked(dateForDay(current)) || !confirm('Remove the request for this day?')) return;
-  try{ await deleteDoc(doc(db,'stockRequests', iso(dateForDay(current)) + '_' + emp.id)); $('fSr').value=''; showMsg('Removed.', true); }
+  const d = dateForDay(current);
+  if(!existing || blocked(d)) return;
+  const reason = await askReason(existing.sr, '', true);
+  if(reason === null) return;
+  if(blocked(d)) return showMsg(isLocked(d) ? 'The order for this day is already locked.' : 'This day is no longer active.', false);
+  try{
+    await updateDoc(doc(db,'stockRequests', iso(d) + '_' + emp.id), {
+      sr: '',
+      removedSr: existing.sr,
+      srSearchTerms: buildSrSearchTerms(existing.sr, Array.isArray(existing.history) ? existing.history : []),
+      status: 'removed',
+      removalReason: reason,
+      removedAt: serverTimestamp(),
+      removedBy: 'employee',
+      updatedAt: serverTimestamp()
+    });
+    editingRequest = false;
+    existing = null;
+    $('fSr').value='';
+    paintLock();
+    showMsg('Request removed. The admin can see your reason.', true);
+  }
   catch(ex){ showMsg('Could not remove (' + (ex.code || ex.message) + ').', false); }
 });
 
-setInterval(()=>{ if(emp) paintLock(); }, 60000);
+setInterval(()=>{
+  if(!emp || current < 0) return;
+  if(iso(dateForDay(current)) !== selectedDateKey) select(current);
+  else paintLock();
+}, 1000);
 init();
 </script>
 </body>

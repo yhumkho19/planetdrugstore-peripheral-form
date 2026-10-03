@@ -55,37 +55,59 @@ service cloud.firestore {
     }
 
     // ---- Stock requests (Ordering System) ----
-    // Doc ID = "<YYYY-MM-DD>_<staffId lowercase>" -> isang request kada employee kada araw.
-    // Employees walang Firebase Auth kaya bukas ang read/write, pero:
-    //  - fixed fields lang, may size limits
-    //  - doc ID dapat tugma sa date + staffId
-    //  - LOCKED sa server side pagkatapos ng cutoff (Philippine time) ng mismong araw ng request.
-    //    Ang cutoff ay itinatakda ng admin sa stockDays/<petsa>.cutoffMin (minuto mula midnight; default 840 = 2PM).
+    // Doc ID = "<YYYY-MM-DD>_<lowercase staffId>" -> one request per employee per day.
+    // Employees do not use Firebase Auth, so reads and writes are open, but:
+    //  - only fixed fields are allowed, with size limits
+    //  - the doc ID must match the date and staffId
+    //  - requests are locked server-side after that day's cutoff (Philippine time).
+    //    The admin sets the cutoff in stockDays/<date>.cutoffMin (minutes after midnight; default 840 = 2 PM).
     function phNow() { return request.time + duration.time(8, 0, 0, 0); }
     function pad2(n) { return n < 10 ? '0' + string(n) : string(n); }
     function phDayStr(k) {
       let t = request.time + duration.time(8, 0, 0, 0) + duration.value(k, 'd');
       return string(t.year()) + '-' + pad2(t.month()) + '-' + pad2(t.day());
     }
-    // Open kung: (1) ngayong araw (PH) at hindi pa lampas sa cutoff, o (2) sa susunod na 7 araw.
+    // Open if: (1) today in Philippine time and before the cutoff, or (2) any of the next 7 days.
     function stockOpen(d, cm) {
       return (d == phDayStr(0) && (phNow().hours() * 60 + phNow().minutes()) < cm)
           || d in [phDayStr(1), phDayStr(2), phDayStr(3), phDayStr(4), phDayStr(5), phDayStr(6), phDayStr(7)];
     }
     function stockDataOk(reqId) {
-      return request.resource.data.keys().hasOnly(['staffId','name','siteName','sr','date','day','updatedAt','history'])
+      return request.resource.data.keys().hasOnly(['staffId','name','siteName','branch','sr','removedSr','srSearchTerms','date','day','updatedAt','history','status','removalReason','removedAt','removedBy','removalViewedAt','adminCompleted','adminCompletedAt','adminCompletedBy'])
           && request.resource.data.staffId is string
           && request.resource.data.name is string
           && request.resource.data.siteName is string
+            && (!('removedSr' in request.resource.data)
+              || (request.resource.data.removedSr is string && request.resource.data.removedSr.size() <= 100))
+              && (!('srSearchTerms' in request.resource.data)
+                || (request.resource.data.srSearchTerms is list && request.resource.data.srSearchTerms.size() <= 30))
+        && (!('branch' in request.resource.data)
+          || (request.resource.data.branch is string && request.resource.data.branch in ['north','south']))
+        && ((!('status' in request.resource.data)
+           && !('removalReason' in request.resource.data)
+           && !('removedAt' in request.resource.data))
+          || (request.resource.data.status == 'removed'
+            && request.resource.data.removalReason is string
+            && request.resource.data.removalReason.size() >= 5
+            && request.resource.data.removalReason.size() <= 200
+            && request.resource.data.removedAt is timestamp))
+          && (!('removedBy' in request.resource.data) || request.resource.data.removedBy in ['employee','admin'])
+          && (!('removalViewedAt' in request.resource.data) || request.resource.data.removalViewedAt is timestamp)
+            && (!('adminCompleted' in request.resource.data) || request.resource.data.adminCompleted is bool)
+            && (!('adminCompletedAt' in request.resource.data) || request.resource.data.adminCompletedAt is timestamp)
+            && (!('adminCompletedBy' in request.resource.data) || request.resource.data.adminCompletedBy is string)
+            && ((!('adminCompleted' in request.resource.data) && !('adminCompletedAt' in request.resource.data) && !('adminCompletedBy' in request.resource.data))
+              || (request.resource.data.adminCompleted == true && request.resource.data.adminCompletedAt is timestamp && request.resource.data.adminCompletedBy is string))
           && request.resource.data.sr is string
-          && request.resource.data.sr.size() > 0
+          && ((request.resource.data.get('status', '') == 'removed' && request.resource.data.sr.size() == 0)
+              || (request.resource.data.get('status', '') != 'removed' && request.resource.data.sr.size() > 0))
           && request.resource.data.sr.size() <= 100
           && request.resource.data.date is string
           && request.resource.data.day is string
           && reqId == request.resource.data.date + '_' + request.resource.data.staffId.lower();
     }
-    // Kapag nagbago ang SR# sa existing request: kailangang may bagong entry sa history
-    // (oldSr, newSr, reason 5-200 chars). Kapag hindi nagbago ang SR#, dapat hindi gagalawin ang history.
+    // When the SR# changes on an existing request, history must include a new entry
+    // (oldSr, newSr, reason 5-200 chars). If the SR# is unchanged, history must remain unchanged.
     function stockChangeOk() {
       let h = request.resource.data.get('history', []);
       let old = resource.data.get('history', []);
@@ -98,15 +120,69 @@ service cloud.firestore {
            && h[h.size() - 1].reason.size() >= 5
            && h[h.size() - 1].reason.size() <= 200);
     }
-    // Admin ang nag-a-activate ng araw: stockDays/<YYYY-MM-DD> = { active: true }.
-    // Hangga't walang active na doc para sa petsa, bawal mag-create/update/delete ng stock request.
+    function stockRemovalOk() {
+      return resource.data.get('status', '') != 'removed'
+          && request.resource.data.status == 'removed'
+          && request.resource.data.removedBy == 'employee'
+          && request.resource.data.sr == ''
+          && request.resource.data.get('history', []) == resource.data.get('history', []);
+    }
+        function stockAdminRemoveOk() {
+      return isAdmin()
+          && resource.data.get('status', '') != 'removed'
+          && request.resource.data.status == 'removed'
+          && request.resource.data.removedBy == 'admin'
+          && request.resource.data.sr == ''
+          && request.resource.data.date == resource.data.date
+          && request.resource.data.staffId == resource.data.staffId
+          && request.resource.data.get('history', []) == resource.data.get('history', []);
+        }
+    function stockAdminCompleteOk() {
+      return isAdmin()
+          && resource.data.get('status', '') != 'removed'
+          && resource.data.get('adminCompleted', false) != true
+          && resource.data.sr is string
+          && resource.data.sr.size() > 0
+          && request.resource.data.adminCompleted == true
+          && request.resource.data.adminCompletedAt is timestamp
+          && request.resource.data.adminCompletedBy == request.auth.token.email
+          && request.resource.data.sr == resource.data.sr
+          && request.resource.data.date == resource.data.date
+          && request.resource.data.staffId == resource.data.staffId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['adminCompleted','adminCompletedAt','adminCompletedBy']);
+    }
+    function stockReopenOk() {
+      return resource.data.get('status', '') == 'removed'
+          && !('status' in request.resource.data)
+          && !('removalReason' in request.resource.data)
+          && !('removedAt' in request.resource.data)
+          && !('removedBy' in request.resource.data)
+          && !('removalViewedAt' in request.resource.data)
+          && !('history' in request.resource.data);
+    }
+        function stockAdminMarkRemovalViewed() {
+      return isAdmin()
+          && resource.data.get('status', '') == 'removed'
+          && request.resource.data.status == 'removed'
+          && request.resource.data.removalViewedAt is timestamp
+          && !('removalViewedAt' in resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['removalViewedAt']);
+        }
+    // The admin activates a day: stockDays/<YYYY-MM-DD> = { active: true }.
+    // Employees cannot create, update, or delete requests until that date has an active document.
     // Per-employee schedule: employees/<staffId>.requestDays = ['TUESDAY', ...]
-    // Kapag walang requestDays field -> allowed sa lahat ng araw.
+    // If requestDays is absent, all days are allowed.
     function empAllowedDay(staffId, day) {
       let e = get(/databases/$(database)/documents/employees/$(staffId.lower())).data;
       return e.get('requestDays', null) == null || day in e.requestDays;
     }
-    // Active ang petsa (admin), tugma ang weekday, at nasa schedule ng employee ang araw na iyon.
+    function stockRequester(staffId) {
+      let employee = get(/databases/$(database)/documents/employees/$(staffId.lower())).data;
+      let department = employee.get('department', '');
+      return department is string
+          && department.lower().matches('^(billing|pharmacist|pharmacy assistant)( north| south)?$');
+    }
+    // The date must be active (by admin), match the weekday, and be allowed by the employee's schedule.
     function stockDayActive(d, staffId, day) {
       return exists(/databases/$(database)/documents/stockDays/$(d))
           && get(/databases/$(database)/documents/stockDays/$(d)).data.active == true
@@ -127,13 +203,27 @@ service cloud.firestore {
     match /stockRequests/{reqId} {
       allow read: if true;
       allow create: if stockDataOk(reqId)
+                    && stockRequester(request.resource.data.staffId)
                     && !('history' in request.resource.data)
+            && !('status' in request.resource.data)
                     && stockDayActive(request.resource.data.date, request.resource.data.staffId, request.resource.data.day);
       allow update: if stockDataOk(reqId)
-                    && stockChangeOk()
-                    && request.resource.data.date == resource.data.date
-                    && stockDayActive(request.resource.data.date, request.resource.data.staffId, request.resource.data.day);
-      allow delete: if stockDayActive(resource.data.date, resource.data.staffId, resource.data.day);
+                && ((isAdmin() && stockAdminRemoveOk())
+                  || stockAdminCompleteOk()
+                || (stockRequester(request.resource.data.staffId)
+                   && resource.data.get('adminCompleted', false) != true
+                         && (stockChangeOk() || stockRemovalOk() || stockReopenOk())
+              && request.resource.data.date == resource.data.date
+              && stockDayActive(request.resource.data.date, request.resource.data.staffId, request.resource.data.day))
+                || stockAdminMarkRemovalViewed());
+        allow delete: if isAdmin()
+              || (stockRequester(resource.data.staffId)
+                && resource.data.get('adminCompleted', false) != true
+                && stockDayActive(resource.data.date, resource.data.staffId, resource.data.day));
     }
+      match /stockRequestHistory/{historyId} {
+        allow read: if true;
+        allow create, update, delete: if isAdmin();
+      }
   }
 }
