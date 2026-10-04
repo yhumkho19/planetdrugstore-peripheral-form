@@ -10,6 +10,7 @@ const personalTypes = new Set([
   "eventCancelled",
   "eventReinstated",
   "slotAssigned",
+  "slotOpened",
   "siteMoved"
 ]);
 
@@ -105,7 +106,7 @@ async function getAccessToken(env) {
   return cachedAccessToken.value;
 }
 
-export function notificationText(notification) {
+function baseNotificationText(notification) {
   if (!notification || typeof notification !== "object") {
     return { title: "Schedule update", body: "Your schedule has changed. Open the app to review the details." };
   }
@@ -120,7 +121,12 @@ export function notificationText(notification) {
 
   switch (notification.type) {
     case "eventsDeployed":
-      return { title: "New schedule posted", body: "New pharmacy events are available. Open the schedule to review." };
+      return {
+        title: Number(notification.siteCount) === 1 ? "New site deployed" : "New sites deployed",
+        body: notification.siteSummary
+          ? `${Number(notification.siteCount) === 1 ? "The new site has been deployed" : "New sites have been deployed"}: ${notification.siteSummary}`
+          : "New pharmacy events are available. Open the schedule to review."
+      };
     case "slotAssigned":
       if (notification.list === "relievers") {
         return {
@@ -132,41 +138,142 @@ export function notificationText(notification) {
         title: "You were assigned to an event slot",
         body: `You were added to this event${roleText}${locationText}${whenText ? ` on ${whenText}` : ""}. Open the schedule to review the details.`
       };
-    case "siteMoved":
+    case "slotOpened":
+      if (notification.list === "relievers") {
+        return {
+          title: "New Store Reliever slot available",
+          body: `A Store Reliever slot is open to cover ${location || "the store"}${whenText ? ` on ${whenText}` : ""}. Sign up now.`
+        };
+      }
       return {
-        title: notification.list === "relievers" ? "You were assigned as Store Reliever" : "You were moved to a new site",
-        body: notification.list === "relievers"
-          ? `You'll be covering ${location || "the store"}${whenText ? ` on ${whenText}` : ""}.`
-          : `Your assignment was updated${locationText}${whenText ? ` on ${whenText}` : ""}.`
+        title: "New schedule slot available",
+        body: `A new ${role || "schedule"} slot is available${locationText}${whenText ? ` on ${whenText}` : ""}. Sign up now.`
+      };
+    case "siteMoved":
+      if (notification.list === "relievers") {
+        return {
+          title: "Your Store Reliever assignment moved",
+          body: `You're now covering ${location || "the store"}${whenText ? ` on ${whenText}` : ""}.`
+        };
+      }
+      if (notification.oldCardId && notification.oldCardId === notification.cardId) {
+        return {
+          title: "You were moved to another slot",
+          body: `Your role changed${roleText}${locationText}${whenText ? ` on ${whenText}` : ""}.`
+        };
+      }
+      return {
+        title: "You were moved to another event bracket",
+        body: `Your new assignment${roleText}${locationText}${whenText ? ` is on ${whenText}` : ""}.`
       };
     case "removed":
-      return { title: "You were removed from this slot", body: "You are now free to pick another schedule slot." };
-    case "branchChanged":
-      return { title: "Your event branch changed", body: "Your previous assignment was cleared. Open the schedule to choose another slot." };
-    case "dateChanged":
+      if (notification.list === "relievers") {
+        return {
+          title: "You were removed as Store Reliever",
+          body: `You are no longer assigned as reliever for ${location || "that store"}${whenText ? ` on ${whenText}` : ""}.`
+        };
+      }
       return {
-        title: "The date for your event changed",
-        body: notification.oldDate && notification.newDate
-          ? `This event moved from ${notification.oldDate} to ${notification.newDate}${location ? ` at ${location}` : ""}.`
-          : `This event date was updated${locationText}.`
+        title: "You were removed from this slot",
+        body: `Your assignment${roleText}${locationText}${whenText ? ` on ${whenText}` : ""} was removed. You can choose another slot.`
       };
-    case "eventUpdated":
-      return { title: "Your event was updated", body: "The event details changed. Open the schedule to review the updated assignment." };
+    case "branchChanged": {
+      const oldBranch = String(notification.oldRegionCustom || notification.oldRegion || "").trim();
+      const newBranch = String(notification.newRegionCustom || notification.newRegion || "").trim();
+      return {
+        title: "Your event branch changed",
+        body: oldBranch && newBranch
+          ? `Your event moved from ${oldBranch} to ${newBranch}. Your previous slot was cleared.`
+          : "Your event moved to another branch. Your previous slot was cleared."
+      };
+    }
+    case "dateChanged":
+      {
+        const changes = [];
+        changes.push(notification.oldDate && notification.newDate
+          ? `Date changed from ${notification.oldDate} to ${notification.newDate}`
+          : "The event date changed");
+        if (notification.timeChanged) changes.push(`time is now ${time || "updated"}`);
+        if (notification.locationChanged) changes.push(`site name is now ${location || "updated"}`);
+        return {
+          title: "Your event date changed",
+          body: `${changes.join("; ")}${location && !notification.locationChanged ? ` at ${location}` : ""}.`
+        };
+      }
+    case "eventUpdated": {
+      const changes = [];
+      if (notification.timeChanged) changes.push(`Time is now ${time || "updated"}`);
+      if (notification.locationChanged) changes.push(`Site name is now ${location || "updated"}`);
+      return {
+        title: changes.length === 1 && notification.timeChanged ? "Your event time changed"
+          : changes.length === 1 ? "Your event site name changed" : "Your event details changed",
+        body: changes.length
+          ? `${changes.join(". ")}. ${whenText && !notification.timeChanged ? `Event date: ${whenText}. ` : ""}Open the schedule to review.`
+          : `Your event details changed${locationText}${whenText ? ` on ${whenText}` : ""}. Open the schedule to review.`
+      };
+    }
     case "missionChanged":
-      return { title: "Your event type changed", body: "Your assignment was updated by the event team. Open the schedule to review the details." };
+      return {
+        title: "Your event type changed",
+        body: notification.oldMissionLabel && notification.newMissionLabel
+          ? `Event type changed from ${notification.oldMissionLabel} to ${notification.newMissionLabel}${locationText}${whenText ? ` on ${whenText}` : ""}.`
+          : `Your event type changed${locationText}${whenText ? ` on ${whenText}` : ""}.`
+      };
     case "eventDeleted":
-      return { title: "An event was deleted", body: "This assignment was removed. Open the schedule to view other open slots." };
+      return { title: "Your event was deleted", body: `The event${locationText}${whenText ? ` on ${whenText}` : ""} was deleted. You can choose another slot.` };
     case "siteRemoved":
-      return { title: "A site was removed", body: "This event assignment was removed. Open the schedule to review the updated list." };
+      return { title: "Your event site was removed", body: `The site${locationText}${whenText ? ` on ${whenText}` : ""} was removed from the schedule.` };
     case "siteAutoDeleted":
-      return { title: "Your site was removed", body: "This site was deleted from the schedule. Open the schedule to review available options." };
+      return { title: "Your event site was removed", body: `The site${locationText}${whenText ? ` on ${whenText}` : ""} was automatically deleted after its event date.` };
     case "eventCancelled":
-      return { title: "An event was cancelled", body: "This assignment was cancelled. Open the schedule to review the latest updates." };
+      return { title: "Your event was cancelled", body: `The event${locationText}${whenText ? ` on ${whenText}` : ""} was cancelled.` };
     case "eventReinstated":
-      return { title: "An event is back on", body: "The event team reinstated this event. Open the schedule to review the details." };
+      return { title: "Your event is back on", body: `The event${locationText}${whenText ? ` on ${whenText}` : ""} was reinstated.` };
     default:
       return { title: "Schedule update", body: "Your schedule has changed. Open the app to review the details." };
   }
+}
+
+function notificationBranch(notification) {
+  const raw = String(
+    notification.type === "branchChanged"
+      ? notification.newRegionCustom || notification.newRegion || ""
+      : notification.regionCustom || notification.region || ""
+  ).trim();
+  const normalized = raw.toLowerCase();
+  if (normalized === "north") return "North Caloocan";
+  if (normalized === "south") return "South Caloocan";
+  return raw && normalized !== "other" ? raw : "";
+}
+
+function notificationEventType(notification) {
+  const direct = String(notification.newMissionLabel || notification.missionLabel || notification.eventType || "").trim();
+  if (direct) return direct;
+  const mission = String(notification.mission || "").trim().toLowerCase();
+  if (mission === "medical") return "Medical Mission";
+  if (mission === "peoples_day") return "People's Day";
+  return String(notification.missionCustom || "").trim();
+}
+
+export function notificationText(notification) {
+  const message = baseNotificationText(notification);
+  if (!notification || typeof notification !== "object" || notification.type === "eventsDeployed") return message;
+
+  const context = [];
+  const branch = notificationBranch(notification);
+  const eventType = notificationEventType(notification);
+  if (branch && notification.type !== "branchChanged") context.push(`Branch: ${branch}`);
+  if (eventType && notification.type !== "missionChanged") context.push(`Event type: ${eventType}`);
+  return context.length ? { ...message, body: `${message.body} ${context.join(" • ")}.` } : message;
+}
+
+export function notificationUrl(appUrl, notification) {
+  const target = new URL(appUrl);
+  if (notification?.cardId) target.searchParams.set("viewSite", String(notification.cardId));
+  if (notification?.date) target.searchParams.set("date", String(notification.date));
+  const region = notification?.region || notification?.newRegion;
+  if (region) target.searchParams.set("region", String(region));
+  return target.toString();
 }
 
 async function sendPush(env, subscription, notification) {
@@ -189,8 +296,11 @@ async function sendPush(env, subscription, notification) {
           data: {
             title: text.title,
             body: text.body,
-            url: env.APP_URL,
-            notificationId: notification.id
+            url: notificationUrl(env.APP_URL, notification),
+            notificationId: notification.id,
+            cardId: String(notification.cardId || ""),
+            date: String(notification.date || ""),
+            region: String(notification.region || "")
           }
         }
       })
@@ -225,8 +335,8 @@ async function loadSubscriptions(env) {
   return subscriptions;
 }
 
-async function readNewNotifications(env) {
-  let cursor = await env.PUSH_SUBSCRIPTIONS.get("scan-cursor");
+async function readNewNotifications(env, storedCursor) {
+  let cursor = storedCursor;
   if (!cursor) cursor = new Date(Date.now() - 120000).toISOString();
   const overlap = new Date(Date.parse(cursor) - 1000).toISOString();
   const url = `https://firestore.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/databases/(default)/documents:runQuery?key=${encodeURIComponent(env.FIREBASE_API_KEY)}`;
@@ -253,10 +363,15 @@ async function readNewNotifications(env) {
   return rows.filter(row => row.document).map(row => decodeDocument(row.document));
 }
 
+export function shouldSaveScanCursor(storedCursor, newestTimestamp, allComplete) {
+  return allComplete && Boolean(newestTimestamp) && newestTimestamp !== storedCursor;
+}
+
 async function deliverNewNotifications(env) {
   const subscriptions = await loadSubscriptions(env);
-  const notifications = await readNewNotifications(env);
-  let newestTimestamp = await env.PUSH_SUBSCRIPTIONS.get("scan-cursor");
+  const storedCursor = await env.PUSH_SUBSCRIPTIONS.get("scan-cursor");
+  const notifications = await readNewNotifications(env, storedCursor);
+  let newestTimestamp = storedCursor;
   let allComplete = true;
 
   for (const notification of notifications) {
@@ -278,12 +393,30 @@ async function deliverNewNotifications(env) {
     if (!newestTimestamp || Date.parse(createdAt) > Date.parse(newestTimestamp)) newestTimestamp = createdAt;
   }
 
-  if (allComplete && newestTimestamp) await env.PUSH_SUBSCRIPTIONS.put("scan-cursor", newestTimestamp);
+  if (shouldSaveScanCursor(storedCursor, newestTimestamp, allComplete)) {
+    await env.PUSH_SUBSCRIPTIONS.put("scan-cursor", newestTimestamp);
+  }
+}
+
+function isAllowedOrigin(env, origin) {
+  if (origin === env.APP_ORIGIN) return true;
+  try {
+    const appUrl = new URL(env.APP_ORIGIN);
+    const hostname = appUrl.hostname;
+    const firebaseAlias = hostname.endsWith(".web.app")
+      ? hostname.slice(0, -8) + ".firebaseapp.com"
+      : hostname.endsWith(".firebaseapp.com")
+        ? hostname.slice(0, -16) + ".web.app"
+        : "";
+    return Boolean(firebaseAlias) && origin === `${appUrl.protocol}//${firebaseAlias}`;
+  } catch {
+    return false;
+  }
 }
 
 function corsHeaders(env, origin) {
   return {
-    "access-control-allow-origin": origin === env.APP_ORIGIN ? origin : "null",
+    "access-control-allow-origin": isAllowedOrigin(env, origin) ? origin : "null",
     "access-control-allow-methods": "POST, DELETE, OPTIONS",
     "access-control-allow-headers": "content-type",
     "access-control-max-age": "86400",
@@ -299,7 +432,7 @@ async function subscriptionKey(token) {
 async function handleSubscription(request, env) {
   const origin = request.headers.get("Origin") || "";
   const headers = corsHeaders(env, origin);
-  if (origin !== env.APP_ORIGIN) return new Response("Forbidden", { status: 403, headers });
+  if (!isAllowedOrigin(env, origin)) return new Response("Forbidden", { status: 403, headers });
   if (request.method === "OPTIONS") return new Response(null, { headers });
   if (request.method !== "POST" && request.method !== "DELETE") {
     return new Response("Method not allowed", { status: 405, headers });
@@ -318,18 +451,38 @@ async function handleSubscription(request, env) {
     const existing = await env.PUSH_SUBSCRIPTIONS.get(key, "json");
     if (existing && existing.staffId === staffId) await env.PUSH_SUBSCRIPTIONS.delete(key);
   } else {
-    await env.PUSH_SUBSCRIPTIONS.put(key, JSON.stringify({ staffId, token }));
+    const existing = await env.PUSH_SUBSCRIPTIONS.get(key, "json");
+    if (!existing || existing.staffId !== staffId || existing.token !== token) {
+      await env.PUSH_SUBSCRIPTIONS.put(key, JSON.stringify({ staffId, token }));
+    }
   }
   return new Response(JSON.stringify({ ok: true }), {
     headers: { ...headers, "content-type": "application/json" }
   });
 }
 
+async function handleWake(request, env, context) {
+  const origin = request.headers.get("Origin") || "";
+  const headers = corsHeaders(env, origin);
+  if (!isAllowedOrigin(env, origin)) return new Response("Forbidden", { status: 403, headers });
+  if (request.method === "OPTIONS") return new Response(null, { headers });
+  if (request.method !== "POST") return new Response("Method not allowed", { status: 405, headers });
+
+  context.waitUntil(deliverNewNotifications(env).catch(error => {
+    console.error("Immediate push delivery failed", error);
+  }));
+  return new Response(JSON.stringify({ ok: true }), {
+    status: 202,
+    headers: { ...headers, "content-type": "application/json" }
+  });
+}
+
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, context) {
     const url = new URL(request.url);
-    if (url.pathname !== "/subscribe") return new Response("Not found", { status: 404 });
-    return handleSubscription(request, env);
+    if (url.pathname === "/subscribe") return handleSubscription(request, env);
+    if (url.pathname === "/wake") return handleWake(request, env, context);
+    return new Response("Not found", { status: 404 });
   },
   async scheduled(_event, env, context) {
     context.waitUntil(deliverNewNotifications(env));
