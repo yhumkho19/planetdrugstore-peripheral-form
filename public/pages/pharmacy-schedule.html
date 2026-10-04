@@ -2744,6 +2744,7 @@ function siteExpiryPayloadBase(card) {
     date: card.date || "",
     time: card.time || "",
     region: card.region || "",
+    regionCustom: card.regionCustom || "",
     mission: card.mission || "medical",
     missionLabel: missionLabel(card),
     autoDeleted: true,
@@ -4134,9 +4135,8 @@ function render() {
         stampEl.remove();
       }
       render();
-      // Keep cancellation/reinstatement visible immediately to department
-      // heads through the live admin roster, but publish it to employees only
-      // when the pharmacist presses Update for this date bracket.
+      // Published events update for employees immediately; unpublished drafts
+      // remain hidden until the pharmacist sends the bracket.
       pushCardPatchToRemote(card.id, { cancelled: nowCancelled }, cards[idx], false);
     });
 
@@ -5258,7 +5258,7 @@ function applyEventsDeployedBroadcast(previousPublishedCards, publishedCards, pe
     if (id) assigned.add(id);
   };
   (personalNotifications || []).forEach(n => {
-    if (n && (n.type === "slotAssigned" || n.type === "siteMoved")) addId(n.staffId);
+    if (n && ["slotAssigned", "slotOpened", "siteMoved"].includes(n.type)) addId(n.staffId);
   });
   // Also cover anyone sitting in a slot of a newly published site even if no
   // personal notice was generated for them (e.g. name matched by staffId).
@@ -5274,12 +5274,21 @@ function applyEventsDeployedBroadcast(previousPublishedCards, publishedCards, pe
     });
   });
   const dates = [...new Set(newCards.map(c => c.date).filter(Boolean))].sort();
+  const siteSummary = newCards.slice(0, 3).map(card => [
+    `Site: ${card.location || "Unnamed site"}`,
+    card.date ? `Date: ${card.date}` : "",
+    card.time ? `Time: ${card.time}` : "",
+    `Branch: ${regionLabel(card)}`,
+    `Event type: ${missionLabel(card)}`
+  ].filter(Boolean).join(" • ")).join(" | ") +
+    (newCards.length > 3 ? ` | and ${newCards.length - 3} more site(s)` : "");
   return [{
     type: "eventsDeployed",
     broadcast: true,
     staffId: null,
     assignedStaffIds: [...assigned],
     siteCount: newCards.length,
+    siteSummary,
     dates,
     createdBy: (typeof signedInScheduleEmail !== "undefined" && signedInScheduleEmail) ? signedInScheduleEmail : "",
     visibleToEmployees: true,
@@ -5331,13 +5340,41 @@ async function writeScheduleNotifications(notifications) {
     unique.push(notification);
   });
   let failures = 0;
-  await Promise.all(unique.map(notification =>
-    addDoc(notificationsCollRef, stampEventType(notification)).catch(err => {
+  let written = 0;
+  await Promise.all(unique.map(async notification => {
+    try {
+      const card = notification.cardId ? cards.find(item => item.id === notification.cardId) : null;
+      const enriched = {
+        ...notification,
+        regionCustom: notification.regionCustom || notification.newRegionCustom || (card && card.regionCustom) || "",
+        missionLabel: notification.newMissionLabel || notification.missionLabel || (card ? missionLabel(card) : "")
+      };
+      await addDoc(notificationsCollRef, stampEventType(enriched));
+      written++;
+    } catch (err) {
       failures++;
       console.error("Failed to file schedule-change notification:", err);
-    })
-  ));
+    }
+  }));
+  if (written) void wakePushDelivery();
   return failures;
+}
+
+async function wakePushDelivery() {
+  try {
+    const configResponse = await fetch("/push-config.json", { cache: "no-store" });
+    if (!configResponse.ok) return;
+    const config = await configResponse.json();
+    if (!config.enabled || !config.workerUrl) return;
+    const response = await fetch(`${config.workerUrl.replace(/\/$/, "")}/wake`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{}"
+    });
+    if (!response.ok) console.warn("Immediate push wake failed:", response.status);
+  } catch (error) {
+    console.warn("Immediate push wake failed:", error);
+  }
 }
 
 // A card's "branch" for comparison purposes: for "other"/custom areas the
@@ -5688,6 +5725,54 @@ function applyPublishedAssignmentNotifications(previousPublishedCards, published
           resolved: false
         });
       });
+    });
+  });
+  return notifyPayloads;
+}
+
+function applyPublishedOpenSlotNotifications(previousPublishedCards, publishedCards) {
+  const previousById = new Map((previousPublishedCards || []).map(card => [card.id, card]));
+  const notifyPayloads = [];
+  (publishedCards || []).forEach(card => {
+    const previousCard = previousById.get(card.id) || {};
+    ["staff", "relievers"].forEach(listKey => {
+      const previousSlots = previousCard[listKey] || [];
+      const currentSlots = card[listKey] || [];
+      for (let staffIdx = previousSlots.length; staffIdx < currentSlots.length; staffIdx++) {
+        const slot = currentSlots[staffIdx];
+        if (!slot || (slot.name || "").trim()) continue;
+        const role = String(slot.label || "").trim().toUpperCase().replace(/\s+/g, " ");
+        const eligibleTeams = listKey === "relievers"
+          ? ["PHARMACY ASSISTANT", "BILLING"]
+          : role === "PHARMACIST" ? ["PHARMACIST"]
+            : role === "BILLING" ? ["BILLING"]
+              : role === "IT SPECIALIST" ? ["IT"]
+                : ["PICKER", "ENCODER", "ENCODER/PICKER", "PHARMACY ASSISTANT"].includes(role)
+                  ? ["PHARMACY ASSISTANT"]
+                  : [];
+        employeesMap.forEach((employee, staffId) => {
+          const normalizedId = String(staffId || "").trim().toLowerCase();
+          const employeeTeam = roleToTeam(splitDepartmentClient(employee.department).team).toUpperCase();
+          if (!normalizedId || !eligibleTeams.includes(employeeTeam)) return;
+          notifyPayloads.push({
+            type: "slotOpened",
+            cardId: card.id,
+            list: listKey,
+            staffIdx,
+            role: slot.label || "",
+            location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (card.location || "Unnamed site"),
+            date: card.date || "",
+            time: card.time || "",
+            region: card.region || "",
+            regionCustom: card.regionCustom || "",
+            missionLabel: missionLabel(card),
+            staffId: normalizedId,
+            visibleToEmployees: true,
+            createdAt: serverTimestamp(),
+            resolved: false
+          });
+        });
+      }
     });
   });
   return notifyPayloads;
@@ -6193,6 +6278,10 @@ async function sendAllToEmployees(btn) {
           .filter(n => !movedKeys.has(`${n.cardId}:${n.list}:${n.staffIdx}`) &&
             !publishedMovedKeys.has(`${n.cardId}:${n.list}:${n.staffIdx}`))
       : [];
+    const publishedOpenSlotNotifications = applyPublishedOpenSlotNotifications(
+      Array.isArray(snap.data().employeeCards) ? snap.data().employeeCards : [],
+      stripForRemote(merged)
+    );
     // Write the merge result back into the local `cards` array, not just to
     // Firestore. Previously `merged` was only ever sent remotely, so local
     // `cards` kept its pre-merge (e.g. blank) slots while the server now had
@@ -6231,11 +6320,11 @@ async function sendAllToEmployees(btn) {
       ? applyEventsDeployedBroadcast(
           publishedBeforeAll,
           stripForRemote(merged),
-          [...moveNotifications, ...assignmentNotifications, ...publishedAssignmentNotifications, ...publishedMoveNotifications]
+          [...moveNotifications, ...assignmentNotifications, ...publishedAssignmentNotifications, ...publishedMoveNotifications, ...publishedOpenSlotNotifications]
         )
       : [];
     const allChangeNotifications = markEmployeeVisibleNotifications(
-      [...branchChangeNotifications, ...scheduleChangeNotifications, ...moveNotifications, ...assignmentNotifications, ...publishedAssignmentNotifications, ...publishedMoveNotifications, ...publishedCancelledNotifications, ...eventsDeployedNotifications],
+      [...branchChangeNotifications, ...scheduleChangeNotifications, ...moveNotifications, ...assignmentNotifications, ...publishedAssignmentNotifications, ...publishedMoveNotifications, ...publishedOpenSlotNotifications, ...publishedCancelledNotifications, ...eventsDeployedNotifications],
       publishedBeforeAll,
       scheduleAccessRole === "pharmacist"
     );
@@ -6324,6 +6413,7 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn, groupCardIds) {
     const publishedAssignmentNotifications = applyPublishedAssignmentNotifications(publishedBefore, alreadyPublishedMergedThisDate)
       .filter(n => !movedKeys.has(`${n.cardId}:${n.list}:${n.staffIdx}`) &&
         !publishedMovedKeys.has(`${n.cardId}:${n.list}:${n.staffIdx}`));
+    const publishedOpenSlotNotifications = applyPublishedOpenSlotNotifications(publishedBefore, alreadyPublishedMergedThisDate);
     const publishedCancelledNotifications = applyPublishedCancelledNotifications(publishedBefore, alreadyPublishedMergedThisDate);
     // Same fix as sendAllToEmployees above: reflect the merged (self-signup
     // filled-in) cards back into the local `cards` array for this date, so
@@ -6377,7 +6467,7 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn, groupCardIds) {
     render();
     const publishedBeforeAll = Array.isArray(snap.data().employeeCards) ? snap.data().employeeCards : [];
     const allChangeNotifications = markEmployeeVisibleNotifications(
-      [...branchChangeNotifications, ...scheduleChangeNotifications, ...moveNotifications, ...assignmentNotifications, ...publishedAssignmentNotifications, ...publishedMoveNotifications, ...publishedCancelledNotifications],
+      [...branchChangeNotifications, ...scheduleChangeNotifications, ...moveNotifications, ...assignmentNotifications, ...publishedAssignmentNotifications, ...publishedMoveNotifications, ...publishedOpenSlotNotifications, ...publishedCancelledNotifications],
       publishedBeforeAll,
       // Update never publishes a brand-new site to employees on its own
       // (see the employeeCards write above), so pass false here — a
@@ -6449,6 +6539,7 @@ async function deleteDateFromRemote(dateKey) {
               date: removedCard.date || "",
               time: removedCard.time || "",
               region: removedCard.region || "",
+              regionCustom: removedCard.regionCustom || "",
               missionLabel: missionLabel(removedCard),
               employeeName: slot.name || "",
               staffId: notifyStaffId,
@@ -6485,6 +6576,7 @@ async function deleteDateFromRemote(dateKey) {
           console.error("Failed to file event-deleted notification:", err);
         })
       ));
+      if (notifFailCount < notifyPayloads.length) void wakePushDelivery();
       if (notifFailCount > 0) {
         await showAlert(
           `Event deleted, but ${notifFailCount} employee notification(s) failed to send.\n\n` +
@@ -6508,6 +6600,8 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard, publishTo
     const data = snap.exists() ? snap.data() : { cards: [] };
     const remoteCards = Array.isArray(data.cards) ? data.cards : [];
     const cIdx = remoteCards.findIndex(c => c.id === cardId);
+    const currentPublishedCards = Array.isArray(data.employeeCards) ? data.employeeCards : [];
+    const employeeCardIsPublished = currentPublishedCards.some(card => card.id === cardId);
     let nextCards;
     let cardBeforePatch = null; // the remote card as it stood before this patch — used below to find who to notify
     if (cIdx === -1) {
@@ -6531,16 +6625,9 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard, publishTo
       const wasCancelled = !!cardBeforePatch.cancelled;
       const nowCancelled = !!patch.cancelled;
       if (wasCancelled !== nowCancelled) {
-        // Only file the per-employee notice here when this patch is itself
-        // publishing to employees. The click-to-cancel/reinstate button
-        // always calls this with publishToEmployees=false (see its handler
-        // above), so on that path no employee-facing notice goes out yet —
-        // it's filed later, by applyPublishedCancelledNotifications, at the
-        // moment the pharmacist actually presses Update/Send and the
-        // employeeCards roster changes. Otherwise an employee would get the
-        // "event cancelled" message before the CANCELLED stamp itself was
-        // ever published, i.e. a message with nothing yet to back it up.
-        if (publishToEmployees) {
+        // Notify employees immediately only when this event is already in
+        // their published roster. Unpublished drafts stay employee-invisible.
+        if (publishToEmployees || employeeCardIsPublished) {
           ["staff", "relievers"].forEach(listKey => {
             (cardBeforePatch[listKey] || []).forEach(slot => {
               const notifyStaffId = resolveSlotStaffId(slot);
@@ -6554,6 +6641,7 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard, publishTo
                   date: cardBeforePatch.date || "",
                   time: cardBeforePatch.time || "",
                   region: cardBeforePatch.region || "",
+                  regionCustom: cardBeforePatch.regionCustom || "",
                   missionLabel: missionLabel(cardBeforePatch),
                   employeeName: slot.name || "",
                   staffId: notifyStaffId,
@@ -6580,6 +6668,7 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard, publishTo
             date: cardBeforePatch.date || "",
             time: cardBeforePatch.time || "",
             region: cardBeforePatch.region || "",
+            regionCustom: cardBeforePatch.regionCustom || "",
                   missionLabel: missionLabel(cardBeforePatch),
             createdBy: signedInScheduleEmail,
             createdAt: serverTimestamp(),
@@ -6592,11 +6681,11 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard, publishTo
       cards: nextCards,
       sentAt: serverTimestamp(),
       sentBy: data.sentBy || "admin",
-      // Preserve the last employee-visible roster while a cancellation or
-      // reinstatement is still an unpublished pharmacist draft.
+      // Patch only this event in the employee roster unless explicitly
+      // publishing the full pharmacist schedule. This keeps other drafts hidden.
       employeeCards: publishToEmployees
         ? nextCards
-        : (Array.isArray(data.employeeCards) ? data.employeeCards : [])
+        : currentPublishedCards.map(card => card.id === cardId ? { ...card, ...patch } : card)
     };
     await setDoc(scheduleDocRef, update);
     if (notifyPayloads.length) {
@@ -6607,6 +6696,7 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard, publishTo
           console.error("Failed to file cancel-toggle notification:", err);
         })
       ));
+      if (notifFailCount < notifyPayloads.length) void wakePushDelivery();
       if (notifFailCount > 0) {
         const actionLabel = patch.cancelled ? "Event cancelled" : "Event reinstated";
         await showAlert(
@@ -6645,6 +6735,7 @@ async function deleteSiteFromRemote(cardId) {
               date: removedCard.date || "",
               time: removedCard.time || "",
               region: removedCard.region || "",
+              regionCustom: removedCard.regionCustom || "",
               missionLabel: missionLabel(removedCard),
               employeeName: slot.name || "",
               staffId: notifyStaffId,
@@ -6676,6 +6767,7 @@ async function deleteSiteFromRemote(cardId) {
           console.error("Failed to file site-removed notification:", err);
         })
       ));
+      if (notifFailCount < notifyPayloads.length) void wakePushDelivery();
       if (notifFailCount > 0) {
         await showAlert(
           `Site removed, but ${notifFailCount} employee notification(s) failed to send.\n\n` +

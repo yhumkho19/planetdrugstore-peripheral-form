@@ -1,0 +1,5 @@
+{
+  "enabled": true,
+  "workerUrl": "https://peripherals-push.pds-peripherals.workers.dev",
+  "vapidKey": "BDFYqVGfo4qyvc5SyTQVwRu-gGMzzK2u5DQ1vN5gPc2aLONbsHRvOnhvowNr3rG5SYY1SMZHLnu2BAp6D7TlA2g"
+}

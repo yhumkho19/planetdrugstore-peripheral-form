@@ -174,6 +174,24 @@
     font-size: 11px; font-weight: 700; flex-shrink: 0;
   }
   .admin-chip-wrap { position: relative; display: inline-block; }
+  .push-toggle-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid #18794e;
+    background: #eaf5ee;
+    color: #145c3a;
+    border-radius: 999px;
+    padding: 9px 14px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+    box-shadow: var(--shadow-xs);
+  }
+  .push-toggle-button:disabled { cursor: default; opacity: .7; }
   .admin-chip:hover { border-color: var(--ink-faint); }
   .admin-dropdown {
     position: absolute;
@@ -1749,6 +1767,7 @@
     <div class="topbar">
       <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">☰</button>
       <div class="topbar-right">
+        <button type="button" class="push-toggle-button" id="pushToggleButton" aria-live="polite">Enable phone notifications</button>
         <div class="admin-chip-wrap" id="empChipWrap">
           <button type="button" class="admin-chip" id="empChipBtn" aria-haspopup="true"><span class="avatar" id="empChipAvatar">—</span><span id="empChipLabel">—</span>▾</button>
           <div class="admin-dropdown" id="empDropdown">
@@ -5355,6 +5374,10 @@ if (employeeSession) {
     });
   });
   let lastEmployeeAllCards = [];
+  const pushSiteParams = new URLSearchParams(window.location.search);
+  let pendingPushSiteId = pushSiteParams.get("viewSite") || "";
+  const pendingPushDate = pushSiteParams.get("date") || "";
+  const pendingPushRegion = pushSiteParams.get("region") || "";
   onSnapshot(scheduleDocRef, snap => {
     const data = snap.exists() ? snap.data() : { cards: [] };
     // Store Reliever rows display as Pharmacy Assistant duty — strip any leftover
@@ -5379,11 +5402,37 @@ if (employeeSession) {
             : ""
         }))
     }));
+    const movedAssignedCard = lastEmployeeAllCards.reduce((moved, previousCard) => {
+      if (moved) return moved;
+      const currentCard = allCards.find(card => card.id === previousCard.id);
+      if (!currentCard || currentCard.region === previousCard.region) return null;
+      const wasAssignedToEmployee = ["staff", "relievers"].some(listKey =>
+        (previousCard[listKey] || []).some(slot => slotBelongsToEmployee(slot))
+      );
+      return wasAssignedToEmployee ? currentCard : null;
+    }, null);
+    if (movedAssignedCard) {
+      employeeRegionFilter = movedAssignedCard.region;
+      employeeSelectedDate = movedAssignedCard.date || undefined;
+    }
     lastEmployeeAllCards = allCards;
     employeePublishedCardsForLookup = allCards;
     renderEmployeeSchedule(allCards, employeeSession.branch);
     renderLeaderboard(allCards);
     lastRenderedLiveSiteCount = allCards.filter(c => !siteIsExpired(c)).length;
+    if (movedAssignedCard) notifCenterJump(movedAssignedCard.id, movedAssignedCard.date || "");
+    if (pendingPushSiteId) {
+      const regionButton = [...document.querySelectorAll("#regionAccordions .region-acc-head")]
+        .find(button => button.dataset.filter === pendingPushRegion);
+      if (regionButton && employeeRegionFilter !== pendingPushRegion) regionButton.click();
+      notifCenterJump(pendingPushSiteId, pendingPushDate);
+      pendingPushSiteId = "";
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("viewSite");
+      cleanUrl.searchParams.delete("date");
+      cleanUrl.searchParams.delete("region");
+      history.replaceState(null, "", cleanUrl);
+    }
   });
   // A site disappears the second its 12:00 AM auto-delete moment passes, even
   // if the page has been sitting open all night.
@@ -6146,6 +6195,7 @@ renderNotifCenter = function () {
 };
 maybeShowLoginNotifPrompt();
 </script>
+<script type="module" src="/assets/js/push-notifications.js"></script>
 
 </body>
 </html>
