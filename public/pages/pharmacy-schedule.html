@@ -473,6 +473,52 @@
   .region-acc-arrow { font-size: 12px; transition: transform .15s ease; }
   .region-acc-head.active .region-acc-arrow { transform: rotate(180deg); }
 
+  .schedule-filters {
+    display: flex;
+    align-items: end;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 0 0 16px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+  }
+  .schedule-view-switch { display: inline-flex; gap: 4px; padding: 3px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-dim); }
+  .schedule-view-switch button { min-height: 36px; padding: 7px 12px; border: 0; border-radius: 3px; background: transparent; color: var(--ink-muted); font: 600 12px 'Inter', sans-serif; cursor: pointer; }
+  .schedule-view-switch button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  .schedule-filter-field { display: grid; gap: 4px; min-width: 145px; }
+  .schedule-filter-field span { color: var(--ink-muted); font: 700 10px 'IBM Plex Mono', monospace; text-transform: uppercase; }
+  .schedule-filter-field select { min-height: 36px; max-width: 220px; padding: 6px 30px 6px 9px; border: 1px solid var(--border); border-radius: 3px; background: var(--surface); color: var(--ink); font: 500 13px 'Inter', sans-serif; }
+  .schedule-calendar { width: 100%; margin-bottom: 20px; }
+  .calendar-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .calendar-title { margin: 0; color: var(--ink); font: 600 20px 'Fraunces', serif; }
+  .calendar-nav { display: flex; gap: 6px; }
+  .calendar-nav button { min-width: 36px; min-height: 34px; border: 1px solid var(--border); border-radius: 3px; background: var(--surface); color: var(--ink); font: 600 16px 'Inter', sans-serif; cursor: pointer; }
+  .calendar-weekdays, .calendar-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .calendar-weekdays { border: 1px solid var(--border); border-bottom: 0; background: var(--surface-dim); }
+  .calendar-weekdays span { padding: 8px 4px; color: var(--ink-muted); font: 700 10px 'IBM Plex Mono', monospace; text-align: center; text-transform: uppercase; }
+  .calendar-days { border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
+  .calendar-day { min-width: 0; min-height: 96px; padding: 6px; overflow: hidden; border: 0; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface); color: var(--ink); text-align: left; cursor: pointer; }
+  .calendar-day:hover { background: var(--surface-dim); }
+  .calendar-day.is-outside { background: var(--surface-dim); color: var(--ink-faint); }
+  .calendar-day.is-selected { box-shadow: inset 0 0 0 2px var(--signal); }
+  .calendar-day-number { display: block; margin-bottom: 4px; font: 600 12px 'IBM Plex Mono', monospace; }
+  .calendar-event { display: block; margin-top: 3px; padding: 3px 5px; overflow: hidden; border-left: 3px solid var(--south); background: var(--south-soft); color: var(--ink); font: 500 10px/1.25 'Inter', sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+  .calendar-event.north { border-color: var(--north); background: var(--north-soft); }
+  .calendar-event.cancelled { border-color: var(--danger); background: var(--danger-soft); color: #8f2025; }
+  .calendar-event.cancelled::after { content: " · CANCELLED"; font-size: 8px; font-weight: 700; }
+  .calendar-more { display: block; margin-top: 3px; color: var(--ink-muted); font: 600 10px 'IBM Plex Mono', monospace; }
+  .calendar-selected-label { margin: 0 0 12px; color: var(--ink-muted); font: 600 12px 'IBM Plex Mono', monospace; }
+  .archive-group { margin-bottom: 22px; }
+  .archive-group-title { margin: 0 0 9px; padding-bottom: 7px; border-bottom: 1px solid var(--border); color: var(--ink); font: 600 17px 'Fraunces', serif; }
+  .archive-entry { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; padding: 12px 14px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .archive-entry-title { min-width: 0; color: var(--ink); font: 700 14px 'Inter', sans-serif; overflow-wrap: anywhere; }
+  .archive-entry-meta { margin-top: 4px; color: var(--ink-muted); font: 500 12px/1.45 'Inter', sans-serif; }
+  .archive-entry-staff { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 5px 12px; color: var(--ink-muted); font: 500 11px/1.4 'Inter', sans-serif; }
+  .archive-status { align-self: start; white-space: nowrap; color: var(--south); font: 700 10px 'IBM Plex Mono', monospace; text-transform: uppercase; }
+  .archive-status.cancelled { color: var(--danger); }
+
   .btn {
     font-family: 'Inter', sans-serif;
     font-size: 13px;
@@ -667,8 +713,8 @@
 
   .ticket-number {
     position: absolute;
-    top: 14px;
-    right: 68px;
+    top: 12px;
+    left: 18px;
     background: var(--surface-dim);
     color: var(--ink-faint);
     font-family: 'Inter', sans-serif;
@@ -683,7 +729,7 @@
   }
 
   .card-inner {
-    flex: 1; padding: 24px 22px 18px; min-width: 0;
+    flex: 1; padding: 50px 22px 18px; min-width: 0;
     display: grid;
     grid-template-columns: 1fr 190px;
     column-gap: 18px;
@@ -725,9 +771,8 @@
   }
 
   .remove-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
+    position: static;
+    flex: 0 0 28px;
     width: 22px;
     height: 22px;
     border-radius: 50%;
@@ -744,9 +789,8 @@
   .remove-btn:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
 
   .cancel-event-btn {
-    position: absolute;
-    top: 10px;
-    right: 38px;
+    position: static;
+    flex: 0 0 28px;
     width: 22px;
     height: 22px;
     border-radius: 50%;
@@ -759,6 +803,57 @@
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+  .reminder-event-btn {
+    position: static;
+    flex: 0 0 28px;
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--south);
+    border-radius: 50%;
+    background: var(--south-soft);
+    color: var(--south);
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .reminder-event-btn:hover { background: var(--south); color: #fff; }
+  .reminder-event-btn:disabled { cursor: wait; opacity: .65; }
+  .pharmacist-note-btn {
+    position: static;
+    flex: 0 0 28px;
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--north);
+    border-radius: 50%;
+    background: var(--north-soft);
+    color: var(--north);
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pharmacist-note-btn:hover { background: var(--north); color: #fff; }
+  .pharmacist-note-btn:disabled { cursor: wait; opacity: .65; }
+  .card-actions {
+    position: absolute;
+    top: 9px;
+    right: 10px;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .card-actions > button {
+    box-sizing: border-box;
+    width: 28px;
+    height: 28px;
+    padding: 0;
   }
   .cancel-event-btn:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
   .cancel-event-btn.is-cancelled { border-color: var(--danger); color: #fff; background: var(--danger); }
@@ -1144,6 +1239,7 @@
   .name-picker-option:hover { background: var(--signal-soft); color: var(--signal-dark); }
   .name-picker-option.is-taken { color: #C81E2C; cursor: not-allowed; opacity: 0.85; }
   .name-picker-option.is-taken:hover { background: #FBE7E9; color: #C81E2C; }
+  .name-picker-option:disabled { color: var(--ink-faint); cursor: not-allowed; opacity: 0.65; }
   .name-picker-taken-tag { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .02em; margin-left: 4px; opacity: 0.85; }
   .name-picker-empty { padding: 8px; color: var(--ink-muted); font-size: 12px; }
   .staff-row input.siteInput {
@@ -1161,6 +1257,16 @@
   }
   .staff-row input.siteInput:focus { outline: none; border-bottom-color: var(--north); }
   .staff-row input.siteInput::placeholder { color: var(--ink-faint); font-weight: 400; }
+  .reliever-time-wrap { display: flex; align-items: center; gap: 8px; margin-top: 4px; color: var(--ink-muted); font-size: 10px; }
+  .staff-row input.relieverTimeInput {
+    width: 112px;
+    border: none;
+    border-bottom: 1px dashed var(--border);
+    background: transparent;
+    color: var(--north);
+    font: 500 11px 'IBM Plex Mono', monospace;
+  }
+  .staff-row input.relieverTimeInput:focus { outline: none; border-bottom-color: var(--north); }
   .reliever-site-tag {
     display: block;
     font-family: 'IBM Plex Mono', monospace;
@@ -1250,6 +1356,16 @@
     .toolbar .btn { flex: 1 1 auto; text-align: center; padding: 9px 10px; }
     .grid { margin-top: 6px; }
     .bracket-grid { grid-template-columns: 1fr; }
+    .schedule-filters { align-items: stretch; }
+    .schedule-view-switch { width: 100%; }
+    .schedule-view-switch button { flex: 1; }
+    .schedule-filter-field { flex: 1 1 42%; min-width: 125px; }
+    .schedule-filter-field select { max-width: none; width: 100%; }
+    .calendar-day { min-height: 68px; padding: 4px; }
+    .calendar-weekdays span { font-size: 9px; }
+    .calendar-event { padding: 2px 3px; font-size: 9px; }
+    .archive-entry { grid-template-columns: minmax(0, 1fr); gap: 5px; }
+    .archive-entry-staff { grid-column: 1; }
     .bracket-head { gap: 8px; }
     .bracket-add-btn { margin-left: 0; }
     .bracket-actions { width: 100%; margin-left: 0; }
@@ -2095,6 +2211,7 @@
       <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">☰</button>
       <!-- <div class="topbar-search">🔍 Search events, sites, or staff…</div> -->
       <div class="topbar-right">
+        <button type="button" class="push-toggle-button" id="pushToggleButton" data-push-head="true" aria-live="polite">Enable phone notifications</button>
         <div class="admin-chip-wrap" id="adminChipWrap">
           <button type="button" class="admin-chip" id="adminChipBtn" aria-haspopup="true"><span class="avatar" id="adminChipAvatar">ET</span><span id="adminChipLabel">EVENT TEAM</span>▾</button>
           <div class="admin-dropdown" id="adminDropdown">
@@ -2144,10 +2261,42 @@
         </button>
       </div>
 
+      <div class="schedule-filters" id="scheduleFilters" aria-label="Event schedule views and filters">
+        <div class="schedule-view-switch" role="group" aria-label="Upcoming or archived events">
+          <button type="button" id="scheduleUpcomingBtn" aria-pressed="true">Upcoming</button>
+          <button type="button" id="scheduleArchiveBtn" aria-pressed="false">Archive <span id="scheduleArchiveCount">0</span></button>
+        </div>
+        <div class="schedule-view-switch" role="group" aria-label="Schedule view">
+          <button type="button" id="scheduleListViewBtn" aria-pressed="true">List</button>
+          <button type="button" id="scheduleCalendarViewBtn" aria-pressed="false">Calendar</button>
+        </div>
+        <label class="schedule-filter-field">
+          <span>Date</span>
+          <select id="scheduleDateFilter" aria-label="Filter events by date"><option value="__all__">All dates</option></select>
+        </label>
+        <label class="schedule-filter-field">
+          <span>Branch</span>
+          <select id="scheduleBranchFilter" aria-label="Filter events by branch">
+            <option value="all">All branches</option>
+            <option value="north">North Caloocan</option>
+            <option value="south">South Caloocan</option>
+            <option value="other">Other areas</option>
+          </select>
+        </label>
+        <label class="schedule-filter-field">
+          <span>Status</span>
+          <select id="scheduleStatusFilter" aria-label="Filter events by status">
+            <option value="all">All statuses</option>
+            <option value="active">Active</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </label>
+      </div>
+
       <div class="toolbar">
         <button class="btn" id="addDateBtn">+ Add date event</button>
         <button class="btn primary" id="saveBtn">📤 Send</button>
-        <button class="btn" id="updateAllBtn">💾 Save</button>
+        <button class="btn" id="updateAllBtn">💾 Save draft</button>
         <span id="unsavedIndicator" class="unsaved-badge" style="display:none;">● There are unsaved changes.</span>
         <!-- <button class="btn ghost" id="printBtn">🖨️ Print / Export PDF</button> -->
         <button class="btn danger-outline" id="resetBtn">Reset all</button>
@@ -2191,7 +2340,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-09-28.6";
+const APP_VERSION = "2026-10-10.8";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -2258,7 +2407,7 @@ function setModalIcon(kind) {
   // Every modal starts as the compact dialog; the form prompts opt back in
   // to the wider "form" layout right after calling this.
   appModalBox.classList.remove("modal-box--form");
-  const glyphs = { ok: "✓", warn: "!", question: "?", date: "📅", bell: "🔔" };
+  const glyphs = { ok: "✓", warn: "!", question: "?", date: "📅", bell: "🔔", note: "📝" };
   appModalIcon.textContent = glyphs[kind] || glyphs.ok;
   appModalIcon.className = "modal-icon" + (kind === "warn" || kind === "question" ? " " + kind : "");
   appModalIcon.style.animation = "none";
@@ -2290,7 +2439,7 @@ function showAlert(message, kind) {
   });
 }
 
-function showConfirm(message) {
+function showConfirm(message, confirmLabel = "Confirm") {
   return new Promise(resolve => {
     setModalIcon(/undone|remove|delete|unavailable/i.test(message) ? "warn" : "question");
     appModalMessage.textContent = message;
@@ -2300,7 +2449,7 @@ function showConfirm(message) {
     cancelBtn.addEventListener("click", () => { closeModal(); resolve(false); });
     const okBtn = document.createElement("button");
     okBtn.className = "primary";
-    okBtn.textContent = "Confirm";
+    okBtn.textContent = confirmLabel;
     okBtn.addEventListener("click", () => { closeModal(); resolve(true); });
     appModalActions.appendChild(cancelBtn);
     appModalActions.appendChild(okBtn);
@@ -2309,6 +2458,106 @@ function showConfirm(message) {
     // call doesn't fire mid-transition and scroll the page instead of the
     // modal.
     setTimeout(() => okBtn.focus(), 30);
+  });
+}
+
+function showStoreRelieverPrompt(employeeNames) {
+  return new Promise(resolve => {
+    setModalIcon("question");
+    appModalBox.classList.add("modal-box--form");
+    appModalMessage.innerHTML = `
+      <h2 class="bf-title">Assign Store Reliever</h2>
+      <div class="bf-sub">Choose another Pharmacy Assistant, or leave the Store Reliever slot open for sign-up.</div>
+      <div class="bf-field">
+        <label class="bf-label" for="storeRelieverEmployee">Pharmacy Assistant</label>
+        <select id="storeRelieverEmployee" class="bf-input">
+          <option value="__none__" selected>None — leave open for sign-up</option>
+          ${employeeNames.map(name => `<option value="${escapeAttr(name)}">${escapeHtml(name)}</option>`).join("")}
+        </select>
+      </div>
+    `;
+    const select = document.getElementById("storeRelieverEmployee");
+    const finish = value => {
+      document.removeEventListener("keydown", onKey);
+      closeModal();
+      resolve(value);
+    };
+    const submit = () => finish(select.value === "__none__"
+      ? { type: "none" }
+      : { type: "employee", name: select.value });
+    const onKey = e => {
+      if (e.key === "Escape") { e.preventDefault(); finish(null); }
+      else if (e.key === "Enter") { e.preventDefault(); submit(); }
+    };
+    document.addEventListener("keydown", onKey);
+
+    appModalActions.innerHTML = "";
+    const cancelBtn = document.createElement("button");
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.addEventListener("click", () => finish({ type: "cancel" }));
+    const confirmBtn = document.createElement("button");
+    confirmBtn.className = "primary";
+    confirmBtn.textContent = "Confirm";
+    confirmBtn.addEventListener("click", submit);
+    appModalActions.appendChild(cancelBtn);
+    appModalActions.appendChild(confirmBtn);
+    appModal.classList.add("open");
+    setTimeout(() => select.focus(), 30);
+  });
+}
+
+function showDepartmentNotePrompt(card) {
+  return new Promise(resolve => {
+    setModalIcon("note");
+    appModalBox.classList.add("modal-box--form");
+    appModalMessage.innerHTML = `
+      <h2 class="bf-title">Note for assigned employees</h2>
+      <div class="bf-sub">${escapeHtml(card.location || "Unnamed site")}${card.date ? ` · ${escapeHtml(formatDateDisplay(card.date))}` : ""}</div>
+      <div class="bf-field">
+        <label class="bf-label" for="departmentNoteDraft">Note</label>
+        <textarea id="departmentNoteDraft" class="bf-input" rows="5" maxlength="500" placeholder="Write a note for employees assigned to this event..."></textarea>
+        <div id="departmentNoteCount" class="bf-sub" style="text-align:right;margin-top:5px;">0 / 500</div>
+      </div>
+    `;
+    const input = document.getElementById("departmentNoteDraft");
+    const counter = document.getElementById("departmentNoteCount");
+    const finish = value => {
+      document.removeEventListener("keydown", onKey);
+      appModalBox.classList.remove("modal-box--form");
+      closeModal();
+      resolve(value);
+    };
+    const cancel = () => finish(null);
+    const submit = () => {
+      const value = input.value.trim();
+      if (value) finish(value);
+    };
+    const onKey = event => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        cancel();
+      } else if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        event.preventDefault();
+        submit();
+      }
+    };
+    const sendButton = document.createElement("button");
+    sendButton.className = "primary";
+    sendButton.textContent = "Send";
+    sendButton.disabled = true;
+    input.addEventListener("input", () => {
+      counter.textContent = `${input.value.length} / 500`;
+      sendButton.disabled = !input.value.trim();
+    });
+    document.addEventListener("keydown", onKey);
+    appModalActions.innerHTML = "";
+    const cancelButton = document.createElement("button");
+    cancelButton.textContent = "Cancel";
+    cancelButton.addEventListener("click", cancel);
+    sendButton.addEventListener("click", submit);
+    appModalActions.append(cancelButton, sendButton);
+    appModal.classList.add("open");
+    setTimeout(() => input.focus(), 30);
   });
 }
 
@@ -2529,7 +2778,7 @@ function showAddDateEventPrompt() {
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  initializeFirestore, doc, collection, setDoc, getDoc, onSnapshot, serverTimestamp, runTransaction,
+  initializeFirestore, doc, collection, setDoc, getDoc, onSnapshot, serverTimestamp, runTransaction, writeBatch,
   addDoc, deleteDoc, updateDoc, query, orderBy, arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 // Only needed here for Logout — admin-login.html is what actually signs
@@ -2576,6 +2825,14 @@ const THIS_SCHEDULE_DEPARTMENT = "pharmacist";
 const signedInScheduleEmail = String(auth.currentUser && auth.currentUser.email || "").trim().toLowerCase();
 const scheduleAccessRole = Object.entries(SCHEDULE_ACCESS)
   .find(([, email]) => email === signedInScheduleEmail)?.[0] || "";
+const scheduleAssignerLabel = {
+  pharmacist: "Pharmacist",
+  billing: "Billing Head",
+  information: "IT Head"
+}[scheduleAccessRole] || "Department Head";
+function withScheduleActor(notification) {
+  return { ...notification, actorLabel: notification.actorLabel || scheduleAssignerLabel };
+}
 if (!scheduleAccessRole) {
   window.location.replace("/839jgl8ang");
   throw new Error("Unauthorized event schedule account.");
@@ -2603,6 +2860,7 @@ const SCHEDULE_ROLE_BADGE = {
   if (labelEl) labelEl.textContent = badge.label;
 })();
 const isPharmacistScheduleUser = scheduleAccessRole === "pharmacist";
+const canWriteDepartmentNotes = ["pharmacist", "billing", "information"].includes(scheduleAccessRole);
 if (!isPharmacistScheduleUser) {
   ["addDateBtn", "saveBtn", "resetBtn"].forEach(id => {
     const button = document.getElementById(id);
@@ -2615,6 +2873,14 @@ function canEditScheduleSlot(label, listKey) {
   const role = roleToTeam(label).toUpperCase();
   return (scheduleAccessRole === "billing" && role === "BILLING") ||
     (scheduleAccessRole === "information" && role === "IT");
+}
+function canWriteNoteForSlot(slot, listKey) {
+  if (scheduleAccessRole === "pharmacist") return true;
+  const ownDepartment = scheduleAccessRole === "information" ? "IT" : "BILLING";
+  const assignedDepartment = listKey === "relievers"
+    ? roleToTeam(slot.relieverDepartment || slot.label).toUpperCase()
+    : roleToTeam(slot.label).toUpperCase();
+  return assignedDepartment === ownDepartment;
 }
 // Which role labels the CURRENTLY logged-in head is allowed to add/switch a
 // slot to. Pharmacist and billing keep full reign (billing manages Store
@@ -2640,6 +2906,7 @@ function requirePharmacistScheduleAccess() {
 }
 // Single shared doc that "Send" overwrites and employees read live.
 const scheduleDocRef = doc(db, "eventSchedule", "current");
+const completedEventArchiveRef = collection(db, "eventScheduleArchive");
 // Same "employees" collection admin-console.html registers accounts into
 // (doc id = staffId.toLowerCase(), fields include name/department), read
 // here only to resolve each participant's branch + team for the leaderboard.
@@ -2757,10 +3024,7 @@ async function runSiteExpirySweep() {
   siteExpirySweepBusy = true;
   try {
     const attempt = async (withNotifications) => {
-      return await runTransaction(db, async tx => {
-        const snap = await tx.get(scheduleDocRef);
-        if (!snap.exists()) return [];
-        const data = snap.data() || {};
+      const data = siteExpiryLatestData || {};
         const headCards = Array.isArray(data.cards) ? data.cards : [];
         const empCards = Array.isArray(data.employeeCards) ? data.employeeCards : [];
         const expiredIds = new Set();
@@ -2771,16 +3035,27 @@ async function runSiteExpirySweep() {
           const copies = [headCards.find(c => c.id === id), empCards.find(c => c.id === id)].filter(Boolean);
           removed.push({ card: copies[0], copies });
         });
-        tx.update(scheduleDocRef, {
-          cards: headCards.filter(c => !expiredIds.has(c.id)),
-          employeeCards: empCards.filter(c => !expiredIds.has(c.id))
+        const batch = writeBatch(db);
+        const scheduleUpdates = {};
+        const expiredHeadCards = headCards.filter(c => expiredIds.has(c.id));
+        const expiredEmployeeCards = empCards.filter(c => expiredIds.has(c.id));
+        if (expiredHeadCards.length) scheduleUpdates.cards = arrayRemove(...expiredHeadCards);
+        if (expiredEmployeeCards.length) scheduleUpdates.employeeCards = arrayRemove(...expiredEmployeeCards);
+        batch.update(scheduleDocRef, scheduleUpdates);
+        removed.forEach(({ card }) => {
+          batch.set(doc(db, "eventScheduleArchive", card.id), {
+            ...card,
+            id: card.id,
+            archivedAt: serverTimestamp(),
+            archiveStatus: card.cancelled ? "cancelled" : "completed"
+          }, { merge: true });
         });
         if (withNotifications) {
           removed.forEach(({ card, copies }) => {
             const people = siteExpiryStaffIdsFor(copies);
             // Department notice — Pharmacy, Billing and IT heads always get it,
             // listing the deleted site.
-            tx.set(doc(db, "emergencyNotifications", `siteAutoDeleted_${card.id}_dept`), {
+            batch.set(doc(db, "emergencyNotifications", `siteAutoDeleted_${card.id}_dept`), {
               ...siteExpiryPayloadBase(card),
               targetRoles: ["pharmacist", "billing", "information"],
               staffId: null,
@@ -2788,10 +3063,10 @@ async function runSiteExpirySweep() {
               affectedCount: people.length,
               affectedNames: people.map(p => p.name).filter(Boolean).slice(0, 30),
               createdAt: serverTimestamp()
-            });
+            }, { merge: true });
             // Personal notice — ONLY for employees who were in a slot here.
             people.forEach(p => {
-              tx.set(doc(db, "emergencyNotifications", `siteAutoDeleted_${card.id}_${String(p.staffId).trim().toLowerCase()}`), {
+              batch.set(doc(db, "emergencyNotifications", `siteAutoDeleted_${card.id}_${String(p.staffId).trim().toLowerCase()}`), {
                 ...siteExpiryPayloadBase(card),
                 staffId: p.staffId,
                 employeeName: p.name,
@@ -2799,12 +3074,12 @@ async function runSiteExpirySweep() {
                 list: p.list,
                 staffIdx: p.staffIdx,
                 createdAt: serverTimestamp()
-              });
+              }, { merge: true });
             });
           });
         }
+        await batch.commit();
         return removed.map(r => r.card);
-      });
     };
     let removed;
     try {
@@ -2825,6 +3100,7 @@ async function runSiteExpirySweep() {
     }
     if (removed && removed.length) {
       try { updateSavedSnapshotForIds(removed.map(c => c.id)); } catch (e) { /* best-effort */ }
+      void wakePushDelivery();
     }
   } catch (err) {
     console.error("Site auto-delete sweep failed:", err);
@@ -3065,9 +3341,6 @@ async function moveEmployeeIntoSlot(name, targetCardId, targetListKey, targetSId
     targetCard[targetListKey][targetSIdx].label = relieverTeam === "BILLING" ? "BILLING" : "PHARMACY ASSISTANT";
   }
   addRoleHistory(targetSlot.label, upperName);
-  if (targetListKey === "staff" && roleToTeam(targetSlot.label).toUpperCase() === "PHARMACY ASSISTANT") {
-    syncAutoRelieverForSlot(targetCard, targetSIdx, upperName);
-  }
 
   saveCards();
   render();
@@ -3093,8 +3366,13 @@ function setupStaffNamePickers(container) {
       const sIdx = Number(input.dataset.sidx);
       options.innerHTML = filtered.length
         ? filtered.map(name => {
+            const currentCard = cards.find(card => card.id === cardId);
+            const assignedOnEventTeam = listKey === "relievers" &&
+              (currentCard?.staff || []).some(slot =>
+                String(slot.name || "").trim().toLowerCase() === name.trim().toLowerCase()
+              );
             const taken = nameTakenElsewhere(name, cardId, listKey, sIdx);
-            return `<button type="button" class="name-picker-option${taken ? " is-taken" : ""}" data-name="${escapeAttr(name)}"${taken ? ' data-taken="1" title="Already assigned to another slot — click to move here"' : ""}>${escapeHtml(name)}${listKey === "relievers" && isBillingEmployeeName(name) ? ' <span class="name-picker-taken-tag" style="background:var(--signal-soft);color:var(--signal-dark);">Billing</span>' : ""}${taken ? ' <span class="name-picker-taken-tag">(Move Slot)</span>' : ""}</button>`;
+            return `<button type="button" class="name-picker-option${assignedOnEventTeam ? " is-taken" : taken ? " is-taken" : ""}" data-name="${escapeAttr(name)}"${assignedOnEventTeam ? ' disabled title="Already assigned to this event"' : taken ? ' data-taken="1" title="Already assigned to another slot — click to move here"' : ""}>${escapeHtml(name)}${listKey === "relievers" && isBillingEmployeeName(name) ? ' <span class="name-picker-taken-tag" style="background:var(--signal-soft);color:var(--signal-dark);">Billing</span>' : ""}${assignedOnEventTeam ? ' <span class="name-picker-taken-tag">(Event Team)</span>' : taken ? ' <span class="name-picker-taken-tag">(Move Slot)</span>' : ""}</button>`;
           }).join("")
         : `<div class="name-picker-empty">No registered employees found.</div>`;
     };
@@ -3170,7 +3448,7 @@ function adminStaffRowHtml(s, sIdx, listKey, card) {
             <div class="name-picker-options"></div>
           </div>
         </div>
-        ${listKey === "relievers" ? `<input type="text" class="siteInput" list="siteNameList" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" placeholder="Store to relieve — e.g. Branch X" value="${escapeAttr(s.site || "")}"${slotEditable ? "" : " disabled"}>` : ""}
+        ${listKey === "relievers" ? `<input type="text" class="siteInput" list="siteNameList" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" placeholder="Store to relieve — e.g. Branch X" value="${escapeAttr(s.site || "")}"${slotEditable ? "" : " disabled"}><label class="reliever-time-wrap">Time onwards<input type="time" class="relieverTimeInput" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" aria-label="Store Reliever time onwards" value="${escapeAttr(s.relieverTime || "20:00")}"${slotEditable ? "" : " disabled"}></label>` : ""}
       </div>
       <span class="status-dot ${s.name.trim() ? "filled" : ""}"></span>
       ${s.name.trim() && slotEditable ? `<button type="button" class="kickBtn" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" title="Remove this employee from the slot and notify them" aria-label="Remove employee from slot">Remove</button>` : ""}
@@ -3244,6 +3522,7 @@ function normalizeCards(arr) {
     c.relievers.forEach(s => {
       s.name = (s.name || "").toUpperCase();
       if (s.site === undefined) s.site = "";
+      if (!s.relieverTime) s.relieverTime = "20:00";
     });
     // Store Reliever rows may be covered by Pharmacy Assistant or Billing.
     // Keep the row's department only once an employee is assigned; an empty
@@ -3367,8 +3646,25 @@ function updateSavedSnapshotForIds(ids) {
   ids.forEach(id => {
     const card = cards.find(c => c.id === id);
     if (card) lastSavedCardSnapshots.set(id, snapshotKeyFor(card));
-    else lastSavedCardSnapshots.delete(id);
+    else {
+      lastSavedCardSnapshots.delete(id);
+      if (lastLocalSaveSnapshots) lastLocalSaveSnapshots.delete(id);
+    }
   });
+}
+
+function updateSavedSnapshotField(cardId, field) {
+  const card = cards.find(item => item.id === cardId);
+  const savedSnapshot = lastSavedCardSnapshots.get(cardId);
+  if (!card || !savedSnapshot) return;
+  try {
+    const savedFields = JSON.parse(savedSnapshot);
+    savedFields[field] = card[field];
+    lastSavedCardSnapshots.set(cardId, JSON.stringify(savedFields));
+    markUnsaved();
+  } catch (error) {
+    console.warn("Could not update the saved schedule baseline:", error);
+  }
 }
 // Card ids THIS device has just created locally and is still in the middle
 // of pushing to Firestore for the very first time (see pushNewCardToRemote
@@ -3376,6 +3672,8 @@ function updateSavedSnapshotForIds(ids) {
 // they don't exist on the server yet — everything else that's missing from
 // the server is trusted to really be gone.
 let pendingLocalCardIds = new Set();
+let hasReceivedInitialScheduleSnapshot = false;
+let hasLocalEditsBeforeInitialSnapshot = false;
 // Card ids THIS device created (new bracket via "+ Add date event", or a
 // new site via a bracket's "+ Add site") that have never been explicitly
 // confirmed by the admin via Send/Save All or a per-bracket Update — even
@@ -3388,7 +3686,17 @@ let pendingLocalCardIds = new Set();
 // updateDateOnRemote() (a bracket's own Update) and the delete handlers
 // below.
 let sessionNewCardIds = new Set();
-let currentFilter = null;
+let currentFilter = "all";
+let scheduleViewMode = "list";
+let scheduleDateFilterValue = "__all__";
+let scheduleStatusFilterValue = "all";
+let scheduleArchiveMode = false;
+let completedEventCards = [];
+let calendarSelectedDate = null;
+let calendarMonth = null;
+const headPushParams = new URLSearchParams(window.location.search);
+let pendingHeadPushSiteId = employeeSession ? "" : (headPushParams.get("viewSite") || "");
+const pendingHeadPushDate = headPushParams.get("date") || "";
 // Which date bracket the logged-in employee currently has selected.
 let employeeSelectedDate = null;
 // Which date bracket the admin currently has open. undefined = not yet
@@ -3396,6 +3704,7 @@ let employeeSelectedDate = null;
 let adminSelectedDate;
 
 function saveCards() {
+  if (!hasReceivedInitialScheduleSnapshot) hasLocalEditsBeforeInitialSnapshot = true;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
   markUnsaved();
 }
@@ -3870,47 +4179,232 @@ function updateTabBadge(dateKey) {
   }
 }
 
+function syncScheduleFilterControls() {
+  const dateSelect = document.getElementById("scheduleDateFilter");
+  const branchSelect = document.getElementById("scheduleBranchFilter");
+  const statusSelect = document.getElementById("scheduleStatusFilter");
+  if (!dateSelect || !branchSelect || !statusSelect) return;
+  const sourceCards = scheduleArchiveMode ? completedEventCards : cards;
+  const dates = [...new Set(sourceCards.map(card => card.date || "__unscheduled__"))]
+    .sort((a, b) => a === "__unscheduled__" ? 1 : b === "__unscheduled__" ? -1 : a.localeCompare(b));
+  dateSelect.innerHTML = `<option value="__all__">All dates</option>` + dates.map(date =>
+    `<option value="${escapeAttr(date)}">${escapeHtml(date === "__unscheduled__" ? "Unscheduled" : formatDateDisplay(date))}</option>`
+  ).join("");
+  if (scheduleDateFilterValue !== "__all__" && !dates.includes(scheduleDateFilterValue)) scheduleDateFilterValue = "__all__";
+  dateSelect.value = scheduleDateFilterValue;
+  branchSelect.value = currentFilter;
+  statusSelect.value = scheduleStatusFilterValue;
+  document.getElementById("scheduleUpcomingBtn")?.setAttribute("aria-pressed", String(!scheduleArchiveMode));
+  document.getElementById("scheduleArchiveBtn")?.setAttribute("aria-pressed", String(scheduleArchiveMode));
+  const archiveCount = document.getElementById("scheduleArchiveCount");
+  if (archiveCount) archiveCount.textContent = String(completedEventCards.length);
+  document.getElementById("scheduleListViewBtn")?.setAttribute("aria-pressed", String(scheduleArchiveMode || scheduleViewMode === "list"));
+  const calendarButton = document.getElementById("scheduleCalendarViewBtn");
+  if (calendarButton) {
+    calendarButton.setAttribute("aria-pressed", String(!scheduleArchiveMode && scheduleViewMode === "calendar"));
+    calendarButton.disabled = scheduleArchiveMode;
+  }
+  document.querySelectorAll("#regionAccordions .region-acc-head").forEach(button => {
+    button.classList.toggle("active", button.dataset.filter === currentFilter);
+  });
+}
+
+function calendarMonthKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function renderScheduleCalendar(grid, visible) {
+  const groups = new Map();
+  visible.forEach(item => {
+    const date = item.card.date || "__unscheduled__";
+    if (!groups.has(date)) groups.set(date, []);
+    groups.get(date).push(item.card);
+  });
+  if (!calendarMonth) {
+    const firstDated = [...groups.keys()].find(date => date !== "__unscheduled__");
+    const initialDate = calendarSelectedDate || firstDated;
+    const parsed = initialDate ? new Date(`${initialDate}T12:00:00`) : new Date();
+    calendarMonth = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
+  }
+
+  const monthLabel = calendarMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const firstDay = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
+  const mondayOffset = (firstDay.getDay() + 6) % 7;
+  const daysInMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0).getDate();
+  const daysInPreviousMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 0).getDate();
+  const totalCells = Math.ceil((mondayOffset + daysInMonth) / 7) * 7;
+  const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const dayCells = Array.from({ length: totalCells }, (_, index) => {
+    const dayNumber = index - mondayOffset + 1;
+    const dayDate = dayNumber < 1
+      ? new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, daysInPreviousMonth + dayNumber)
+      : dayNumber > daysInMonth
+        ? new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, dayNumber - daysInMonth)
+        : new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), dayNumber);
+    const key = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, "0")}-${String(dayDate.getDate()).padStart(2, "0")}`;
+    const entries = groups.get(key) || [];
+    const isOutside = dayDate.getMonth() !== calendarMonth.getMonth();
+    const eventMarkup = entries.slice(0, 2).map(card =>
+      `<span class="calendar-event ${card.region === "north" ? "north" : ""} ${card.cancelled ? "cancelled" : ""}">${escapeHtml(card.location || "Unnamed site")}</span>`
+    ).join("");
+    const extraMarkup = entries.length > 2 ? `<span class="calendar-more">+${entries.length - 2} more</span>` : "";
+    const label = `${dayDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}${entries.length ? `, ${entries.length} event site${entries.length === 1 ? "" : "s"}` : ""}`;
+    return `<button type="button" class="calendar-day${isOutside ? " is-outside" : ""}${key === calendarSelectedDate ? " is-selected" : ""}" data-calendar-date="${key}" aria-label="${escapeAttr(label)}" aria-pressed="${key === calendarSelectedDate}">
+      <span class="calendar-day-number">${dayDate.getDate()}</span>${eventMarkup}${extraMarkup}
+    </button>`;
+  }).join("");
+
+  const calendar = document.createElement("section");
+  calendar.className = "schedule-calendar";
+  calendar.setAttribute("aria-label", `Event calendar for ${monthLabel}`);
+  calendar.innerHTML = `
+    <div class="calendar-head">
+      <h2 class="calendar-title">${escapeHtml(monthLabel)}</h2>
+      <div class="calendar-nav">
+        <button type="button" data-calendar-step="-1" aria-label="Previous month">‹</button>
+        <button type="button" data-calendar-step="1" aria-label="Next month">›</button>
+      </div>
+    </div>
+    <div class="calendar-weekdays">${weekdays.map(day => `<span>${day}</span>`).join("")}</div>
+    <div class="calendar-days">${dayCells}</div>
+  `;
+  calendar.querySelectorAll("[data-calendar-step]").forEach(button => {
+    button.addEventListener("click", () => {
+      calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + Number(button.dataset.calendarStep), 1);
+      calendarSelectedDate = null;
+      scheduleDateFilterValue = "__all__";
+      adminSelectedDate = undefined;
+      render();
+    });
+  });
+  calendar.querySelectorAll("[data-calendar-date]").forEach(button => {
+    button.addEventListener("click", () => {
+      calendarSelectedDate = button.dataset.calendarDate;
+      calendarMonth = new Date(`${calendarSelectedDate}T12:00:00`);
+      if (scheduleDateFilterValue !== "__all__") {
+        scheduleDateFilterValue = "__all__";
+      }
+      adminSelectedDate = calendarSelectedDate;
+      render();
+    });
+  });
+  grid.appendChild(calendar);
+  return groups;
+}
+
+function renderCompletedArchive(grid, items) {
+  if (!items.length) {
+    grid.innerHTML = `<div class="empty-state"><span class="stub">🗃️</span><h2>No completed events archived yet</h2><p>Past event sites will appear here after their event date.</p></div>`;
+    return;
+  }
+  const groups = groupCardsByDate(items).reverse();
+  groups.forEach(group => {
+    const section = document.createElement("section");
+    section.className = "archive-group";
+    const label = group.date ? formatDateDisplay(group.date) : "Unscheduled";
+    section.innerHTML = `<h2 class="archive-group-title">${escapeHtml(label)} <span class="bracket-count">${group.items.length} site${group.items.length === 1 ? "" : "s"}</span></h2>`;
+    group.items.forEach(({ card }) => {
+      const people = [
+        ...(card.staff || []).map(slot => ({ ...slot, list: "Event Team" })),
+        ...(card.relievers || []).map(slot => ({ ...slot, list: "Store Reliever" }))
+      ].filter(slot => String(slot.name || "").trim());
+      const entry = document.createElement("article");
+      entry.className = "archive-entry";
+      entry.innerHTML = `
+        <div>
+          <div class="archive-entry-title">${escapeHtml(card.location || "Unnamed site")}</div>
+          <div class="archive-entry-meta">${escapeHtml(regionLabel(card))} · ${escapeHtml(missionLabel(card))}${card.time ? ` · ${escapeHtml(card.time)}` : ""}</div>
+        </div>
+        <span class="archive-status${card.cancelled ? " cancelled" : ""}">${card.cancelled ? "Cancelled" : "Completed"}</span>
+        <div class="archive-entry-staff">${people.length
+          ? people.map(slot => `<span>${escapeHtml(slot.list)} · ${escapeHtml(slot.label || "Role")}: ${escapeHtml(slot.name)}</span>`).join("")
+          : `<span>No assigned staff recorded</span>`}</div>
+      `;
+      section.appendChild(entry);
+    });
+    grid.appendChild(section);
+  });
+}
+
 function render() {
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
+  syncScheduleFilterControls();
 
-  if (!currentFilter) {
-    grid.innerHTML = `<div class="empty-state">
-        <span class="stub">👆</span>
-        <h2>Choose North or South Caloocan</h2>
-        <p>Click on one of the above to see the event dates and sites.</p>
-      </div>`;
-    updateStats();
-    return;
-  }
-
+  const sourceCards = scheduleArchiveMode ? completedEventCards : cards;
   const visible = [];
-  cards.forEach((card, idx) => {
-    if (card.region !== currentFilter) return;
+  sourceCards.forEach((card, idx) => {
+    if (currentFilter !== "all" && (currentFilter === "other" ? card.region !== "other" : card.region !== currentFilter)) return;
+    if (scheduleDateFilterValue !== "__all__" && (card.date || "__unscheduled__") !== scheduleDateFilterValue) return;
+    if (scheduleStatusFilterValue === "active" && card.cancelled) return;
+    if (scheduleStatusFilterValue === "cancelled" && !card.cancelled) return;
     visible.push({ card, idx });
   });
 
+  if (scheduleArchiveMode) {
+    renderCompletedArchive(grid, visible);
+    applyStats(completedEventCards);
+    return;
+  }
+
+  let calendarGroups = null;
+  if (scheduleViewMode === "calendar") {
+    if (scheduleDateFilterValue !== "__all__") {
+      calendarSelectedDate = scheduleDateFilterValue === "__unscheduled__" ? "__unscheduled__" : scheduleDateFilterValue;
+      if (calendarSelectedDate !== "__unscheduled__") calendarMonth = new Date(`${calendarSelectedDate}T12:00:00`);
+    }
+    if (!calendarMonth) {
+      const firstDated = visible.find(item => item.card.date)?.card.date;
+      const initialDate = calendarSelectedDate || firstDated;
+      const parsed = initialDate ? new Date(`${initialDate}T12:00:00`) : new Date();
+      calendarMonth = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
+    }
+    if (!calendarSelectedDate && scheduleDateFilterValue === "__all__") {
+      const sameMonthDate = visible.find(item => item.card.date && item.card.date.startsWith(calendarMonthKey(calendarMonth)))?.card.date;
+      calendarSelectedDate = sameMonthDate || null;
+    }
+    calendarGroups = renderScheduleCalendar(grid, visible);
+    if (calendarSelectedDate) {
+      const selectedLabel = calendarSelectedDate === "__unscheduled__"
+        ? "Unscheduled sites"
+        : formatDateDisplay(calendarSelectedDate);
+      const selectedHeading = document.createElement("p");
+      selectedHeading.className = "calendar-selected-label";
+      selectedHeading.textContent = `SITES · ${selectedLabel}`;
+      grid.appendChild(selectedHeading);
+    }
+  }
+
   if (!visible.length) {
-    const noneMatchFilter = cards.length > 0;
-    grid.innerHTML = noneMatchFilter
-      ? `<div class="empty-state">
-          <span class="stub">🎟️</span>
-          <h2>No sites in this region yet</h2>
-          <p>Choose a different region above, or add a site here to get started.</p>
-        </div>`
-      : `<div class="empty-state">
-          <span class="stub">🎟️</span>
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.innerHTML = sourceCards.length
+      ? `<span class="stub">🎟️</span><h2>No events match these filters</h2><p>Change the date, branch, or status filter to see more events.</p>`
+      : `<span class="stub">🎟️</span>
           <h2>No sites yet</h2>
           <p>Start by creating a date bracket for the event, then add each site under it.</p>
-          <button type="button" class="btn primary" id="emptyStateAddDate">+ Add date event</button>
-        </div>`;
+          <button type="button" class="btn primary" id="emptyStateAddDate">+ Add date event</button>`;
+    grid.appendChild(empty);
     const emptyBtn = document.getElementById("emptyStateAddDate");
     if (emptyBtn) emptyBtn.addEventListener("click", () => document.getElementById("addDateBtn").click());
     updateStats();
     return;
   }
 
-  const groups = groupCardsByDate(visible);
+  let groups = groupCardsByDate(visible);
+  if (scheduleViewMode === "calendar") {
+    const selectedGroup = groups.find(group => (group.date || "__unscheduled__") === calendarSelectedDate);
+    if (!selectedGroup) {
+      const noDayEvents = document.createElement("div");
+      noDayEvents.className = "empty-state";
+      noDayEvents.innerHTML = `<span class="stub">🗓️</span><h2>No event sites on this date</h2><p>Choose another date in the calendar above.</p>`;
+      grid.appendChild(noDayEvents);
+      updateStats();
+      return;
+    }
+    adminSelectedDate = selectedGroup.date;
+    groups = [selectedGroup];
+  }
 
   // Keep the previously-selected date bracket open if it still exists;
   // otherwise default to the first (earliest) one. This keeps every date's
@@ -3939,7 +4433,7 @@ function render() {
     });
     tabs.appendChild(tab);
   });
-  grid.appendChild(tabs);
+  if (scheduleViewMode === "list") grid.appendChild(tabs);
 
   const activeGroup = groups.find(g => g.date === adminSelectedDate) || groups[0];
   let ticketCounter = 0;
@@ -3998,16 +4492,20 @@ function render() {
       if (!requirePharmacistScheduleAccess()) return;
       const wholeGroupCount = cards.filter(c => (c.date || "") === (group.date || "")).length;
       const ok = await showConfirm(
-        `Delete "${dateLabel}"? This will remove all ${wholeGroupCount} site${wholeGroupCount === 1 ? "" : "s"} under this event date. This cannot be undone.`
+        `Delete "${dateLabel}" and notify assigned employees now? This will remove all ${wholeGroupCount} site${wholeGroupCount === 1 ? "" : "s"} under this event date. This cannot be undone.`,
+        "Delete & notify"
       );
       if (!ok) return;
       const deletedDate = group.date;
-      cards.filter(c => (c.date || "") === (group.date || "")).forEach(c => sessionNewCardIds.delete(c.id));
+      const deleted = await deleteDateFromRemote(deletedDate);
+      if (!deleted) return;
+      const deletedIds = cards.filter(c => (c.date || "") === (group.date || "")).map(c => c.id);
+      deletedIds.forEach(id => sessionNewCardIds.delete(id));
       cards = cards.filter(c => (c.date || "") !== (group.date || ""));
+      updateSavedSnapshotForIds(deletedIds);
       if (adminSelectedDate === group.date) adminSelectedDate = undefined;
       saveCards();
       render();
-      deleteDateFromRemote(deletedDate);
     });
     // Captured now (render time) so Update always pushes exactly the cards
     // shown in this bracket — even one whose date field was just typed into
@@ -4034,8 +4532,12 @@ function render() {
       <div class="accent-bar"></div>
       <div class="card-inner">
         ${card.cancelled ? `<div class="cancelled-stamp">CANCELLED</div>` : ""}
-        ${isPharmacistScheduleUser ? `<button class="cancel-event-btn ${card.cancelled ? "is-cancelled" : ""}" title="${card.cancelled ? "Reinstate this event" : "Cancel this event"}" aria-label="${card.cancelled ? "Reinstate this event" : "Cancel this event"}">${card.cancelled ? "↺" : "🚫"}</button>` : ""}
-        ${isPharmacistScheduleUser ? `<button class="remove-btn" title="Remove this site" aria-label="Remove this site">×</button>` : ""}
+        <div class="card-actions" aria-label="Event actions">
+          ${canWriteDepartmentNotes ? `<button type="button" class="pharmacist-note-btn" title="Write a note for your department's assigned employees" aria-label="Write a note for your department's assigned employees">📝</button>` : ""}
+          ${isPharmacistScheduleUser ? `<button type="button" class="reminder-event-btn" title="Send an event alarm to assigned employees now" aria-label="Send an event alarm to assigned employees now"${card.cancelled ? " disabled" : ""}>🔔</button>` : ""}
+          ${isPharmacistScheduleUser ? `<button class="cancel-event-btn ${card.cancelled ? "is-cancelled" : ""}" title="${card.cancelled ? "Reinstate this event" : "Cancel this event"}" aria-label="${card.cancelled ? "Reinstate this event" : "Cancel this event"}">${card.cancelled ? "↺" : "🚫"}</button>` : ""}
+          ${isPharmacistScheduleUser ? `<button class="remove-btn" title="Remove this site" aria-label="Remove this site">×</button>` : ""}
+        </div>
 
         <div class="card-expiry-row">${siteExpiryBadgeHtml(card)}</div>
         <div class="region-line">
@@ -4109,14 +4611,149 @@ function render() {
     setupStaffNamePickers(cardEl);
 
     // ---- Events ----
+    cardEl.querySelector(".pharmacist-note-btn")?.addEventListener("click", async event => {
+      if (!canWriteDepartmentNotes) return;
+      const button = event.currentTarget;
+      button.disabled = true;
+      button.textContent = "…";
+      try {
+        const snap = await getDoc(scheduleDocRef);
+        const data = snap.exists() ? snap.data() : {};
+        const publishedCard = (Array.isArray(data.employeeCards) ? data.employeeCards : [])
+          .find(item => item.id === card.id);
+        if (!publishedCard) {
+          await showAlert("Send this site to employees before sending a note.");
+          return;
+        }
+
+        const recipientStaffIds = new Set();
+        ["staff", "relievers"].forEach(listKey => {
+          (publishedCard[listKey] || []).forEach(slot => {
+            if (!(slot && (slot.name || "").trim()) || !canWriteNoteForSlot(slot, listKey)) return;
+            const employee = findEmployeeByName(slot.name);
+            const staffId = String(slot.filledByStaffId || (employee && employee.staffId) || "")
+              .trim()
+              .toLowerCase();
+            if (staffId) recipientStaffIds.add(staffId);
+          });
+        });
+        if (!recipientStaffIds.size) {
+          await showAlert("There are no assigned employees with registered accounts on this event.");
+          return;
+        }
+
+        const noteText = await showDepartmentNotePrompt(publishedCard);
+        if (!noteText) return;
+        const noteNotification = {
+          type: "pharmacistNote",
+          recipientStaffIds: [...recipientStaffIds],
+          noteText,
+          cardId: publishedCard.id,
+          location: publishedCard.location || "Unnamed site",
+          date: publishedCard.date || "",
+          region: publishedCard.region || "",
+          actorLabel: scheduleAssignerLabel,
+          createdBy: signedInScheduleEmail,
+          createdAt: serverTimestamp(),
+          resolved: false,
+          visibleToEmployees: true
+        };
+        const noteReference = await addDoc(notificationsCollRef, noteNotification);
+        void wakePushDelivery([{ ...noteNotification, id: noteReference.id, createdAt: new Date().toISOString() }]);
+        await showAlert(`Note sent to ${recipientStaffIds.size} assigned employee${recipientStaffIds.size === 1 ? "" : "s"}.`);
+      } catch (error) {
+        await showAlert("Could not send the note: " + (error.message || String(error)), "warn");
+      } finally {
+        if (button.isConnected) {
+          button.disabled = false;
+          button.textContent = "📝";
+        }
+      }
+    });
+
+    cardEl.querySelector(".reminder-event-btn")?.addEventListener("click", async event => {
+      if (!requirePharmacistScheduleAccess()) return;
+      const button = event.currentTarget;
+      button.disabled = true;
+      button.textContent = "…";
+      try {
+        const snap = await getDoc(scheduleDocRef);
+        const data = snap.exists() ? snap.data() : {};
+        const publishedCard = (Array.isArray(data.employeeCards) ? data.employeeCards : [])
+          .find(item => item.id === card.id);
+        if (!publishedCard) {
+          await showAlert("Send this site to employees before sending its event alarm.");
+          return;
+        }
+        const recipientStaffIds = new Set();
+        const recipientAssignments = [];
+        ["staff", "relievers"].forEach(listKey => {
+          (publishedCard[listKey] || []).forEach(slot => {
+            if (!(slot && (slot.name || "").trim())) return;
+            const employee = findEmployeeByName(slot.name);
+            const staffId = String(slot.filledByStaffId || (employee && employee.staffId) || "")
+              .trim()
+              .toLowerCase();
+            if (staffId) {
+              recipientStaffIds.add(staffId);
+              recipientAssignments.push({
+                staffId,
+                list: listKey,
+                role: slot.label || "",
+                relieverTime: listKey === "relievers" ? (slot.relieverTime || "20:00") : "",
+                location: listKey === "relievers" && (slot.site || "").trim()
+                  ? slot.site.trim()
+                  : publishedCard.location || "Unnamed site"
+              });
+            }
+          });
+        });
+        if (!recipientStaffIds.size) {
+          await showAlert("No assigned employees with registered accounts are on this site yet.");
+          return;
+        }
+        const reminderNotification = {
+          type: "eventReminder",
+          recipientStaffIds: [...recipientStaffIds],
+          recipientAssignments,
+          cardId: publishedCard.id,
+          location: publishedCard.location || "Unnamed site",
+          date: publishedCard.date || "",
+          time: publishedCard.time || "",
+          region: publishedCard.region || "",
+          regionCustom: publishedCard.regionCustom || "",
+          mission: publishedCard.mission || "",
+          missionCustom: publishedCard.missionCustom || "",
+          missionLabel: missionLabel(publishedCard),
+          actorLabel: scheduleAssignerLabel,
+          createdBy: signedInScheduleEmail,
+          createdAt: serverTimestamp(),
+          resolved: false
+        };
+        const reminderReference = await addDoc(notificationsCollRef, reminderNotification);
+        void wakePushDelivery([{ ...reminderNotification, id: reminderReference.id, createdAt: new Date().toISOString() }]);
+        await showAlert(`Event alarm sent to ${recipientStaffIds.size} assigned employee${recipientStaffIds.size === 1 ? "" : "s"}.`);
+      } catch (error) {
+        await showAlert("Could not send the event alarm: " + (error.message || String(error)), "warn");
+      } finally {
+        if (button.isConnected) {
+          button.disabled = false;
+          button.textContent = "🔔";
+        }
+      }
+    });
+
     cardEl.querySelector(".cancel-event-btn")?.addEventListener("click", async function () {
       const nowCancelled = !cards[idx].cancelled;
       const ok = await showConfirm(
         nowCancelled
-          ? "Cancel this event? Employees will see it marked as cancelled and won't be able to sign up until it's reinstated."
-          : "Reinstate this event? It will become active again for employees."
+          ? "Cancel this event now? The schedule will update immediately and employees will be notified."
+          : "Reinstate this event now? The schedule will update immediately and employees will be notified.",
+        nowCancelled ? "Cancel & notify" : "Reinstate & notify"
       );
       if (!ok) return;
+      const previousCancelled = cards[idx].cancelled;
+      const targetCardId = card.id;
       cards[idx].cancelled = nowCancelled;
       saveCards();
       // Flip the visible state on this exact card right away, instead of
@@ -4137,18 +4774,31 @@ function render() {
       render();
       // Published events update for employees immediately; unpublished drafts
       // remain hidden until the pharmacist sends the bracket.
-      pushCardPatchToRemote(card.id, { cancelled: nowCancelled }, cards[idx], false);
+      const saved = await pushCardPatchToRemote(targetCardId, { cancelled: nowCancelled }, cards[idx], false);
+      if (saved) {
+        updateSavedSnapshotField(targetCardId, "cancelled");
+      } else {
+        const currentCard = cards.find(item => item.id === targetCardId);
+        if (currentCard) currentCard.cancelled = previousCancelled;
+        saveCards();
+        render();
+      }
     });
 
     cardEl.querySelector(".remove-btn")?.addEventListener("click", async () => {
-      if (await showConfirm("Remove this site from the list?")) {
-        const removedId = card.id;
-        cards.splice(idx, 1);
-        sessionNewCardIds.delete(removedId);
-        saveCards();
-        render();
-        deleteSiteFromRemote(removedId);
-      }
+      if (!(await showConfirm(
+        "Remove this site now? The schedule will update immediately and assigned employees will be notified.",
+        "Remove & notify"
+      ))) return;
+      const removedId = card.id;
+      const deleted = await deleteSiteFromRemote(removedId);
+      if (!deleted) return;
+      const currentIdx = cards.findIndex(item => item.id === removedId);
+      if (currentIdx !== -1) cards.splice(currentIdx, 1);
+      updateSavedSnapshotForIds([removedId]);
+      sessionNewCardIds.delete(removedId);
+      saveCards();
+      render();
     });
 
     // Per-site push: same underlying updateDateOnRemote() the bracket's own
@@ -4344,10 +4994,26 @@ function render() {
         updateStats();
         updateTabBadge(group.date);
       });
-      inp.addEventListener("change", e => {
+      inp.addEventListener("change", async e => {
         const listKey = e.target.dataset.list || "staff";
         const sIdx = parseInt(e.target.dataset.sidx, 10);
         const slot = cards[idx][listKey][sIdx];
+        if (listKey === "relievers") {
+          const relieverName = String(e.target.value || "").trim().toLowerCase();
+          const eventTeamAssignment = relieverName && (cards[idx].staff || []).find(item =>
+            String(item.name || "").trim().toLowerCase() === relieverName
+          );
+          if (eventTeamAssignment) {
+            slot.name = "";
+            slot.filledByStaffId = null;
+            slot.relieverDepartment = null;
+            slot.label = "";
+            saveCards();
+            render();
+            await showAlert("This employee is already assigned to the Event Team for this event. Choose another reliever.");
+            return;
+          }
+        }
         addRoleHistory(slot.label, e.target.value);
         // Picker/Encoder-Picker (Event Team) duty pulls a Pharmacy Assistant
         // out of her own store — auto-add/refresh a Store Reliever row on
@@ -4355,7 +5021,49 @@ function render() {
         // self-signs-up, so Event Team can see which store needs covering
         // even when the admin typed her name in directly instead.
         if (listKey === "staff" && roleToTeam(slot.label).toUpperCase() === "PHARMACY ASSISTANT") {
-          syncAutoRelieverForSlot(cards[idx], sIdx, e.target.value);
+          const card = cards[idx];
+          syncAutoRelieverForSlot(card, sIdx, e.target.value);
+          const assignedEmployee = findEmployeeByName(e.target.value);
+          if (scheduleAccessRole === "pharmacist" && assignedEmployee &&
+              roleToTeam(assignedEmployee.team).toUpperCase() === "PHARMACY ASSISTANT") {
+            const slotKey = `${card.id}:${sIdx}`;
+            const relievers = Array.isArray(card.relievers) ? card.relievers : [];
+            const relieverIdx = relievers.findIndex(item => item.addedForSlotKey === slotKey);
+            const currentReliever = relieverIdx >= 0 ? relievers[relieverIdx] : null;
+            if (!currentReliever || !(currentReliever.name || "").trim()) {
+              const defaultName = e.target.value.trim();
+              const names = registeredNamesForTeam("PHARMACY ASSISTANT").filter(name =>
+                name.toUpperCase() !== defaultName.toUpperCase() &&
+                !nameTakenElsewhere(name, card.id, "relievers", relieverIdx)
+              );
+              const selection = await showStoreRelieverPrompt(names);
+              const currentCard = cards.find(item => item.id === card.id);
+              if (currentCard) {
+                if (!Array.isArray(currentCard.relievers)) currentCard.relievers = [];
+                const currentRelieverIdx = currentCard.relievers.findIndex(item => item.addedForSlotKey === slotKey);
+                if (!selection || selection.type === "cancel") {
+                  if (currentRelieverIdx >= 0 && !(currentCard.relievers[currentRelieverIdx].name || "").trim()) {
+                    currentCard.relievers.splice(currentRelieverIdx, 1);
+                  }
+                } else if (selection.type === "employee") {
+                  let targetReliever = currentRelieverIdx >= 0 ? currentCard.relievers[currentRelieverIdx] : null;
+                  if (!targetReliever) {
+                    targetReliever = {
+                      label: "PHARMACY ASSISTANT",
+                      name: "",
+                      site: assignedEmployee.siteName,
+                      relieverTime: "20:00",
+                      addedForStaffId: assignedEmployee.staffId,
+                      addedForSlotKey: slotKey
+                    };
+                    currentCard.relievers.push(targetReliever);
+                  }
+                  targetReliever.name = selection.name.toUpperCase();
+                  addRoleHistory("PHARMACY ASSISTANT", targetReliever.name);
+                }
+              }
+            }
+          }
           saveCards();
           render();
         }
@@ -4376,6 +5084,14 @@ function render() {
       });
       inp.addEventListener("change", e => {
         addSiteHistory(e.target.value);
+      });
+    });
+
+    cardEl.querySelectorAll(".relieverTimeInput").forEach(inp => {
+      inp.addEventListener("input", e => {
+        const sIdx = parseInt(e.target.dataset.sidx, 10);
+        cards[idx].relievers[sIdx].relieverTime = e.target.value || "20:00";
+        saveCards();
       });
     });
 
@@ -4405,7 +5121,7 @@ function render() {
         const sIdx = parseInt(btn.dataset.sidx, 10);
         const slot = (cards[idx][listKey] || [])[sIdx];
         const who = (slot && slot.name) ? slot.name : "this employee";
-        const ok = await showConfirm(`Remove ${who} from this slot?\n\nThey'll be notified right away and can sign up for a slot again.`);
+        const ok = await showConfirm(`Remove ${who} from this slot now? Their slot will open immediately and they'll be notified.`, "Remove & notify");
         if (!ok) return;
         await adminRemoveEmployeeFromSlot(card.id, listKey, sIdx, btn);
       });
@@ -4423,7 +5139,7 @@ function render() {
         if (!defaultLabel) return; // this head can't add to this section at all
         cards[idx][listKey].push(
           listKey === "relievers"
-            ? { label: defaultLabel, name: "", site: "" }
+            ? { label: defaultLabel, name: "", site: "", relieverTime: "20:00" }
             : { label: defaultLabel, name: "" }
         );
         saveCards();
@@ -4824,6 +5540,7 @@ function syncAutoRelieverForSlot(card, sIdx, typedName) {
       label: "PHARMACY ASSISTANT",
       name: "",
       site: siteName,
+      relieverTime: "20:00",
       addedForStaffId: match.staffId,
       addedForSlotKey: slotKey
     });
@@ -5109,13 +5826,58 @@ document.querySelectorAll("#regionAccordions .region-acc-head").forEach(btn => {
     // Pushing the already-open region collapses it; pushing the other
     // region swaps which one is open. Only one region's dropdown (date
     // buttons + sites) is shown at a time.
-    currentFilter = wasActive ? null : region;
+    currentFilter = wasActive ? "all" : region;
     adminSelectedDate = undefined;
-    document.querySelectorAll("#regionAccordions .region-acc-head").forEach(b => {
-      b.classList.toggle("active", !wasActive && b === btn);
-    });
     render();
   });
+});
+
+document.getElementById("scheduleBranchFilter").addEventListener("change", event => {
+  currentFilter = event.target.value;
+  adminSelectedDate = undefined;
+  calendarSelectedDate = null;
+  calendarMonth = null;
+  render();
+});
+document.getElementById("scheduleDateFilter").addEventListener("change", event => {
+  scheduleDateFilterValue = event.target.value;
+  if (scheduleDateFilterValue === "__all__") {
+    calendarSelectedDate = null;
+  } else {
+    calendarSelectedDate = scheduleDateFilterValue;
+    if (scheduleDateFilterValue !== "__unscheduled__") calendarMonth = new Date(`${scheduleDateFilterValue}T12:00:00`);
+    adminSelectedDate = scheduleDateFilterValue === "__unscheduled__" ? "" : scheduleDateFilterValue;
+  }
+  render();
+});
+document.getElementById("scheduleStatusFilter").addEventListener("change", event => {
+  scheduleStatusFilterValue = event.target.value;
+  render();
+});
+document.getElementById("scheduleListViewBtn").addEventListener("click", () => {
+  scheduleViewMode = "list";
+  if (calendarSelectedDate) adminSelectedDate = calendarSelectedDate === "__unscheduled__" ? "" : calendarSelectedDate;
+  render();
+});
+document.getElementById("scheduleCalendarViewBtn").addEventListener("click", () => {
+  if (scheduleArchiveMode) return;
+  scheduleViewMode = "calendar";
+  calendarSelectedDate = scheduleDateFilterValue === "__all__" ? null : scheduleDateFilterValue;
+  render();
+});
+document.getElementById("scheduleUpcomingBtn").addEventListener("click", () => {
+  scheduleArchiveMode = false;
+  scheduleDateFilterValue = "__all__";
+  scheduleStatusFilterValue = "all";
+  render();
+});
+document.getElementById("scheduleArchiveBtn").addEventListener("click", () => {
+  scheduleArchiveMode = true;
+  scheduleViewMode = "list";
+  scheduleDateFilterValue = "__all__";
+  scheduleStatusFilterValue = "all";
+  calendarSelectedDate = null;
+  render();
 });
 
 document.getElementById("addDateBtn").addEventListener("click", async () => {
@@ -5244,10 +6006,10 @@ function mergePublishedCardChanges(publishedCards, liveCards) {
 // When the pharmacy department presses Send and that publish puts BRAND-NEW
 // sites in front of employees for the first time, ONE broadcast notice goes
 // out to every employee ("The pharmacy department deployed the events.").
-// Employees who were placed in a slot by that same Send already get their own
-// personal "slotAssigned"/"siteMoved" notice, so their staffIds are listed in
-// assignedStaffIds and the employee page skips the broadcast for them --
-// they keep the assigned message only, everyone else gets the deployed one.
+// Employees assigned to any published staff or Store Reliever slot are listed
+// in assignedStaffIds and skip the broadcast. Newly assigned employees also
+// receive their personal slotAssigned notice; only unassigned employees get
+// the generic deployed-sites notice.
 function applyEventsDeployedBroadcast(previousPublishedCards, publishedCards, personalNotifications) {
   const previousIds = new Set((previousPublishedCards || []).map(c => c.id));
   const newCards = (publishedCards || []).filter(c => c && !previousIds.has(c.id));
@@ -5258,11 +6020,12 @@ function applyEventsDeployedBroadcast(previousPublishedCards, publishedCards, pe
     if (id) assigned.add(id);
   };
   (personalNotifications || []).forEach(n => {
-    if (n && ["slotAssigned", "slotOpened", "siteMoved"].includes(n.type)) addId(n.staffId);
+    if (n && ["slotAssigned", "siteMoved"].includes(n.type)) addId(n.staffId);
   });
-  // Also cover anyone sitting in a slot of a newly published site even if no
-  // personal notice was generated for them (e.g. name matched by staffId).
-  newCards.forEach(card => {
+  // Include assignments from the whole published roster, not just the newly
+  // deployed cards, so already-booked employees do not get another broadcast.
+  (publishedCards || []).forEach(card => {
+    if (!card || card.cancelled) return;
     ["staff", "relievers"].forEach(listKey => {
       (card[listKey] || []).forEach(slot => {
         const name = String((slot && slot.name) || "").trim();
@@ -5341,32 +6104,50 @@ async function writeScheduleNotifications(notifications) {
   });
   let failures = 0;
   let written = 0;
+  const notificationsForPush = [];
   await Promise.all(unique.map(async notification => {
     try {
       const card = notification.cardId ? cards.find(item => item.id === notification.cardId) : null;
       const enriched = {
-        ...notification,
+        ...withScheduleActor(notification),
         regionCustom: notification.regionCustom || notification.newRegionCustom || (card && card.regionCustom) || "",
         missionLabel: notification.newMissionLabel || notification.missionLabel || (card ? missionLabel(card) : "")
       };
-      await addDoc(notificationsCollRef, stampEventType(enriched));
+      const savedNotification = stampEventType(enriched);
+      const reference = await addDoc(notificationsCollRef, savedNotification);
+      notificationsForPush.push({ ...savedNotification, id: reference.id, createdAt: new Date().toISOString() });
       written++;
     } catch (err) {
       failures++;
       console.error("Failed to file schedule-change notification:", err);
     }
   }));
-  if (written) void wakePushDelivery();
+  if (written) await wakePushDelivery(notificationsForPush);
   return failures;
 }
 
-async function wakePushDelivery() {
+async function wakePushDelivery(notifications = []) {
   try {
     const configResponse = await fetch("/push-config.json", { cache: "no-store" });
     if (!configResponse.ok) return;
     const config = await configResponse.json();
     if (!config.enabled || !config.workerUrl) return;
-    const response = await fetch(`${config.workerUrl.replace(/\/$/, "")}/wake`, {
+    const workerUrl = config.workerUrl.replace(/\/$/, "");
+    if (notifications.length) {
+      const idToken = await auth.currentUser?.getIdToken();
+      if (idToken) {
+        const response = await fetch(`${workerUrl}/dispatch`, {
+          method: "POST",
+          headers: { authorization: `Bearer ${idToken}`, "content-type": "application/json" },
+          body: JSON.stringify({ notifications })
+        });
+        if (response.ok) return;
+        console.warn("Immediate push dispatch failed:", response.status);
+      } else {
+        console.warn("Immediate push dispatch skipped: department-head Firebase session is unavailable.");
+      }
+    }
+    const response = await fetch(`${workerUrl}/wake`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: "{}"
@@ -5682,9 +6463,11 @@ function applyAssignmentNotifications(localCardsSubset, remoteCards) {
           location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (card.location || "Unnamed site"),
           date: card.date || "",
           time: card.time || "",
+          ...(listKey === "relievers" ? { relieverTime: slot.relieverTime || "20:00" } : {}),
           region: card.region || "",
           employeeName: name,
           staffId: employee.staffId,
+          assignedBy: scheduleAssignerLabel,
           visibleToEmployees: scheduleAccessRole === "pharmacist",
           createdAt: serverTimestamp(),
           resolved: false
@@ -5704,6 +6487,31 @@ function applyPublishedAssignmentNotifications(previousPublishedCards, published
       (card[listKey] || []).forEach((slot, staffIdx) => {
         const name = String(slot.name || "").trim();
         const previousSlot = (previousCard[listKey] || [])[staffIdx] || {};
+        const previousName = String(previousSlot.name || "").trim();
+        const previousStaffId = resolveSlotStaffId(previousSlot);
+        const currentStaffId = resolveSlotStaffId(slot);
+        const sameEmployee = previousStaffId && currentStaffId &&
+          String(previousStaffId).trim().toLowerCase() === String(currentStaffId).trim().toLowerCase();
+        if (previousName && name && previousStaffId && !sameEmployee &&
+            name.toUpperCase() !== previousName.toUpperCase()) {
+          notifyPayloads.push({
+            type: "removed",
+            cardId: card.id,
+            list: listKey,
+            staffIdx,
+            role: previousSlot.label || slot.label || "",
+            location: (listKey === "relievers" && (slot.site || previousSlot.site || "").trim())
+              ? (slot.site || previousSlot.site).trim()
+              : (card.location || "Unnamed site"),
+            date: card.date || "",
+            employeeName: previousName,
+            replacedByName: name,
+            staffId: previousStaffId,
+            visibleToEmployees: true,
+            createdAt: serverTimestamp(),
+            resolved: false
+          });
+        }
         if (!name || slot.filledByStaffId ||
             name.toUpperCase() === String(previousSlot.name || "").trim().toUpperCase()) return;
         const employee = findEmployeeByName(name);
@@ -5717,9 +6525,11 @@ function applyPublishedAssignmentNotifications(previousPublishedCards, published
           location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (card.location || "Unnamed site"),
           date: card.date || "",
           time: card.time || "",
+          ...(listKey === "relievers" ? { relieverTime: slot.relieverTime || "20:00" } : {}),
           region: card.region || "",
           employeeName: name,
           staffId: employee.staffId,
+          assignedBy: scheduleAssignerLabel,
           visibleToEmployees: true,
           createdAt: serverTimestamp(),
           resolved: false
@@ -5730,9 +6540,56 @@ function applyPublishedAssignmentNotifications(previousPublishedCards, published
   return notifyPayloads;
 }
 
+function eventTeamRosterIsFull(card) {
+  const staffSlots = Array.isArray(card && card.staff) ? card.staff : [];
+  return staffSlots.length > 0 && staffSlots.every(slot => String((slot && slot.name) || "").trim());
+}
+
+function applyNewlyFullSiteNotifications(previousCards, publishedCards) {
+  const previousById = new Map((previousCards || []).map(card => [card.id, card]));
+  const notifyPayloads = [];
+  (publishedCards || []).forEach(card => {
+    if (!card || card.cancelled || !eventTeamRosterIsFull(card)) return;
+    if (eventTeamRosterIsFull(previousById.get(card.id))) return;
+    notifyPayloads.push({
+      type: "siteFilled",
+      targetRoles: ["pharmacist"],
+      cardId: card.id,
+      role: "Event Team",
+      location: card.location || "Unnamed site",
+      date: card.date || "",
+      time: card.time || "",
+      region: card.region || "",
+      regionCustom: card.regionCustom || "",
+      missionLabel: missionLabel(card),
+      filledCount: card.staff.length,
+      createdAt: serverTimestamp(),
+      resolved: false
+    });
+  });
+  return notifyPayloads;
+}
+
 function applyPublishedOpenSlotNotifications(previousPublishedCards, publishedCards) {
   const previousById = new Map((previousPublishedCards || []).map(card => [card.id, card]));
   const notifyPayloads = [];
+  const publishedRoster = new Map((previousPublishedCards || []).map(card => [card.id, card]));
+  (publishedCards || []).forEach(card => publishedRoster.set(card.id, card));
+  const assignedStaffIds = new Set();
+  publishedRoster.forEach(card => {
+    if (!card || card.cancelled) return;
+    ["staff", "relievers"].forEach(listKey => {
+      (card[listKey] || []).forEach(slot => {
+        const employee = slot.filledByStaffId
+          ? null
+          : findEmployeeByName(slot.name);
+        const staffId = String(slot.filledByStaffId || (employee && employee.staffId) || "")
+          .trim()
+          .toLowerCase();
+        if (staffId) assignedStaffIds.add(staffId);
+      });
+    });
+  });
   (publishedCards || []).forEach(card => {
     const previousCard = previousById.get(card.id) || {};
     ["staff", "relievers"].forEach(listKey => {
@@ -5753,7 +6610,7 @@ function applyPublishedOpenSlotNotifications(previousPublishedCards, publishedCa
         employeesMap.forEach((employee, staffId) => {
           const normalizedId = String(staffId || "").trim().toLowerCase();
           const employeeTeam = roleToTeam(splitDepartmentClient(employee.department).team).toUpperCase();
-          if (!normalizedId || !eligibleTeams.includes(employeeTeam)) return;
+          if (!normalizedId || assignedStaffIds.has(normalizedId) || !eligibleTeams.includes(employeeTeam)) return;
           notifyPayloads.push({
             type: "slotOpened",
             cardId: card.id,
@@ -5763,6 +6620,7 @@ function applyPublishedOpenSlotNotifications(previousPublishedCards, publishedCa
             location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (card.location || "Unnamed site"),
             date: card.date || "",
             time: card.time || "",
+            ...(listKey === "relievers" ? { relieverTime: slot.relieverTime || "20:00" } : {}),
             region: card.region || "",
             regionCustom: card.regionCustom || "",
             missionLabel: missionLabel(card),
@@ -5821,6 +6679,7 @@ function applyPublishedMoveNotifications(previousPublishedCards, publishedCards)
           oldLocation: (previous.listKey === "relievers" && (previous.slot.site || "").trim()) ? previous.slot.site : (previous.card.location || "Unnamed site"),
           date: card.date || "",
           time: card.time || "",
+          ...(listKey === "relievers" ? { relieverTime: slot.relieverTime || "20:00" } : {}),
           region: card.region || "",
           oldRegion: previous.card.region || "",
           employeeName: slot.name || "",
@@ -5951,6 +6810,7 @@ function applyEmployeeMoveClearing(localCardsSubset, remoteCards, allLocalCards 
           oldLocation: (previous.listKey === "relievers" && (previous.slot.site || "").trim()) ? previous.slot.site : (previous.card.location || "Unnamed site"),
           date: card.date || "",
           time: card.time || "",
+          ...(listKey === "relievers" ? { relieverTime: slot.relieverTime || "20:00" } : {}),
           region: card.region || "",
           oldRegion: previous.card.region || "",
           employeeName: name,
@@ -6155,6 +7015,7 @@ async function adminRemoveEmployeeFromSlot(cardId, listKey, staffIdx, btn) {
           location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (card.location || "Unnamed site"),
           date: card.date || "",
           time: card.time || "",
+          ...(listKey === "relievers" ? { relieverTime: slot.relieverTime || "20:00" } : {}),
           region: card.region || "",
           employeeName: removedName || "",
           staffId: removedStaffId,
@@ -6251,6 +7112,40 @@ async function unclaimSlot(cardId, listKey, staffIdx, btn) {
   }
 }
 
+async function saveDraftsToRemote(btn) {
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+  try {
+    const mergedCards = await runTransaction(db, async tx => {
+      const snap = await tx.get(scheduleDocRef);
+      const data = snap.exists() ? snap.data() : { cards: [] };
+      const remoteCards = Array.isArray(data.cards) ? data.cards : [];
+      const merged = mergeRemoteClaims(cards, remoteCards);
+      tx.set(scheduleDocRef, {
+        cards: stripForRemote(merged),
+        employeeCards: Array.isArray(data.employeeCards) ? data.employeeCards : [],
+        sentAt: serverTimestamp(),
+        sentBy: data.sentBy || "admin"
+      });
+      return merged;
+    });
+    cards = mergedCards;
+    clearTouchedMarkers();
+    clearCardLevelDirty(cards.map(card => card.id));
+    sessionNewCardIds = new Set();
+    saveCards();
+    markSaved();
+    render();
+    await showAlert("Draft saved online. Employees won't see new event changes until you click Send or Update.");
+  } catch (error) {
+    await showAlert("Draft remains saved on this device, but could not be saved online: " + (error.message || String(error)), "warn");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
 async function sendAllToEmployees(btn) {
   const originalLabel = btn.textContent;
   btn.disabled = true;
@@ -6269,17 +7164,21 @@ async function sendAllToEmployees(btn) {
     const assignmentNotifications = applyAssignmentNotifications(cards, remoteCards)
       .filter(n => !movedKeys.has(`${n.cardId}:${n.list}:${n.staffIdx}`));
     const merged = mergeRemoteClaims(cards, remoteCards);
+    const publishedBeforeAll = Array.isArray(snap.data().employeeCards) ? snap.data().employeeCards : [];
+    const publishedScheduleChangeNotifications = scheduleAccessRole === "pharmacist"
+      ? applyScheduleChangeNotifications(publishedBeforeAll, stripForRemote(merged))
+      : [];
     const publishedMoveNotifications = scheduleAccessRole === "pharmacist"
-      ? applyPublishedMoveNotifications(snap.exists() ? snap.data().employeeCards : [], merged)
+      ? applyPublishedMoveNotifications(publishedBeforeAll, merged)
       : [];
     const publishedMovedKeys = new Set(publishedMoveNotifications.map(n => `${n.cardId}:${n.list}:${n.staffIdx}`));
     const publishedAssignmentNotifications = scheduleAccessRole === "pharmacist"
-      ? applyPublishedAssignmentNotifications(snap.exists() ? snap.data().employeeCards : [], merged)
+      ? applyPublishedAssignmentNotifications(publishedBeforeAll, merged)
           .filter(n => !movedKeys.has(`${n.cardId}:${n.list}:${n.staffIdx}`) &&
             !publishedMovedKeys.has(`${n.cardId}:${n.list}:${n.staffIdx}`))
       : [];
     const publishedOpenSlotNotifications = applyPublishedOpenSlotNotifications(
-      Array.isArray(snap.data().employeeCards) ? snap.data().employeeCards : [],
+      publishedBeforeAll,
       stripForRemote(merged)
     );
     // Write the merge result back into the local `cards` array, not just to
@@ -6309,9 +7208,11 @@ async function sendAllToEmployees(btn) {
     saveCards();
     markSaved();
     render();
-    const publishedBeforeAll = Array.isArray(snap.data().employeeCards) ? snap.data().employeeCards : [];
     const publishedCancelledNotifications = scheduleAccessRole === "pharmacist"
       ? applyPublishedCancelledNotifications(publishedBeforeAll, stripForRemote(merged))
+      : [];
+    const siteFilledNotifications = scheduleAccessRole === "pharmacist"
+      ? applyNewlyFullSiteNotifications(publishedBeforeAll, stripForRemote(merged))
       : [];
     // Everyone in the employee list hears about newly deployed sites -- those
     // placed in a slot by this Send keep their personal "assigned" message
@@ -6324,7 +7225,7 @@ async function sendAllToEmployees(btn) {
         )
       : [];
     const allChangeNotifications = markEmployeeVisibleNotifications(
-      [...branchChangeNotifications, ...scheduleChangeNotifications, ...moveNotifications, ...assignmentNotifications, ...publishedAssignmentNotifications, ...publishedMoveNotifications, ...publishedOpenSlotNotifications, ...publishedCancelledNotifications, ...eventsDeployedNotifications],
+      [...branchChangeNotifications, ...scheduleChangeNotifications, ...publishedScheduleChangeNotifications, ...moveNotifications, ...assignmentNotifications, ...publishedAssignmentNotifications, ...publishedMoveNotifications, ...publishedOpenSlotNotifications, ...publishedCancelledNotifications, ...siteFilledNotifications, ...eventsDeployedNotifications],
       publishedBeforeAll,
       scheduleAccessRole === "pharmacist"
     );
@@ -6408,6 +7309,9 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn, groupCardIds) {
     // in publishedBefore yet.
     const alreadyPublishedIds = new Set(publishedBefore.map(c => c.id));
     const alreadyPublishedMergedThisDate = mergedThisDate.filter(c => alreadyPublishedIds.has(c.id));
+    const publishedScheduleChangeNotifications = scheduleAccessRole === "pharmacist"
+      ? applyScheduleChangeNotifications(publishedBefore, alreadyPublishedMergedThisDate)
+      : [];
     const publishedMoveNotifications = applyPublishedMoveNotifications(publishedBefore, alreadyPublishedMergedThisDate);
     const publishedMovedKeys = new Set(publishedMoveNotifications.map(n => `${n.cardId}:${n.list}:${n.staffIdx}`));
     const publishedAssignmentNotifications = applyPublishedAssignmentNotifications(publishedBefore, alreadyPublishedMergedThisDate)
@@ -6415,6 +7319,9 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn, groupCardIds) {
         !publishedMovedKeys.has(`${n.cardId}:${n.list}:${n.staffIdx}`));
     const publishedOpenSlotNotifications = applyPublishedOpenSlotNotifications(publishedBefore, alreadyPublishedMergedThisDate);
     const publishedCancelledNotifications = applyPublishedCancelledNotifications(publishedBefore, alreadyPublishedMergedThisDate);
+    const siteFilledNotifications = scheduleAccessRole === "pharmacist"
+      ? applyNewlyFullSiteNotifications(publishedBefore, alreadyPublishedMergedThisDate)
+      : [];
     // Same fix as sendAllToEmployees above: reflect the merged (self-signup
     // filled-in) cards back into the local `cards` array for this date, so
     // local state doesn't diverge from what was just pushed and falsely
@@ -6467,7 +7374,7 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn, groupCardIds) {
     render();
     const publishedBeforeAll = Array.isArray(snap.data().employeeCards) ? snap.data().employeeCards : [];
     const allChangeNotifications = markEmployeeVisibleNotifications(
-      [...branchChangeNotifications, ...scheduleChangeNotifications, ...moveNotifications, ...assignmentNotifications, ...publishedAssignmentNotifications, ...publishedMoveNotifications, ...publishedOpenSlotNotifications, ...publishedCancelledNotifications],
+      [...branchChangeNotifications, ...scheduleChangeNotifications, ...publishedScheduleChangeNotifications, ...moveNotifications, ...assignmentNotifications, ...publishedAssignmentNotifications, ...publishedMoveNotifications, ...publishedOpenSlotNotifications, ...publishedCancelledNotifications, ...siteFilledNotifications],
       publishedBeforeAll,
       // Update never publishes a brand-new site to employees on its own
       // (see the employeeCards write above), so pass false here — a
@@ -6483,7 +7390,7 @@ async function updateDateOnRemote(dateKey, dateLabelForMsg, btn, groupCardIds) {
         `The "emergencyNotifications" collection's Firestore Security Rules may not allow the new notification types (dateChanged/eventUpdated/missionChanged). Please check the rules or message the developer.`
       );
     }
-    const updateSummary = summarizeScheduleChangeNotifications([...branchChangeNotifications, ...scheduleChangeNotifications]);
+    const updateSummary = summarizeScheduleChangeNotifications([...branchChangeNotifications, ...scheduleChangeNotifications, ...publishedScheduleChangeNotifications]);
     // Tell the person exactly what did and didn't reach employees: sites
     // that were already sent before keep syncing live on every Update, but
     // a site that's never been sent still needs an explicit Send.
@@ -6519,7 +7426,7 @@ async function deleteDateFromRemote(dateKey) {
     const remoteCards = Array.isArray(data.cards) ? data.cards : [];
     const removedCards = remoteCards.filter(c => (c.date || "") === (dateKey || ""));
     const kept = remoteCards.filter(c => (c.date || "") !== (dateKey || ""));
-    if (kept.length === remoteCards.length) return; // wasn't live yet, nothing to remove
+    if (kept.length === remoteCards.length) return true; // wasn't live yet, nothing to remove
     // Anyone who'd actually self-signed into a slot on one of these cards
     // (filledByStaffId — a hand-typed name has no account to notify) needs
     // to be told the whole event date was deleted, not just find their slot
@@ -6570,13 +7477,18 @@ async function deleteDateFromRemote(dateKey) {
     markUnsaved();
     if (notifyPayloads.length) {
       let notifFailCount = 0;
-      await Promise.all(notifyPayloads.map(p =>
-        addDoc(notificationsCollRef, p).catch(err => {
+      const notificationsForPush = [];
+      await Promise.all(notifyPayloads.map(async p => {
+        try {
+          const savedNotification = withScheduleActor(p);
+          const reference = await addDoc(notificationsCollRef, savedNotification);
+          notificationsForPush.push({ ...savedNotification, id: reference.id, createdAt: new Date().toISOString() });
+        } catch (err) {
           notifFailCount++;
           console.error("Failed to file event-deleted notification:", err);
-        })
-      ));
-      if (notifFailCount < notifyPayloads.length) void wakePushDelivery();
+        }
+      }));
+      if (notificationsForPush.length) await wakePushDelivery(notificationsForPush);
       if (notifFailCount > 0) {
         await showAlert(
           `Event deleted, but ${notifFailCount} employee notification(s) failed to send.\n\n` +
@@ -6584,8 +7496,10 @@ async function deleteDateFromRemote(dateKey) {
         );
       }
     }
+    return true;
   } catch (err) {
     await showAlert("Deleted in your browser, but failed to sync online: " + err.message);
+    return false;
   }
 }
 
@@ -6596,107 +7510,84 @@ async function deleteDateFromRemote(dateKey) {
 // deleteSiteFromRemote above.
 async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard, publishToEmployees = true) {
   try {
-    const snap = await getDoc(scheduleDocRef);
-    const data = snap.exists() ? snap.data() : { cards: [] };
-    const remoteCards = Array.isArray(data.cards) ? data.cards : [];
-    const cIdx = remoteCards.findIndex(c => c.id === cardId);
-    const currentPublishedCards = Array.isArray(data.employeeCards) ? data.employeeCards : [];
-    const employeeCardIsPublished = currentPublishedCards.some(card => card.id === cardId);
-    let nextCards;
-    let cardBeforePatch = null; // the remote card as it stood before this patch — used below to find who to notify
-    if (cIdx === -1) {
-      // This card was never "Sent"/"Updated" to Firestore before — append a
-      // full copy now (patch applied) instead of silently doing nothing,
-      // otherwise the cancel/reinstate would only reach employees the next
-      // time someone clicks Send/Update.
-      if (!fallbackLocalCard) return;
-      nextCards = [...remoteCards, { ...stripForRemote([fallbackLocalCard])[0], ...patch }];
-    } else {
-      cardBeforePatch = remoteCards[cIdx];
-      nextCards = remoteCards.slice();
-      nextCards[cIdx] = { ...nextCards[cIdx], ...patch };
-    }
-    // If this patch toggles "cancelled", tell everyone who'd actually
-    // self-signed into a slot on this card (filledByStaffId — a name the
-    // admin merely typed by hand has no account to notify) that the Event
-    // Team cancelled or reinstated it.
-    const notifyPayloads = [];
-    if (Object.prototype.hasOwnProperty.call(patch, "cancelled") && cardBeforePatch) {
-      const wasCancelled = !!cardBeforePatch.cancelled;
-      const nowCancelled = !!patch.cancelled;
-      if (wasCancelled !== nowCancelled) {
-        // Notify employees immediately only when this event is already in
-        // their published roster. Unpublished drafts stay employee-invisible.
-        if (publishToEmployees || employeeCardIsPublished) {
-          ["staff", "relievers"].forEach(listKey => {
-            (cardBeforePatch[listKey] || []).forEach(slot => {
-              const notifyStaffId = resolveSlotStaffId(slot);
-              if (notifyStaffId) {
-                notifyPayloads.push({
-                  type: nowCancelled ? "eventCancelled" : "eventReinstated",
-                  cardId: cardBeforePatch.id,
-                  list: listKey,
-                  role: slot.label || "",
-                  location: (listKey === "relievers" && (slot.site || "").trim()) ? slot.site : (cardBeforePatch.location || "Unnamed site"),
-                  date: cardBeforePatch.date || "",
-                  time: cardBeforePatch.time || "",
-                  region: cardBeforePatch.region || "",
-                  regionCustom: cardBeforePatch.regionCustom || "",
-                  missionLabel: missionLabel(cardBeforePatch),
-                  employeeName: slot.name || "",
-                  staffId: notifyStaffId,
-                  createdAt: serverTimestamp(),
-                  resolved: false
-                });
-              }
+    const notifyPayloads = await runTransaction(db, async tx => {
+      const snap = await tx.get(scheduleDocRef);
+      const data = snap.exists() ? snap.data() : { cards: [] };
+      const remoteCards = Array.isArray(data.cards) ? data.cards : [];
+      const cIdx = remoteCards.findIndex(c => c.id === cardId);
+      const currentPublishedCards = Array.isArray(data.employeeCards) ? data.employeeCards : [];
+      const employeeCardIsPublished = currentPublishedCards.some(card => card.id === cardId);
+      let nextCards;
+      let cardBeforePatch = null; // the remote card as it stood before this patch — used below to find who to notify
+      if (cIdx === -1) {
+        // This card was never "Sent"/"Updated" to Firestore before — append a
+        // full copy now instead of silently dropping the cancel/reinstate.
+        if (!fallbackLocalCard) return [];
+        nextCards = [...remoteCards, { ...stripForRemote([fallbackLocalCard])[0], ...patch }];
+      } else {
+        cardBeforePatch = remoteCards[cIdx];
+        nextCards = remoteCards.slice();
+        nextCards[cIdx] = { ...nextCards[cIdx], ...patch };
+      }
+      const notifications = [];
+      if (Object.prototype.hasOwnProperty.call(patch, "cancelled") && cardBeforePatch) {
+        const wasCancelled = !!cardBeforePatch.cancelled;
+        const nowCancelled = !!patch.cancelled;
+        if (wasCancelled !== nowCancelled) {
+          // Send one event-wide notice so every employee sees the status
+          // change, including employees who are not assigned to this site.
+          // Unpublished drafts stay hidden from employees until they are sent.
+          if (isPharmacistScheduleUser) {
+            notifications.push({
+              type: nowCancelled ? "eventCancelled" : "eventReinstated",
+              targetRoles: ["billing", "information"],
+              cardId: cardBeforePatch.id,
+              role: "",
+              location: cardBeforePatch.location || "Unnamed site",
+              date: cardBeforePatch.date || "",
+              time: cardBeforePatch.time || "",
+              region: cardBeforePatch.region || "",
+              regionCustom: cardBeforePatch.regionCustom || "",
+              missionLabel: missionLabel(cardBeforePatch),
+              createdBy: signedInScheduleEmail,
+              broadcastToEmployees: publishToEmployees || employeeCardIsPublished,
+              visibleToEmployees: publishToEmployees || employeeCardIsPublished,
+              createdAt: serverTimestamp(),
+              resolved: false
             });
-          });
-        }
-        // Same department-wide broadcast as pushNewCardToRemote's
-        // "eventCreated" doc (staffId-less, targetRoles set) — otherwise
-        // billing/information only ever found out a site was cancelled or
-        // reinstated by noticing the stamp on the card themselves, since
-        // every payload above is addressed to one signed-up employee, not
-        // to the other heads.
-        if (isPharmacistScheduleUser) {
-          notifyPayloads.push({
-            type: nowCancelled ? "eventCancelled" : "eventReinstated",
-            targetRoles: ["billing", "information"],
-            cardId: cardBeforePatch.id,
-            role: "",
-            location: cardBeforePatch.location || "Unnamed site",
-            date: cardBeforePatch.date || "",
-            time: cardBeforePatch.time || "",
-            region: cardBeforePatch.region || "",
-            regionCustom: cardBeforePatch.regionCustom || "",
-                  missionLabel: missionLabel(cardBeforePatch),
-            createdBy: signedInScheduleEmail,
-            createdAt: serverTimestamp(),
-            resolved: false
-          });
+          }
         }
       }
-    }
-    const update = {
-      cards: nextCards,
-      sentAt: serverTimestamp(),
-      sentBy: data.sentBy || "admin",
-      // Patch only this event in the employee roster unless explicitly
-      // publishing the full pharmacist schedule. This keeps other drafts hidden.
-      employeeCards: publishToEmployees
-        ? nextCards
-        : currentPublishedCards.map(card => card.id === cardId ? { ...card, ...patch } : card)
-    };
-    await setDoc(scheduleDocRef, update);
+      tx.set(scheduleDocRef, {
+        cards: nextCards,
+        sentAt: serverTimestamp(),
+        sentBy: data.sentBy || "admin",
+        // Patch only this event in the employee roster unless explicitly
+        // publishing the full pharmacist schedule. This keeps other drafts hidden.
+        employeeCards: publishToEmployees
+          ? nextCards
+          : currentPublishedCards.map(card => card.id === cardId ? { ...card, ...patch } : card)
+      });
+      return notifications;
+    });
     if (notifyPayloads.length) {
       let notifFailCount = 0;
-      await Promise.all(notifyPayloads.map(p =>
-        addDoc(notificationsCollRef, p).catch(err => {
+      const notificationsForPush = [];
+      await Promise.all(notifyPayloads.map(async p => {
+        try {
+          const savedNotification = withScheduleActor(p);
+          const reference = await addDoc(notificationsCollRef, savedNotification);
+          notificationsForPush.push({
+            ...savedNotification,
+            id: reference.id,
+            createdAt: new Date().toISOString()
+          });
+        } catch (err) {
           notifFailCount++;
           console.error("Failed to file cancel-toggle notification:", err);
-        })
-      ));
-      if (notifFailCount < notifyPayloads.length) void wakePushDelivery();
+        }
+      }));
+      if (notificationsForPush.length) void wakePushDelivery(notificationsForPush);
       if (notifFailCount > 0) {
         const actionLabel = patch.cancelled ? "Event cancelled" : "Event reinstated";
         await showAlert(
@@ -6705,8 +7596,10 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard, publishTo
         );
       }
     }
+    return true;
   } catch (err) {
     await showAlert("Saved in your browser, but failed to sync online: " + err.message);
+    return false;
   }
 }
 
@@ -6717,7 +7610,7 @@ async function deleteSiteFromRemote(cardId) {
     const remoteCards = Array.isArray(data.cards) ? data.cards : [];
     const removedCard = remoteCards.find(c => c.id === cardId);
     const kept = remoteCards.filter(c => c.id !== cardId);
-    if (kept.length === remoteCards.length) return; // wasn't live yet, nothing to remove
+    if (kept.length === remoteCards.length) return true; // wasn't live yet, nothing to remove
     // Same idea as deleteDateFromRemote — anyone who'd self-signed into a
     // slot on this one site needs to be told it was removed.
     const notifyPayloads = [];
@@ -6761,13 +7654,18 @@ async function deleteSiteFromRemote(cardId) {
     markUnsaved();
     if (notifyPayloads.length) {
       let notifFailCount = 0;
-      await Promise.all(notifyPayloads.map(p =>
-        addDoc(notificationsCollRef, p).catch(err => {
+      const notificationsForPush = [];
+      await Promise.all(notifyPayloads.map(async p => {
+        try {
+          const savedNotification = withScheduleActor(p);
+          const reference = await addDoc(notificationsCollRef, savedNotification);
+          notificationsForPush.push({ ...savedNotification, id: reference.id, createdAt: new Date().toISOString() });
+        } catch (err) {
           notifFailCount++;
           console.error("Failed to file site-removed notification:", err);
-        })
-      ));
-      if (notifFailCount < notifyPayloads.length) void wakePushDelivery();
+        }
+      }));
+      if (notificationsForPush.length) await wakePushDelivery(notificationsForPush);
       if (notifFailCount > 0) {
         await showAlert(
           `Site removed, but ${notifFailCount} employee notification(s) failed to send.\n\n` +
@@ -6775,8 +7673,10 @@ async function deleteSiteFromRemote(cardId) {
         );
       }
     }
+    return true;
   } catch (err) {
     await showAlert("Deleted in your browser, but failed to sync online: " + err.message);
+    return false;
   }
 }
 
@@ -6809,6 +7709,7 @@ async function pushNewCardToRemote(card) {
         region: card.region || "",
         mission: card.mission || "medical",
         missionLabel: missionLabel(card),
+        actorLabel: scheduleAssignerLabel,
         createdBy: signedInScheduleEmail,
         createdAt: serverTimestamp(),
         resolved: false
@@ -6824,6 +7725,7 @@ async function pushNewCardToRemote(card) {
         region: card.region || "",
         mission: card.mission || "medical",
         missionLabel: missionLabel(card),
+        actorLabel: scheduleAssignerLabel,
         createdBy: signedInScheduleEmail,
         createdAt: serverTimestamp(),
         resolved: false
@@ -7010,12 +7912,13 @@ function renderNotifPanel(items) {
     const isSiteRemoved = n.type === "siteRemoved";
     const isSiteAutoDeleted = n.type === "siteAutoDeleted";
     const isEventCreated = n.type === "eventCreated";
+    const isSiteFilled = n.type === "siteFilled";
     const isEventCancelled = n.type === "eventCancelled";
     const isEventReinstated = n.type === "eventReinstated";
     const isDeploymentConfirmed = n.type === "deploymentConfirmed";
     const isSlotAssigned = n.type === "slotAssigned";
     const isSiteMoved = n.type === "siteMoved";
-    const isPersonalNotice = isRemoved || isBranchChanged || isDateChanged || isEventUpdated || isMissionChanged || isEventDeleted || isSiteRemoved || isSiteAutoDeleted || isEventCancelled || isEventReinstated || isEventCreated || isDeploymentConfirmed || isSlotAssigned || isSiteMoved;
+    const isPersonalNotice = isRemoved || isBranchChanged || isDateChanged || isEventUpdated || isMissionChanged || isEventDeleted || isSiteRemoved || isSiteAutoDeleted || isEventCancelled || isEventReinstated || isEventCreated || isDeploymentConfirmed || isSiteFilled || isSlotAssigned || isSiteMoved;
     const isDepartmentRemovalNotice = isRemoved && !employeeSession &&
       Array.isArray(n.targetRoles) && n.targetRoles.includes(scheduleAccessRole);
     // Describes what kind of slot this was for the department-facing
@@ -7079,8 +7982,8 @@ function renderNotifPanel(items) {
       btnLabel = "Got it";
     } else if (isSiteAutoDeleted) {
       if (!n.staffId) {
-        title = `🗑️ Site deleted — ${escapeHtml(n.location || "Unnamed site")}`;
-        statusLine = `This site reached 12:00 AM after its event date (${escapeHtml(formatDateDisplay(n.date) || "—")}) and was deleted automatically.` +
+        title = `🗑️ The event is now deleted: ${escapeHtml(n.location || "Unnamed site")}`;
+        statusLine = `The countdown expired at 12:00 AM after the event date (${escapeHtml(formatDateDisplay(n.date) || "—")}), so this event site was deleted.` +
           (n.affectedCount ? ` ${n.affectedCount} employee${n.affectedCount === 1 ? "" : "s"} on this site ${n.affectedCount === 1 ? "was" : "were"} notified.` : ` No employees were signed up on it.`);
       } else {
         title = `🗑️ Your site was deleted`;
@@ -7106,6 +8009,10 @@ function renderNotifPanel(items) {
     } else if (isDeploymentConfirmed) {
       title = `✅ Site successfully deployed`;
       statusLine = `The site has been successfully deployed to the schedule.`;
+      btnLabel = "Got it";
+    } else if (isSiteFilled) {
+      title = `✅ Site roster full`;
+      statusLine = `The site ${escapeHtml(n.location || "Unnamed site")} is full now. All ${n.filledCount || "Event Team"} Event Team slots are filled.`;
       btnLabel = "Got it";
     } else if (isSlotAssigned) {
       title = n.list === "relievers" ? `\u{1F3EC} You were assigned as Store Reliever` : `\u{1F4CC} You were assigned to an event slot`;
@@ -7150,13 +8057,13 @@ function getRelevantNotifications(items) {
   // admin already knows they made the change, so none of these belong in
   // the Event Team's own bell/panel. Admins still see every open
   // emergency-vacancy ("unavailable") notification.
-  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "eventCreated", "deploymentConfirmed", "slotAssigned", "siteMoved"];
+  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "eventCreated", "deploymentConfirmed", "siteFilled", "slotAssigned", "siteMoved"];
   if (!employeeSession) {
     return items.filter(n =>
       personalTypes.includes(n.type) &&
       !["slotAssigned", "siteMoved"].includes(n.type) &&
       n.employeeOnly !== true &&
-      (["eventCreated", "deploymentConfirmed", "eventCancelled", "eventReinstated", "siteAutoDeleted"].includes(n.type)
+      (["eventCreated", "deploymentConfirmed", "eventCancelled", "eventReinstated", "siteAutoDeleted", "siteFilled"].includes(n.type)
         ? Array.isArray(n.targetRoles) && n.targetRoles.includes(scheduleAccessRole)
         // "removed" writes one doc per removal that doubles as the
         // employee's personal notice (staffId) AND, when the removed
@@ -7249,6 +8156,7 @@ onSnapshot(
           const isEventCancelled = n.type === "eventCancelled";
           const isEventReinstated = n.type === "eventReinstated";
           const isDeploymentConfirmed = n.type === "deploymentConfirmed";
+          const isSiteFilled = n.type === "siteFilled";
           const isSlotAssigned = n.type === "slotAssigned";
           const isSiteMoved = n.type === "siteMoved";
           // Was missing here (only declared inside renderNotifPanel's own
@@ -7296,8 +8204,10 @@ onSnapshot(
             message = `The event team removed this site.\n\nYou're free to sign up for another slot now.`;
           } else if (isSiteAutoDeleted) {
             message = !n.staffId
-              ? `🗑️ A site was deleted automatically.\n\n${n.location || "This site"} reached 12:00 AM after its event date.`
+                ? `🗑️ The event is now deleted: ${n.location || "Unnamed site"}.\n\nIts countdown expired at 12:00 AM after the event date.`
               : `🗑️ Your site was deleted.\n\n${n.location || "This site"} was automatically deleted at 12:00 AM after its event date. You're free to sign up for another slot now.`;
+          } else if (isSiteFilled) {
+            message = `✅ The site ${n.location || "Unnamed site"} is full now!\n\nAll ${n.filledCount || "Event Team"} Event Team slots are filled.`;
           } else if (isEventCreated) {
             message = `📅 The Pharmacy Department has deployed a new site.`;
           } else if (isEventCancelled) {
@@ -7320,7 +8230,10 @@ onSnapshot(
           }
           const detailText = notifDetailText(n, { includeBranch: showBranchRow });
           if (detailText) message += `\n\n${detailText}`;
-          void (loginNotifPromptPromise || Promise.resolve()).then(() => showAlert(message)); // don't replace the login prompt while it's open
+          void (loginNotifPromptPromise || Promise.resolve()).then(() => window.showScheduleTopBanner(n, message, () => {
+            if (n.cardId) notifCenterJump(n.cardId, n.date || "");
+            else document.querySelector(".content-scroll")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }));
       }
     }
     seenNotificationIds = new Set(openRelevant.map(n => n.id));
@@ -7568,23 +8481,12 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
 });
 
 document.getElementById("updateAllBtn").addEventListener("click", async () => {
-  // "Save" here is a LOCAL-ONLY save (draft). It must NOT push to Firestore /
-  // employees — that's what "Send" (saveBtn) and a bracket's own "Update"
-  // button are for. Previously this called sendAllToEmployees() here too,
-  // which meant clicking this button silently published every change live to
-  // employees, even though it's meant to just persist the draft in this
-  // browser until someone explicitly Sends/Updates it.
   if (hasNoSitesYet()) {
     await showAlert("You need to add a date event and at least one site before you can save this.", "warn");
     return;
   }
   saveCards();
-  // Once the event team has explicitly clicked "Save", clear the logout
-  // guard's baseline for THIS device — but keep the card-level dirty
-  // protection intact (see markLocallySavedOnly() above) since nothing was
-  // actually pushed to Firestore yet.
-  markLocallySavedOnly();
-  await showAlert("Saved on this device. This has NOT been sent to employees yet — use \"Send\" or a bracket's \"Update\" button to publish it.", "ok");
+  await saveDraftsToRemote(document.getElementById("updateAllBtn"));
 });
 
 // printBtn is commented out in the markup above (no Print/Export PDF button
@@ -7658,6 +8560,10 @@ if (employeeSession) {
   // sitting on the page.
 } else {
   // Admin/manager mode: full editable dashboard, as before.
+  onSnapshot(completedEventArchiveRef, snap => {
+    completedEventCards = snap.docs.map(archiveDoc => ({ ...archiveDoc.data(), id: archiveDoc.id }));
+    if (scheduleArchiveMode) render();
+  }, error => console.error("Completed event archive listener failed:", error));
   renderDatalists();
   render();
 
@@ -7678,6 +8584,28 @@ if (employeeSession) {
   onSnapshot(scheduleDocRef, snap => {
     const data = snap.exists() ? snap.data() : { cards: [] };
     const remoteCards = Array.isArray(data.cards) ? data.cards : [];
+    if (!hasReceivedInitialScheduleSnapshot) {
+      hasReceivedInitialScheduleSnapshot = true;
+      if (!hasLocalEditsBeforeInitialSnapshot) {
+        cards = normalizeCards(remoteCards.map(card => ({
+          ...card,
+          staff: (card.staff || ROLE_LABELS.map(label => ({ label, name: "" }))).map(slot => ({ ...slot })),
+          relievers: (card.relievers || []).map(slot => ({ ...slot }))
+        })));
+        locallyDirtyCardLevelIds.clear();
+        persistDirtyCardLevelIds();
+        pendingLocalCardIds.clear();
+        sessionNewCardIds = new Set();
+        lastLocalSaveSnapshots = null;
+        adminSelectedDate = undefined;
+        setSavedSnapshot(cards);
+        saveCards();
+        markSaved();
+        render();
+        openPendingHeadPushSite();
+        return;
+      }
+    }
     const remoteById = new Map(remoteCards.map(c => [c.id, c]));
     const activeEl = document.activeElement;
     const isNameField = activeEl && activeEl.classList && activeEl.classList.contains("nameInput");
@@ -7874,9 +8802,13 @@ if (employeeSession) {
       // showing a stale set of sites.
       saveCards();
       render();
+      openPendingHeadPushSite();
       return;
     }
-    if (!changed) return;
+    if (!changed) {
+      openPendingHeadPushSite();
+      return;
+    }
     saveCards();
     const isTypingInCard = activeEl && activeEl.closest && activeEl.closest(".site-card");
     if (isTypingInCard) {
@@ -7885,6 +8817,7 @@ if (employeeSession) {
     } else {
       render();
     }
+    openPendingHeadPushSite();
   });
 }
 
@@ -7914,12 +8847,13 @@ const NOTIF_CENTER_META = {
   siteMoved:           { icon: "\uD83D\uDD00", title: "Moved to another site",         tone: "info",   cat: "staffing" },
   removed:             { icon: "\uD83D\uDEAB", title: "Removed from slot",             tone: "danger", cat: "staffing" },
   eventDeleted:        { icon: "\uD83D\uDDD1\uFE0F", title: "Event deleted",           tone: "danger", cat: "status"   },
-  siteAutoDeleted:     { icon: "\uD83D\uDDD1\uFE0F", title: "Site deleted (auto)",       tone: "danger", cat: "status"   },
+  siteAutoDeleted:     { icon: "\uD83D\uDDD1\uFE0F", title: "Event site deleted",          tone: "danger", cat: "status"   },
   siteRemoved:         { icon: "\u2796",       title: "Site removed",                  tone: "danger", cat: "status"   },
   eventCancelled:      { icon: "\u26D4",       title: "Event cancelled",               tone: "danger", cat: "status"   },
   eventReinstated:     { icon: "\u2705",       title: "Event reinstated",              tone: "ok",     cat: "status"   },
   eventCreated:        { icon: "\uD83C\uDD95", title: "New site deployed",             tone: "info",   cat: "status"   },
   deploymentConfirmed: { icon: "\u2705",       title: "Deployment confirmed",          tone: "ok",     cat: "status"   },
+  siteFilled:          { icon: "\u2705",       title: "Site roster full",              tone: "ok",     cat: "staffing" },
   unavailable:         { icon: "\uD83D\uDEA8", title: "Emergency vacancy",             tone: "danger", cat: "staffing" }
 };
 
@@ -8120,6 +9054,15 @@ function notifCenterRows(n) {
 function notifCenterJump(cardId, dateKey) {
   const overlay = document.getElementById("notifCenterOverlay");
   if (overlay) overlay.classList.remove("open");
+  const targetCard = cards.find(item => item.id === cardId);
+  if (targetCard && currentFilter !== targetCard.region) {
+    currentFilter = targetCard.region;
+    adminSelectedDate = targetCard.date || dateKey || undefined;
+    document.querySelectorAll("#regionAccordions .region-acc-head").forEach(button => {
+      button.classList.toggle("active", button.dataset.filter === currentFilter);
+    });
+    render();
+  }
   const tab = document.querySelector(`.date-tab[data-datekey="${escapeAttr(dateKey || "")}"]`);
   if (tab && !tab.classList.contains("active")) tab.click();
   setTimeout(() => {
@@ -8129,6 +9072,19 @@ function notifCenterJump(cardId, dateKey) {
     card.classList.add("notifcenter-focus");
     setTimeout(() => card.classList.remove("notifcenter-focus"), 2200);
   }, 90);
+}
+
+function openPendingHeadPushSite() {
+  if (!pendingHeadPushSiteId) return;
+  const targetCard = cards.find(item => item.id === pendingHeadPushSiteId);
+  if (!targetCard) return;
+  notifCenterJump(targetCard.id, targetCard.date || pendingHeadPushDate);
+  pendingHeadPushSiteId = "";
+  const cleanUrl = new URL(window.location.href);
+  cleanUrl.searchParams.delete("viewSite");
+  cleanUrl.searchParams.delete("date");
+  cleanUrl.searchParams.delete("region");
+  history.replaceState(null, "", cleanUrl);
 }
 
 // The bell panel collapses a slot's history down to its latest state. The
@@ -8452,6 +9408,8 @@ renderNotifCenter = function () {
 };
 maybeShowLoginNotifPrompt();
 </script>
+<script src="/assets/js/notification-banner.js"></script>
+<script type="module" src="/assets/js/push-notifications.js"></script>
 
 </body>
 </html>

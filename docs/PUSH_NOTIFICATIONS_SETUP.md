@@ -53,7 +53,9 @@ Edit `public/push-config.json` after the Worker is deployed:
 }
 ```
 
-Deploy the Firebase Hosting site. Employees can open the Notifications panel on their schedule page and tap **Enable phone notifications**. They must allow notifications on that device. Each device/browser needs its own opt-in.
+Deploy the Firebase Hosting site. Employees can enable notifications from their schedule page or Stock Request page. The Stock Request admin can enable notifications from the Stock Request admin page. Each device/browser needs its own opt-in and must allow notifications.
+
+On iPhone or iPad, open the site in Safari, add it to the Home Screen, launch it from the Home Screen icon, then tap **Enable phone notifications**. Web Push requires iOS/iPadOS 16.4 or newer; it is not available from a regular Safari tab.
 
 ## Scope and Data
 

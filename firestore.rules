@@ -47,6 +47,9 @@ service cloud.firestore {
     match /eventSchedule/{docId} {
       allow read, write: if true;
     }
+    match /eventScheduleArchive/{eventId} {
+      allow read, write: if true;
+    }
     match /emergencyNotifications/{id} {
       allow read, write: if true;
     }
@@ -151,6 +154,19 @@ service cloud.firestore {
           && request.resource.data.staffId == resource.data.staffId
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['adminCompleted','adminCompletedAt','adminCompletedBy']);
     }
+            function stockAdminReopenCompleteOk() {
+          let dayPath = /databases/$(database)/documents/stockDays/$(resource.data.date);
+          return isAdmin()
+              && resource.data.get('adminCompleted', false) == true
+              && !('adminCompleted' in request.resource.data)
+              && !('adminCompletedAt' in request.resource.data)
+              && !('adminCompletedBy' in request.resource.data)
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['adminCompleted','adminCompletedAt','adminCompletedBy'])
+              && exists(dayPath)
+              && get(dayPath).data.active == true
+              && get(dayPath).data.get('closedEarly', false) != true
+              && stockOpen(resource.data.date, get(dayPath).data.get('cutoffMin', 840));
+            }
     function stockReopenOk() {
       return resource.data.get('status', '') == 'removed'
           && !('status' in request.resource.data)
@@ -193,9 +209,11 @@ service cloud.firestore {
     match /stockDays/{day} {
       allow read: if true;
       allow create, update: if isAdmin()
-                            && request.resource.data.keys().hasOnly(['active','date','day','activatedAt','cutoffMin'])
+                  && request.resource.data.keys().hasOnly(['active','date','day','activatedAt','cutoffMin','closedEarly','closedAt'])
                             && (!('cutoffMin' in request.resource.data) || (request.resource.data.cutoffMin is int
                                 && request.resource.data.cutoffMin >= 0 && request.resource.data.cutoffMin <= 1439))
+                  && (!('closedEarly' in request.resource.data) || request.resource.data.closedEarly is bool)
+                  && (!('closedAt' in request.resource.data) || request.resource.data.closedAt is timestamp)
                             && request.resource.data.active is bool
                             && day == request.resource.data.date;
       allow delete: if isAdmin();
@@ -210,6 +228,7 @@ service cloud.firestore {
       allow update: if stockDataOk(reqId)
                 && ((isAdmin() && stockAdminRemoveOk())
                   || stockAdminCompleteOk()
+                  || stockAdminReopenCompleteOk()
                 || (stockRequester(request.resource.data.staffId)
                    && resource.data.get('adminCompleted', false) != true
                          && (stockChangeOk() || stockRemovalOk() || stockReopenOk())

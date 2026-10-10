@@ -44,6 +44,10 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:'Figtree','Se
 .lock.closed{background:#fdecec;border-color:#f3c2c6;color:#a5151f}
 .cut{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--maroon)}
 .cut input{font-family:inherit;font-size:14px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.cut-actions{display:inline-flex;align-items:center;gap:6px}
+.cut-actions[hidden],.schedule-actions[hidden]{display:none}
+.schedule-actions{display:flex;gap:6px;margin-left:auto}
+.srow.pending{background:#fffaf0}
 .act{font-size:14px;font-weight:700;padding:10px 18px;border-radius:999px;border:0;background:var(--red);color:#fff;cursor:pointer;font-family:inherit}
 .act:hover{background:#a5151f}
 .act.isOn{background:#e6f5ea;color:#1f8a4c;border:1px solid #bfe6cb}
@@ -167,6 +171,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:'Figtree','Se
       <button class="btn" type="button" id="schedBtn">Employee days</button>
       <button class="btn" type="button" id="historyBtn">History</button>
       <button class="btn cleanup-btn" type="button" id="cleanupBtn">Clean up old SR#s</button>
+      <button class="push-toggle-button" type="button" id="pushToggleButton" data-push-head="true" aria-live="polite" style="display:none">Enable phone notifications</button>
       <button class="btn" type="button" id="logoutBtn">Log out</button>
     </nav>
 
@@ -186,7 +191,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:'Figtree','Se
       <section class="panel">
         <div class="head">
           <div class="day" id="dayTitle"></div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><div class="lock" id="lockMsg"></div><label class="cut">Cutoff <input type="time" id="cutIn" value="14:00"></label><button type="button" class="act" id="actBtn">Activate this day</button></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><div class="lock" id="lockMsg"></div><label class="cut">Cutoff <input type="time" id="cutIn" value="14:00"></label><div class="cut-actions" id="cutoffActions" hidden><button type="button" class="btn" id="cancelCutoffBtn">Cancel</button><button type="button" class="btn on" id="saveCutoffBtn">Confirm cutoff</button></div><button type="button" class="act" id="actBtn">Activate this day</button></div>
         </div>
         <div class="grid" id="grid"></div>
       </section>
@@ -262,7 +267,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:'Figtree','Se
 <div class="modal" id="schedModal" role="dialog" aria-modal="true" aria-labelledby="sTitle">
   <div class="mbox wide">
     <h2 id="sTitle">Employee request days</h2>
-    <div class="mwho">Check the days each employee is allowed to send a stock request. Saves automatically.</div>
+    <div class="mwho">Choose the days each employee is allowed to send a stock request, then confirm or cancel your changes.</div>
     <input class="sfind" id="sFind" placeholder="Search name or site…" autocomplete="off">
     <div class="branch-tabs" role="group" aria-label="Filter employees by branch">
       <button class="branch-tab" type="button" data-branch="all" aria-pressed="true">All</button>
@@ -275,9 +280,20 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:'Figtree','Se
   </div>
 </div>
 
+<div class="modal" id="confirmModal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+  <div class="mbox">
+    <h2 id="confirmTitle">Confirm action</h2>
+    <p id="confirmMessage"></p>
+    <div class="mact">
+      <button type="button" class="btn" id="confirmCancelBtn">Cancel</button>
+      <button type="button" class="btn on" id="confirmAcceptBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { initializeFirestore, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initializeFirestore, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, deleteField, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -293,12 +309,88 @@ const app = initializeApp(firebaseConfig);
 const db = initializeFirestore(app, { experimentalForceLongPolling: true, useFetchStreams: false });
 const auth = getAuth(app);
 
+function showConfirmModal(message, { title='Confirm action', confirmText='Confirm' }={}){
+  const modal = document.getElementById('confirmModal');
+  const acceptButton = document.getElementById('confirmAcceptBtn');
+  const cancelButton = document.getElementById('confirmCancelBtn');
+  const previousFocus = document.activeElement;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMessage').textContent = message;
+  acceptButton.textContent = confirmText;
+
+  return new Promise(resolve=>{
+    const finish = confirmed=>{
+      modal.classList.remove('show');
+      acceptButton.onclick = null;
+      cancelButton.onclick = null;
+      modal.onclick = null;
+      document.removeEventListener('keydown', onKeydown);
+      if(previousFocus && previousFocus.isConnected) previousFocus.focus();
+      resolve(confirmed);
+    };
+    const onKeydown = event=>{
+      if(event.key === 'Escape') finish(false);
+    };
+    acceptButton.onclick = ()=>finish(true);
+    cancelButton.onclick = ()=>finish(false);
+    modal.onclick = event=>{ if(event.target === modal) finish(false); };
+    document.addEventListener('keydown', onKeydown);
+    modal.classList.add('show');
+    acceptButton.focus();
+  });
+}
+
 const DAYS = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY'];
 // The admin sets the cutoff with the time input and saves it to stockDays/<date>.cutoffMin (minutes after midnight, Philippine time).
 const cutIn = document.getElementById('cutIn');
 const toMin = v => { const p = String(v || '14:00').split(':').map(Number); return (p[0]||0)*60 + (p[1]||0); };
 const minToInput = m => String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
 const fmtMin = m => new Date(2000,0,1,Math.floor(m/60),m%60).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+const cutoffActions = document.getElementById('cutoffActions');
+const saveCutoffBtn = document.getElementById('saveCutoffBtn');
+const cancelCutoffBtn = document.getElementById('cancelCutoffBtn');
+let savedCutoffValue = cutIn.value || '14:00';
+let cutoffDirty = false;
+let cutoffSaving = false;
+function updateCutoffActions(){
+  cutoffActions.hidden = !cutoffDirty;
+  cutIn.disabled = cutoffSaving;
+  saveCutoffBtn.disabled = cutoffSaving || dayClosedEarly;
+  cancelCutoffBtn.disabled = cutoffSaving;
+}
+async function dispatchStockSchedule(notification){
+  const configResponse = await fetch('/push-config.json', { cache:'no-store' });
+  if(!configResponse.ok) throw new Error('Could not load push configuration.');
+  const config = await configResponse.json();
+  if(!config.enabled || !config.workerUrl) throw new Error('Stock request push is not configured.');
+  const idToken = await auth.currentUser?.getIdToken();
+  if(!idToken) throw new Error('Stock admin session is unavailable.');
+  const response = await fetch(config.workerUrl.replace(/\/$/, '') + '/dispatch', {
+    method:'POST',
+    headers:{ authorization:'Bearer ' + idToken, 'content-type':'application/json' },
+    body:JSON.stringify({ notifications:Array.isArray(notification) ? notification : [notification] })
+  });
+  if(!response.ok) throw new Error('Push dispatch failed (' + response.status + ').');
+}
+
+function stockDayIsOpen(date, cutoffMin){
+  const now = manilaDateAndMinutes();
+  return date > now.date || (date === now.date && cutoffMin > now.minutes);
+}
+
+async function clearManualCompletionsForDay(date){
+  const snapshot = await getDocs(query(collection(db,'stockRequests'), where('date','==',date)));
+  const completed = snapshot.docs.filter(request=>request.data().adminCompleted === true);
+  for(let start=0; start<completed.length; start+=450){
+    const batch = writeBatch(db);
+    completed.slice(start,start+450).forEach(request=>batch.update(request.ref, {
+      adminCompleted:deleteField(),
+      adminCompletedAt:deleteField(),
+      adminCompletedBy:deleteField()
+    }));
+    await batch.commit();
+  }
+}
 
 // Get the next date for a weekday, including today; index 0 = Monday.
 function dateForDay(i){
@@ -357,8 +449,11 @@ async function loadCutoffsForRecords(records){
   const dates = [...new Set(records.map(record=>String(record.date || '')).filter(date=>/^\d{4}-\d{2}-\d{2}$/.test(date)))];
   const entries = await Promise.all(dates.map(async date=>{
     const snapshot = await getDoc(doc(db,'stockDays',date));
-    const cutoffMin = snapshot.exists() ? snapshot.data().cutoffMin : null;
-    return [date, Number.isInteger(cutoffMin) ? cutoffMin : null];
+    const day = snapshot.exists() ? snapshot.data() : {};
+    return [date, {
+      cutoffMin: Number.isInteger(day.cutoffMin) ? day.cutoffMin : null,
+      closedEarly: day.closedEarly === true
+    }];
   }));
   return Object.fromEntries(entries);
 }
@@ -371,8 +466,8 @@ function isCompletedRequest(request, dayCutoffMin){
   return request.date < now.date || (request.date === now.date && now.minutes >= cutoffMin);
 }
 
-function requestStatusLabel(request){
-  if(isCompletedRequest(request, request.dayCutoffMin)) return 'Completed';
+function requestStatusLabel(request, closedEarly=false){
+  if(closedEarly || request.closedEarly === true || isCompletedRequest(request, request.dayCutoffMin)) return 'Completed';
   if(request.status === 'removed'){
     return 'Removed by ' + (request.removedBy === 'admin' ? 'admin' : 'employee');
   }
@@ -402,7 +497,7 @@ function renderHistoryResults(records, filters){
     return true;
   }).map(record=>({
     record,
-    status: requestStatusLabel({ ...record, dayCutoffMin: filters.cutoffs[record.date] })
+    status: requestStatusLabel({ ...record, dayCutoffMin: filters.cutoffs[record.date]?.cutoffMin }, filters.cutoffs[record.date]?.closedEarly)
   }));
   const counts = { all:matchingRecords.length, pending:0, completed:0, removed:0 };
   matchingRecords.forEach(item=>counts[historyStatusKey(item.status)]++);
@@ -532,9 +627,10 @@ async function cleanupOldRequests(){
   }
 
   const button = document.getElementById('cleanupBtn');
-  const confirmed = confirm(
+  const confirmed = await showConfirmModal(
     'Archive and remove all stock requests from ' + from + ' to ' + to + '? This includes removed requests. ' +
-    'Archived SR#s will remain searchable in History.'
+    'Archived SR#s will remain searchable in History.',
+    { title:'Archive stock requests', confirmText:'Archive range' }
   );
   if(!confirmed) return;
 
@@ -588,7 +684,7 @@ DAYS.forEach((n,i)=>{
 });
 
 const grid = document.getElementById('grid');
-let current = -1, unsub = null, unsubDay = null, selectedDateKey = '', dayActive = false;
+let current = -1, unsub = null, unsubDay = null, selectedDateKey = '', dayActive = false, dayClosedEarly = false;
 let rowsNow = [], visibleRows = [], selectedRequestBranch = 'all', requestRenderToken = 0;
 const employeeBranchCache = new Map();
 
@@ -618,16 +714,16 @@ async function resolveRequestBranch(request){
 }
 
 function paintHeader(){
-  const d = dateForDay(current), locked = isLocked(d);
+  const d = dateForDay(current), locked = isLocked(d) || dayClosedEarly;
   document.getElementById('dayTitle').innerHTML =
     DAYS[current] + '<small>' + d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) + '</small>';
   const lm = document.getElementById('lockMsg');
-  lm.textContent = locked ? 'Order is locked' : (dayActive ? 'Active — locks at ' + fmtMin(toMin(cutIn.value)) : 'Not activated — employees cannot request yet');
+  lm.textContent = dayClosedEarly ? 'Order request closed early' : locked ? 'Order is locked' : (dayActive ? 'Active — locks at ' + fmtMin(toMin(cutIn.value)) : 'Not activated — employees cannot request yet');
   lm.classList.toggle('closed', locked || !dayActive);
   const ab = document.getElementById('actBtn');
-  ab.textContent = locked ? (dayActive ? 'Closed' : 'Cutoff time passed') : (dayActive ? 'Active ✓ (tap to deactivate)' : 'Activate this day');
+  ab.textContent = dayClosedEarly ? 'Unclose order' : locked ? (dayActive ? 'Closed' : 'Cutoff time passed') : (dayActive ? 'Active ✓ (tap to deactivate)' : 'Activate this day');
   ab.classList.toggle('isOn', dayActive && !locked);
-  ab.disabled = locked;
+  ab.disabled = dayClosedEarly ? cutoffSaving : locked || cutoffDirty || cutoffSaving;
 }
 
 const fmtAt = ms => new Date(ms).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
@@ -638,7 +734,7 @@ const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 function cardHtml(r, idx){
   const h = Array.isArray(r.history) ? r.history : [];
   const removal = r.status === 'removed';
-  const status = requestStatusLabel({ ...r, dayCutoffMin: toMin(cutIn.value) });
+  const status = requestStatusLabel({ ...r, dayCutoffMin: toMin(cutIn.value) }, dayClosedEarly);
   const historyButton = h.length
     ? '<button type="button" class="fold" data-idx="' + idx + '" title="View change reason" aria-label="View change reason">' +
       FOLDER_SVG + (h.length > 1 ? '<span class="cnt">' + h.length + '</span>' : '') + '</button>'
@@ -698,7 +794,9 @@ async function markRemovalViewed(request){
 
 async function archiveAndDeleteRemovedRequest(request){
   if(!request || request.status !== 'removed' || !request.staffId || !request.date) return;
-  if(!confirm('Move this removed SR# to permanent History and remove it from this list? It will remain searchable.')) return;
+  if(!await showConfirmModal('Move this removed SR# to permanent History and remove it from this list? It will remain searchable.', {
+    title:'Archive removed SR#', confirmText:'Archive SR#'
+  })) return;
   const requestId = request.date + '_' + String(request.staffId).toLowerCase();
   const previousRows = rowsNow;
   rowsNow = rowsNow.filter(row=>row !== request);
@@ -784,7 +882,9 @@ async function removeRequestAsAdmin(request){
 async function markRequestCompletedAsAdmin(request){
   if(!request || !request.staffId || !request.date || request.status === 'removed' || request.adminCompleted) return;
   if(isCompletedRequest(request, toMin(cutIn.value))) return;
-  if(!confirm('Mark SR# ' + (request.sr || '') + ' for ' + (request.name || 'this employee') + ' as Completed? The employee will no longer be able to edit it.')) return;
+  if(!await showConfirmModal('Mark SR# ' + (request.sr || '') + ' for ' + (request.name || 'this employee') + ' as Completed? The employee will no longer be able to edit it.', {
+    title:'Mark request completed', confirmText:'Mark completed'
+  })) return;
   try{
     await updateDoc(doc(db,'stockRequests',request.date + '_' + String(request.staffId).toLowerCase()), {
       adminCompleted: true,
@@ -859,12 +959,18 @@ grid.addEventListener('click', e=>{
   if(b && visibleRows[+b.dataset.idx]) openReason(visibleRows[+b.dataset.idx]);
 });
 
-function select(i){
+async function select(i){
+  if(cutoffDirty && !await showConfirmModal('Discard the unsaved cutoff change?', {
+    title:'Discard cutoff change', confirmText:'Discard change'
+  })) return;
+  cutoffDirty = false;
+  updateCutoffActions();
   current = i;
   const selectedDate = iso(dateForDay(i));
   selectedDateKey = selectedDate;
   requestRenderToken++;
   dayActive = false;
+  dayClosedEarly = false;
   nav.querySelectorAll('button[data-i]').forEach(b=>b.classList.toggle('on', +b.dataset.i===i));
   paintHeader();
   grid.innerHTML = '<div class="empty">Loading…</div>';
@@ -873,7 +979,11 @@ function select(i){
   unsubDay = onSnapshot(doc(db,'stockDays', selectedDate), snap=>{
     const dd = snap.exists() ? snap.data() : null;
     dayActive = !!dd && dd.active === true;
-    if(document.activeElement !== cutIn) cutIn.value = minToInput(dd && Number.isInteger(dd.cutoffMin) ? dd.cutoffMin : 840);
+    dayClosedEarly = !!dd?.closedEarly;
+    if(!cutoffDirty){
+      savedCutoffValue = minToInput(dd && Number.isInteger(dd.cutoffMin) ? dd.cutoffMin : 840);
+      if(document.activeElement !== cutIn) cutIn.value = savedCutoffValue;
+    }
     paintHeader();
   }, ()=>{});
   // Live updates appear here as soon as an employee submits a request.
@@ -893,24 +1003,188 @@ function select(i){
   });
 }
 
-cutIn.addEventListener('change', async ()=>{
-  if(!cutIn.value) cutIn.value = '14:00';
+function trackCutoffChange(){
+  if(!cutIn.value) cutIn.value = savedCutoffValue;
+  cutoffDirty = cutIn.value !== savedCutoffValue;
+  updateCutoffActions();
   paintHeader();
-  if(!dayActive) return;
-  try{ await updateDoc(doc(db,'stockDays', iso(dateForDay(current))), { cutoffMin: toMin(cutIn.value) }); }
-  catch(ex){ alert('Could not update the cutoff (' + (ex.code || ex.message) + ').'); }
+}
+cutIn.addEventListener('input', trackCutoffChange);
+cutIn.addEventListener('change', trackCutoffChange);
+cancelCutoffBtn.addEventListener('click', ()=>{
+  cutIn.value = savedCutoffValue;
+  cutoffDirty = false;
+  updateCutoffActions();
+  paintHeader();
+});
+saveCutoffBtn.addEventListener('click', async ()=>{
+  if(!cutoffDirty || cutoffSaving || dayClosedEarly) return;
+  if(!dayActive){
+    savedCutoffValue = cutIn.value;
+    cutoffDirty = false;
+    updateCutoffActions();
+    paintHeader();
+    return;
+  }
+  const date = iso(dateForDay(current));
+  const nextCutoffMin = toMin(cutIn.value);
+  const previousCutoffMin = toMin(savedCutoffValue);
+  cutoffSaving = true;
+  updateCutoffActions();
+  try{
+    const stockDayRef = doc(db,'stockDays', date);
+    const stockDaySnapshot = await getDoc(stockDayRef);
+    const actualPreviousCutoffMin = stockDaySnapshot.exists() && Number.isInteger(stockDaySnapshot.data().cutoffMin)
+      ? stockDaySnapshot.data().cutoffMin
+      : previousCutoffMin;
+    if(actualPreviousCutoffMin === nextCutoffMin){
+      savedCutoffValue = cutIn.value;
+      cutoffDirty = false;
+      return;
+    }
+    await updateDoc(stockDayRef, { cutoffMin: nextCutoffMin });
+    savedCutoffValue = cutIn.value;
+    cutoffDirty = false;
+    if(stockDayIsOpen(date, nextCutoffMin)){
+      try{ await clearManualCompletionsForDay(date); }
+      catch(error){
+        console.error('Cutoff updated, but completed SR# statuses could not be reset:', error);
+        alert('Cutoff updated, but some SR# statuses could not be reset to Pending. (' + (error.code || error.message) + ')');
+      }
+    }
+    try{
+      const employees = await getDocs(collection(db,'employees'));
+      const targetStaffIds = employees.docs.map(employeeDoc=>({ id:employeeDoc.id, ...employeeDoc.data() }))
+        .filter(employee=>requesterGroup(employee.department) &&
+          (!Array.isArray(employee.requestDays) || employee.requestDays.includes(DAYS[current])))
+        .map(employee=>String(employee.staffId || employee.id).trim().toLowerCase())
+        .filter(Boolean);
+      await dispatchStockSchedule({
+        id:'stock-day-cutoff-' + date + '-' + Date.now(),
+        type:'stockDayCutoffUpdated', date, day:DAYS[current], cutoffMin:nextCutoffMin,
+        previousCutoffMin:actualPreviousCutoffMin,
+        reopened:date === manilaDateAndMinutes().date && actualPreviousCutoffMin <= manilaDateAndMinutes().minutes && nextCutoffMin > manilaDateAndMinutes().minutes,
+        targetStaffIds
+      });
+    }catch(notificationError){
+      console.error('Cutoff saved, but the stock cutoff notification could not be rescheduled:', notificationError);
+      alert('Cutoff saved, but the stock cutoff reminder could not be rescheduled. (' + notificationError.message + ')');
+    }
+  }
+  catch(ex){
+    cutIn.value = savedCutoffValue;
+    cutoffDirty = false;
+    alert('Could not update the cutoff (' + (ex.code || ex.message) + ').');
+  }
+  finally{
+    cutoffSaving = false;
+    updateCutoffActions();
+    paintHeader();
+  }
 });
 
 document.getElementById('actBtn').addEventListener('click', async ()=>{
   const d = dateForDay(current);
+  if(dayClosedEarly){
+    const date = iso(d);
+    const cutoffMin = toMin(cutIn.value);
+    const now = manilaDateAndMinutes();
+    if(date === now.date && cutoffMin <= now.minutes){
+      await showConfirmModal('Choose a cutoff later than the current time before reopening this day.', {
+        title:'Choose a new cutoff', confirmText:'Got it'
+      });
+      return;
+    }
+    if(!await showConfirmModal('Reopen stock requests for ' + DAYS[current] + '? Employees can enter or edit their SR# until ' + fmtMin(cutoffMin) + '.', {
+      title:'Unclose stock requests', confirmText:'Unclose order'
+    })) return;
+    const ref = doc(db,'stockDays', date);
+    try{
+      const snapshot = await getDoc(ref);
+      const previousCutoffMin = snapshot.exists() && Number.isInteger(snapshot.data().cutoffMin) ? snapshot.data().cutoffMin : 840;
+      await updateDoc(ref, { active:true, closedEarly:false, cutoffMin, closedAt:serverTimestamp() });
+      try{ await clearManualCompletionsForDay(date); }
+      catch(error){
+        console.error('Stock requests reopened, but completed SR# statuses could not be reset:', error);
+        alert('Order reopened, but some SR# statuses could not be reset to Pending. (' + (error.code || error.message) + ')');
+      }
+      dayActive = true;
+      dayClosedEarly = false;
+      cutoffDirty = false;
+      savedCutoffValue = minToInput(cutoffMin);
+      cutIn.value = savedCutoffValue;
+      updateCutoffActions();
+      paintHeader();
+      try{
+        const employees = await getDocs(collection(db,'employees'));
+        const targetStaffIds = employees.docs.map(employeeDoc=>({ id:employeeDoc.id, ...employeeDoc.data() }))
+          .filter(employee=>requesterGroup(employee.department) &&
+            (!Array.isArray(employee.requestDays) || employee.requestDays.includes(DAYS[current])))
+          .map(employee=>String(employee.staffId || employee.id).trim().toLowerCase())
+          .filter(Boolean);
+        await dispatchStockSchedule({
+          id:'stock-day-unclosed-' + date + '-' + Date.now(),
+          type:'stockDayCutoffUpdated', date, day:DAYS[current], cutoffMin, previousCutoffMin,
+          reopened:true, unclosed:true, targetStaffIds
+        });
+      }catch(notificationError){
+        console.error('Stock requests reopened, but the employee notification could not be sent:', notificationError);
+        alert('Stock requests reopened, but the employee notification could not be sent. (' + notificationError.message + ')');
+      }
+    }catch(error){
+      alert('Could not reopen stock requests (' + (error.code || error.message) + ').');
+    }
+    return;
+  }
   if(isLocked(d)) return;
   const ref = doc(db,'stockDays', iso(d));
   try{
     if(dayActive){
-      if(!confirm('Deactivate this day? Employees will no longer be able to submit or edit.')) return;
-      await deleteDoc(ref);
+      if(!await showConfirmModal('Employees will no longer be able to submit or edit stock requests for this day.', {
+        title:'Deactivate stock requests', confirmText:'Deactivate day'
+      })) return;
+      const employees = await getDocs(collection(db,'employees'));
+      const targetStaffIds = employees.docs.map(employeeDoc=>({ id:employeeDoc.id, ...employeeDoc.data() }))
+        .filter(employee=>requesterGroup(employee.department) &&
+          (!Array.isArray(employee.requestDays) || employee.requestDays.includes(DAYS[current])))
+        .map(employee=>String(employee.staffId || employee.id).trim().toLowerCase())
+        .filter(Boolean);
+      await updateDoc(ref, { active:false, closedEarly:true, closedAt:serverTimestamp() });
+      try{
+        const date = iso(d);
+        await dispatchStockSchedule([
+          { id:'stock-day-deactivated-' + date + '-' + Date.now(), type:'stockDayDeactivated', date, day:DAYS[current] },
+          { id:'stock-day-closed-early-' + date + '-' + Date.now(), type:'stockDayClosedEarly', date, day:DAYS[current], targetStaffIds }
+        ]);
+      }catch(notificationError){
+        console.error('Day deactivated early, but its notification could not be sent:', notificationError);
+        alert('Day closed early, but its notification could not be sent. (' + notificationError.message + ')');
+      }
     } else {
+      if(!await showConfirmModal('Activate stock requests for ' + DAYS[current] + ' with a ' + fmtMin(toMin(cutIn.value)) + ' cutoff?', {
+        title:'Activate stock requests', confirmText:'Activate day'
+      })) return;
       await setDoc(ref, { active:true, date: iso(d), day: DAYS[current], cutoffMin: toMin(cutIn.value), activatedAt: serverTimestamp() });
+      try{
+        const employees = await getDocs(collection(db,'employees'));
+        const targetStaffIds = employees.docs.map(employeeDoc=>({ id:employeeDoc.id, ...employeeDoc.data() }))
+          .filter(employee=>requesterGroup(employee.department) &&
+            (!Array.isArray(employee.requestDays) || employee.requestDays.includes(DAYS[current])))
+          .map(employee=>String(employee.staffId || employee.id).trim().toLowerCase())
+          .filter(Boolean);
+        await dispatchStockSchedule({
+          id:'stock-day-' + iso(d) + '-' + Date.now(),
+          type:'stockDayActivated',
+          date:iso(d),
+          day:DAYS[current],
+          cutoffMin:toMin(cutIn.value),
+          targetStaffIds,
+          createdAt:new Date().toISOString()
+        });
+      }catch(notificationError){
+        console.error('Stock day activated, but employee push dispatch failed:', notificationError);
+        alert('Day activated, but scheduled employees could not be notified. (' + notificationError.message + ')');
+      }
     }
   }catch(ex){ alert('Could not update (' + (ex.code || ex.message) + ').'); }
 });
@@ -939,8 +1213,12 @@ function requesterBranch(employee){
   return match ? match[1].toLowerCase() : 'unset';
 }
 let empRows = [], unsubEmp = null;
+let pendingScheduleDays = new Map();
 let selectedBranch = 'all';
 const sList = document.getElementById('sList'), sFind = document.getElementById('sFind'), sModal = document.getElementById('schedModal');
+function sameScheduleDays(left, right){
+  return DAYS.every(day=>left.includes(day) === right.includes(day));
+}
 function paintSched(){
   const q = sFind.value.trim().toLowerCase();
   const branches = REQUESTER_BRANCHES.map(branch=>({
@@ -958,9 +1236,13 @@ function paintSched(){
         '<section class="sgroup"><div class="sgroup-title"><span>'+group.label+'</span><span class="sgroup-count">'+group.rows.length+'</span></div>' +
         group.rows.map(r=>{
           const set = Array.isArray(r.requestDays);
-          return '<div class="srow" data-id="'+esc(r.id)+'"><div class="sinfo"><b>'+esc(r.name)+'</b><small>'+esc(r.siteName)+'</small></div>' +
-            '<div class="sdays'+(set?'':' unset')+'">' + DAYS.map((d,k)=>
-              '<label>'+SHORT[k]+'<input type="checkbox" data-day="'+d+'"'+((!set || r.requestDays.includes(d))?' checked':'')+'></label>').join('') + '</div></div>';
+          const savedDays = set ? r.requestDays : DAYS;
+          const days = pendingScheduleDays.get(r.id) || savedDays;
+          const dirty = !sameScheduleDays(days, savedDays);
+          return '<div class="srow'+(dirty?' pending':'')+'" data-id="'+esc(r.id)+'"><div class="sinfo"><b>'+esc(r.name)+'</b><small>'+esc(r.siteName)+'</small></div>' +
+            '<div class="sdays'+(set || dirty?'':' unset')+'">' + DAYS.map((d,k)=>
+              '<label>'+SHORT[k]+'<input type="checkbox" data-day="'+d+'"'+(days.includes(d)?' checked':'')+'></label>').join('') + '</div>' +
+            '<div class="schedule-actions"'+(dirty?'':' hidden')+'><button type="button" class="btn on" data-confirm-days>Confirm</button><button type="button" class="btn" data-cancel-days>Cancel</button></div></div>';
         }).join('') + '</section>'
       ).join('') + '</section>';
   }).join('') : '<div class="empty" style="border:0">No eligible employees found.</div>';
@@ -974,22 +1256,85 @@ function openSched(){
     paintSched();
   }, err=>{ sList.innerHTML = '<div class="empty" style="border:0">Failed to load ('+esc(err.code||err.message)+').</div>'; });
 }
-function closeSched(){ sModal.classList.remove('show'); if(unsubEmp){ unsubEmp(); unsubEmp = null; } }
+async function closeSched(){
+  if(pendingScheduleDays.size && !await showConfirmModal('Discard all unconfirmed employee schedule changes?', {
+    title:'Discard schedule changes', confirmText:'Discard changes'
+  })) return;
+  pendingScheduleDays.clear();
+  sModal.classList.remove('show');
+  if(unsubEmp){ unsubEmp(); unsubEmp = null; }
+}
 document.getElementById('schedBtn').addEventListener('click', openSched);
 document.getElementById('sClose').addEventListener('click', closeSched);
 sModal.addEventListener('click', e=>{ if(e.target === sModal) closeSched(); });
-document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeSched(); });
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && !document.getElementById('confirmModal').classList.contains('show')) closeSched();
+});
 sFind.addEventListener('input', paintSched);
 document.querySelectorAll('[data-branch]').forEach(button=>button.addEventListener('click', ()=>{
   selectedBranch = button.dataset.branch;
   document.querySelectorAll('[data-branch]').forEach(tab=>tab.setAttribute('aria-pressed', String(tab === button)));
   paintSched();
 }));
-sList.addEventListener('change', async e=>{
+sList.addEventListener('change', e=>{
+  if(!e.target.matches('input[data-day]')) return;
   const row = e.target.closest('.srow'); if(!row) return;
+  const employee = empRows.find(item=>item.id === row.dataset.id);
+  if(!employee) return;
+  const previousDays = Array.isArray(employee.requestDays) ? employee.requestDays : DAYS;
   const days = [...row.querySelectorAll('input[data-day]')].filter(i=>i.checked).map(i=>i.dataset.day);
-  try{ await updateDoc(doc(db,'employees',row.dataset.id), { requestDays: days }); }
-  catch(ex){ alert('Could not save (' + (ex.code || ex.message) + ').'); }
+  if(sameScheduleDays(days, previousDays)) pendingScheduleDays.delete(row.dataset.id);
+  else pendingScheduleDays.set(row.dataset.id, days);
+  paintSched();
+});
+sList.addEventListener('click', async e=>{
+  const cancelButton = e.target.closest('[data-cancel-days]');
+  const confirmButton = e.target.closest('[data-confirm-days]');
+  if(!cancelButton && !confirmButton) return;
+  const row = e.target.closest('.srow');
+  if(!row) return;
+  const employee = empRows.find(item=>item.id === row.dataset.id);
+  if(!employee) return;
+  if(cancelButton){
+    pendingScheduleDays.delete(row.dataset.id);
+    paintSched();
+    return;
+  }
+  const previousDays = Array.isArray(employee.requestDays) ? employee.requestDays : DAYS;
+  const days = pendingScheduleDays.get(row.dataset.id);
+  if(!days) return;
+  const addedDays = days.filter(day=>!previousDays.includes(day));
+  const removedDays = previousDays.filter(day=>!days.includes(day));
+  row.querySelectorAll('input,button').forEach(control=>{ control.disabled = true; });
+  try{
+    await updateDoc(doc(db,'employees',row.dataset.id), { requestDays: days });
+  }
+  catch(ex){
+    alert('Could not save the employee schedule (' + (ex.code || ex.message) + ').');
+    paintSched();
+    return;
+  }
+  const employeeIndex = empRows.findIndex(item=>item.id === row.dataset.id);
+  if(employeeIndex >= 0) empRows[employeeIndex] = { ...employee, requestDays:days };
+  pendingScheduleDays.delete(row.dataset.id);
+  paintSched();
+  if(addedDays.length || removedDays.length){
+    const staffId = String(employee.staffId || employee.id).trim().toLowerCase();
+    try{
+      await dispatchStockSchedule({
+        id:'stock-day-schedule-' + staffId + '-' + Date.now(),
+        type:'stockDayScheduleChanged',
+        targetStaffIds:[staffId],
+        requestDays:days,
+        addedDays,
+        removedDays,
+        wasUnscheduled:previousDays.length === 0 && days.length > 0
+      });
+    }catch(notificationError){
+      console.error('Employee schedule saved, but its notification could not be sent:', notificationError);
+      alert('Schedule saved, but the employee notification could not be sent. (' + notificationError.message + ')');
+    }
+  }
 });
 
 document.getElementById('logoutBtn').addEventListener('click', async ()=>{
@@ -1015,7 +1360,8 @@ onAuthStateChanged(auth, user=>{
   document.getElementById('app').style.display='block';
   if(current === -1){
     const g = new Date().getDay();
-    select(g>=1 && g<=5 ? g-1 : 0);
+    const requestedDay = DAYS.indexOf(String(new URLSearchParams(location.search).get('day') || '').toUpperCase());
+    select(requestedDay >= 0 ? requestedDay : g>=1 && g<=5 ? g-1 : 0);
     setInterval(()=>{
       if(current >= 0 && iso(dateForDay(current)) !== selectedDateKey) select(current);
       else { paintHeader(); renderRequestRows(); }
@@ -1023,5 +1369,6 @@ onAuthStateChanged(auth, user=>{
   }
 });
 </script>
+<script type="module" src="/assets/js/push-notifications.js"></script>
 </body>
 </html>

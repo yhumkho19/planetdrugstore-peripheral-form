@@ -12,25 +12,61 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage(payload => {
+messaging.onBackgroundMessage(async payload => {
   const data = payload.data || {};
+  const isEventReminder = data.eventReminder === "1";
+  const isPharmacistNote = data.notificationType === "pharmacistNote";
+  const isStockDayNotification = String(data.notificationType || "").startsWith("stockDay");
+  if (isEventReminder) {
+    const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    clients.forEach(client => client.postMessage({ type: "event-reminder", data }));
+  }
   return self.registration.showNotification(data.title || "Schedule update", {
     body: data.body || "Open the app to review the details.",
     icon: "/assets/images/logo-transparent.png",
     badge: "/assets/images/logo-transparent.png",
     tag: data.notificationId || "schedule-update",
-    actions: data.cardId ? [{ action: "view-site", title: "View site" }] : [],
+    requireInteraction: true,
+    silent: false,
+    renotify: true,
+    vibrate: isEventReminder ? [180, 100, 180, 100, 360] : [180, 100, 180],
+    actions: [
+      { action: "view-site", title: isPharmacistNote ? "View notes" : isStockDayNotification ? "View page" : "View site" },
+      { action: "close", title: "Close" }
+    ],
     data: {
       url: data.url || "/47fto0gim6",
       cardId: data.cardId || "",
       date: data.date || "",
-      region: data.region || ""
+      region: data.region || "",
+      eventReminder: isEventReminder,
+      reminderKey: data.reminderKey || "",
+      reminderActionToken: data.reminderActionToken || ""
     }
   });
 });
 
 self.addEventListener("notificationclick", event => {
   event.notification.close();
+  if (event.action === "close") return;
+  if (["snooze", "dismiss"].includes(event.action)) {
+    event.waitUntil((async () => {
+      const configResponse = await fetch("/push-config.json", { cache: "no-store" });
+      if (!configResponse.ok) return;
+      const config = await configResponse.json();
+      if (!config.workerUrl) return;
+      await fetch(`${config.workerUrl.replace(/\/$/, "")}/reminder-action`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          reminderKey: event.notification.data?.reminderKey || "",
+          actionToken: event.notification.data?.reminderActionToken || "",
+          action: event.action
+        })
+      });
+    })());
+    return;
+  }
   const targetUrl = new URL(event.notification.data?.url || "/47fto0gim6", self.location.origin).href;
   event.waitUntil((async () => {
     const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });

@@ -6,6 +6,9 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<meta name="theme-color" content="#b71916">
+<link rel="manifest" href="/employee-schedule.webmanifest">
+<link rel="apple-touch-icon" href="/assets/images/logo-transparent.png">
 <title>Deployment Roster — Medical &amp; People's Day</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1771,6 +1774,7 @@
         <div class="admin-chip-wrap" id="empChipWrap">
           <button type="button" class="admin-chip" id="empChipBtn" aria-haspopup="true"><span class="avatar" id="empChipAvatar">—</span><span id="empChipLabel">—</span>▾</button>
           <div class="admin-dropdown" id="empDropdown">
+            <button type="button" class="admin-dropdown-item" id="eventReminderSoundBtn" title="Enables audio for this page and plays a 10-second test">🔊 Test alarm sound</button>
             <button type="button" class="admin-dropdown-item" id="empLogoutBtn">🚪 Logout</button>
           </div>
         </div>
@@ -1859,7 +1863,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-09-28.6";
+const APP_VERSION = "2026-10-09.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -1921,7 +1925,7 @@ function closeModal() {
 // prompts, "date" (📅) for the date picker. Re-triggers the pop-in animation
 // each time so repeat modals (e.g. two alerts in a row) still animate.
 function setModalIcon(kind) {
-  const glyphs = { ok: "✓", warn: "!", question: "?", date: "📅", bell: "🔔" };
+  const glyphs = { ok: "✓", warn: "!", question: "?", date: "📅", bell: "🔔", note: "📝" };
   appModalIcon.textContent = glyphs[kind] || glyphs.ok;
   appModalIcon.className = "modal-icon" + (kind === "warn" || kind === "question" ? " " + kind : "");
   appModalIcon.style.animation = "none";
@@ -2312,6 +2316,77 @@ if (!employeeSession) {
   throw new Error("No employee session — redirecting to employee-login.html.");
 }
 
+let eventReminderAudioContext = null;
+const heardEventReminderIds = new Set();
+function unlockEventReminderAudio() {
+  const AudioContextType = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextType) return;
+  try {
+    if (!eventReminderAudioContext) eventReminderAudioContext = new AudioContextType();
+    if (eventReminderAudioContext.state !== "running") void eventReminderAudioContext.resume();
+    return eventReminderAudioContext;
+  } catch (error) {
+    console.warn("Event reminder sound is unavailable:", error);
+  }
+}
+document.addEventListener("pointerdown", unlockEventReminderAudio, { once: true, passive: true });
+document.addEventListener("keydown", unlockEventReminderAudio, { once: true });
+document.getElementById("pushToggleButton")?.addEventListener("click", unlockEventReminderAudio, true);
+
+function playEventReminderAlarm(data) {
+  if (!data || data.eventReminder !== "1") return;
+  const reminderId = String(data.notificationId || data.reminderKey || "");
+  if (reminderId && heardEventReminderIds.has(reminderId)) return;
+  if (reminderId) {
+    heardEventReminderIds.add(reminderId);
+    if (heardEventReminderIds.size > 100) heardEventReminderIds.clear();
+  }
+  const play = () => {
+    if (!eventReminderAudioContext || eventReminderAudioContext.state !== "running") return;
+    const startAt = eventReminderAudioContext.currentTime + 0.05;
+    for (let pulse = 0; pulse < 10; pulse++) {
+      const oscillator = eventReminderAudioContext.createOscillator();
+      const gain = eventReminderAudioContext.createGain();
+      const start = startAt + pulse;
+      oscillator.type = "sine";
+      oscillator.frequency.value = 880;
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.3, start + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.45);
+      oscillator.connect(gain);
+      gain.connect(eventReminderAudioContext.destination);
+      oscillator.start(start);
+      oscillator.stop(start + 0.46);
+    }
+  };
+  if (!eventReminderAudioContext) return;
+  if (eventReminderAudioContext.state === "running") play();
+  else void eventReminderAudioContext.resume().then(play).catch(() => {});
+}
+document.getElementById("eventReminderSoundBtn")?.addEventListener("click", async event => {
+  const button = event.currentTarget;
+  const audioContext = unlockEventReminderAudio();
+  if (!audioContext) {
+    button.textContent = "Sound unavailable";
+    return;
+  }
+  try {
+    await audioContext.resume();
+    if (audioContext.state !== "running") throw new Error("Audio is blocked by the browser.");
+    button.textContent = "Alarm sound enabled";
+    playEventReminderAlarm({ eventReminder: "1", notificationId: `sound-test-${Date.now()}` });
+  } catch (error) {
+    console.warn("Could not unlock event reminder sound:", error);
+    button.textContent = "Enable sound in browser settings";
+  }
+});
+window.addEventListener("pd-event-reminder", event => playEventReminderAlarm(event.detail));
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("message", event => {
+    if (event.data && event.data.type === "event-reminder") playEventReminderAlarm(event.data.data);
+  });
+}
+
 // Topbar chip shows this employee's own team + branch (e.g. "IT NORTH"),
 // derived from their department field, instead of a generic label — same
 // chip pattern as the admin/department-head pages, with a Logout item in
@@ -2493,6 +2568,7 @@ cards.forEach(c => {
   c.relievers.forEach(s => {
     s.name = (s.name || "").toUpperCase();
     if (s.site === undefined) s.site = "";
+    if (!s.relieverTime) s.relieverTime = "20:00";
   });
   // Store Reliever rows display as Pharmacy Assistant duty — drop any leftover
   // PHARMACIST/BILLING/IT SPECIALIST reliever rows from older cards, and
@@ -2770,10 +2846,22 @@ function notifTitleCase(str) {
 function notifDetailRows(n, opts) {
   const includeBranch = !!(opts && opts.includeBranch);
   const rows = [];
+  if (n.type === "removed" && n.replacedByName) {
+    if (n.location) rows.push([n.list === "relievers" ? "Store" : "Event Site", n.location]);
+    return rows;
+  }
   if (n.type === "eventsDeployed") {
     if (n.siteCount) rows.push(["Sites deployed", String(n.siteCount)]);
     const ds = (Array.isArray(n.dates) ? n.dates : []).map(d => formatDateDisplay(d));
     if (ds.length) rows.push([ds.length > 1 ? "Event Dates" : "Event Date", ds.join(", ")]);
+    if (n.actorLabel) rows.push(["Action by", n.actorLabel]);
+    return rows;
+  }
+  if (n.type === "pharmacistNote") {
+    if (n.noteText) rows.push(["Note", n.noteText]);
+    if (n.actorLabel) rows.push(["From", n.actorLabel]);
+    if (n.location) rows.push(["Event Site", n.location]);
+    if (n.date) rows.push(["Event Date", formatDateDisplay(n.date)]);
     return rows;
   }
   const role = n.list === "schedule" ? "" : notifTitleCase(n.role);
@@ -2790,6 +2878,7 @@ function notifDetailRows(n, opts) {
     const t = notifEventTypeLabel(n);
     if (t) rows.push(["Event Type", t]);
   }
+  if (n.actorLabel) rows.push(["Action by", n.actorLabel]);
   return rows;
 }
 function notifDetailText(n, opts) {
@@ -3546,6 +3635,10 @@ function renderEmployeeSchedule(scheduleCards, branch) {
   grid.appendChild(bracketGrid);
 
   activeGroup.items.forEach(({ card }, idx) => {
+    const myRelieverSlot = (card.relievers || []).find(slot => slotBelongsToEmployee(slot));
+    const employeeDisplayTime = myRelieverSlot
+      ? `${formatRelieverTime(myRelieverSlot.relieverTime)} onwards`
+      : (card.time || "—");
     const cardEl = document.createElement("div");
     cardEl.className = "site-card" + (card.cancelled ? " is-cancelled" : "");
     cardEl.dataset.region = card.region;
@@ -3575,7 +3668,7 @@ function renderEmployeeSchedule(scheduleCards, branch) {
           </div>
           <div class="field field-time">
             <label>Time</label>
-            <div>${escapeHtml(card.time || "—")}</div>
+            <div>${escapeHtml(employeeDisplayTime)}</div>
           </div>
         </div>
         <div class="perforation"></div>
@@ -3636,13 +3729,12 @@ function employeeStaffRowHtml(s, sIdx, listKey, card, myActiveSlot, cancelled) {
       <span style="min-width:120px;color:var(--ink-muted);font-size:12px;">
         ${escapeHtml(blockedByOtherSlot && allowed ? "Already assigned — department transfer required" : displayLabel)}
         ${listKey === "relievers" && (s.site || "").trim() ? `<span class="reliever-site-tag">📍 ${escapeHtml(s.site)}</span>` : ""}
+        ${listKey === "relievers" ? `<span class="reliever-site-tag">Time onwards: ${escapeHtml(formatRelieverTime(s.relieverTime))}</span>` : ""}
       </span>
       ${filled
         ? `<strong style="flex:1;">${escapeHtml(s.name)}</strong>` +
-          (isMine
-            ? (cancelled
-                ? `<span style="flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);">Event cancelled</span>`
-                : `<span style="flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);">Contact the admin to make changes</span>`)
+          (isMine && cancelled
+            ? `<span style="flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);">Event cancelled</span>`
             : "")
         : (() => {
             if (cancelled) {
@@ -3691,6 +3783,13 @@ function relieverDisplayLabel(slot) {
     ? "BILLING"
     : "PHARMACY ASSISTANT";
 }
+function formatRelieverTime(value) {
+  const match = String(value || "20:00").match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return String(value || "8:00 PM");
+  const hour = Number(match[1]);
+  const period = hour >= 12 ? "PM" : "AM";
+  return `${hour % 12 || 12}:${match[2]} ${period}`;
+}
 // Last full (unfiltered, both branches) schedule cards seen, so the
 // leaderboard can be re-rendered whenever either the schedule or the
 // employees list changes, without waiting for the other to also change.
@@ -3730,7 +3829,11 @@ function roleToTeam(label) {
 // label on the reliever row.
 function isRoleAllowedForEmployee(label, listKey) {
   if (!employeeSession) return false;
-  const { team } = splitDepartmentClient(employeeSession.department);
+  return isDepartmentAllowedForSlot(employeeSession.department, label, listKey);
+}
+
+function isDepartmentAllowedForSlot(department, label, listKey) {
+  const { team } = splitDepartmentClient(department);
   // Normalize the department's team through roleToTeam too — this way it
   // still matches "Pharmacy Assistant" even if an older/legacy account has
   // its department saved as something like "PICKER" or "ENCODER" instead of
@@ -3764,7 +3867,11 @@ function findEmployeeByName(typedName) {
   if (!name) return null;
   for (const [staffId, data] of employeesMap.entries()) {
     if (String((data && data.name) || "").trim().toUpperCase() === name) {
-      return { staffId, siteName: String((data && data.siteName) || "").trim() };
+      return {
+        staffId,
+        siteName: String((data && data.siteName) || "").trim(),
+        department: String((data && data.department) || "").trim()
+      };
     }
   }
   return null;
@@ -3837,6 +3944,9 @@ function startEmployeesListener() {
       }
     }
     employeesSnapshotSeen = true;
+    if (employeeSession && employeePublishedCardsForLookup.length) {
+      renderEmployeeSchedule(employeePublishedCardsForLookup, employeeSession.branch);
+    }
   });
 }
 
@@ -4214,8 +4324,31 @@ function applyScheduleChangeNotifications(localCardsSubset, remoteCards) {
 // Lets a logged-in employee claim one open role slot directly, as a single
 // Firestore transaction — so two employees tapping the same open slot at
 // the same moment can't both "win" it.
+function eventTeamRosterIsFull(card) {
+  const staffSlots = Array.isArray(card && card.staff) ? card.staff : [];
+  return staffSlots.length > 0 && staffSlots.every(slot => String((slot && slot.name) || "").trim());
+}
+
+async function wakeSchedulePushDelivery() {
+  try {
+    const configResponse = await fetch("/push-config.json", { cache: "no-store" });
+    if (!configResponse.ok) return;
+    const config = await configResponse.json();
+    if (!config.enabled || !config.workerUrl) return;
+    await fetch(`${config.workerUrl.replace(/\/$/, "")}/wake`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{}"
+    });
+  } catch (error) {
+    console.warn("Could not wake schedule push delivery:", error);
+  }
+}
+
 async function claimSlot(cardId, listKey, staffIdx, btn) {
   const originalLabel = btn.textContent;
+  let siteBecameFull = false;
+  const siteFilledNotificationRef = doc(notificationsCollRef);
   // Picker / Encoder-Picker / Pharmacy Assistant Event Team slots pull the
   // employee away from their own store. Ask whether that store should get a
   // Store Reliever slot — nothing is added unless they say yes.
@@ -4250,6 +4383,7 @@ async function claimSlot(cardId, listKey, staffIdx, btn) {
       const cIdx = remoteCards.findIndex(c => c.id === cardId);
       if (cIdx === -1) throw new Error("Site not found — try refreshing.");
       if (remoteCards[cIdx].cancelled) throw new Error("This event has been cancelled.");
+      const siteWasFull = eventTeamRosterIsFull(remoteCards[cIdx]);
       const staffArr = (remoteCards[cIdx][listKey] || []).slice();
       const slot = staffArr[staffIdx];
       if (!slot) throw new Error("Role slot not found — try refreshing.");
@@ -4303,13 +4437,33 @@ async function claimSlot(cardId, listKey, staffIdx, btn) {
         });
         remoteCards[cIdx] = { ...remoteCards[cIdx], relievers: relieversArr };
       }
+      siteBecameFull = listKey === "staff" && !siteWasFull && eventTeamRosterIsFull(remoteCards[cIdx]);
       tx.set(scheduleDocRef, {
         cards: scrubUndefined(remoteCards),
         employeeCards: scrubUndefined(publishedCardsWithRosterChanges(data, remoteCards)),
         sentAt: serverTimestamp(),
         sentBy: data.sentBy || "admin"
       });
+      if (siteBecameFull) {
+        const fullSite = remoteCards[cIdx];
+        tx.set(siteFilledNotificationRef, {
+          type: "siteFilled",
+          targetRoles: ["pharmacist"],
+          cardId: fullSite.id,
+          role: "Event Team",
+          location: fullSite.location || "Unnamed site",
+          date: fullSite.date || "",
+          time: fullSite.time || "",
+          region: fullSite.region || "",
+          regionCustom: fullSite.regionCustom || "",
+          missionLabel: missionLabel(fullSite),
+          filledCount: fullSite.staff.length,
+          createdAt: serverTimestamp(),
+          resolved: false
+        });
+      }
     });
+    if (siteBecameFull) await wakeSchedulePushDelivery();
     // The slot may have been an emergency vacancy — clear any matching
     // open notification now that someone has covered it.
   } catch (err) {
@@ -4446,6 +4600,7 @@ async function adminRemoveEmployeeFromSlot(cardId, listKey, staffIdx, btn) {
     if (notifyPayload) {
       try {
         await addDoc(notificationsCollRef, notifyPayload);
+        void window.pdWakePushDelivery?.();
       } catch (notifyErr) {
         console.error("Failed to file removal notification:", notifyErr);
         await showAlert(
@@ -4995,16 +5150,19 @@ function renderNotifPanel(items) {
     const isEventReinstated = n.type === "eventReinstated";
     const isSlotAssigned = n.type === "slotAssigned";
     const isSiteMoved = n.type === "siteMoved";
+    const isPharmacistNote = n.type === "pharmacistNote";
     const isEventsDeployed = n.type === "eventsDeployed";
-    const isPersonalNotice = isRemoved || isBranchChanged || isDateChanged || isEventUpdated || isMissionChanged || isEventDeleted || isSiteRemoved || isSiteAutoDeleted || isEventCancelled || isEventReinstated || isSlotAssigned || isSiteMoved || isEventsDeployed;
+    const isPersonalNotice = isRemoved || isBranchChanged || isDateChanged || isEventUpdated || isMissionChanged || isEventDeleted || isSiteRemoved || isSiteAutoDeleted || isEventCancelled || isEventReinstated || isSlotAssigned || isSiteMoved || isPharmacistNote || isEventsDeployed;
     let title, statusLine, btnLabel;
     if (isEventsDeployed) {
       title = `📅 New events deployed`;
       statusLine = `The pharmacy department deployed the events. Check the schedule for the available slots.`;
       btnLabel = "Got it";
     } else if (isRemoved) {
-      title = `🔔 You've been removed from this slot`;
-      statusLine = `You're free to sign up for another slot now.`;
+      title = n.replacedByName ? `🔔 You were removed from the event slot` : `🔔 You've been removed from this slot`;
+      statusLine = n.replacedByName
+        ? `${escapeHtml(n.replacedByName)} replaced you.`
+        : `You're free to sign up for another slot now.`;
       btnLabel = "Got it";
     } else if (isBranchChanged) {
       title = `🔔 The event team's branch was changed`;
@@ -5051,15 +5209,19 @@ function renderNotifPanel(items) {
     } else if (isSiteMoved) {
       title = n.list === "relievers" ? `\u{1F3EC} You were assigned as Store Reliever` : `\u{1F4CD} You were moved to a new site`;
       statusLine = n.list === "relievers"
-        ? `You'll be covering ${escapeHtml(n.location || "the store")}. Your previous assignment was cleared and this is now your active deployment.`
-        : `Your previous assignment was cleared and this is now your active deployment.`;
+        ? `You'll be covering ${escapeHtml(n.location || "the store")}. Your previous assignment was cleared and this is now your active deployment. Assigned by ${escapeHtml(n.actorLabel || n.assignedBy || "your department head")}.`
+        : `Your previous assignment was cleared and this is now your active deployment. Moved by ${escapeHtml(n.actorLabel || n.assignedBy || "your department head")}.`;
       btnLabel = "Got it";
     } else if (isSlotAssigned) {
       title = n.list === "relievers" ? `\u{1F3EC} You were assigned as Store Reliever` : `\u{1F4CC} You were assigned to this event slot`;
       statusLine = n.list === "relievers"
-        ? `You'll be covering ${escapeHtml(n.location || "the store")}.`
-        : `The event team added your name to this role.`;
+        ? `You'll be covering ${escapeHtml(n.location || "the store")}. Assigned by ${escapeHtml(n.actorLabel || n.assignedBy || "your department head")}.`
+        : `${escapeHtml(n.actorLabel || n.assignedBy || "Your department head")} added your name to this role.`;
       btnLabel = "Got it";
+    } else if (isPharmacistNote) {
+      title = `📝 Note from ${escapeHtml(n.actorLabel || "your department head")}`;
+      statusLine = `${escapeHtml(n.actorLabel || "Your department head")} left a note for ${escapeHtml(n.location || "your event")}.`;
+      btnLabel = "View notes";
     } else if (isResolved) {
       title = `✅ ${escapeHtml(n.backupName || "A teammate")} — FOR BACKUP`;
       statusLine = `Backing up for ${escapeHtml(n.employeeName || "the previous employee")}.`;
@@ -5069,7 +5231,8 @@ function renderNotifPanel(items) {
       statusLine = `Needs a replacement.`;
       btnLabel = "Resolved";
     }
-    const btnClass = (isPersonalNotice || isResolved) ? "notif-clear-btn" : "notif-resolve-btn";
+    const btnClass = isPharmacistNote ? "notif-note-view-btn" : (isPersonalNotice || isResolved) ? "notif-clear-btn" : "notif-resolve-btn";
+    const actionMarkup = `<button type="button" class="${btnClass}" data-id="${escapeAttr(n.id)}">${btnLabel}</button>`;
     return `
     <div class="notif-item ${(isResolved || isPersonalNotice) ? "is-resolved" : ""}">
       <div class="notif-item-title">${title}</div>
@@ -5077,13 +5240,14 @@ function renderNotifPanel(items) {
         ${statusLine}<br><br>
         ${notifDetailHtml(n, { includeBranch: !isPersonalNotice })}
       </div>
-      <button type="button" class="${btnClass}" data-id="${escapeAttr(n.id)}">${btnLabel}</button>
+      ${actionMarkup}
     </div>`;
   }).join("");
-  panel.querySelectorAll(".notif-resolve-btn, .notif-clear-btn").forEach(btn => {
+  panel.querySelectorAll(".notif-resolve-btn, .notif-clear-btn, .notif-note-view-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       const target = items.find(x => x.id === btn.dataset.id);
-      if (target && target.type === "eventsDeployed") notifCenterClear([target.id]); // per-viewer only
+      if (target && target.type === "pharmacistNote") showPharmacistNoteModal(target);
+      else if (target && target.type === "eventsDeployed") notifCenterClear([target.id]); // per-viewer only
       else resolveNotification(btn.dataset.id);
     });
   });
@@ -5091,13 +5255,17 @@ function renderNotifPanel(items) {
 
 // Admins and employees see only notifications for supported schedule changes.
 function getRelevantNotifications(items) {
-  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "slotAssigned", "siteMoved"];
+  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "slotAssigned", "siteMoved", "pharmacistNote"];
   if (!employeeSession) {
-    return items.filter(n => personalTypes.includes(n.type) && n.type !== "slotAssigned");
+    return items.filter(n => personalTypes.includes(n.type) && n.type !== "slotAssigned" && n.type !== "pharmacistNote");
   }
   const myTeam = splitDepartmentClient(employeeSession.department).team;
   const myStaffId = String(employeeSession.staffId || "").trim().toLowerCase();
   return items.filter(n => {
+    if (n.type === "pharmacistNote") {
+      return n.visibleToEmployees !== false && Array.isArray(n.recipientStaffIds) &&
+        n.recipientStaffIds.some(id => String(id || "").trim().toLowerCase() === myStaffId);
+    }
     // Broadcast: every employee gets it EXCEPT the ones the pharmacy
     // department placed in a slot in that same Send -- they already have
     // their own personal "assigned" notice and keep just that one.
@@ -5106,6 +5274,9 @@ function getRelevantNotifications(items) {
         ? n.assignedStaffIds.map(id => String(id || "").trim().toLowerCase())
         : [];
       return n.visibleToEmployees !== false && !assigned.includes(myStaffId);
+    }
+    if (["eventCancelled", "eventReinstated"].includes(n.type) && n.broadcastToEmployees === true) {
+      return n.visibleToEmployees !== false;
     }
     return personalTypes.includes(n.type) &&
       String(n.staffId || "").trim().toLowerCase() === myStaffId &&
@@ -5141,9 +5312,40 @@ function latestPersonalNotifications(items) {
   });
 }
 
+function showEmployeeNotificationBanner(notification, message) {
+  return window.showScheduleTopBanner(notification, message, () => {
+    if (notification.cardId) notifCenterJump(notification.cardId, notification.date || "");
+    else document.querySelector(".content-scroll")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
+function showPharmacistNoteModal(notification) {
+  setModalIcon("note");
+  const noteText = String(notification && notification.noteText || "").trim();
+  const noteMarkup = escapeHtml(noteText).replace(/\r?\n/g, "<br>");
+  const eventLabel = [notification && notification.location, notification && notification.date
+    ? formatDateDisplay(notification.date)
+    : ""].filter(Boolean).join(" · ");
+  appModalMessage.innerHTML = `
+    <h2 class="bf-title">Note from ${escapeHtml(notification && notification.actorLabel || "your department head")}</h2>
+    ${eventLabel ? `<div class="bf-sub">${escapeHtml(eventLabel)}</div>` : ""}
+    <div style="margin-top:14px;white-space:normal;overflow-wrap:anywhere;line-height:1.55;">${noteMarkup}</div>
+  `;
+  appModalActions.innerHTML = "";
+  const closeButton = document.createElement("button");
+  closeButton.className = "primary";
+  closeButton.textContent = "Close";
+  closeButton.addEventListener("click", closeModal);
+  appModalActions.appendChild(closeButton);
+  appModal.setAttribute("role", "dialog");
+  appModal.setAttribute("aria-modal", "true");
+  appModal.classList.add("open");
+  setTimeout(() => closeButton.focus(), 30);
+}
+
 // Tracks notification ids we've already alerted the current employee about
-// via the pop-up modal, so a notification only interrupts them once (the
-// bell panel still lists it after that).
+// via the top banner, so a notification only interrupts them once (the
+// bell panel and Notification Center still keep the notification available).
 //
 // ONE tracker only, on purpose. There used to be a second, persisted one
 // (alertedPersonalNotifIds in localStorage) whose job was to "catch up" an
@@ -5161,6 +5363,9 @@ function latestPersonalNotifications(items) {
 // Past notices are still reachable any time via the bell panel.
 let seenNotificationIds = null;
 const personalNotifTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "slotAssigned", "siteMoved"];
+personalNotifTypes.push("pharmacistNote");
+const initialNotificationParams = new URLSearchParams(window.location.search);
+let pendingPushNoteId = initialNotificationParams.get("viewNotes") || "";
 // One-time housekeeping: drop the old persisted catch-up sets left behind
 // by the previous behaviour, so no stale ids linger in localStorage.
 try {
@@ -5183,6 +5388,16 @@ onSnapshot(
       .filter(n => !isBroadcastCleared(n));
     renderNotifPanel(relevant);
     applyScheduleChangeHighlights();
+    if (pendingPushNoteId) {
+      const pushedNote = relevant.find(n => n.id === pendingPushNoteId && n.type === "pharmacistNote");
+      if (pushedNote) {
+        pendingPushNoteId = "";
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("viewNotes");
+        history.replaceState(null, "", cleanUrl);
+        showPharmacistNoteModal(pushedNote);
+      }
+    }
 
     // Pop up a modal right in front of an employee/HEAD who is actively on
     // the page when a brand-new notification addressed to them arrives — a
@@ -5205,6 +5420,13 @@ onSnapshot(
         const personal = unseen.filter(n => personalNotifTypes.includes(n.type)).slice().reverse();
         const broadcast = unseen.filter(n => !personalNotifTypes.includes(n.type));
         freshOnes = [...personal, ...broadcast];
+      } else {
+        const recentStatusCutoff = Date.now() - 24 * 60 * 60 * 1000;
+        freshOnes = openRelevant.filter(n =>
+          n.broadcastToEmployees === true &&
+          ["eventCancelled", "eventReinstated"].includes(n.type) &&
+          notifCenterMillis(n.createdAt) >= recentStatusCutoff
+        ).slice(0, 1);
       }
       for (const n of freshOnes) {
         const isRemoved = n.type === "removed";
@@ -5219,6 +5441,7 @@ onSnapshot(
         const isEventReinstated = n.type === "eventReinstated";
         const isSlotAssigned = n.type === "slotAssigned";
         const isSiteMoved = n.type === "siteMoved";
+        const isPharmacistNote = n.type === "pharmacistNote";
         const isEventsDeployed = n.type === "eventsDeployed";
         let message;
         let showBranchRow = false;
@@ -5226,10 +5449,14 @@ onSnapshot(
           message = `📅 The pharmacy department deployed the events.\n\nCheck the schedule for the available sites and slots.`;
         } else if (isSiteMoved) {
           message = n.list === "relievers"
-              ? `\u{1F3EC} You were assigned as Store Reliever.\n\nYou'll be covering ${n.location || "the store"}.\n\nYour previous assignment was cleared and this is now your active deployment.`
-              : `\u{1F4CD} You were moved to a new event site.\n\nYour previous assignment was cleared and this is now your active deployment.`;
+              ? `\u{1F3EC} You were assigned as Store Reliever.\n\nYou'll be covering ${n.location || "the store"}.\n\nYour previous assignment was cleared and this is now your active deployment. Assigned by ${n.actorLabel || n.assignedBy || "your department head"}.`
+              : `\u{1F4CD} You were moved to a new event site.\n\nYour previous assignment was cleared and this is now your active deployment. Moved by ${n.actorLabel || n.assignedBy || "your department head"}.`;
+        } else if (isPharmacistNote) {
+          message = `${n.actorLabel || "Your department head"} left a note for ${n.location || "your event"}:\n\n${n.noteText || "Open to read the note."}`;
         } else if (isRemoved) {
-          message = `You've been removed from your slot.\n\nYou're free to sign up for another slot now.`;
+          message = n.replacedByName
+            ? `${n.replacedByName} replaced you.`
+            : `You've been removed from your slot.\n\nYou're free to sign up for another slot now.`;
         } else if (isBranchChanged) {
           message = `The event team changed the branch for this event.\n\nYour slot was cleared — you're free to sign up for another slot now.`;
         } else if (isDateChanged) {
@@ -5255,20 +5482,19 @@ onSnapshot(
           message = `Good news — this event is back on.\n\nYou're good to go as scheduled.`;
         } else if (isSlotAssigned) {
           message = n.list === "relievers"
-              ? `\u{1F3EC} You were assigned as Store Reliever.\n\nYou'll be covering ${n.location || "the store"}.\n\nThe event team assigned you to this slot.`
-              : `\u{1F4CC} You were assigned to an event slot.\n\nThe event team added your name to this role.`;
+                ? `\u{1F3EC} You were assigned as Store Reliever.\n\nYou'll be covering ${n.location || "the store"}.\n\nAssigned by ${n.actorLabel || n.assignedBy || "your department head"}.`
+                : `\u{1F4CC} You were assigned to an event slot.\n\n${n.actorLabel || n.assignedBy || "Your department head"} added your name to this role.`;
         } else {
           showBranchRow = true;
           message = `🚨 Emergency vacancy just opened for your team.\n\n${n.employeeName || "A teammate"} became unavailable — sign up below if you can cover.`;
         }
-        const detailText = notifDetailText(n, { includeBranch: showBranchRow });
+        if (n.actorLabel && n.type !== "slotAssigned" && n.type !== "siteMoved") {
+          message += `\n\nAction by: ${n.actorLabel}.`;
+        }
+        const detailText = isPharmacistNote ? "" : notifDetailText(n, { includeBranch: showBranchRow });
         if (detailText) message += `\n\n${detailText}`;
         if (loginNotifPromptPromise) await loginNotifPromptPromise; // don't replace the login prompt while it's open
-        await showAlert(message, isRemoved ? "warn" : undefined,
-          (isSiteMoved || isSlotAssigned) && n.cardId
-            ? { cardId: n.cardId, date: n.date || "" }
-            : null
-        );
+        await showEmployeeNotificationBanner(n, message);
       }
       seenNotificationIds = new Set(openRelevant.map(n => n.id));
     }
@@ -5646,6 +5872,7 @@ const NOTIF_CENTER_META = {
   branchChanged:       { icon: "\uD83D\uDCCD", title: "Branch changed",                tone: "warn",   cat: "branch"   },
   missionChanged:      { icon: "\uD83C\uDFF7\uFE0F", title: "Event type changed",      tone: "warn",   cat: "event"    },
   slotAssigned:        { icon: "\uD83D\uDCCC", title: "Assigned to a slot",            tone: "info",   cat: "staffing" },
+  pharmacistNote:      { icon: "\uD83D\uDCDD", title: "Note from department head",       tone: "info",   cat: "staffing" },
   eventsDeployed:      { icon: "\uD83D\uDCC5", title: "Events deployed",               tone: "info",   cat: "status"   },
   siteMoved:           { icon: "\uD83D\uDD00", title: "Moved to another site",         tone: "info",   cat: "staffing" },
   removed:             { icon: "\uD83D\uDEAB", title: "Removed from slot",             tone: "danger", cat: "staffing" },
@@ -5660,6 +5887,12 @@ const NOTIF_CENTER_META = {
 };
 
 function notifCenterMeta(n) {
+  if (n.type === "removed" && n.replacedByName) {
+    return { icon: "\uD83D\uDEAB", title: "You were removed from the event slot", tone: "danger", cat: "staffing" };
+  }
+  if (n.type === "pharmacistNote") {
+    return { icon: "\uD83D\uDCDD", title: `Note from ${n.actorLabel || "department head"}`, tone: "info", cat: "staffing" };
+  }
   // Being put into a Store Reliever slot is not a "site move" or a plain event
   // slot -- word it as what it is.
   if (n.list === "relievers" && (n.type === "siteMoved" || n.type === "slotAssigned")) {
@@ -5809,6 +6042,18 @@ function notifCenterRows(n) {
   if (n.type === "eventsDeployed") {
     push("Update", "The pharmacy department deployed the events.");
     notifDetailRows(n).forEach(([k, v]) => push(k, escapeHtml(v)));
+    return rows;
+  }
+  if (n.type === "removed" && n.replacedByName) {
+    push("Replaced by", escapeHtml(n.replacedByName));
+    if (n.location) push(n.list === "relievers" ? "Store" : "Event site", escapeHtml(n.location));
+    return rows;
+  }
+  if (n.type === "pharmacistNote") {
+    if (n.noteText) push("Note", escapeHtml(n.noteText));
+    if (n.actorLabel) push("From", escapeHtml(n.actorLabel));
+    if (n.location) push("Event site", escapeHtml(n.location));
+    if (n.date) push("Event date", escapeHtml(formatDateDisplay(n.date)));
     return rows;
   }
   const roleLabel = `${n.role || "\u2014"}${n.list === "relievers" ? " (Store Reliever)" : ""}`;
@@ -5973,7 +6218,7 @@ function renderNotifCenter() {
       .map(r => `<dt>${escapeHtml(r.label)}</dt><dd>${r.html}</dd>`)
       .join("");
     const viewBtn = n.cardId
-      ? `<button type="button" class="nc-view-btn" data-nc-card="${escapeAttr(n.cardId)}" data-nc-date="${escapeAttr(n.date || "")}">View site</button>`
+      ? `<button type="button" class="nc-view-btn" data-nc-card="${escapeAttr(n.cardId)}" data-nc-date="${escapeAttr(n.date || "")}" data-nc-note-id="${n.type === "pharmacistNote" ? escapeAttr(n.id) : ""}">${n.type === "pharmacistNote" ? "View notes" : "View site"}</button>`
       : "";
     return `${header}
       <div class="nc-item tone-${meta.tone} ${isNew ? "is-new" : ""}">
@@ -5989,7 +6234,14 @@ function renderNotifCenter() {
   }).join("");
 
   body.querySelectorAll(".nc-view-btn").forEach(btn => {
-    btn.addEventListener("click", () => notifCenterJump(btn.dataset.ncCard, btn.dataset.ncDate));
+    btn.addEventListener("click", () => {
+      if (btn.dataset.ncNoteId) {
+        const note = items.find(item => item.id === btn.dataset.ncNoteId);
+        if (note) showPharmacistNoteModal(note);
+        return;
+      }
+      notifCenterJump(btn.dataset.ncCard, btn.dataset.ncDate);
+    });
   });
   body.querySelectorAll(".nc-dismiss").forEach(btn => {
     btn.addEventListener("click", () => notifCenterClear(btn.dataset.ncId));
@@ -6195,6 +6447,7 @@ renderNotifCenter = function () {
 };
 maybeShowLoginNotifPrompt();
 </script>
+<script src="/assets/js/notification-banner.js"></script>
 <script type="module" src="/assets/js/push-notifications.js"></script>
 
 </body>

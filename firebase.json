@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "planetdrugstoreconsole",
     "public": "public",
     "cleanUrls": true,
     "trailingSlash": false,

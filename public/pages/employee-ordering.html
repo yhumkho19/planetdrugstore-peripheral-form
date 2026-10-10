@@ -113,11 +113,12 @@ textarea{min-height:90px;resize:vertical}
 .msg.err{background:#fdecec;border:1px solid #f3c2c6;color:var(--red-dark)}
 .msg.ok{background:#e6f5ea;border:1px solid #bfe6cb;color:var(--good)}
 @media(max-width:700px){
-  .appbar{padding:10px 13px}
+  .appbar{padding:10px 13px;flex-wrap:wrap}
   .brand{font-size:12px}
   .brand img{width:34px;height:34px}
   .out{padding:7px 10px;font-size:12px}
-  .appbar-actions{gap:6px}
+  .appbar-actions{width:100%;justify-content:flex-end;flex-wrap:wrap;gap:6px}
+  #pushToggleButton{max-width:100%;white-space:normal}
   .wrap{margin:14px auto;padding:0 10px 26px}
   .request-shell{grid-template-columns:minmax(0,1fr)}
   .request-heading{min-height:94px;padding:14px 16px}
@@ -143,7 +144,7 @@ textarea{min-height:90px;resize:vertical}
 <body>
 <div class="appbar">
   <div class="brand"><img src="logo.png" alt="" onerror="this.style.display='none'"><div>PLANET<span> DRUGSTORE</span></div></div>
-  <div class="appbar-actions"><button class="out out-btn" id="historyBtn" type="button">History</button><a class="out" href="/ed3od6ldsq">&larr; Back to Home</a></div>
+  <div class="appbar-actions"><button class="push-toggle-button" id="pushToggleButton" type="button" aria-live="polite">Enable phone notifications</button><button class="out out-btn" id="historyBtn" type="button">History</button><a class="out" href="/ed3od6ldsq">&larr; Back to Home</a></div>
 </div>
 
 <div class="wrap">
@@ -279,7 +280,7 @@ function kickToLogin(deleted){
   location.replace('/fu3hriaj0m' + (deleted ? '?deleted=1' : ''));
 }
 
-let emp = null, current = -1, unsub = null, unsubDay = null, selectedDateKey = '', dayActive = false, existing = null, editingRequest = false;
+let emp = null, current = -1, unsub = null, unsubDay = null, selectedDateKey = '', dayActive = false, dayClosedEarly = false, existing = null, editingRequest = false;
 let lastAdminRemovalNotice = '';
 const esc = s => String(s ?? '').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 const MIN_REASON = 5;
@@ -344,14 +345,18 @@ async function loadCutoffsForRecords(records){
   const dates = [...new Set(records.map(request=>String(request.date || '')).filter(date=>/^\d{4}-\d{2}-\d{2}$/.test(date)))];
   const entries = await Promise.all(dates.map(async date=>{
     const snapshot = await getDoc(doc(db,'stockDays',date));
-    const cutoffMin = snapshot.exists() ? snapshot.data().cutoffMin : null;
-    return [date, Number.isInteger(cutoffMin) ? cutoffMin : null];
+    const day = snapshot.exists() ? snapshot.data() : {};
+    return [date, {
+      cutoffMin: Number.isInteger(day.cutoffMin) ? day.cutoffMin : null,
+      closedEarly: day.closedEarly === true
+    }];
   }));
   return Object.fromEntries(entries);
 }
 
-function requestStatusLabel(request, dayCutoffMin){
+function requestStatusLabel(request, dayCutoffMin, closedEarly=false){
   if(request.adminCompleted === true) return 'Completed';
+  if(closedEarly) return 'Completed';
   if(!request.date) return 'Pending';
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone:'Asia/Manila', year:'numeric', month:'2-digit', day:'2-digit',
@@ -381,7 +386,7 @@ function renderEmployeeHistory(records, cutoffs){
   cachedEmployeeHistoryCutoffs = cutoffs;
   const matchingRecords = records.map(request=>({
     request,
-    status: requestStatusLabel(request, cutoffs[request.date])
+    status: requestStatusLabel(request, cutoffs[request.date]?.cutoffMin, cutoffs[request.date]?.closedEarly)
   }));
   const counts = { all:matchingRecords.length, pending:0, completed:0, removed:0 };
   matchingRecords.forEach(item=>counts[employeeHistoryStatusKey(item.status)]++);
@@ -480,9 +485,11 @@ async function init(){
     if(!canRequestStock(emp.department)) return location.replace('/ed3od6ldsq');
     if(current >= 0){ paintDays(); paintLock(); }
   }, ()=>{});
+  const requestedDay = new URLSearchParams(location.search).get('day');
+  const requestedIndex = DAYS.indexOf(String(requestedDay || '').toUpperCase());
   const g = new Date().getDay();
-  let start = g>=1 && g<=5 ? g-1 : 0;
-  if(!dayAllowed(start)){ const f = DAYS.findIndex((_,k)=>dayAllowed(k)); if(f >= 0) start = f; }
+  let start = requestedIndex >= 0 ? requestedIndex : g>=1 && g<=5 ? g-1 : 0;
+  if(requestedIndex < 0 && !dayAllowed(start)){ const f = DAYS.findIndex((_,k)=>dayAllowed(k)); if(f >= 0) start = f; }
   paintDays();
   select(start);
 }
@@ -504,16 +511,16 @@ function paintDays(){
   });
 }
 function paintLock(){
-  const d = dateForDay(current), adminCompleted = !!existing?.adminCompleted, timeUp = isLocked(d) || adminCompleted, notMine = !dayAllowed(current), locked = timeUp || !dayActive || notMine;
+  const d = dateForDay(current), adminCompleted = !!existing?.adminCompleted, timeUp = isLocked(d) || adminCompleted || dayClosedEarly, notMine = !dayAllowed(current), locked = timeUp || !dayActive || notMine;
   $('dateLbl').textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
   const lb = $('lockbar');
-  $('lockText').textContent = notMine ? 'You are not scheduled to send a stock request on this day.' : adminCompleted ? 'The admin marked this SR# as Completed — it can no longer be edited.' : timeUp ? 'This order is locked — you can no longer submit or edit.' : (!dayActive ? 'This day is not open yet — waiting for the admin to activate it.' : 'This order locks at ' + fmtCut() + '.');
+  $('lockText').textContent = dayClosedEarly ? 'The admin closed this stock request day early. Your order is completed and can no longer be changed.' : notMine ? 'You are not scheduled to send a stock request on this day.' : adminCompleted ? 'The admin marked this SR# as Completed — it can no longer be edited.' : timeUp ? 'This order is locked — you can no longer submit or edit.' : (!dayActive ? 'This day is not open yet — waiting for the admin to activate it.' : 'This order locks at ' + fmtCut() + '.');
   lb.className = 'lockbar' + (timeUp ? ' closed' : notMine ? ' off' : !dayActive ? ' wait' : '');
   $('reqForm').classList.toggle('locked', locked);
   $('reqForm').classList.toggle('noreq', !existing);
   const hasRequest = !!existing;
   const statusBadge = $('requestStatus');
-  const status = hasRequest ? requestStatusLabel(existing, cutoffMin) : '';
+  const status = hasRequest ? requestStatusLabel(existing, cutoffMin, dayClosedEarly) : '';
   statusBadge.textContent = status;
   statusBadge.classList.toggle('completed', status === 'Completed');
   statusBadge.hidden = !hasRequest;
@@ -534,7 +541,7 @@ function select(i){
   selectedDateKey = selectedDate;
   existing = null;
   editingRequest = false;
-  dayActive = false; cutoffMin = 840;
+  dayActive = false; dayClosedEarly = false; cutoffMin = 840;
   daysEl.querySelectorAll('button').forEach(b=>b.classList.toggle('on', +b.dataset.i===i));
   $('msg').style.display = 'none';
   paintLock();
@@ -543,6 +550,7 @@ function select(i){
   unsubDay = onSnapshot(doc(db,'stockDays', selectedDate), snap=>{
     const dd = snap.exists() ? snap.data() : null;
     dayActive = !!dd && dd.active === true;
+    dayClosedEarly = !!dd?.closedEarly;
     cutoffMin = dd && Number.isInteger(dd.cutoffMin) ? dd.cutoffMin : 840;
     paintLock();
   }, ()=>{});
@@ -709,5 +717,6 @@ setInterval(()=>{
 }, 1000);
 init();
 </script>
+<script type="module" src="/assets/js/push-notifications.js"></script>
 </body>
 </html>

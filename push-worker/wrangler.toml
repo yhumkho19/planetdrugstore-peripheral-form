@@ -4,11 +4,11 @@ compatibility_date = "2026-09-01"
 
 [vars]
 FIREBASE_PROJECT_ID = "planetdrugstore-peripher-d24c0"
-APP_ORIGIN = "https://planetdrugstore-peripher-d24c0.web.app"
-APP_URL = "https://planetdrugstore-peripher-d24c0.web.app/47fto0gim6"
+APP_ORIGIN = "https://planetdrugstoreconsole.web.app"
+APP_URL = "https://planetdrugstoreconsole.web.app/47fto0gim6"
 
 [triggers]
-crons = ["* * * * *"]
+crons = ["*/5 * * * *"]
 
 [[kv_namespaces]]
 binding = "PUSH_SUBSCRIPTIONS"

@@ -706,6 +706,7 @@
   .staff-section.reliever-section { grid-area: reliever; margin-top: 0 !important; }
   .attach-row { grid-area: attach; }
   .card-foot { grid-area: cardfoot; margin-top: 2px; }
+  .card-foot { display: flex; gap: 8px; }
   .card-update-btn {
     width: 100%;
     justify-content: center;
@@ -715,8 +716,15 @@
     border-radius: var(--radius-sm);
     box-shadow: var(--shadow-xs);
   }
+  .card-foot .card-update-btn { flex: 1; width: auto; }
+  .card-foot .pharmacist-note-btn {
+    position: static; width: auto; min-height: 38px; padding: 8px 12px;
+    border-radius: var(--radius-sm); font-family: inherit; font-size: 12.5px;
+    font-weight: 700; white-space: nowrap;
+  }
   @media (max-width: 620px) {
     .card-inner { grid-template-columns: 1fr; grid-template-areas: "badge" "title" "sched" "perf" "staff" "reliever" "attach" "cardfoot"; }
+    .card-foot { flex-direction: column; }
   }
 
   .perforation {
@@ -742,6 +750,14 @@
     justify-content: center;
   }
   .remove-btn:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+  .pharmacist-note-btn {
+    position: absolute; top: 10px; right: 94px; width: 24px; height: 24px;
+    border: 1px solid var(--north); border-radius: 50%; background: var(--north-soft);
+    color: var(--north); font-size: 12px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pharmacist-note-btn:hover { background: var(--north); color: #fff; }
+  .pharmacist-note-btn:disabled { cursor: wait; opacity: .65; }
 
   .cancel-event-btn {
     position: absolute;
@@ -2095,6 +2111,7 @@
       <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">☰</button>
       <!-- <div class="topbar-search">🔍 Search events, sites, or staff…</div> -->
       <div class="topbar-right">
+        <button type="button" class="push-toggle-button" id="pushToggleButton" data-push-head="true" aria-live="polite">Enable phone notifications</button>
         <div class="admin-chip-wrap" id="adminChipWrap">
           <button type="button" class="admin-chip" id="adminChipBtn" aria-haspopup="true"><span class="avatar" id="adminChipAvatar">ET</span><span id="adminChipLabel">EVENT TEAM</span>▾</button>
           <div class="admin-dropdown" id="adminDropdown">
@@ -2191,7 +2208,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-09-28.6";
+const APP_VERSION = "2026-10-06.3";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -2258,12 +2275,67 @@ function setModalIcon(kind) {
   // Every modal starts as the compact dialog; the form prompts opt back in
   // to the wider "form" layout right after calling this.
   appModalBox.classList.remove("modal-box--form");
-  const glyphs = { ok: "✓", warn: "!", question: "?", date: "📅", bell: "🔔" };
+  const glyphs = { ok: "✓", warn: "!", question: "?", date: "📅", bell: "🔔", note: "📝" };
   appModalIcon.textContent = glyphs[kind] || glyphs.ok;
   appModalIcon.className = "modal-icon" + (kind === "warn" || kind === "question" ? " " + kind : "");
   appModalIcon.style.animation = "none";
   void appModalIcon.offsetWidth;
   appModalIcon.style.animation = "";
+}
+
+function showDepartmentNotePrompt(card) {
+  return new Promise(resolve => {
+    setModalIcon("note");
+    appModalBox.classList.add("modal-box--form");
+    appModalMessage.innerHTML = `
+      <h2 class="bf-title">Note for assigned employees</h2>
+      <div class="bf-sub">${escapeHtml(card.location || "Unnamed site")}${card.date ? ` · ${escapeHtml(formatDateDisplay(card.date))}` : ""}</div>
+      <div class="bf-field">
+        <label class="bf-label" for="departmentNoteDraft">Note</label>
+        <textarea id="departmentNoteDraft" class="bf-input" rows="5" maxlength="500" placeholder="Write a note for employees assigned to this event..."></textarea>
+        <div id="departmentNoteCount" class="bf-sub" style="text-align:right;margin-top:5px;">0 / 500</div>
+      </div>
+    `;
+    const input = document.getElementById("departmentNoteDraft");
+    const counter = document.getElementById("departmentNoteCount");
+    const finish = value => {
+      document.removeEventListener("keydown", onKey);
+      appModalBox.classList.remove("modal-box--form");
+      closeModal();
+      resolve(value);
+    };
+    const cancel = () => finish(null);
+    const submit = () => {
+      const value = input.value.trim();
+      if (value) finish(value);
+    };
+    const onKey = event => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        cancel();
+      } else if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        event.preventDefault();
+        submit();
+      }
+    };
+    const sendButton = document.createElement("button");
+    sendButton.className = "primary";
+    sendButton.textContent = "Send";
+    sendButton.disabled = true;
+    input.addEventListener("input", () => {
+      counter.textContent = `${input.value.length} / 500`;
+      sendButton.disabled = !input.value.trim();
+    });
+    document.addEventListener("keydown", onKey);
+    appModalActions.innerHTML = "";
+    const cancelButton = document.createElement("button");
+    cancelButton.textContent = "Cancel";
+    cancelButton.addEventListener("click", cancel);
+    sendButton.addEventListener("click", submit);
+    appModalActions.append(cancelButton, sendButton);
+    appModal.classList.add("open");
+    setTimeout(() => input.focus(), 30);
+  });
 }
 
 function showAlert(message, kind) {
@@ -2529,7 +2601,7 @@ function showAddDateEventPrompt() {
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  initializeFirestore, doc, collection, setDoc, getDoc, onSnapshot, serverTimestamp, runTransaction,
+  initializeFirestore, doc, collection, setDoc, getDoc, onSnapshot, serverTimestamp, runTransaction, writeBatch,
   addDoc, deleteDoc, updateDoc, query, orderBy, arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 // Only needed here for Logout — admin-login.html is what actually signs
@@ -2576,6 +2648,14 @@ const THIS_SCHEDULE_DEPARTMENT = "billing";
 const signedInScheduleEmail = String(auth.currentUser && auth.currentUser.email || "").trim().toLowerCase();
 const scheduleAccessRole = Object.entries(SCHEDULE_ACCESS)
   .find(([, email]) => email === signedInScheduleEmail)?.[0] || "";
+const scheduleAssignerLabel = {
+  pharmacist: "Pharmacist",
+  billing: "Billing Head",
+  information: "IT Head"
+}[scheduleAccessRole] || "Department Head";
+function withScheduleActor(notification) {
+  return { ...notification, actorLabel: notification.actorLabel || scheduleAssignerLabel };
+}
 if (!scheduleAccessRole) {
   window.location.replace("/839jgl8ang");
   throw new Error("Unauthorized event schedule account.");
@@ -2603,6 +2683,7 @@ const SCHEDULE_ROLE_BADGE = {
   if (labelEl) labelEl.textContent = badge.label;
 })();
 const isPharmacistScheduleUser = scheduleAccessRole === "pharmacist";
+const canWriteDepartmentNotes = ["pharmacist", "billing", "information"].includes(scheduleAccessRole);
 if (!isPharmacistScheduleUser) {
   ["addDateBtn", "saveBtn", "resetBtn"].forEach(id => {
     const button = document.getElementById(id);
@@ -2615,6 +2696,14 @@ function canEditScheduleSlot(label, listKey) {
   const role = roleToTeam(label).toUpperCase();
   return (scheduleAccessRole === "billing" && role === "BILLING") ||
     (scheduleAccessRole === "information" && role === "IT");
+}
+function canWriteNoteForSlot(slot, listKey) {
+  if (scheduleAccessRole === "pharmacist") return true;
+  const ownDepartment = scheduleAccessRole === "information" ? "IT" : "BILLING";
+  const assignedDepartment = listKey === "relievers"
+    ? roleToTeam(slot.relieverDepartment || slot.label).toUpperCase()
+    : roleToTeam(slot.label).toUpperCase();
+  return assignedDepartment === ownDepartment;
 }
 // Which role labels the CURRENTLY logged-in head is allowed to add/switch a
 // slot to. Pharmacist and billing keep full reign (billing manages Store
@@ -2757,10 +2846,7 @@ async function runSiteExpirySweep() {
   siteExpirySweepBusy = true;
   try {
     const attempt = async (withNotifications) => {
-      return await runTransaction(db, async tx => {
-        const snap = await tx.get(scheduleDocRef);
-        if (!snap.exists()) return [];
-        const data = snap.data() || {};
+      const data = siteExpiryLatestData || {};
         const headCards = Array.isArray(data.cards) ? data.cards : [];
         const empCards = Array.isArray(data.employeeCards) ? data.employeeCards : [];
         const expiredIds = new Set();
@@ -2771,16 +2857,27 @@ async function runSiteExpirySweep() {
           const copies = [headCards.find(c => c.id === id), empCards.find(c => c.id === id)].filter(Boolean);
           removed.push({ card: copies[0], copies });
         });
-        tx.update(scheduleDocRef, {
-          cards: headCards.filter(c => !expiredIds.has(c.id)),
-          employeeCards: empCards.filter(c => !expiredIds.has(c.id))
+        const batch = writeBatch(db);
+        const scheduleUpdates = {};
+        const expiredHeadCards = headCards.filter(c => expiredIds.has(c.id));
+        const expiredEmployeeCards = empCards.filter(c => expiredIds.has(c.id));
+        if (expiredHeadCards.length) scheduleUpdates.cards = arrayRemove(...expiredHeadCards);
+        if (expiredEmployeeCards.length) scheduleUpdates.employeeCards = arrayRemove(...expiredEmployeeCards);
+        batch.update(scheduleDocRef, scheduleUpdates);
+        removed.forEach(({ card }) => {
+          batch.set(doc(db, "eventScheduleArchive", card.id), {
+            ...card,
+            id: card.id,
+            archivedAt: serverTimestamp(),
+            archiveStatus: card.cancelled ? "cancelled" : "completed"
+          }, { merge: true });
         });
         if (withNotifications) {
           removed.forEach(({ card, copies }) => {
             const people = siteExpiryStaffIdsFor(copies);
             // Department notice — Pharmacy, Billing and IT heads always get it,
             // listing the deleted site.
-            tx.set(doc(db, "emergencyNotifications", `siteAutoDeleted_${card.id}_dept`), {
+            batch.set(doc(db, "emergencyNotifications", `siteAutoDeleted_${card.id}_dept`), {
               ...siteExpiryPayloadBase(card),
               targetRoles: ["pharmacist", "billing", "information"],
               staffId: null,
@@ -2788,10 +2885,10 @@ async function runSiteExpirySweep() {
               affectedCount: people.length,
               affectedNames: people.map(p => p.name).filter(Boolean).slice(0, 30),
               createdAt: serverTimestamp()
-            });
+            }, { merge: true });
             // Personal notice — ONLY for employees who were in a slot here.
             people.forEach(p => {
-              tx.set(doc(db, "emergencyNotifications", `siteAutoDeleted_${card.id}_${String(p.staffId).trim().toLowerCase()}`), {
+              batch.set(doc(db, "emergencyNotifications", `siteAutoDeleted_${card.id}_${String(p.staffId).trim().toLowerCase()}`), {
                 ...siteExpiryPayloadBase(card),
                 staffId: p.staffId,
                 employeeName: p.name,
@@ -2799,12 +2896,12 @@ async function runSiteExpirySweep() {
                 list: p.list,
                 staffIdx: p.staffIdx,
                 createdAt: serverTimestamp()
-              });
+              }, { merge: true });
             });
           });
         }
+        await batch.commit();
         return removed.map(r => r.card);
-      });
     };
     let removed;
     try {
@@ -3389,6 +3486,9 @@ let pendingLocalCardIds = new Set();
 // below.
 let sessionNewCardIds = new Set();
 let currentFilter = null;
+const headPushParams = new URLSearchParams(window.location.search);
+let pendingHeadPushSiteId = employeeSession ? "" : (headPushParams.get("viewSite") || "");
+const pendingHeadPushDate = headPushParams.get("date") || "";
 // Which date bracket the logged-in employee currently has selected.
 let employeeSelectedDate = null;
 // Which date bracket the admin currently has open. undefined = not yet
@@ -4101,6 +4201,7 @@ function render() {
         </div>
 
         <div class="card-foot">
+          ${canWriteDepartmentNotes ? `<button type="button" class="btn pharmacist-note-btn" title="Write a note for your department's assigned employees" aria-label="Write a note for your department's assigned employees">📝 Note employees</button>` : ""}
           <button type="button" class="btn card-update-btn" title="Push only this site's changes online">💾 Update this site</button>
         </div>
       </div>
@@ -4109,6 +4210,63 @@ function render() {
     setupStaffNamePickers(cardEl);
 
     // ---- Events ----
+    cardEl.querySelector(".pharmacist-note-btn")?.addEventListener("click", async event => {
+      if (!canWriteDepartmentNotes) return;
+      const button = event.currentTarget;
+      button.disabled = true;
+      button.textContent = "…";
+      try {
+        const snap = await getDoc(scheduleDocRef);
+        const data = snap.exists() ? snap.data() : {};
+        const publishedCard = (Array.isArray(data.employeeCards) ? data.employeeCards : [])
+          .find(item => item.id === card.id);
+        if (!publishedCard) {
+          await showAlert("Send this site to employees before sending a note.");
+          return;
+        }
+        const recipientStaffIds = new Set();
+        ["staff", "relievers"].forEach(listKey => {
+          (publishedCard[listKey] || []).forEach(slot => {
+            if (!(slot && (slot.name || "").trim()) || !canWriteNoteForSlot(slot, listKey)) return;
+            const employee = findEmployeeByName(slot.name);
+            const staffId = String(slot.filledByStaffId || (employee && employee.staffId) || "")
+              .trim()
+              .toLowerCase();
+            if (staffId) recipientStaffIds.add(staffId);
+          });
+        });
+        if (!recipientStaffIds.size) {
+          await showAlert("There are no assigned employees from your department with registered accounts on this event.");
+          return;
+        }
+        const noteText = await showDepartmentNotePrompt(publishedCard);
+        if (!noteText) return;
+        await addDoc(notificationsCollRef, {
+          type: "pharmacistNote",
+          recipientStaffIds: [...recipientStaffIds],
+          noteText,
+          cardId: publishedCard.id,
+          location: publishedCard.location || "Unnamed site",
+          date: publishedCard.date || "",
+          region: publishedCard.region || "",
+          actorLabel: scheduleAssignerLabel,
+          createdBy: signedInScheduleEmail,
+          createdAt: serverTimestamp(),
+          resolved: false,
+          visibleToEmployees: true
+        });
+        void wakePushDelivery();
+        await showAlert(`Note sent to ${recipientStaffIds.size} assigned employee${recipientStaffIds.size === 1 ? "" : "s"}.`);
+      } catch (error) {
+        await showAlert("Could not send the note: " + (error.message || String(error)), "warn");
+      } finally {
+        if (button.isConnected) {
+          button.disabled = false;
+          button.textContent = "📝";
+        }
+      }
+    });
+
     cardEl.querySelector(".cancel-event-btn")?.addEventListener("click", async function () {
       const nowCancelled = !cards[idx].cancelled;
       const ok = await showConfirm(
@@ -5332,32 +5490,50 @@ async function writeScheduleNotifications(notifications) {
   });
   let failures = 0;
   let written = 0;
+  const notificationsForPush = [];
   await Promise.all(unique.map(async notification => {
     try {
       const card = notification.cardId ? cards.find(item => item.id === notification.cardId) : null;
       const enriched = {
-        ...notification,
+        ...withScheduleActor(notification),
         regionCustom: notification.regionCustom || notification.newRegionCustom || (card && card.regionCustom) || "",
         missionLabel: notification.newMissionLabel || notification.missionLabel || (card ? missionLabel(card) : "")
       };
-      await addDoc(notificationsCollRef, stampEventType(enriched));
+      const savedNotification = stampEventType(enriched);
+      const reference = await addDoc(notificationsCollRef, savedNotification);
+      notificationsForPush.push({ ...savedNotification, id: reference.id, createdAt: new Date().toISOString() });
       written++;
     } catch (err) {
       failures++;
       console.error("Failed to file schedule-change notification:", err);
     }
   }));
-  if (written) void wakePushDelivery();
+  if (written) void wakePushDelivery(notificationsForPush);
   return failures;
 }
 
-async function wakePushDelivery() {
+async function wakePushDelivery(notifications = []) {
   try {
     const configResponse = await fetch("/push-config.json", { cache: "no-store" });
     if (!configResponse.ok) return;
     const config = await configResponse.json();
     if (!config.enabled || !config.workerUrl) return;
-    const response = await fetch(`${config.workerUrl.replace(/\/$/, "")}/wake`, {
+    const workerUrl = config.workerUrl.replace(/\/$/, "");
+    if (notifications.length) {
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) {
+        console.warn("Immediate push dispatch skipped: department-head Firebase session is unavailable.");
+        return;
+      }
+      const response = await fetch(`${workerUrl}/dispatch`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${idToken}`, "content-type": "application/json" },
+        body: JSON.stringify({ notifications })
+      });
+      if (!response.ok) console.warn("Immediate push dispatch failed:", response.status);
+      return;
+    }
+    const response = await fetch(`${workerUrl}/wake`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: "{}"
@@ -5676,6 +5852,7 @@ function applyAssignmentNotifications(localCardsSubset, remoteCards) {
           region: card.region || "",
           employeeName: name,
           staffId: employee.staffId,
+          assignedBy: scheduleAssignerLabel,
           visibleToEmployees: scheduleAccessRole === "pharmacist",
           createdAt: serverTimestamp(),
           resolved: false
@@ -5695,6 +5872,31 @@ function applyPublishedAssignmentNotifications(previousPublishedCards, published
       (card[listKey] || []).forEach((slot, staffIdx) => {
         const name = String(slot.name || "").trim();
         const previousSlot = (previousCard[listKey] || [])[staffIdx] || {};
+        const previousName = String(previousSlot.name || "").trim();
+        const previousStaffId = resolveSlotStaffId(previousSlot);
+        const currentStaffId = resolveSlotStaffId(slot);
+        const sameEmployee = previousStaffId && currentStaffId &&
+          String(previousStaffId).trim().toLowerCase() === String(currentStaffId).trim().toLowerCase();
+        if (previousName && name && previousStaffId && !sameEmployee &&
+            name.toUpperCase() !== previousName.toUpperCase()) {
+          notifyPayloads.push({
+            type: "removed",
+            cardId: card.id,
+            list: listKey,
+            staffIdx,
+            role: previousSlot.label || slot.label || "",
+            location: (listKey === "relievers" && (slot.site || previousSlot.site || "").trim())
+              ? (slot.site || previousSlot.site).trim()
+              : (card.location || "Unnamed site"),
+            date: card.date || "",
+            employeeName: previousName,
+            replacedByName: name,
+            staffId: previousStaffId,
+            visibleToEmployees: true,
+            createdAt: serverTimestamp(),
+            resolved: false
+          });
+        }
         if (!name || slot.filledByStaffId ||
             name.toUpperCase() === String(previousSlot.name || "").trim().toUpperCase()) return;
         const employee = findEmployeeByName(name);
@@ -5711,6 +5913,7 @@ function applyPublishedAssignmentNotifications(previousPublishedCards, published
           region: card.region || "",
           employeeName: name,
           staffId: employee.staffId,
+          assignedBy: scheduleAssignerLabel,
           visibleToEmployees: true,
           createdAt: serverTimestamp(),
           resolved: false
@@ -6554,7 +6757,7 @@ async function deleteDateFromRemote(dateKey) {
     if (notifyPayloads.length) {
       let notifFailCount = 0;
       await Promise.all(notifyPayloads.map(p =>
-        addDoc(notificationsCollRef, p).catch(err => {
+        addDoc(notificationsCollRef, withScheduleActor(p)).catch(err => {
           notifFailCount++;
           console.error("Failed to file event-deleted notification:", err);
         })
@@ -6674,7 +6877,7 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard, publishTo
     if (notifyPayloads.length) {
       let notifFailCount = 0;
       await Promise.all(notifyPayloads.map(p =>
-        addDoc(notificationsCollRef, p).catch(err => {
+        addDoc(notificationsCollRef, withScheduleActor(p)).catch(err => {
           notifFailCount++;
           console.error("Failed to file cancel-toggle notification:", err);
         })
@@ -6745,7 +6948,7 @@ async function deleteSiteFromRemote(cardId) {
     if (notifyPayloads.length) {
       let notifFailCount = 0;
       await Promise.all(notifyPayloads.map(p =>
-        addDoc(notificationsCollRef, p).catch(err => {
+        addDoc(notificationsCollRef, withScheduleActor(p)).catch(err => {
           notifFailCount++;
           console.error("Failed to file site-removed notification:", err);
         })
@@ -6792,6 +6995,7 @@ async function pushNewCardToRemote(card) {
         region: card.region || "",
         mission: card.mission || "medical",
         missionLabel: missionLabel(card),
+        actorLabel: scheduleAssignerLabel,
         createdBy: signedInScheduleEmail,
         createdAt: serverTimestamp(),
         resolved: false
@@ -6807,6 +7011,7 @@ async function pushNewCardToRemote(card) {
         region: card.region || "",
         mission: card.mission || "medical",
         missionLabel: missionLabel(card),
+        actorLabel: scheduleAssignerLabel,
         createdBy: signedInScheduleEmail,
         createdAt: serverTimestamp(),
         resolved: false
@@ -7303,7 +7508,10 @@ onSnapshot(
           }
           const detailText = notifDetailText(n, { includeBranch: showBranchRow });
           if (detailText) message += `\n\n${detailText}`;
-          void (loginNotifPromptPromise || Promise.resolve()).then(() => showAlert(message)); // don't replace the login prompt while it's open
+          void (loginNotifPromptPromise || Promise.resolve()).then(() => window.showScheduleTopBanner(n, message, () => {
+            if (n.cardId) notifCenterJump(n.cardId, n.date || "");
+            else document.querySelector(".content-scroll")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }));
       }
     }
     seenNotificationIds = new Set(openRelevant.map(n => n.id));
@@ -7857,9 +8065,13 @@ if (employeeSession) {
       // showing a stale set of sites.
       saveCards();
       render();
+      openPendingHeadPushSite();
       return;
     }
-    if (!changed) return;
+    if (!changed) {
+      openPendingHeadPushSite();
+      return;
+    }
     saveCards();
     const isTypingInCard = activeEl && activeEl.closest && activeEl.closest(".site-card");
     if (isTypingInCard) {
@@ -7868,6 +8080,7 @@ if (employeeSession) {
     } else {
       render();
     }
+    openPendingHeadPushSite();
   });
 }
 
@@ -8103,6 +8316,15 @@ function notifCenterRows(n) {
 function notifCenterJump(cardId, dateKey) {
   const overlay = document.getElementById("notifCenterOverlay");
   if (overlay) overlay.classList.remove("open");
+  const targetCard = cards.find(item => item.id === cardId);
+  if (targetCard && currentFilter !== targetCard.region) {
+    currentFilter = targetCard.region;
+    adminSelectedDate = targetCard.date || dateKey || undefined;
+    document.querySelectorAll("#regionAccordions .region-acc-head").forEach(button => {
+      button.classList.toggle("active", button.dataset.filter === currentFilter);
+    });
+    render();
+  }
   const tab = document.querySelector(`.date-tab[data-datekey="${escapeAttr(dateKey || "")}"]`);
   if (tab && !tab.classList.contains("active")) tab.click();
   setTimeout(() => {
@@ -8112,6 +8334,19 @@ function notifCenterJump(cardId, dateKey) {
     card.classList.add("notifcenter-focus");
     setTimeout(() => card.classList.remove("notifcenter-focus"), 2200);
   }, 90);
+}
+
+function openPendingHeadPushSite() {
+  if (!pendingHeadPushSiteId) return;
+  const targetCard = cards.find(item => item.id === pendingHeadPushSiteId);
+  if (!targetCard) return;
+  notifCenterJump(targetCard.id, targetCard.date || pendingHeadPushDate);
+  pendingHeadPushSiteId = "";
+  const cleanUrl = new URL(window.location.href);
+  cleanUrl.searchParams.delete("viewSite");
+  cleanUrl.searchParams.delete("date");
+  cleanUrl.searchParams.delete("region");
+  history.replaceState(null, "", cleanUrl);
 }
 
 // The bell panel collapses a slot's history down to its latest state. The
@@ -8435,6 +8670,8 @@ renderNotifCenter = function () {
 };
 maybeShowLoginNotifPrompt();
 </script>
+<script src="/assets/js/notification-banner.js"></script>
+<script type="module" src="/assets/js/push-notifications.js"></script>
 
 </body>
 </html>
