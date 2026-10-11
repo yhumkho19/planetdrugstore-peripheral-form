@@ -10,6 +10,7 @@ const personalTypes = new Set([
   "eventCancelled",
   "eventReinstated",
   "slotAssigned",
+  "slotRoleRemoved",
   "slotOpened",
   "siteMoved"
 ]);
@@ -393,6 +394,11 @@ function baseNotificationText(notification) {
         title: "You were removed from this slot",
         body: `Your assignment${roleText}${locationText}${whenText ? ` on ${whenText}` : ""} was removed. You can choose another slot.`
       };
+    case "slotRoleRemoved":
+      return {
+        title: "Your slot role was removed",
+        body: `Your ${role || "schedule"} slot has been removed by the ${notification.removedByDepartment || "department"}. You can choose another slot.`
+      };
     case "branchChanged": {
       const oldBranch = String(notification.oldRegionCustom || notification.oldRegion || "").trim();
       const newBranch = String(notification.newRegionCustom || notification.newRegion || "").trim();
@@ -567,10 +573,10 @@ export function notificationText(notification, subscription = {}) {
   if (notification.type === "eventReminder" && notification.recipientAssignment?.list === "relievers") {
     return appendActor(message);
   }
-  if (notification.list === "relievers" && notification.type !== "slotAssigned") return appendActor(message);
+  if (notification.list === "relievers" && !["slotAssigned", "slotRoleRemoved"].includes(notification.type)) return appendActor(message);
 
   const context = [];
-  if (actorLabel && notification.type !== "slotAssigned") context.push(`Action by: ${actorLabel}`);
+  if (actorLabel && !["slotAssigned", "slotRoleRemoved"].includes(notification.type)) context.push(`Action by: ${actorLabel}`);
   const branch = notificationBranch(notification);
   const eventType = notificationEventType(notification);
   if (branch && notification.type !== "branchChanged") context.push(`Branch: ${branch}`);

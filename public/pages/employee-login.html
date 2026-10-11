@@ -284,7 +284,7 @@
 // bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
 // doesn't match what this tab is currently running — shows a small banner
 // instead of silently staying on stale code.
-const APP_VERSION = "2026-09-15.1";
+const APP_VERSION = "2026-10-11.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -332,7 +332,6 @@ startVersionWatch();
   import {
     initializeFirestore, doc, getDoc
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
   // Same Firebase project as the rest of the system.
   const firebaseConfig = {
     apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
@@ -348,7 +347,6 @@ startVersionWatch();
     experimentalForceLongPolling: true,
     useFetchStreams: false
   });
-
   // Employees are no longer real Firebase Auth users — each Staff ID is a
   // document in the "employees" collection (doc ID = lowercased Staff ID)
   // holding a SHA-256 password hash. "Signed in" is just a small session

@@ -256,7 +256,7 @@ async function initializePushControl() {
   if (headerButton) headerButton.style.display = "inline-flex";
 
   const style = document.createElement("style");
-  style.textContent = ".push-notification-control{display:block;width:calc(100% - 24px);margin:10px 12px;padding:9px 12px;border:1px solid #18794e;border-radius:3px;background:#eaf5ee;color:#145c3a;font:inherit;font-size:13px;font-weight:600;line-height:1.35;text-align:left;cursor:pointer}.push-notification-control:disabled{cursor:default;opacity:.7}.push-toggle-button{display:inline-flex;align-items:center;justify-content:center;border:1px solid #18794e;border-radius:999px;padding:9px 14px;background:#eaf5ee;color:#145c3a;font:inherit;font-size:12px;font-weight:700;line-height:1.2;cursor:pointer}.push-toggle-button:disabled{cursor:default;opacity:.7}";
+  style.textContent = ".push-notification-control{display:block;width:calc(100% - 24px);margin:10px 12px;padding:9px 12px;border:1px solid #18794e;border-radius:3px;background:#eaf5ee;color:#145c3a;font:inherit;font-size:13px;font-weight:600;line-height:1.35;text-align:left;cursor:pointer}.push-notification-control:disabled{cursor:default;opacity:.7}.push-toggle-button{display:inline-flex;align-items:center;justify-content:center;border:1px solid #18794e;border-radius:999px;padding:9px 14px;background:#eaf5ee;color:#145c3a;font:inherit;font-size:12px;font-weight:700;line-height:1.2;cursor:pointer}.push-toggle-button:disabled{cursor:default;opacity:.7}.admin-dropdown .push-toggle-button{width:100%;justify-content:flex-start;border-radius:6px;padding:9px 10px;box-shadow:none;text-align:left}";
   document.head.append(style);
 
   let config;

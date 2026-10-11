@@ -1715,6 +1715,130 @@
   .card-expiry-row { margin: 0 0 8px; }
   .bracket-expiry { margin-left: 8px; }
   @keyframes seBlink { 50% { opacity: .55; } }
+
+  /* Roster refresh: keep employee and head screens on one warm visual system. */
+  .sidebar { width: 210px; padding: 22px 14px; }
+  .sidebar-logo .mark,
+  .admin-chip .avatar { background: linear-gradient(145deg, #D61F2C, #A5151F); }
+  .sidebar-nav a { border-radius: 9px; }
+  .sidebar-nav a.active { background: rgba(255,255,255,.12); }
+  .topbar { padding-top: 12px; padding-bottom: 12px; }
+  .content-scroll { padding-top: 10px; }
+  .page-head { margin-bottom: 18px; gap: 16px; }
+  .page-head h1 { font-size: clamp(27px, 3vw, 36px); }
+  .page-head p { font-size: 13px; }
+  .page-head > div:first-child { flex: 1 1 350px; min-width: 280px; }
+  .stats { flex: 0 1 420px; justify-content: flex-end; gap: 8px; margin-left: auto; }
+  .stats .stat {
+    min-width: 0; flex: 1 1 120px; gap: 7px; padding: 8px 10px;
+    border: 1px solid var(--border); border-radius: 13px;
+    box-shadow: 0 5px 18px rgba(110,22,32,.07);
+  }
+  .stats .stat::before { width: 31px; height: 31px; font-size: 13px; }
+  .stats .stat .num { color: #6E1620; font-size: 21px; }
+  .stats .stat .cap { color: var(--ink-muted); font-size: 9px; }
+  .region-accordions { gap: 12px; margin-bottom: 14px; }
+  .region-acc-head {
+    min-height: 52px; padding: 13px 19px; border-radius: 13px;
+    box-shadow: 0 5px 16px rgba(110,22,32,.09);
+  }
+  .region-acc-head--north { background: linear-gradient(110deg, #FFBF69, #F7A33F); }
+  .region-acc-head--south { background: linear-gradient(110deg, #B7EA69, #9DDE4B); }
+  .region-acc-head.active {
+    border-color: #6E1620;
+    box-shadow: 0 0 0 3px rgba(110,22,32,.14), var(--shadow-sm);
+  }
+  .date-tabs { gap: 6px; margin-bottom: 16px; }
+  .date-tab {
+    border-radius: 9px; padding: 9px 13px; font-family: 'Inter', sans-serif;
+    color: var(--ink); border-color: var(--border);
+  }
+  .date-tab.active { background: #6E1620; border-color: #6E1620; }
+  .date-tab.has-open:not(.active) { border-color: #D61F2C; color: #A5151F; }
+  .grid { gap: 18px; margin-top: 4px; }
+  .bracket-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .site-card {
+    position: relative; overflow: hidden; border-color: #E6D5D6; border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(61,10,16,.07);
+  }
+  .site-card::before {
+    content: ""; position: absolute; inset: 0 0 auto; height: 116px; pointer-events: none;
+    background:
+      linear-gradient(90deg, #fff 0%, rgba(255,255,255,.96) 45%, rgba(255,255,255,.16) 100%),
+      radial-gradient(ellipse at 82% 105%, #93b87b 0 10%, transparent 10.5%),
+      radial-gradient(ellipse at 95% 95%, #c2d7a0 0 16%, transparent 16.5%),
+      linear-gradient(180deg, #d9e7ce 0%, #f4eadb 74%, #fff 100%);
+  }
+  .site-card:hover { box-shadow: 0 12px 28px rgba(61,10,16,.11); transform: translateY(-1px); }
+  .ticket-number { display: none; }
+  .card-inner {
+    position: relative; z-index: 1; padding: 18px 18px 14px; row-gap: 5px;
+    grid-template-columns: minmax(0, 1fr) 245px;
+    grid-template-areas: "badge sched" "title sched" "perf perf" "staff staff" "reliever reliever" "attach attach" "cardfoot cardfoot";
+  }
+  .card-expiry-row { display: none; }
+  .locationInput { color: #6E1620; font-size: clamp(19px, 2vw, 25px); }
+  .region-line select, .region-line input.customText { border-radius: 8px; }
+  .schedule-row { gap: 6px; }
+  .schedule-row .field { min-height: 40px; padding: 6px 9px; border-color: #E6D5D6; border-radius: 10px; background: #FFF8F3; }
+  .schedule-row .field-date::before { background: #FBE7E9; }
+  .schedule-row .field-time::before { background: #F0E8E8; }
+  .perforation { margin: 7px 0; border-color: #EADCDD; }
+  .staff-section { padding: 9px 13px 8px; border: 1px solid #EADDDD; border-radius: 12px; background: #fff; }
+  .staff-section + .staff-section { margin-top: 0; }
+  .staff-section-title {
+    margin: 0 0 4px; padding: 4px 0 8px; border: 0;
+    border-bottom: 1px solid #F0E7E6; border-radius: 0;
+    background: transparent; color: #5B171D; font-size: 14px;
+    text-transform: none; letter-spacing: 0;
+  }
+  .staff-grid { padding-top: 0; }
+  .staff-row {
+    display: grid; grid-template-columns: 20px minmax(140px, 200px) minmax(0, 1fr) auto;
+    align-items: center; gap: 10px; padding: 3px 0; border-color: #F0E7E6;
+  }
+  .emp-role-label { font-size: 11px; }
+  .emp-name { font-size: 12px; }
+  .staff-row input.nameInput {
+    min-height: 29px; padding: 4px 10px; border: 1px solid #E4DADB;
+    border-radius: 7px; background: #FFFCFA;
+  }
+  .staff-row input.nameInput:focus { border-color: #D61F2C; }
+  .claim-btn { border-radius: 8px; border-color: #A5151F; background: #FBE7E9; color: #A5151F; }
+  .claim-btn:hover:not(:disabled) { background: #A5151F; }
+  .addFieldBtn { border-radius: 8px; border-color: #E6D5D6; color: #8C4C4F; }
+  .addFieldBtn:hover { border-color: #A5151F; color: #A5151F; background: #FFF5F4; }
+  .attach-row { border-color: #E6D5D6; }
+  .card-update-btn { border-radius: 9px; }
+  .nc-chip.active,
+  .nc-new-tag { background: #6E1620; border-color: #6E1620; }
+  .nc-item.is-new { border-color: #6E1620; box-shadow: 0 0 0 3px rgba(110,22,32,.12); }
+  .nc-view-btn:hover { background: #FBE7E9; border-color: #D61F2C; color: #A5151F; }
+  .claim-btn { border-radius: 8px; border-color: #A5151F; background: #FBE7E9; color: #A5151F; }
+  .claim-btn:hover:not(:disabled) { background: #A5151F; }
+  .addFieldBtn { border-radius: 8px; border-color: #E6D5D6; color: #8C4C4F; }
+  .attach-row { border-color: #E6D5D6; }
+  :focus-visible { outline-color: #D61F2C; }
+  @media (max-width: 900px) {
+    .sidebar { width: 270px; }
+    .page-head > div:first-child { min-width: 0; }
+    .stats { flex-basis: 100%; }
+    .stats .stat { min-width: 0; }
+    .card-inner { padding: 16px 13px 13px; grid-template-columns: minmax(0, 1fr) 210px; }
+    .staff-row .role-label,
+    .staff-row .reliever-role-label,
+    .staff-row select.roleSelect { width: auto; }
+  }
+  @media (max-width: 760px) {
+    .card-inner { grid-template-columns: minmax(0, 1fr); grid-template-areas: "badge" "title" "sched" "perf" "staff" "reliever" "attach" "cardfoot"; }
+    .schedule-row { flex-direction: row; }
+  }
+  @media (max-width: 620px) {
+    .card-inner { grid-template-columns: minmax(0, 1fr); grid-template-areas: "badge" "title" "sched" "perf" "staff" "reliever" "attach" "cardfoot"; }
+    .schedule-row { flex-direction: row; }
+    .staff-row { grid-template-columns: 18px minmax(0, 1fr); gap: 6px 9px; }
+    .emp-name, .claim-btn { grid-column: 2; justify-self: start; }
+  }
 </style>
 </head>
 <body class="is-ready">
@@ -1770,10 +1894,10 @@
     <div class="topbar">
       <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">☰</button>
       <div class="topbar-right">
-        <button type="button" class="push-toggle-button" id="pushToggleButton" aria-live="polite">Enable phone notifications</button>
         <div class="admin-chip-wrap" id="empChipWrap">
           <button type="button" class="admin-chip" id="empChipBtn" aria-haspopup="true"><span class="avatar" id="empChipAvatar">—</span><span id="empChipLabel">—</span>▾</button>
           <div class="admin-dropdown" id="empDropdown">
+            <button type="button" class="push-toggle-button" id="pushToggleButton" aria-live="polite">Enable phone notifications</button>
             <button type="button" class="admin-dropdown-item" id="eventReminderSoundBtn" title="Enables audio for this page and plays a 10-second test">🔊 Test alarm sound</button>
             <button type="button" class="admin-dropdown-item" id="empLogoutBtn">🚪 Logout</button>
           </div>
@@ -4415,6 +4539,7 @@ async function claimSlot(cardId, listKey, staffIdx, btn) {
 
       staffArr[staffIdx] = {
         ...slot,
+        slotId: slot.slotId || `legacy-${card.id}-${listKey}-${staffIdx}`,
         label: listKey === "relievers"
           ? (splitDepartmentClient(employeeSession.department).team.toUpperCase() === "BILLING"
             ? "BILLING"
@@ -4430,6 +4555,7 @@ async function claimSlot(cardId, listKey, staffIdx, btn) {
       if (isStoreAwayRole && fillStoreReliever && mySiteName) {
         const relieversArr = (remoteCards[cIdx].relievers || []).slice();
         relieversArr.push({
+          slotId: crypto.randomUUID ? crypto.randomUUID() : `slot-${Date.now()}-${Math.random().toString(36).slice(2)}`,
           label: "PHARMACY ASSISTANT",
           name: "",
           site: mySiteName,
@@ -5139,6 +5265,7 @@ function renderNotifPanel(items) {
   panel.innerHTML = items.map(n => {
     const isResolved = !!n.resolved;
     const isRemoved = n.type === "removed";
+    const isSlotRoleRemoved = n.type === "slotRoleRemoved";
     const isBranchChanged = n.type === "branchChanged";
     const isDateChanged = n.type === "dateChanged";
     const isEventUpdated = n.type === "eventUpdated";
@@ -5152,11 +5279,15 @@ function renderNotifPanel(items) {
     const isSiteMoved = n.type === "siteMoved";
     const isPharmacistNote = n.type === "pharmacistNote";
     const isEventsDeployed = n.type === "eventsDeployed";
-    const isPersonalNotice = isRemoved || isBranchChanged || isDateChanged || isEventUpdated || isMissionChanged || isEventDeleted || isSiteRemoved || isSiteAutoDeleted || isEventCancelled || isEventReinstated || isSlotAssigned || isSiteMoved || isPharmacistNote || isEventsDeployed;
+    const isPersonalNotice = isRemoved || isSlotRoleRemoved || isBranchChanged || isDateChanged || isEventUpdated || isMissionChanged || isEventDeleted || isSiteRemoved || isSiteAutoDeleted || isEventCancelled || isEventReinstated || isSlotAssigned || isSiteMoved || isPharmacistNote || isEventsDeployed;
     let title, statusLine, btnLabel;
     if (isEventsDeployed) {
       title = `📅 New events deployed`;
       statusLine = `The pharmacy department deployed the events. Check the schedule for the available slots.`;
+      btnLabel = "Got it";
+    } else if (isSlotRoleRemoved) {
+      title = `🔔 Your slot role was removed`;
+      statusLine = `Your ${escapeHtml(n.role || "schedule")} slot has been removed by the ${escapeHtml(n.removedByDepartment || "department")}. You're free to sign up for another slot now.`;
       btnLabel = "Got it";
     } else if (isRemoved) {
       title = n.replacedByName ? `🔔 You were removed from the event slot` : `🔔 You've been removed from this slot`;
@@ -5255,7 +5386,7 @@ function renderNotifPanel(items) {
 
 // Admins and employees see only notifications for supported schedule changes.
 function getRelevantNotifications(items) {
-  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "slotAssigned", "siteMoved", "pharmacistNote"];
+  const personalTypes = ["removed", "slotRoleRemoved", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "slotAssigned", "siteMoved", "pharmacistNote"];
   if (!employeeSession) {
     return items.filter(n => personalTypes.includes(n.type) && n.type !== "slotAssigned" && n.type !== "pharmacistNote");
   }
@@ -5285,7 +5416,7 @@ function getRelevantNotifications(items) {
 }
 
 function latestPersonalNotifications(items) {
-  const personalTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "slotAssigned", "siteMoved"];
+  const personalTypes = ["removed", "slotRoleRemoved", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "slotAssigned", "siteMoved"];
   const latestBySlot = new Map();
   const ordered = [...items].sort((a, b) => {
     const toMillis = value => {
@@ -5362,7 +5493,7 @@ function showPharmacistNoteModal(notification) {
 // Only notifications that genuinely arrive while the page is open pop up.
 // Past notices are still reachable any time via the bell panel.
 let seenNotificationIds = null;
-const personalNotifTypes = ["removed", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "slotAssigned", "siteMoved"];
+const personalNotifTypes = ["removed", "slotRoleRemoved", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "slotAssigned", "siteMoved"];
 personalNotifTypes.push("pharmacistNote");
 const initialNotificationParams = new URLSearchParams(window.location.search);
 let pendingPushNoteId = initialNotificationParams.get("viewNotes") || "";
@@ -5430,6 +5561,7 @@ onSnapshot(
       }
       for (const n of freshOnes) {
         const isRemoved = n.type === "removed";
+          const isSlotRoleRemoved = n.type === "slotRoleRemoved";
         const isBranchChanged = n.type === "branchChanged";
         const isDateChanged = n.type === "dateChanged";
         const isEventUpdated = n.type === "eventUpdated";
@@ -5453,7 +5585,9 @@ onSnapshot(
               : `\u{1F4CD} You were moved to a new event site.\n\nYour previous assignment was cleared and this is now your active deployment. Moved by ${n.actorLabel || n.assignedBy || "your department head"}.`;
         } else if (isPharmacistNote) {
           message = `${n.actorLabel || "Your department head"} left a note for ${n.location || "your event"}:\n\n${n.noteText || "Open to read the note."}`;
-        } else if (isRemoved) {
+          } else if (isSlotRoleRemoved) {
+            message = `Your ${n.role || "schedule"} slot has been removed by the ${n.removedByDepartment || "department"}.\n\nYou're free to sign up for another slot now.`;
+          } else if (isRemoved) {
           message = n.replacedByName
             ? `${n.replacedByName} replaced you.`
             : `You've been removed from your slot.\n\nYou're free to sign up for another slot now.`;
@@ -6374,8 +6508,27 @@ var loginNotifClearedWaitExpired = false;
 var loginNotifClearedTimer = null;
 
 function loginNotifPromptKey() { return "pdLoginNotifPrompt_" + notifCenterViewerKey(); }
+function loginNotifPromptWatermarkKey() { return "pdLoginNotifPromptThrough_" + notifCenterViewerKey(); }
 function loginNotifPromptAlreadyHandled() {
   try { return sessionStorage.getItem(loginNotifPromptKey()) === "1"; } catch (e) { return false; }
+}
+function loginNotifPromptWatermark() {
+  try { return JSON.parse(localStorage.getItem(loginNotifPromptWatermarkKey()) || "null"); }
+  catch (e) { return null; }
+}
+function saveLoginNotifPromptWatermark(notification) {
+  try {
+    localStorage.setItem(loginNotifPromptWatermarkKey(), JSON.stringify({
+      ms: notifCenterMillis(notification.createdAt),
+      id: String(notification.id || "")
+    }));
+  } catch (e) { /* non-fatal */ }
+}
+function isAfterLoginNotifPromptWatermark(notification, watermark) {
+  if (!watermark) return true;
+  const ms = notifCenterMillis(notification.createdAt);
+  return ms > Number(watermark.ms || 0) ||
+    (ms === Number(watermark.ms || 0) && String(notification.id || "") > String(watermark.id || ""));
 }
 function markLoginNotifPromptHandled() {
   try { sessionStorage.setItem(loginNotifPromptKey(), "1"); } catch (e) { /* non-fatal */ }
@@ -6395,7 +6548,7 @@ async function showLoginNotifPrompt(count) {
     setModalIcon("bell");
     appModalMessage.textContent =
       "You have a notification from the event.\n\n" +
-      "You have 2 new notifications that you haven't opened yet. Would you like to view them now?";
+      `You have ${count} new notification${count === 1 ? "" : "s"} that you haven't opened yet. Would you like to view them now?`;
     appModalActions.innerHTML = "";
     const cancelBtn = document.createElement("button");
     cancelBtn.textContent = "Cancel";
@@ -6432,9 +6585,18 @@ function maybeShowLoginNotifPrompt() {
   }
   loginNotifPromptDone = true;
   markLoginNotifPromptHandled(); // decided for this login, prompt or not
-  const unread = notifCenterItems().filter(n => notifCenterMillis(n.createdAt) > notifCenterLastSeen).length;
-  if (!unread) return;
-  loginNotifPromptPromise = showLoginNotifPrompt(unread).finally(() => { loginNotifPromptPromise = null; });
+  const unread = notifCenterItems().filter(n => notifCenterMillis(n.createdAt) > notifCenterLastSeen);
+  if (!unread.length) return;
+  const watermark = loginNotifPromptWatermark();
+  if (!unread.some(notification => isAfterLoginNotifPromptWatermark(notification, watermark))) return;
+  const newest = unread.reduce((latest, notification) => {
+    const latestWatermark = latest
+      ? { ms: notifCenterMillis(latest.createdAt), id: latest.id }
+      : null;
+    return !latest || isAfterLoginNotifPromptWatermark(notification, latestWatermark) ? notification : latest;
+  }, null);
+  saveLoginNotifPromptWatermark(newest);
+  loginNotifPromptPromise = showLoginNotifPrompt(unread.length).finally(() => { loginNotifPromptPromise = null; });
 }
 
 // Re-check every time the Notification Center repaints (it repaints on every

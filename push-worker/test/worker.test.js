@@ -26,6 +26,21 @@ test("personal schedule notifications are sent only to the matching staff ID", (
   }
 });
 
+test("removed slot roles notify only the affected employee and name the department", () => {
+  const notification = {
+    type: "slotRoleRemoved",
+    staffId: "STAFF-17",
+    role: "Pharmacy Assistant",
+    removedByDepartment: "Pharmacy Department"
+  };
+  assert.equal(shouldNotify({ staffId: "staff-17" }, notification), true);
+  assert.equal(shouldNotify({ staffId: "staff-18" }, notification), false);
+  assert.deepEqual(notificationText(notification), {
+    title: "Your slot role was removed",
+    body: "Your Pharmacy Assistant slot has been removed by the Pharmacy Department. You can choose another slot."
+  });
+});
+
 test("stock-day activation notifies only employees scheduled for that day", () => {
   const notification = { type: "stockDayActivated", targetStaffIds: ["260616", "staff-18"] };
   assert.equal(shouldNotify({ staffId: "260616" }, notification), true);
