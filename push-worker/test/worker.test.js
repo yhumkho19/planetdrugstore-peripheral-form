@@ -888,6 +888,207 @@ test("direct dispatch rejects requests without a Firebase ID token", async () =>
   assert.equal(response.status, 401);
 });
 
+test("native head sign-in handoffs are verified, one-use, and preserve the Firebase UID", async () => {
+  const projectId = "planetdrugstore-peripher-d24c0";
+  const keyPair = await crypto.subtle.generateKey({
+    name: "RSASSA-PKCS1-v1_5",
+    modulusLength: 2048,
+    publicExponent: new Uint8Array([1, 0, 1]),
+    hash: "SHA-256"
+  }, true, ["sign", "verify"]);
+  const publicJwk = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
+  publicJwk.kid = "test-handoff-firebase-key";
+  publicJwk.alg = "RS256";
+  publicJwk.use = "sig";
+  const privateKeyBytes = await crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
+  const privateKeyBase64 = Buffer.from(privateKeyBytes).toString("base64").match(/.{1,64}/g).join("\n");
+  const privateKeyPem = `-----BEGIN PRIVATE KEY-----\n${privateKeyBase64}\n-----END PRIVATE KEY-----`;
+  const encode = value => Buffer.from(JSON.stringify(value)).toString("base64url");
+  const makeIdToken = email => {
+    const unsigned = `${encode({ alg: "RS256", kid: publicJwk.kid, typ: "JWT" })}.${encode({
+      aud: projectId,
+      iss: `https://securetoken.google.com/${projectId}`,
+      sub: "firebase-head-uid",
+      email,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600
+    })}`;
+    return crypto.subtle.sign("RSASSA-PKCS1-v1_5", keyPair.privateKey, new TextEncoder().encode(unsigned))
+      .then(signature => `${unsigned}.${Buffer.from(signature).toString("base64url")}`);
+  };
+  const values = new Map();
+  const kv = {
+    async get(key) { return values.get(key) || null; },
+    async put(key, value, options) {
+      values.set(key, value);
+      assert.equal(options.expirationTtl, 60);
+    },
+    async delete(key) { values.delete(key); }
+  };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async url => {
+    if (String(url).includes("service_accounts/v1/jwk/securetoken")) {
+      return new Response(JSON.stringify({ keys: [publicJwk] }), {
+        headers: { "cache-control": "public, max-age=3600", "content-type": "application/json" }
+      });
+    }
+    throw new Error(`Unexpected network request: ${String(url)}`);
+  };
+
+  try {
+    const env = {
+      APP_ORIGIN: "https://planetdrugstoreconsole.web.app",
+      FIREBASE_PROJECT_ID: projectId,
+      FIREBASE_CLIENT_EMAIL: "service@example.iam.gserviceaccount.com",
+      FIREBASE_PRIVATE_KEY: privateKeyPem,
+      PUSH_SUBSCRIPTIONS: kv
+    };
+    const createResponse = await worker.fetch(new Request("https://worker.test/auth-handoff", {
+      method: "POST",
+      headers: {
+        Origin: env.APP_ORIGIN,
+        Authorization: `Bearer ${await makeIdToken("pharmacistdepart@planetdrugstore.ph")}`,
+        "content-type": "application/json"
+      },
+      body: "{}"
+    }), env, {});
+    assert.equal(createResponse.status, 200);
+    const { handoffCode } = await createResponse.json();
+    assert.match(handoffCode, /^[A-Fa-f0-9]{32}$/);
+
+    const exchangeRequest = () => new Request("https://worker.test/auth-handoff/exchange", {
+      method: "POST",
+      headers: { Origin: env.APP_ORIGIN, "content-type": "application/json" },
+      body: JSON.stringify({ handoffCode })
+    });
+    const exchangeResponse = await worker.fetch(exchangeRequest(), env, {});
+    assert.equal(exchangeResponse.status, 200);
+    const { customToken } = await exchangeResponse.json();
+    const [header, payload, signature] = customToken.split(".");
+    assert.equal(JSON.parse(Buffer.from(header, "base64url").toString()).alg, "RS256");
+    const claims = JSON.parse(Buffer.from(payload, "base64url").toString());
+    assert.equal(claims.uid, "firebase-head-uid");
+    assert.equal(claims.aud, "https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit");
+    const publicKey = await crypto.subtle.importKey(
+      "jwk",
+      publicJwk,
+      { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+      false,
+      ["verify"]
+    );
+    assert.equal(await crypto.subtle.verify(
+      "RSASSA-PKCS1-v1_5",
+      publicKey,
+      Buffer.from(signature, "base64url"),
+      new TextEncoder().encode(`${header}.${payload}`)
+    ), true);
+    assert.equal((await worker.fetch(exchangeRequest(), env, {})).status, 410);
+
+    const employeeResponse = await worker.fetch(new Request("https://worker.test/auth-handoff", {
+      method: "POST",
+      headers: {
+        Origin: env.APP_ORIGIN,
+        Authorization: `Bearer ${await makeIdToken("employee@staff.planetdrugstore.local")}`,
+        "content-type": "application/json"
+      },
+      body: "{}"
+    }), env, {});
+    assert.equal(employeeResponse.status, 403);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("employee site-filled wake directly delivers the persisted alert to pharmacists", async () => {
+  const projectId = "planetdrugstore-peripher-d24c0";
+  const keyPair = await crypto.subtle.generateKey({
+    name: "RSASSA-PKCS1-v1_5",
+    modulusLength: 2048,
+    publicExponent: new Uint8Array([1, 0, 1]),
+    hash: "SHA-256"
+  }, true, ["sign", "verify"]);
+  const privateKeyBytes = await crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
+  const privateKeyBase64 = Buffer.from(privateKeyBytes).toString("base64").match(/.{1,64}/g).join("\n");
+  const privateKeyPem = `-----BEGIN PRIVATE KEY-----\n${privateKeyBase64}\n-----END PRIVATE KEY-----`;
+  const notificationId = "employee-site-filled-test";
+  const kvValues = new Map([
+    ["sub:pharmacist", JSON.stringify({ headRole: "pharmacist", token: "pharmacist-device-token" })],
+    ["sub:billing", JSON.stringify({ headRole: "billing", token: "billing-device-token" })]
+  ]);
+  const kv = {
+    async get(key, type) {
+      const value = kvValues.get(key);
+      return type === "json" && value ? JSON.parse(value) : value || null;
+    },
+    async put(key, value) { kvValues.set(key, value); },
+    async delete(key) { kvValues.delete(key); },
+    async list({ prefix }) {
+      return {
+        keys: [...kvValues.keys()].filter(key => key.startsWith(prefix)).map(name => ({ name })),
+        list_complete: true
+      };
+    }
+  };
+  const sentMessages = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, options = {}) => {
+    const target = String(url);
+    if (target.includes(`/documents/emergencyNotifications/${notificationId}`)) {
+      assert.equal(new URL(target).searchParams.get("key"), "test-firebase-api-key");
+      assert.equal(options.headers, undefined);
+      return new Response(JSON.stringify({
+        name: `projects/${projectId}/databases/(default)/documents/emergencyNotifications/${notificationId}`,
+        fields: {
+          type: { stringValue: "siteFilled" },
+          targetRoles: { arrayValue: { values: [{ stringValue: "pharmacist" }] } },
+          cardId: { stringValue: "site-1" },
+          location: { stringValue: "Test event site" },
+          date: { stringValue: "2026-10-12" },
+          createdAt: { timestampValue: new Date().toISOString() }
+        }
+      }), { headers: { "content-type": "application/json" } });
+    }
+    if (target.includes("fcm.googleapis.com/v1/projects/")) {
+      sentMessages.push(JSON.parse(options.body).message);
+      return new Response(JSON.stringify({ name: "projects/test/messages/site-filled" }), {
+        headers: { "content-type": "application/json" }
+      });
+    }
+    throw new Error(`Unexpected network request: ${target}`);
+  };
+
+  try {
+    const env = {
+      APP_ORIGIN: "https://planetdrugstoreconsole.web.app",
+      APP_URL: "https://planetdrugstoreconsole.web.app/47fto0gim6",
+      FIREBASE_PROJECT_ID: projectId,
+      FIREBASE_API_KEY: "test-firebase-api-key",
+      FIREBASE_CLIENT_EMAIL: "service@example.iam.gserviceaccount.com",
+      FIREBASE_PRIVATE_KEY: privateKeyPem,
+      PUSH_SUBSCRIPTIONS: kv
+    };
+    const pending = [];
+    const response = await worker.fetch(new Request("https://worker.test/wake", {
+      method: "POST",
+      headers: {
+        Origin: env.APP_ORIGIN,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({ notificationId })
+    }), env, { waitUntil(promise) { pending.push(promise); } });
+
+    assert.equal(response.status, 202);
+    await Promise.all(pending);
+    assert.equal(sentMessages.length, 1);
+    assert.equal(sentMessages[0].token, "pharmacist-device-token");
+    assert.equal(sentMessages[0].data.notificationType, "siteFilled");
+    assert.match(sentMessages[0].data.title, /Event site is full/);
+    assert.equal(kvValues.get(`sent:${notificationId}`), "1");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("idle cron performs one KV list and does not scan push subscriptions", async () => {
   const listPrefixes = [];
   const values = new Map([["scheduled-jobs-migrated-v1", "1"]]);

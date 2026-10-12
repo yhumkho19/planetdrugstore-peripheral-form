@@ -2293,8 +2293,39 @@
     .stats { flex-basis: 100%; }
     .card-inner { grid-template-columns: minmax(0, 1fr); grid-template-areas: "badge" "title" "sched" "perf" "staff" "reliever" "attach" "cardfoot"; }
     .schedule-row { flex-direction: row; }
-    .staff-row:has(.drag-handle) { grid-template-columns: 25px minmax(85px, 115px) minmax(0, 1fr) auto 18px; }
-    .staff-row .kickBtn { grid-column: 3 / -1; }
+    .page-head { align-items: stretch; gap: 12px; margin-bottom: 14px; }
+    .page-head > div:first-child { flex: 0 1 auto; width: 100%; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      flex: none;
+      width: 100%;
+      gap: 7px;
+      margin: 0;
+    }
+    .stats .stat { min-width: 0; justify-content: center; flex: none; padding: 8px 6px; }
+    .staff-row:has(.drag-handle) {
+      grid-template-columns: 25px minmax(0, 1fr) auto 18px;
+      grid-template-areas:
+        "drag role status remove"
+        "name name name name";
+      align-items: center;
+      gap: 7px 8px;
+      padding: 8px 0;
+    }
+    .staff-row:has(.drag-handle):has(.kickBtn) {
+      grid-template-areas:
+        "drag role status remove"
+        "name name name name"
+        "kick kick kick kick";
+    }
+    .staff-row:has(.drag-handle) .drag-handle { grid-area: drag; }
+    .staff-row:has(.drag-handle) .roleSelect,
+    .staff-row:has(.drag-handle) .reliever-role-label { grid-area: role; }
+    .staff-row:has(.drag-handle) .name-field-wrap { grid-area: name; width: 100%; }
+    .staff-row:has(.drag-handle) .status-dot { grid-area: status; justify-self: end; }
+    .staff-row:has(.drag-handle) .kickBtn { grid-area: kick; width: 100%; min-height: 34px; }
+    .staff-row:has(.drag-handle) .removeFieldBtn { grid-area: remove; justify-self: end; }
   }
 </style>
 </head>
@@ -2499,7 +2530,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-10-10.8";
+const APP_VERSION = "2026-10-12.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -2947,6 +2978,7 @@ import {
 // straight back in, since admin-login.html sees the still-active session
 // and skips the login form entirely.
 import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { consumeNativeAuthHandoff } from "../assets/js/native-auth-handoff.js";
 
 // Same Firebase project as employee-signup.html / landing-employee-page.html,
 // used here so "Send" can publish the roster for employees to read.
@@ -2960,6 +2992,7 @@ const firebaseConfig = {
 };
 const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
+await consumeNativeAuthHandoff(auth);
 const db = initializeFirestore(fbApp, {
   experimentalForceLongPolling: true,
   useFetchStreams: false

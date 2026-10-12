@@ -1,6 +1,6 @@
 # Mobile Push Notifications (No Firebase Blaze)
 
-The employee schedule pages now have an opt-in push control. The free-tier path uses Firebase Cloud Messaging for delivery. Schedule pages wake the Cloudflare Worker immediately after writing notifications, with a once-per-minute poll as a fallback. It does not deploy Firebase Cloud Functions or require the Blaze plan. Actual delivery stays disabled until the setup below is completed.
+The employee schedule pages now have an opt-in push control. The free-tier path uses Firebase Cloud Messaging for delivery. Schedule pages wake the Cloudflare Worker immediately after writing notifications, with the five-minute Worker poll as a fallback. When an employee self-signs the final Event Team slot, the page passes the saved site-filled notification ID so the Worker can verify and deliver that pharmacist alert directly instead of waiting for its Firestore scan. The Android companion also uses the Worker to exchange a verified department-head Firebase sign-in for a 60-second, one-use WebView login handoff. This direct lookup uses the Firebase API key with the existing public read rule on `emergencyNotifications`; the auth handoff is signed with the service-account key and is restricted to the fixed department-head accounts. It does not deploy Firebase Cloud Functions or require the Blaze plan. Actual delivery stays disabled until the setup below is completed.
 
 ## Prerequisites
 

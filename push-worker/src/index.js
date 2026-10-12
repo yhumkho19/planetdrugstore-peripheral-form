@@ -129,9 +129,9 @@ async function getFirebaseJwks() {
   return cachedFirebaseJwks;
 }
 
-async function verifyFirebaseHeadToken(token, projectId) {
+async function verifyFirebaseIdToken(token, projectId) {
   const parts = String(token || "").split(".");
-  if (parts.length !== 3 || token.length > 8192) return "";
+  if (parts.length !== 3 || token.length > 8192) return null;
 
   let header;
   let claims;
@@ -139,9 +139,9 @@ async function verifyFirebaseHeadToken(token, projectId) {
     header = JSON.parse(new TextDecoder().decode(decodeBase64Url(parts[0])));
     claims = JSON.parse(new TextDecoder().decode(decodeBase64Url(parts[1])));
   } catch {
-    return "";
+    return null;
   }
-  if (header.alg !== "RS256" || !header.kid) return "";
+  if (header.alg !== "RS256" || !header.kid) return null;
 
   let signingKeys = await getFirebaseJwks();
   let jwk = signingKeys.find(key => key.kid === header.kid);
@@ -150,7 +150,7 @@ async function verifyFirebaseHeadToken(token, projectId) {
     signingKeys = await getFirebaseJwks();
     jwk = signingKeys.find(key => key.kid === header.kid);
   }
-  if (!jwk) return "";
+  if (!jwk) return null;
 
   const publicKey = await crypto.subtle.importKey(
     "jwk",
@@ -165,16 +165,21 @@ async function verifyFirebaseHeadToken(token, projectId) {
     decodeBase64Url(parts[2]),
     new TextEncoder().encode(`${parts[0]}.${parts[1]}`)
   );
-  if (!valid) return "";
+  if (!valid) return null;
 
   const now = Math.floor(Date.now() / 1000);
   if (claims.aud !== projectId ||
       claims.iss !== `https://securetoken.google.com/${projectId}` ||
       Number(claims.exp) <= now ||
       Number(claims.iat) > now + 30 ||
-      !claims.sub) return "";
+      !claims.sub) return null;
 
-  return headRolesByEmail[String(claims.email || "").trim().toLowerCase()] || "";
+  return claims;
+}
+
+async function verifyFirebaseHeadToken(token, projectId) {
+  const claims = await verifyFirebaseIdToken(token, projectId);
+  return claims ? headRolesByEmail[String(claims.email || "").trim().toLowerCase()] || "" : "";
 }
 
 function encodeJson(value) {
@@ -221,6 +226,27 @@ async function getAccessToken(env) {
   const token = await response.json();
   cachedAccessToken = { value: token.access_token, expiresAt: Date.now() + token.expires_in * 1000 };
   return cachedAccessToken.value;
+}
+
+async function createFirebaseCustomToken(env, uid) {
+  const now = Math.floor(Date.now() / 1000);
+  const unsigned = `${encodeJson({ alg: "RS256", typ: "JWT" })}.${encodeJson({
+    iss: env.FIREBASE_CLIENT_EMAIL,
+    sub: env.FIREBASE_CLIENT_EMAIL,
+    aud: "https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit",
+    iat: now,
+    exp: now + 3600,
+    uid
+  })}`;
+  const key = await crypto.subtle.importKey(
+    "pkcs8",
+    pemToBytes(env.FIREBASE_PRIVATE_KEY),
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(unsigned));
+  return `${unsigned}.${base64Url(new Uint8Array(signature))}`;
 }
 
 function baseNotificationText(notification) {
@@ -957,6 +983,61 @@ function corsHeaders(env, origin) {
   };
 }
 
+async function handleAuthHandoff(request, env) {
+  const origin = request.headers.get("Origin") || "";
+  const headers = corsHeaders(env, origin);
+  if (!isAllowedOrigin(env, origin)) return new Response("Forbidden", { status: 403, headers });
+  if (request.method === "OPTIONS") return new Response(null, { headers });
+  if (request.method !== "POST") return new Response("Method not allowed", { status: 405, headers });
+
+  const authorization = request.headers.get("authorization") || "";
+  const idToken = authorization.match(/^Bearer\s+(.+)$/i)?.[1] || "";
+  if (!idToken) return new Response("Firebase ID token required", { status: 401, headers });
+
+  let claims;
+  try {
+    claims = await verifyFirebaseIdToken(idToken, env.FIREBASE_PROJECT_ID);
+  } catch (error) {
+    console.error("Firebase ID token verification failed for auth handoff:", error);
+    return new Response("Could not verify Firebase ID token", { status: 503, headers });
+  }
+  const headRole = claims && headRolesByEmail[String(claims.email || "").trim().toLowerCase()];
+  if (!headRole) return new Response("Authorized department-head account required", { status: 403, headers });
+
+  try {
+    const customToken = await createFirebaseCustomToken(env, claims.sub);
+    const handoffCode = crypto.randomUUID().replace(/-/g, "");
+    await env.PUSH_SUBSCRIPTIONS.put(`auth-handoff:${handoffCode}`, customToken, { expirationTtl: 60 });
+    return new Response(JSON.stringify({ handoffCode }), {
+      headers: { ...headers, "content-type": "application/json", "cache-control": "no-store" }
+    });
+  } catch (error) {
+    console.error("Could not create Firebase auth handoff:", error);
+    return new Response("Could not create authentication handoff", { status: 500, headers });
+  }
+}
+
+async function handleAuthHandoffExchange(request, env) {
+  const origin = request.headers.get("Origin") || "";
+  const headers = corsHeaders(env, origin);
+  if (!isAllowedOrigin(env, origin)) return new Response("Forbidden", { status: 403, headers });
+  if (request.method === "OPTIONS") return new Response(null, { headers });
+  if (request.method !== "POST") return new Response("Method not allowed", { status: 405, headers });
+
+  let body;
+  try { body = await request.json(); } catch { return new Response("Invalid JSON", { status: 400, headers }); }
+  const handoffCode = String(body?.handoffCode || "");
+  if (!/^[A-Fa-f0-9]{32}$/.test(handoffCode)) return new Response("Invalid handoff code", { status: 400, headers });
+
+  const key = `auth-handoff:${handoffCode}`;
+  const customToken = await env.PUSH_SUBSCRIPTIONS.get(key);
+  if (!customToken) return new Response("Authentication handoff expired or already used", { status: 410, headers });
+  await env.PUSH_SUBSCRIPTIONS.delete(key);
+  return new Response(JSON.stringify({ customToken }), {
+    headers: { ...headers, "content-type": "application/json", "cache-control": "no-store" }
+  });
+}
+
 async function subscriptionKey(token, recipient = "") {
   const material = recipient ? `${token}:${recipient}` : token;
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(material));
@@ -1006,6 +1087,48 @@ async function handleWake(request, env, context) {
   if (!isAllowedOrigin(env, origin)) return new Response("Forbidden", { status: 403, headers });
   if (request.method === "OPTIONS") return new Response(null, { headers });
   if (request.method !== "POST") return new Response("Method not allowed", { status: 405, headers });
+
+  let body;
+  try { body = await request.json(); } catch { return new Response("Invalid JSON", { status: 400, headers }); }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return new Response("Invalid request body", { status: 400, headers });
+  }
+  if (body.notificationId !== undefined) {
+    const notificationId = String(body.notificationId || "").trim();
+    if (!/^[A-Za-z0-9_-]{1,1500}$/.test(notificationId)) {
+      return new Response("Invalid notification ID", { status: 400, headers });
+    }
+
+    try {
+      const apiKey = String(env.FIREBASE_API_KEY || "").trim();
+      if (!apiKey) throw new Error("FIREBASE_API_KEY is not configured");
+      const url = `https://firestore.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/databases/(default)/documents/emergencyNotifications/${encodeURIComponent(notificationId)}?key=${encodeURIComponent(apiKey)}`;
+      const response = await fetch(url);
+      if (response.status === 404) return new Response("Notification not found", { status: 404, headers });
+      if (!response.ok) {
+        const detail = (await response.text()).slice(0, 500);
+        throw new Error(`Firestore notification lookup failed (${response.status}): ${detail}`);
+      }
+      const notification = decodeDocument(await response.json());
+      if (notification.type !== "siteFilled" ||
+          !Array.isArray(notification.targetRoles) ||
+          !notification.targetRoles.includes("pharmacist") ||
+          notification.employeeOnly === true) {
+        return new Response("Notification is not eligible for direct delivery", { status: 404, headers });
+      }
+
+      context.waitUntil(deliverDirectNotifications(env, [notification]).catch(error => {
+        console.error("Direct site-filled push delivery failed:", error);
+      }));
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 202,
+        headers: { ...headers, "content-type": "application/json" }
+      });
+    } catch (error) {
+      console.error("Could not load site-filled notification for push delivery:", error);
+      return new Response("Could not load notification", { status: 502, headers });
+    }
+  }
 
   context.waitUntil(deliverNewNotifications(env).catch(error => {
     console.error("Immediate push delivery failed", error);
@@ -1157,6 +1280,8 @@ export default {
     if (url.pathname === "/subscribe") return handleSubscription(request, env);
     if (url.pathname === "/dispatch") return handleDispatch(request, env, context);
     if (url.pathname === "/wake") return handleWake(request, env, context);
+    if (url.pathname === "/auth-handoff") return handleAuthHandoff(request, env);
+    if (url.pathname === "/auth-handoff/exchange") return handleAuthHandoffExchange(request, env);
     if (url.pathname === "/reminder-action") return handleReminderAction(request, env);
     return new Response("Not found", { status: 404 });
   },

@@ -27,16 +27,35 @@ import androidx.core.content.ContextCompat;
 
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
 
+import org.json.JSONObject;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Locale;
+import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends ComponentActivity {
-    private static final String SCHEDULE_URL = "https://planetdrugstoreconsole.web.app/47fto0gim6";
-    private static final String STOCK_REQUEST_URL = "https://planetdrugstoreconsole.web.app/h9b4t2zvfe";
+    private static final String APP_ORIGIN = "https://planetdrugstoreconsole.web.app";
+    private static final String AUTH_HANDOFF_URL = "https://peripherals-push.pds-peripherals.workers.dev/auth-handoff";
+    private static final ExecutorService AUTH_HANDOFF_NETWORK = Executors.newSingleThreadExecutor();
+    private static final String EMPLOYEE_SCHEDULE_PATH = "/47fto0gim6";
+    private static final String[] HEAD_SCHEDULE_PATHS = {
+        "", "/tz8lc2ct4y", "/jszdttqedv", "/51qx617jve", "/h9b4t2zvfe"
+    };
+    private static final String[] OPEN_PAGE_LABELS = {
+        "Open employee schedule", "Open Pharmacy schedule", "Open Billing schedule",
+        "Open Information schedule", "Open stock requests"
+    };
     private static final String[] ACCOUNT_TYPES = {
         "Employee", "Pharmacist head", "Billing head", "Information head", "Stock Request admin"
     };
@@ -141,11 +160,94 @@ public class MainActivity extends ComponentActivity {
         TextView note = text("Event alarms play the Pharmacy ring tone for up to 60 seconds. Tap Stop alarm to silence them.", 13, Color.rgb(113, 118, 126), false);
         note.setGravity(Gravity.CENTER);
         content.addView(note, matchWrap(dp(18)));
-        Button openSchedule = button("stock".equals(savedHeadRole) ? "Open stock requests" : "Open employee schedule");
+        Button openSchedule = button(openPageLabel(savedId, savedHeadRole));
         content.addView(openSchedule, matchWrap(dp(12)));
-        String openUrl = "stock".equals(savedHeadRole) ? STOCK_REQUEST_URL : SCHEDULE_URL;
-        openSchedule.setOnClickListener(view -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(openUrl))));
+        openSchedule.setOnClickListener(view -> openAccountPage(savedHeadRole));
         setContentView(scroll);
+    }
+
+    private String openPageLabel(String staffId, String headRole) {
+        if (staffId != null && !staffId.isEmpty()) return OPEN_PAGE_LABELS[0];
+        int roleIndex = headRoleIndex(headRole);
+        return roleIndex > 0 ? OPEN_PAGE_LABELS[roleIndex] : OPEN_PAGE_LABELS[0];
+    }
+
+    private int headRoleIndex(String headRole) {
+        for (int i = 1; i < HEAD_ROLES.length; i++) {
+            if (HEAD_ROLES[i].equals(headRole)) return i;
+        }
+        return 0;
+    }
+
+    private void openAccountPage(String headRole) {
+        int roleIndex = headRoleIndex(headRole);
+        String path = roleIndex > 0 ? HEAD_SCHEDULE_PATHS[roleIndex] : EMPLOYEE_SCHEDULE_PATH;
+        String targetUrl = APP_ORIGIN + path;
+        if (roleIndex == 0) {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(targetUrl)));
+            return;
+        }
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(APP_ORIGIN + "/839jgl8ang")));
+            return;
+        }
+        String signedInEmail = user.getEmail() == null ? "" : user.getEmail().trim();
+        if (!HEAD_EMAILS[roleIndex].equalsIgnoreCase(signedInEmail)) {
+            setStatus("The saved app role does not match the signed-in Firebase account. Please reconnect this device.", true);
+            return;
+        }
+
+        setBusy(true, "Signing in and opening " + accountTypeForRole(headRole) + "…");
+        user.getIdToken(true)
+                .addOnSuccessListener(result -> AUTH_HANDOFF_NETWORK.execute(() -> {
+                    HttpURLConnection connection = null;
+                    try {
+                        connection = (HttpURLConnection) new URL(AUTH_HANDOFF_URL).openConnection();
+                        connection.setRequestMethod("POST");
+                        connection.setConnectTimeout(15000);
+                        connection.setReadTimeout(15000);
+                        connection.setRequestProperty("Origin", APP_ORIGIN);
+                        connection.setRequestProperty("Authorization", "Bearer " + result.getToken());
+                        connection.setRequestProperty("Content-Type", "application/json");
+                        connection.setDoOutput(true);
+                        try (OutputStream output = connection.getOutputStream()) {
+                            output.write("{}".getBytes(StandardCharsets.UTF_8));
+                        }
+                        int status = connection.getResponseCode();
+                        InputStream stream = status >= 200 && status < 300
+                                ? connection.getInputStream()
+                                : connection.getErrorStream();
+                        String responseText = "";
+                        if (stream != null) {
+                            try (Scanner scanner = new Scanner(stream, StandardCharsets.UTF_8.name()).useDelimiter("\\A")) {
+                                if (scanner.hasNext()) responseText = scanner.next();
+                            }
+                        }
+                        if (status < 200 || status >= 300) {
+                            throw new IllegalStateException("Sign-in handoff failed (" + status + ").");
+                        }
+                        String handoffCode = new JSONObject(responseText).optString("handoffCode", "");
+                        if (handoffCode.isEmpty()) throw new IllegalStateException("The sign-in service returned no handoff code.");
+                        String handoffUrl = Uri.parse(targetUrl).buildUpon()
+                                .appendQueryParameter("authHandoff", handoffCode)
+                                .build().toString();
+                        runOnUiThread(() -> {
+                            setBusy(false, "");
+                            Intent intent = new Intent(this, ScheduleWebActivity.class);
+                            intent.putExtra(ScheduleWebActivity.EXTRA_URL, handoffUrl);
+                            startActivity(intent);
+                        });
+                    } catch (Exception error) {
+                        runOnUiThread(() -> setStatus(
+                                "Could not open the schedule: " + (error.getMessage() == null ? "sign-in failed." : error.getMessage()),
+                                true));
+                    } finally {
+                        if (connection != null) connection.disconnect();
+                    }
+                }))
+                .addOnFailureListener(error -> setStatus("Could not refresh your department sign-in. Please connect again.", true));
     }
 
     private void requestPermissionOrConnect(boolean needsLogin) {

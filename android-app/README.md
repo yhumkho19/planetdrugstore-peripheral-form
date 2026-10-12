@@ -6,6 +6,8 @@ Native Android companion for background Pharmacy schedule notifications and even
 
 Open this `android-app` folder in Android Studio and let Gradle sync. Build a debug APK with **Build > Build Bundle(s) / APK(s) > Build APK(s)**. Employees connect with their Staff ID and employee password. Department heads select their role and sign in with the matching Firebase Auth email/password for Pharmacist, Billing, or Information. Allow notifications after connecting.
 
+The **Open** button follows the connected account: employees open the employee schedule, department heads open their own schedule, and the Stock Request admin opens Ordering. Head pages open inside the APK and use a short-lived, one-use Firebase sign-in handoff, so the browser does not need a separate login. The handoff requires the push Worker to have the existing Firebase service-account secrets configured.
+
 ## Company distribution
 
 Do not distribute the debug APK. IT must create and securely back up the company's release keystore, then set these environment variables on the build machine (never commit the keystore or passwords):

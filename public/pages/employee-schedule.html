@@ -4453,17 +4453,18 @@ function eventTeamRosterIsFull(card) {
   return staffSlots.length > 0 && staffSlots.every(slot => String((slot && slot.name) || "").trim());
 }
 
-async function wakeSchedulePushDelivery() {
+async function wakeSchedulePushDelivery(notificationId) {
   try {
     const configResponse = await fetch("/push-config.json", { cache: "no-store" });
     if (!configResponse.ok) return;
     const config = await configResponse.json();
     if (!config.enabled || !config.workerUrl) return;
-    await fetch(`${config.workerUrl.replace(/\/$/, "")}/wake`, {
+    const response = await fetch(`${config.workerUrl.replace(/\/$/, "")}/wake`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: "{}"
+      body: JSON.stringify(notificationId ? { notificationId } : {})
     });
+    if (!response.ok) console.warn("Could not deliver schedule push notification:", response.status);
   } catch (error) {
     console.warn("Could not wake schedule push delivery:", error);
   }
@@ -4589,7 +4590,7 @@ async function claimSlot(cardId, listKey, staffIdx, btn) {
         });
       }
     });
-    if (siteBecameFull) await wakeSchedulePushDelivery();
+    if (siteBecameFull) await wakeSchedulePushDelivery(siteFilledNotificationRef.id);
     // The slot may have been an emergency vacancy — clear any matching
     // open notification now that someone has covered it.
   } catch (err) {
@@ -5725,9 +5726,23 @@ if (employeeSession) {
     employeeRegionFilter = employeeSession.branch;
   }
   document.querySelectorAll("#regionAccordions .region-acc-head").forEach(btn => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       const region = btn.dataset.filter;
       const wasActive = employeeRegionFilter === region;
+      const { team } = splitDepartmentClient(employeeSession.department);
+      const employeeTeam = roleToTeam(team).toUpperCase();
+      const needsCrossBranchConfirmation =
+        !wasActive &&
+        region !== employeeSession.branch &&
+        (employeeTeam === "PHARMACY ASSISTANT" || employeeTeam === "BILLING");
+      if (needsCrossBranchConfirmation) {
+        const proceed = await showChoice(
+          `Do you want to see the events on the ${region.toUpperCase()} branch?`,
+          "Proceed",
+          "Cancel"
+        );
+        if (!proceed) return;
+      }
       employeeRegionFilter = wasActive ? null : region;
       employeeSelectedDate = undefined;
       renderEmployeeSchedule(lastEmployeeAllCards, employeeSession.branch);

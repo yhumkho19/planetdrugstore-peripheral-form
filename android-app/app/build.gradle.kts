@@ -18,8 +18,8 @@ android {
         applicationId = "ph.planetdrugstore.schedule"
         minSdk = 23
         targetSdk = 35
-            versionCode = 9
-            versionName = "1.4.4"
+            versionCode = 10
+            versionName = "1.4.5"
     }
 
     signingConfigs {
