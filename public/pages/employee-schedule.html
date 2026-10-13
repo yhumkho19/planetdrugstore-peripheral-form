@@ -583,6 +583,29 @@
   .date-tab.active .tab-badge { background: rgba(255,255,255,0.18); color: #fff; }
   .tab-badge.ok { background: var(--ok-soft); color: var(--ok); }
   .date-tab.active .tab-badge.ok { background: rgba(255,255,255,0.18); color: #fff; }
+
+  .site-sort-row {
+    display: flex;
+    justify-content: flex-end;
+    margin: -8px 0 12px;
+  }
+  .site-sort-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink-muted);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .site-sort-control select {
+    min-height: 36px;
+    padding: 6px 30px 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+  }
   .branch-marker {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
@@ -628,8 +651,12 @@
     border-radius: 20px;
     margin-left: auto;
   }
+  .card-status-group { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin-left: auto; }
+  .card-status-group .card-status { margin-left: 0; }
   .card-status.warn { background: var(--danger-soft); color: var(--danger); }
   .card-status.ok { background: var(--ok-soft); color: var(--ok); }
+  .card-status.active { background: var(--ok-soft); color: var(--ok); }
+  .card-status.inactive { background: #F1F2F4; border: 1px solid #D9DDE2; color: #606975; }
 
   .claim-btn {
     font-family: 'Inter', sans-serif;
@@ -1839,6 +1866,94 @@
     .staff-row { grid-template-columns: 18px minmax(0, 1fr); gap: 6px 9px; }
     .emp-name, .claim-btn { grid-column: 2; justify-self: start; }
   }
+  @media (max-width: 620px) {
+    .topbar { gap: 10px; padding: 8px 14px; }
+    .menu-toggle { width: 38px; height: 38px; }
+    .admin-chip { max-width: calc(100vw - 82px); padding: 5px 9px 5px 5px; font-size: 11px; }
+    #empChipLabel { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .content-scroll { padding: 4px 14px 36px; }
+    .page-head {
+      display: grid; grid-template-columns: minmax(0, 1fr); align-items: start;
+      gap: 11px; margin: 0 0 15px;
+    }
+    .page-head > div:first-child { width: 100%; min-width: 0; }
+    .page-head h1 { font-size: 27px; line-height: 1.1; }
+    .page-head p { max-width: 34ch; font-size: 12px; line-height: 1.4; }
+    .stats {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      width: 100%; flex: none; gap: 7px; margin: 0;
+    }
+    .stats .stat {
+      display: flex; min-width: 0; min-height: 58px; flex: none;
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px; padding: 8px 5px; border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(110,22,32,.06);
+    }
+    .stats .stat::before { display: none; }
+    .stats .stat .num { font-size: 19px; line-height: 1; }
+    .stats .stat .cap { margin: 0; font-size: 7.5px; line-height: 1.2; text-align: center; }
+    .stat-tooltip { left: 0; width: min(250px, calc(100vw - 36px)); min-width: 0; transform: none; }
+    .region-accordions {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px; margin-bottom: 11px;
+    }
+    .region-acc-head {
+      min-width: 0; min-height: 44px; gap: 5px; padding: 9px 10px;
+      border-radius: 10px; font-size: 10px; line-height: 1.2;
+    }
+    .region-acc-arrow { flex: none; font-size: 10px; }
+    .grid { gap: 10px; margin-top: 0; }
+    .date-tabs { gap: 6px; margin-bottom: 10px; }
+    .date-tab { gap: 5px; padding: 8px 9px; font-size: 10px; }
+    .tab-badge { padding: 2px 5px; font-size: 9px; }
+    .bracket-grid { gap: 10px; }
+    .site-card { border-radius: 13px; }
+    .site-card::before { height: 100px; }
+    .card-inner {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "badge" "title" "sched" "perf" "staff" "reliever";
+      padding: 13px 12px 10px; row-gap: 4px;
+    }
+    .region-line { gap: 5px; padding-right: 0; }
+    .region-line .sep { font-size: 9px; line-height: 1.3; }
+    .card-status { padding: 3px 6px; font-size: 8px; }
+    .locationInput { font-size: 19px; line-height: 1.15; }
+    .schedule-row { flex-direction: row; gap: 7px; }
+    .schedule-row .field { min-width: 0; min-height: 38px; padding: 6px 8px; border-radius: 9px; }
+    .perforation { margin: 4px 0; }
+    .staff-section {
+      padding: 7px 9px 5px; border: 1px solid #EADDDD;
+      border-radius: 10px; background: #fff;
+    }
+    .staff-section + .staff-section { margin-top: 0; }
+    .staff-section-title { margin: 0 0 3px; padding: 4px 0 6px; font-size: 12px; }
+    .reliever-section .staff-grid { border-top: 0; padding-top: 0; }
+    .staff-row {
+      display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center; gap: 6px 8px; padding: 7px 0;
+    }
+    .staff-row .status-dot {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: auto; min-width: 45px; height: 20px; padding: 0 6px;
+      border-radius: 999px; box-shadow: none; background: #FDE7E8; color: #B4232D;
+      font-size: 8px; font-weight: 700; line-height: 1;
+    }
+    .staff-row .status-dot::after { content: "Unfilled"; }
+    .staff-row .status-dot.filled { background: #E3F4E9; color: #1F8A4C; }
+    .staff-row .status-dot.filled::after { content: "Filled"; }
+    .employee-slot-label {
+      display: flex; min-width: 0 !important; flex-wrap: wrap; align-items: center;
+      gap: 2px 5px; font-size: 10px !important; font-weight: 600; line-height: 1.25;
+    }
+    .employee-slot-label .reliever-site-tag { flex: 1 1 100%; margin-top: 0; font-size: 9px; }
+    .employee-slot-name { grid-column: 2 / -1; justify-self: start; font-size: 12px; line-height: 1.25; }
+    .employee-cancelled-label { grid-column: 2 / -1; justify-self: start; }
+    .staff-row .claim-btn {
+      grid-column: 3; justify-self: end; min-height: 30px; padding: 6px 8px;
+      border-radius: 7px; font-size: 10px; white-space: nowrap;
+    }
+    .empty-state { margin-top: 10px; padding: 28px 18px; }
+  }
 </style>
 </head>
 <body class="is-ready">
@@ -1856,7 +1971,7 @@
     <div class="notifcenter-head">
       <div>
         <h2 id="notifCenterTitle">&#128276; Notifications</h2>
-        <p class="notifcenter-sub" id="notifCenterSub">Every update listed one by one, newest first.</p>
+        <p class="notifcenter-sub" id="notifCenterSub">Recent updates from the last 30 days, up to 100, newest first.</p>
       </div>
       <button type="button" class="notifcenter-close" id="notifCenterCloseBtn" aria-label="Close notifications">&#10005;</button>
     </div>
@@ -1987,7 +2102,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-10-09.1";
+const APP_VERSION = "2026-10-13.4";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -2251,7 +2366,7 @@ function showAddDateEventPrompt() {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   initializeFirestore, doc, collection, setDoc, getDoc, onSnapshot, serverTimestamp, runTransaction,
-  addDoc, deleteDoc, updateDoc, query, orderBy, arrayUnion, arrayRemove
+  addDoc, deleteDoc, updateDoc, query, orderBy, arrayUnion, arrayRemove, limit, where, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Same Firebase project as employee-signup.html / landing-employee-page.html,
@@ -2672,6 +2787,7 @@ let pendingLocalCardIds = new Set();
 let currentFilter = "all";
 // Which date bracket the logged-in employee currently has selected.
 let employeeSelectedDate = null;
+let employeeSiteSort = "default";
 // Which region (north/south) the employee currently has the accordion
 // open on. Defaults to their own signup branch once employeeSession loads.
 let employeeRegionFilter = null;
@@ -2951,6 +3067,8 @@ function missionLabel(card) {
 // the notice points at. "Event type changed" notices already show
 // old => new, so they're skipped.
 let employeePublishedCardsForLookup = [];   // kept in sync with the published roster below
+let employeePublishedCardIds = new Set();
+let hasEmployeePublishedCardsSnapshot = false;
 function notifEventTypeLabel(n) {
   if (!n || n.type === "missionChanged") return "";
   if (n.missionLabel) return String(n.missionLabel);
@@ -3098,6 +3216,11 @@ function bracketOpenCount(items) {
     unfilled += (card.relievers || []).filter(s => !(s.name || "").trim()).length;
   });
   return unfilled;
+}
+
+function assignedEmployeeCount(card) {
+  return [...(card.staff || []), ...(card.relievers || [])]
+    .filter(slot => (slot.name || "").trim()).length;
 }
 
 // Recomputes one date tab's "X open"/"✓ full" badge in place, right after
@@ -3271,6 +3394,21 @@ function render() {
             <option value="medical" ${card.mission === "medical" ? "selected" : ""}>Medical Mission</option>
             <option value="peoples_day" ${card.mission === "peoples_day" ? "selected" : ""}>People's Day</option>
           </select>
+          <div class="card-status-group">
+            ${hasEmployeePublishedCardsSnapshot && !card.cancelled
+              ? employeePublishedCardIds.has(card.id)
+                ? `<span class="card-status active">Active</span>`
+                : `<span class="card-status inactive">Inactive</span>`
+              : ""}
+            ${card.cancelled ? `<span class="card-status cancelled">Cancelled</span>` : ""}
+            ${(() => {
+              const openHere = (card.staff || []).filter(s => !(s.name || "").trim()).length +
+                (card.relievers || []).filter(s => !(s.name || "").trim()).length;
+              return openHere > 0
+                ? `<span class="card-status warn">${openHere} role${openHere === 1 ? "" : "s"} open</span>`
+                : `<span class="card-status ok">✓ fully staffed</span>`;
+            })()}
+          </div>
         </div>
 
         <input type="text" class="locationInput" list="siteNameList" placeholder="Site name — e.g. Brgy. 91 Hall" value="${escapeAttr(card.location)}">
@@ -3754,11 +3892,36 @@ function renderEmployeeSchedule(scheduleCards, branch) {
   grid.appendChild(tabs);
 
   const activeGroup = groups.find(g => g.date === employeeSelectedDate) || groups[0];
+  const sortRow = document.createElement("div");
+  sortRow.className = "site-sort-row";
+  sortRow.innerHTML = `
+    <label class="site-sort-control" for="employeeSiteSort">
+      Sort by employees
+      <select id="employeeSiteSort">
+        <option value="default">Default order</option>
+        <option value="desc">Most to fewest</option>
+        <option value="asc">Fewest to most</option>
+      </select>
+    </label>
+  `;
+  const siteSortSelect = sortRow.querySelector("select");
+  siteSortSelect.value = employeeSiteSort;
+  siteSortSelect.addEventListener("change", () => {
+    employeeSiteSort = siteSortSelect.value;
+    renderEmployeeSchedule(scheduleCards, branch);
+  });
+  grid.appendChild(sortRow);
+
+  const sortedSiteItems = [...activeGroup.items].sort((a, b) => {
+    if (employeeSiteSort === "desc") return assignedEmployeeCount(b.card) - assignedEmployeeCount(a.card);
+    if (employeeSiteSort === "asc") return assignedEmployeeCount(a.card) - assignedEmployeeCount(b.card);
+    return 0;
+  });
   const bracketGrid = document.createElement("div");
   bracketGrid.className = "bracket-grid";
   grid.appendChild(bracketGrid);
 
-  activeGroup.items.forEach(({ card }, idx) => {
+  sortedSiteItems.forEach(({ card }, idx) => {
     const myRelieverSlot = (card.relievers || []).find(slot => slotBelongsToEmployee(slot));
     const employeeDisplayTime = myRelieverSlot
       ? `${formatRelieverTime(myRelieverSlot.relieverTime)} onwards`
@@ -3775,14 +3938,17 @@ function renderEmployeeSchedule(scheduleCards, branch) {
         <div class="card-expiry-row">${siteExpiryBadgeHtml(card)}</div>
         <div class="region-line">
           <span class="sep">${escapeHtml(regionLabel(card))} · ${escapeHtml(missionLabel(card))}</span>
-          ${(() => {
-            if (card.cancelled) return `<span class="card-status cancelled">Cancelled</span>`;
+          <div class="card-status-group">
+            ${card.cancelled ? `<span class="card-status cancelled">Cancelled</span>` : `<span class="card-status active">Active</span>`}
+            <span class="card-status">${assignedEmployeeCount(card)} employees</span>
+            ${(() => {
             const openHere = (card.staff || []).filter(s => !(s.name || "").trim()).length +
               (card.relievers || []).filter(s => !(s.name || "").trim()).length;
             return openHere > 0
               ? `<span class="card-status warn">${openHere} role${openHere === 1 ? "" : "s"} open</span>`
               : `<span class="card-status ok">✓ fully staffed</span>`;
-          })()}
+            })()}
+          </div>
         </div>
         <div class="locationInput" style="border:none;padding:0;">${escapeHtml(card.location || "Unnamed site")}</div>
         <div class="schedule-row">
@@ -3802,12 +3968,14 @@ function renderEmployeeSchedule(scheduleCards, branch) {
             ${(card.staff || []).map((s, sIdx) => employeeStaffRowHtml(s, sIdx, "staff", card, myActiveSlot, card.cancelled)).join("")}
           </div>
         </div>
-        <div class="staff-section reliever-section">
-          <div class="staff-section-title">🏬 Store Reliever <span class="staff-section-hint">covers the store while Event Team is out</span></div>
-          <div class="staff-grid">
-            ${(card.relievers || []).map((s, sIdx) => employeeStaffRowHtml(s, sIdx, "relievers", card, myActiveSlot, card.cancelled)).join("")}
+        ${(card.relievers || []).length ? `
+          <div class="staff-section reliever-section">
+            <div class="staff-section-title">🏬 Store Reliever <span class="staff-section-hint">covers the store while Event Team is out</span></div>
+            <div class="staff-grid">
+              ${card.relievers.map((s, sIdx) => employeeStaffRowHtml(s, sIdx, "relievers", card, myActiveSlot, card.cancelled)).join("")}
+            </div>
           </div>
-        </div>
+        ` : ""}
       </div>
     `;
     cardEl.querySelectorAll(".claim-btn").forEach(btn => {
@@ -3850,15 +4018,15 @@ function employeeStaffRowHtml(s, sIdx, listKey, card, myActiveSlot, cancelled) {
   return `
     <div class="staff-row">
       <span class="status-dot ${filled ? "filled" : ""}"></span>
-      <span style="min-width:120px;color:var(--ink-muted);font-size:12px;">
-        ${escapeHtml(blockedByOtherSlot && allowed ? "Already assigned — department transfer required" : displayLabel)}
+      <span class="employee-slot-label" style="min-width:120px;color:var(--ink-muted);font-size:12px;">
+        ${escapeHtml(displayLabel)}
         ${listKey === "relievers" && (s.site || "").trim() ? `<span class="reliever-site-tag">📍 ${escapeHtml(s.site)}</span>` : ""}
         ${listKey === "relievers" ? `<span class="reliever-site-tag">Time onwards: ${escapeHtml(formatRelieverTime(s.relieverTime))}</span>` : ""}
       </span>
       ${filled
-        ? `<strong style="flex:1;">${escapeHtml(s.name)}</strong>` +
+        ? `<strong class="employee-slot-name" style="flex:1;">${escapeHtml(s.name)}</strong>` +
           (isMine && cancelled
-            ? `<span style="flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);">Event cancelled</span>`
+            ? `<span class="employee-cancelled-label" style="flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);">Event cancelled</span>`
             : "")
         : (() => {
             if (cancelled) {
@@ -3918,11 +4086,6 @@ function formatRelieverTime(value) {
 // leaderboard can be re-rendered whenever either the schedule or the
 // employees list changes, without waiting for the other to also change.
 let lastScheduleCardsForLeaderboard = [];
-// Guards the "my account got deleted" check below against a slow/offline
-// first read of the employees collection ever looking like a deletion for
-// someone who's actually still a valid employee — only checked from the
-// second snapshot onward.
-let employeesSnapshotSeen = false;
 
 // Splits a department string like "IT NORTH" or "Pharmacy Assistant SOUTH"
 // into { team: "IT", branch: "NORTH" }, same convention as admin-console.html.
@@ -4041,6 +4204,26 @@ function syncAutoRelieverForSlot(card, sIdx, typedName) {
 }
 
 function startEmployeesListener() {
+  if (employeeSession) {
+    const staffId = (employeeSession.staffId || "").trim().toLowerCase();
+    if (!staffId) return;
+    onSnapshot(doc(db, "employees", staffId), snap => {
+      if (!snap.exists()) {
+        try {
+          localStorage.removeItem("pdEmployeeSession");
+          sessionStorage.removeItem("pdEmployeeSession");
+        } catch (e) { /* best-effort */ }
+        window.location.href = "/fu3hriaj0m?deleted=1";
+        return;
+      }
+      employeesMap = new Map([[staffId, snap.data() || {}]]);
+      renderLeaderboard(lastScheduleCardsForLeaderboard);
+    }, error => {
+      console.error("Could not verify employee account:", error);
+    });
+    return;
+  }
+
   onSnapshot(employeesCollRef, snap => {
     const map = new Map();
     snap.forEach(d => map.set(d.id, d.data() || {}));
@@ -4052,25 +4235,8 @@ function startEmployeesListener() {
     // employees collection changes — including a deletion — re-check every
     // claimed slot and free the ones whose staffId no longer has an account.
     clearSlotsForDeletedEmployees(map);
-    // If the employee currently viewing this page is the one who just got
-    // deleted, don't leave them sitting on a page for an account that no
-    // longer exists — send them to the same login page/message
-    // employee-login.html already shows when it's opened with ?deleted=1.
-    if (employeeSession && employeesSnapshotSeen) {
-      const myId = (employeeSession.staffId || "").trim().toLowerCase();
-      if (myId && !map.has(myId)) {
-        try {
-          localStorage.removeItem("pdEmployeeSession");
-          sessionStorage.removeItem("pdEmployeeSession");
-        } catch (e) { /* best-effort */ }
-        window.location.href = "/fu3hriaj0m?deleted=1";
-        return;
-      }
-    }
-    employeesSnapshotSeen = true;
-    if (employeeSession && employeePublishedCardsForLookup.length) {
-      renderEmployeeSchedule(employeePublishedCardsForLookup, employeeSession.branch);
-    }
+  }, error => {
+    console.error("Could not load employee directory:", error);
   });
 }
 
@@ -4121,7 +4287,12 @@ function computeParticipation(allCards) {
       const sid = (s.filledByStaffId || "").trim();
       if (!sid) return;
       const key = sid.toLowerCase();
-      const entry = counts.get(key) || { count: 0, name: s.name || "" };
+      const entry = counts.get(key) || {
+        count: 0,
+        name: s.name || "",
+        team: roleToTeam(s.relieverDepartment || s.label),
+        branch: "—"
+      };
       entry.count += 1;
       if ((s.name || "").trim()) entry.name = s.name;
       counts.set(key, entry);
@@ -4180,13 +4351,13 @@ function renderLeaderboard(allCards) {
   const counts = computeParticipation(lastScheduleCardsForLeaderboard);
   const rows = [...counts.entries()].map(([staffId, info]) => {
     const emp = employeesMap.get(staffId);
-    const { team, branch } = emp ? splitDepartmentClient(emp.department) : { team: "—", branch: "—" };
+    const profile = emp ? splitDepartmentClient(emp.department) : null;
     return {
       staffId,
       name: (emp && emp.name) || info.name || staffId.toUpperCase(),
       count: info.count,
-      team,
-      branch
+      team: profile ? profile.team : info.team,
+      branch: profile ? profile.branch : info.branch
     };
   }).sort((a, b) => b.count - a.count);
 
@@ -4589,12 +4760,17 @@ async function claimSlot(cardId, listKey, staffIdx, btn) {
           resolved: false
         });
       }
-    });
+    }, { maxAttempts: 3 });
     if (siteBecameFull) await wakeSchedulePushDelivery(siteFilledNotificationRef.id);
     // The slot may have been an emergency vacancy — clear any matching
     // open notification now that someone has covered it.
   } catch (err) {
-    await showAlert(err.message || "Failed to save. Please try again.");
+    const errorCode = String(err && err.code || "");
+    if (errorCode === "resource-exhausted" || errorCode.endsWith("/resource-exhausted")) {
+      await showAlert("The schedule is receiving too many requests right now. Please wait a minute, then try again.");
+    } else {
+      await showAlert(err.message || "Failed to save. Please try again.");
+    }
     btn.disabled = false;
     btn.textContent = originalLabel;
   }
@@ -5508,7 +5684,12 @@ try {
 } catch (e) { /* storage unavailable — nothing to clean up */ }
 
 onSnapshot(
-  query(notificationsCollRef, orderBy("createdAt", "desc")),
+  query(
+    notificationsCollRef,
+    where("createdAt", ">=", Timestamp.fromMillis(Date.now() - 30 * 24 * 60 * 60 * 1000)),
+    orderBy("createdAt", "desc"),
+    limit(100)
+  ),
   async snap => {
     const all = [];
     snap.forEach(d => all.push({ id: d.id, ...d.data() }));
@@ -5792,6 +5973,8 @@ if (employeeSession) {
     }
     lastEmployeeAllCards = allCards;
     employeePublishedCardsForLookup = allCards;
+    employeePublishedCardIds = new Set(allCards.map(card => card.id));
+    hasEmployeePublishedCardsSnapshot = true;
     renderEmployeeSchedule(allCards, employeeSession.branch);
     renderLeaderboard(allCards);
     lastRenderedLiveSiteCount = allCards.filter(c => !siteIsExpired(c)).length;
@@ -5841,6 +6024,13 @@ if (employeeSession) {
   onSnapshot(scheduleDocRef, snap => {
     const data = snap.exists() ? snap.data() : { cards: [] };
     const remoteCards = Array.isArray(data.cards) ? data.cards : [];
+    const publishedCards = Array.isArray(data.employeeCards) ? data.employeeCards : [];
+    const remotePublishedCardIds = new Set(publishedCards.map(card => card.id));
+    const publishedStateChanged = !hasEmployeePublishedCardsSnapshot ||
+      remotePublishedCardIds.size !== employeePublishedCardIds.size ||
+      [...remotePublishedCardIds].some(id => !employeePublishedCardIds.has(id));
+    employeePublishedCardIds = remotePublishedCardIds;
+    hasEmployeePublishedCardsSnapshot = true;
     const remoteById = new Map(remoteCards.map(c => [c.id, c]));
     const activeEl = document.activeElement;
     const isNameField = activeEl && activeEl.classList && activeEl.classList.contains("nameInput");
@@ -5986,7 +6176,10 @@ if (employeeSession) {
       render();
       return;
     }
-    if (!changed) return;
+    if (!changed) {
+      if (publishedStateChanged) render();
+      return;
+    }
     saveCards();
     const isTypingInCard = activeEl && activeEl.closest && activeEl.closest(".site-card");
     if (isTypingInCard) {

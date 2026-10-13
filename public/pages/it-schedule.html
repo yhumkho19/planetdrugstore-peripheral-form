@@ -572,6 +572,9 @@
     flex-wrap: wrap;
     margin-bottom: 22px;
   }
+  .site-sort-row { display: flex; justify-content: flex-end; margin: -8px 0 12px; }
+  .site-sort-control { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-muted); font-size: 12px; font-weight: 600; }
+  .site-sort-control select { min-height: 36px; padding: 6px 30px 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font: inherit; }
   .date-tab {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
@@ -2219,7 +2222,7 @@
     <div class="notifcenter-head">
       <div>
         <h2 id="notifCenterTitle">&#128276; Notifications</h2>
-        <p class="notifcenter-sub" id="notifCenterSub">Every update listed one by one, newest first.</p>
+        <p class="notifcenter-sub" id="notifCenterSub">Recent updates from the last 30 days, up to 100, newest first.</p>
       </div>
       <button type="button" class="notifcenter-close" id="notifCenterCloseBtn" aria-label="Close notifications">&#10005;</button>
     </div>
@@ -2361,7 +2364,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-10-06.3";
+const APP_VERSION = "2026-10-13.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -2755,7 +2758,7 @@ function showAddDateEventPrompt() {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   initializeFirestore, doc, collection, setDoc, getDoc, onSnapshot, serverTimestamp, runTransaction, writeBatch,
-  addDoc, deleteDoc, updateDoc, query, orderBy, arrayUnion, arrayRemove
+  addDoc, deleteDoc, updateDoc, query, orderBy, arrayUnion, arrayRemove, limit, where, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 // Only needed here for Logout — admin-login.html is what actually signs
 // the Event Team account in and keeps them signed in via persistence, so
@@ -3664,6 +3667,7 @@ let employeeSelectedDate = null;
 // Which date bracket the admin currently has open. undefined = not yet
 // chosen (defaults to the first/earliest bracket once render() runs).
 let adminSelectedDate;
+let adminSiteSort = "default";
 
 function saveCards() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
@@ -4122,6 +4126,11 @@ function bracketOpenCount(items) {
 // Recomputes one date tab's "X open"/"✓ full" badge in place, right after
 // a staff name is typed — so the count goes down the moment the field is
 // filled instead of waiting for the tab to be clicked again.
+function assignedEmployeeCount(card) {
+  return [...(card.staff || []), ...(card.relievers || [])]
+    .filter(slot => (slot.name || "").trim()).length;
+}
+
 function updateTabBadge(dateKey) {
   const tab = document.querySelector(`.date-tabs .date-tab[data-datekey="${escapeAttr(dateKey || "")}"]`);
   if (!tab) return;
@@ -4212,6 +4221,21 @@ function render() {
   grid.appendChild(tabs);
 
   const activeGroup = groups.find(g => g.date === adminSelectedDate) || groups[0];
+  const sortRow = document.createElement("div");
+  sortRow.className = "site-sort-row";
+  sortRow.innerHTML = `<label class="site-sort-control" for="adminSiteSort">Sort by employees <select id="adminSiteSort"><option value="default">Default order</option><option value="desc">Most to fewest</option><option value="asc">Fewest to most</option></select></label>`;
+  const siteSortSelect = sortRow.querySelector("select");
+  siteSortSelect.value = adminSiteSort;
+  siteSortSelect.addEventListener("change", () => {
+    adminSiteSort = siteSortSelect.value;
+    render();
+  });
+  grid.appendChild(sortRow);
+  const sortedSiteItems = [...activeGroup.items].sort((a, b) => {
+    if (adminSiteSort === "desc") return assignedEmployeeCount(b.card) - assignedEmployeeCount(a.card);
+    if (adminSiteSort === "asc") return assignedEmployeeCount(a.card) - assignedEmployeeCount(b.card);
+    return 0;
+  });
   let ticketCounter = 0;
 
   {
@@ -4291,7 +4315,7 @@ function render() {
     });
     const bracketGrid = bracket.querySelector(".bracket-grid");
 
-    group.items.forEach(({ card, idx }) => {
+    sortedSiteItems.forEach(({ card, idx }) => {
       ticketCounter++;
 
       const cardEl = document.createElement("div");
@@ -4322,6 +4346,7 @@ function render() {
             <option value="other" ${card.mission === "other" ? "selected" : ""}>Other…</option>
           </select>
           ${card.mission === "other" ? `<input type="text" class="customText missionCustomInput" placeholder="Event type name" value="${escapeAttr(card.missionCustom)}"${isPharmacistScheduleUser ? "" : " disabled"}>` : ""}
+          <span class="card-status">${assignedEmployeeCount(card)} employees</span>
         </div>
 
         <input type="text" class="locationInput" list="siteNameList" placeholder="Site name — e.g. Brgy. 91 Hall" value="${escapeAttr(card.location)}"${isPharmacistScheduleUser ? "" : " disabled"}>
@@ -6734,7 +6759,6 @@ async function sendAllToEmployees(btn) {
     saveCards();
     markSaved();
     render();
-    const publishedBeforeAll = Array.isArray(snap.data().employeeCards) ? snap.data().employeeCards : [];
     const publishedCancelledNotifications = scheduleAccessRole === "pharmacist"
       ? applyPublishedCancelledNotifications(publishedBeforeAll, stripForRemote(merged))
       : [];
@@ -7646,7 +7670,12 @@ function getRelevantNotifications(items) {
 let seenNotificationIds = null;
 
 onSnapshot(
-  query(notificationsCollRef, orderBy("createdAt", "desc")),
+  query(
+    notificationsCollRef,
+    where("createdAt", ">=", Timestamp.fromMillis(Date.now() - 30 * 24 * 60 * 60 * 1000)),
+    orderBy("createdAt", "desc"),
+    limit(100)
+  ),
   snap => {
     const all = [];
     snap.forEach(d => all.push({ id: d.id, ...d.data() }));

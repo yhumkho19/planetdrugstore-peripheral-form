@@ -284,7 +284,7 @@
 // bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
 // doesn't match what this tab is currently running — shows a small banner
 // instead of silently staying on stale code.
-const APP_VERSION = "2026-10-11.1";
+const APP_VERSION = "2026-10-13.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -366,6 +366,33 @@ startVersionWatch();
     }catch(e){ return null; }
   }
 
+  function saveSession(session, remember, staffId){
+    const serialized = JSON.stringify(session);
+    if(remember){
+      try{
+        localStorage.setItem(SESSION_KEY, serialized);
+        localStorage.setItem(REMEMBER_KEY, staffId);
+        sessionStorage.removeItem(SESSION_KEY);
+        return;
+      }catch(err){
+        try{ localStorage.removeItem(SESSION_KEY); }catch(cleanupError){}
+        sessionStorage.setItem(SESSION_KEY, serialized);
+        return;
+      }
+    }
+
+    try{
+      sessionStorage.setItem(SESSION_KEY, serialized);
+    }catch(err){
+      localStorage.setItem(SESSION_KEY, serialized);
+      return;
+    }
+    try{
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(REMEMBER_KEY);
+    }catch(err){}
+  }
+
   const loginForm = document.getElementById('loginForm');
   const loginBtn = document.getElementById('loginBtn');
   const loginError = document.getElementById('loginError');
@@ -431,17 +458,8 @@ startVersionWatch();
         signedInAt: Date.now()
       };
 
-      // Remember Me checked -> stay signed in across browser restarts (local).
-      // Unchecked -> signed out again once the browser/tab is closed (session).
-      if(rememberMe.checked){
-        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-        sessionStorage.removeItem(SESSION_KEY);
-        localStorage.setItem(REMEMBER_KEY, staffId);
-      }else{
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-        localStorage.removeItem(SESSION_KEY);
-        localStorage.removeItem(REMEMBER_KEY);
-      }
+      // Fall back to session storage if persistent browser storage is full or blocked.
+      saveSession(session, rememberMe.checked, staffId);
       window.location.href = '/ed3od6ldsq';
     }catch(err){
       PDLoader.hide();
@@ -454,6 +472,9 @@ startVersionWatch();
 
   function friendlyAuthError(err){
     const code = err && err.code || '';
+    if(err && (err.name === 'QuotaExceededError' || code.toLowerCase().includes('quota'))){
+      return 'Browser storage is full. Clear some site data, then sign in again.';
+    }
     if(code.includes('not-found') || code.includes('wrong-password')){
       return 'Incorrect Staff ID or password.';
     }
