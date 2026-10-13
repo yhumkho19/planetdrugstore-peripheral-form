@@ -1490,6 +1490,18 @@
   </div>
 
   <div id="dangerZoneSection" style="display:none;">
+    <div style="margin-bottom:24px;padding:20px;background:#fff;border:1px solid #E6D5D6;border-radius:14px;">
+      <div class="pf-head" style="padding-bottom:8px;">
+        <h2>🧹 Clean Up Old Notifications</h2>
+        <p>Find and permanently remove <strong>emergency notifications older than 30 days</strong>. Newer notifications and all other data are left untouched.</p>
+      </div>
+      <div id="notifCleanupSummary" role="status" aria-live="polite" style="padding:0 20px 10px;color:#555;font-size:14px;">Check for old notifications before deleting.</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;padding:0 20px 12px;">
+        <button type="button" class="btn ghost" id="notifCleanupScanBtn">🔎 Check Old Notifications</button>
+        <button type="button" class="btn red" id="notifCleanupDeleteBtn" disabled style="opacity:.5;cursor:not-allowed;">🗑️ Delete Notifications Older Than 30 Days</button>
+      </div>
+    </div>
+
     <div class="pf-head">
       <h2 style="color:#b42318;">⚠️ Danger Zone — Delete All Data</h2>
       <p>This permanently deletes <strong>every</strong> Peripheral Entry, Control Number, saved Venue suggestion, and the Peripheral Items Template. It does <strong>not</strong> touch Employee accounts (Register Employee tab) — those stay untouched. <strong>This cannot be undone.</strong></p>
@@ -1737,7 +1749,7 @@
 // bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
 // doesn't match what this tab is currently running — shows a small banner
 // instead of silently staying on stale code.
-const APP_VERSION = "2026-09-12.1";
+const APP_VERSION = "2026-10-13.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -1784,7 +1796,8 @@ startVersionWatch();
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
     initializeFirestore, collection, getDocs, doc, getDoc, setDoc, deleteDoc, writeBatch,
-    query, orderBy, onSnapshot, serverTimestamp, runTransaction, deleteField
+    query, orderBy, onSnapshot, serverTimestamp, runTransaction, deleteField,
+    where, limit, startAfter, Timestamp
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     getAuth, onAuthStateChanged, signOut, setPersistence,
@@ -3497,6 +3510,121 @@ startVersionWatch();
   const dzConfirmInput = document.getElementById('dzConfirmInput');
   const dzDeleteBtn = document.getElementById('dzDeleteBtn');
   const dzStatusMsg = document.getElementById('dzStatusMsg');
+  const notifCleanupSummary = document.getElementById('notifCleanupSummary');
+  const notifCleanupScanBtn = document.getElementById('notifCleanupScanBtn');
+  const notifCleanupDeleteBtn = document.getElementById('notifCleanupDeleteBtn');
+  const NOTIFICATION_RETENTION_DAYS = 30;
+  const NOTIFICATION_CLEANUP_BATCH_SIZE = 450;
+
+  function notificationCleanupCutoff(){
+    return new Date(Date.now() - NOTIFICATION_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+  }
+
+  async function countExpiredNotifications(cutoff, onProgress){
+    let count = 0;
+    let cursor = null;
+    while(true){
+      const constraints = [
+        where('createdAt', '<=', Timestamp.fromDate(cutoff)),
+        orderBy('createdAt'),
+        limit(NOTIFICATION_CLEANUP_BATCH_SIZE)
+      ];
+      if(cursor) constraints.push(startAfter(cursor));
+      const snap = await getDocs(query(collection(db, 'emergencyNotifications'), ...constraints));
+      count += snap.size;
+      if(onProgress) onProgress(count);
+      if(snap.size < NOTIFICATION_CLEANUP_BATCH_SIZE) return count;
+      cursor = snap.docs[snap.docs.length - 1];
+    }
+  }
+
+  function setNotificationCleanupDeleteEnabled(enabled){
+    notifCleanupDeleteBtn.disabled = !enabled;
+    notifCleanupDeleteBtn.style.opacity = enabled ? '1' : '.5';
+    notifCleanupDeleteBtn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+  }
+
+  async function scanExpiredNotifications(){
+    setNotificationCleanupDeleteEnabled(false);
+    notifCleanupScanBtn.disabled = true;
+    notifCleanupSummary.textContent = 'Checking for notifications older than 30 days…';
+    if(!auth.currentUser){
+      notifCleanupSummary.textContent = 'Your session has expired — please sign in again.';
+      notifCleanupScanBtn.disabled = false;
+      return;
+    }
+    try{
+      const cutoff = notificationCleanupCutoff();
+      const count = await countExpiredNotifications(cutoff, scanned =>
+        notifCleanupSummary.textContent = `Checking old notifications… ${scanned} found so far.`
+      );
+      if(count){
+        notifCleanupSummary.textContent = `Found ${count} notification${count === 1 ? '' : 's'} created before ${cutoff.toLocaleString()}. Review and confirm before deleting.`;
+        setNotificationCleanupDeleteEnabled(true);
+      }else{
+        notifCleanupSummary.textContent = 'No notifications older than 30 days were found.';
+      }
+    }catch(e){
+      console.error('Could not scan old emergency notifications:', e);
+      notifCleanupSummary.textContent = 'Could not check old notifications (' + (e.code || e.message) + '). Nothing was deleted.';
+    }finally{
+      notifCleanupScanBtn.disabled = false;
+    }
+  }
+
+  notifCleanupScanBtn.addEventListener('click', scanExpiredNotifications);
+  notifCleanupDeleteBtn.addEventListener('click', async ()=>{
+    if(!auth.currentUser){
+      notifCleanupSummary.textContent = 'Your session has expired — please sign in again.';
+      setNotificationCleanupDeleteEnabled(false);
+      return;
+    }
+    setNotificationCleanupDeleteEnabled(false);
+    notifCleanupScanBtn.disabled = true;
+    notifCleanupSummary.textContent = 'Verifying old notifications before deletion…';
+    let preserveDeleteEnabled = false;
+    try{
+      const cutoff = notificationCleanupCutoff();
+      const count = await countExpiredNotifications(cutoff);
+      if(!count){
+        notifCleanupSummary.textContent = 'No notifications older than 30 days remain.';
+        return;
+      }
+      const confirmed = await showAppConfirm(
+        `Permanently delete ${count} emergency notification${count === 1 ? '' : 's'} created before ${cutoff.toLocaleString()}? Notifications newer than 30 days and all other data will be left untouched.`,
+        { title: 'Delete Old Notifications', okLabel: 'Delete Old Notifications', danger: true }
+      );
+      if(!confirmed){
+        notifCleanupSummary.textContent = `Deletion cancelled. ${count} old notification${count === 1 ? '' : 's'} remain.`;
+        preserveDeleteEnabled = true;
+        return;
+      }
+
+      let deleted = 0;
+      notifCleanupSummary.textContent = 'Deleting old notifications…';
+      while(true){
+        const snap = await getDocs(query(
+          collection(db, 'emergencyNotifications'),
+          where('createdAt', '<=', Timestamp.fromDate(cutoff)),
+          orderBy('createdAt'),
+          limit(NOTIFICATION_CLEANUP_BATCH_SIZE)
+        ));
+        if(snap.empty) break;
+        const batch = writeBatch(db);
+        snap.docs.forEach(notification => batch.delete(notification.ref));
+        await batch.commit();
+        deleted += snap.size;
+        notifCleanupSummary.textContent = `Deleting old notifications… ${deleted} of ${count} removed.`;
+      }
+      notifCleanupSummary.textContent = `Done. Deleted ${deleted} old notification${deleted === 1 ? '' : 's'}. Newer notifications and other data were left untouched.`;
+    }catch(e){
+      console.error('Could not delete old emergency notifications:', e);
+      notifCleanupSummary.textContent = 'Cleanup stopped after a possible partial deletion (' + (e.code || e.message) + '). Check again to see what remains.';
+    }finally{
+      notifCleanupScanBtn.disabled = false;
+      setNotificationCleanupDeleteEnabled(preserveDeleteEnabled);
+    }
+  });
 
   async function refreshDangerZoneSummary(){
     dzSummary.textContent = "Checking what's currently stored…";

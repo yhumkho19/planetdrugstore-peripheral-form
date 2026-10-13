@@ -7,149 +7,237 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Admin Login — Planet Drugstore System Console</title>
-<link rel="icon" type="image/x-icon" href="logo-transparent.png">
+<link rel="icon" type="image/x-icon" href="../assets/images/logo-transparent.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --maroon:#6E1620;
-    --maroon-dark:#3D0A10;
-    --maroon-deep:#1D0306;
-    --red:#d61f2c;
-    --red-dark:#a5151f;
-    --gold:#C88A2E;
-    --gold-soft:#E3B564;
-    --paper:#FBF5F4;
-    --line:#E8D7D8;
-    --ink:#2A1416;
-    --muted:#8C6B6E;
+    color-scheme:light;
+    --maroon:#681722;
+    --maroon-dark:#3c0c13;
+    --red:#bd2734;
+    --gold:#d7a14a;
+    --paper:#f5f1ed;
+    --line:#e7e1dd;
+    --ink:#2c2021;
+    --muted:#817477;
   }
   *{box-sizing:border-box;}
-  html,body{height:100%;margin:0;}
+  html,body{min-height:100%;margin:0;}
   body{
-    font-family:'Inter',-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
-    color:var(--ink);
     min-height:100vh;
-    background:var(--paper);
-  }
-
-  .stage{min-height:100vh;display:grid;grid-template-columns:1.05fr 1fr;}
-  @media (max-width:900px){ .stage{grid-template-columns:1fr;} }
-
-  /* ---------- Left: brand panel ---------- */
-  .panel-brand{
-    position:relative;overflow:hidden;color:#fff;
-    padding:52px 52px 40px;
-    display:flex;flex-direction:column;justify-content:space-between;
+    min-height:100dvh;
+    display:grid;
+    place-items:center;
+    padding:32px;
     background:
-      radial-gradient(circle at 18% 12%, rgba(214,31,44,0.28), transparent 42%),
-      radial-gradient(circle at 88% 88%, rgba(200,138,46,0.20), transparent 50%),
-      linear-gradient(165deg, var(--maroon-dark) 0%, var(--maroon-deep) 100%);
+      radial-gradient(ellipse at 12% 8%,rgba(189,39,52,.09),transparent 30%),
+      radial-gradient(ellipse at 90% 92%,rgba(215,161,74,.12),transparent 34%),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Inter',-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
   }
-  @media (max-width:900px){ .panel-brand{padding:34px 28px 26px;} }
-
-  .brand-row{display:flex;align-items:center;gap:12px;}
-  .brand-mark{width:44px;height:44px;border-radius:10px;object-fit:cover;flex:none;display:block;}
-  .brand-word{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.5px;line-height:1.15;}
-  .brand-word span{display:block;color:var(--red);}
-
+  .stage{
+    width:min(1120px,100%);
+    min-height:680px;
+    display:grid;
+    grid-template-columns:1.04fr .96fr;
+    overflow:hidden;
+    border:1px solid rgba(71,35,37,.08);
+    border-radius:28px;
+    background:#fff;
+    box-shadow:0 28px 80px rgba(55,24,27,.14),0 4px 14px rgba(55,24,27,.05);
+  }
+  .panel-brand{
+    position:relative;
+    isolation:isolate;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:38px 52px 30px;
+    color:#fff;
+    background:
+      radial-gradient(ellipse at 80% 92%,rgba(215,161,74,.2),transparent 36%),
+      radial-gradient(ellipse at 14% 4%,rgba(189,39,52,.34),transparent 42%),
+      linear-gradient(148deg,#4c1018 0%,#26080c 100%);
+  }
+  .panel-brand::before,.panel-brand::after{
+    position:absolute;
+    z-index:-1;
+    content:"";
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:50%;
+    pointer-events:none;
+  }
+  .panel-brand::before{width:520px;height:520px;right:-285px;top:14%;}
+  .panel-brand::after{width:410px;height:410px;right:-230px;top:22%;box-shadow:0 0 0 28px rgba(255,255,255,.025);}
+  .brand-row{display:flex;align-items:center;gap:13px;}
+  .brand-mark{width:48px;height:48px;border:1px solid rgba(255,255,255,.2);border-radius:14px;object-fit:cover;flex:none;}
+  .brand-word{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;letter-spacing:.8px;line-height:1.2;}
+  .brand-word span{display:block;color:#e37a72;}
   .live-pill{
-    display:inline-flex;align-items:center;gap:7px;margin-top:26px;
-    font-size:10.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
-    color:rgba(255,255,255,0.75);background:rgba(255,255,255,0.06);
-    border:1px solid rgba(255,255,255,0.14);padding:6px 12px;border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    margin-top:34px;
+    padding:8px 12px;
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:999px;
+    background:rgba(255,255,255,.07);
+    color:rgba(255,255,255,.8);
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:1.15px;
+    text-transform:uppercase;
   }
-  .live-dot{width:6px;height:6px;border-radius:50%;background:#5FD98A;flex:none;
-    box-shadow:0 0 0 rgba(95,217,138,0.5);animation:pulseDot 1.8s ease-out infinite;}
-  @keyframes pulseDot{
-    0%{box-shadow:0 0 0 0 rgba(95,217,138,0.55);}
-    70%{box-shadow:0 0 0 8px rgba(95,217,138,0);}
-    100%{box-shadow:0 0 0 0 rgba(95,217,138,0);}
-  }
-
-  .panel-heading{margin-top:26px;}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:#7fdfa0;box-shadow:0 0 0 4px rgba(127,223,160,.12);}
+  .panel-heading{max-width:450px;margin-top:22px;}
   .eyebrow{
-    display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;
-    letter-spacing:1.6px;text-transform:uppercase;color:var(--gold-soft);
-    background:rgba(255,255,255,0.07);padding:6px 12px;border-radius:999px;
-    border:1px solid rgba(255,255,255,0.15);margin-bottom:18px;
+    margin-bottom:18px;
+    color:#f0c779;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1.8px;
+    text-transform:uppercase;
   }
   .panel-heading h1{
-    font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-0.3px;
-    font-size:clamp(26px,3vw,36px);line-height:1.14;margin:0 0 14px;
+    max-width:430px;
+    margin:0 0 16px;
+    font-family:'Space Grotesk',sans-serif;
+    font-size:clamp(34px,4vw,48px);
+    font-weight:700;
+    letter-spacing:-1.8px;
+    line-height:1.08;
   }
-  .panel-heading p{font-size:14px;line-height:1.65;color:rgba(255,255,255,0.72);max-width:380px;margin:0;}
-
+  .panel-heading p{max-width:390px;margin:0;color:rgba(255,255,255,.69);font-size:14px;line-height:1.75;}
   .feature-mark{
-    margin: 10px 0 8px;display:flex;align-items:center;justify-content:center;
-    width:190px;height:190px;border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.10), rgba(255,255,255,0.02));
-    border:1px solid rgba(255,255,255,0.14);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:130px;
+    height:130px;
+    margin:20px 0;
+    border:1px solid rgba(255,255,255,.13);
+    border-radius:50%;
+    background:radial-gradient(circle at 36% 30%,rgba(255,255,255,.12),rgba(255,255,255,.015) 68%);
+    box-shadow:0 18px 48px rgba(0,0,0,.12);
   }
-  @media (max-width:900px){ .feature-mark{display:none;} }
-  .feature-mark img{width:96px;height:96px;border-radius:20px;object-fit:cover;display:block;
-    box-shadow:0 12px 30px rgba(0,0,0,0.35);}
-
-  .feature-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;}
-  @media (max-width:900px){ .feature-list{display:none;} }
-  .feature-list li{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:rgba(255,255,255,0.75);line-height:1.4;}
-  .feature-list .dot{width:6px;height:6px;border-radius:50%;background:var(--gold-soft);flex:none;margin-top:6px;}
-
-  .panel-foot{font-size:11.5px;color:rgba(255,255,255,0.4);letter-spacing:0.3px;margin-top:28px;}
-
-  /* ---------- Right: form panel ---------- */
-  .panel-form{display:flex;align-items:center;justify-content:center;padding:44px 24px;}
-  .form-card{width:100%;max-width:378px;}
-
+  .feature-mark img{width:76px;height:76px;border:1px solid rgba(255,255,255,.22);border-radius:22px;object-fit:cover;box-shadow:0 10px 26px rgba(0,0,0,.24);}
+  .feature-list{display:grid;gap:13px;margin:0;padding:0;list-style:none;}
+  .feature-list li{display:flex;align-items:flex-start;gap:11px;color:rgba(255,255,255,.76);font-size:12px;line-height:1.55;}
+  .feature-list .dot{width:7px;height:7px;margin-top:5px;border-radius:50%;background:var(--gold);flex:none;}
+  .panel-foot{margin-top:24px;color:rgba(255,255,255,.45);font-size:10px;letter-spacing:.3px;}
+  .panel-form{display:grid;place-items:center;padding:58px 64px;background:linear-gradient(145deg,#fff 0%,#fffdfc 100%);}
+  .form-card{width:100%;max-width:390px;}
   .access-pill{
-    display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;
-    letter-spacing:1.2px;text-transform:uppercase;color:var(--red-dark);
-    background:#FBE7E9;border:1px solid #F3C2C6;padding:5px 11px;border-radius:999px;margin-bottom:20px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:24px;
+    padding:8px 11px;
+    border:1px solid #f0d9d9;
+    border-radius:8px;
+    background:#fff6f5;
+    color:var(--maroon);
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
   }
-  .form-card h2{font-family:'Space Grotesk',sans-serif;font-size:25px;font-weight:700;
-    margin:0 0 6px;color:var(--ink);letter-spacing:-0.2px;}
-  .form-card .sub{font-size:13px;color:var(--muted);margin:0 0 30px;line-height:1.5;}
-
-  .lfield{margin-bottom:18px;}
-  .lfield label{display:block;font-size:11px;font-weight:600;color:var(--ink);letter-spacing:0.3px;margin-bottom:7px;}
+  .access-pill::before{width:7px;height:7px;border-radius:50%;background:var(--red);content:"";}
+  .form-card h2{margin:0 0 8px;color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:34px;font-weight:700;letter-spacing:-1.2px;}
+  .form-card .sub{margin:0 0 34px;color:var(--muted);font-size:13px;line-height:1.65;}
+  .lfield{margin-bottom:20px;}
+  .lfield label{display:block;margin-bottom:8px;color:#413638;font-size:12px;font-weight:600;}
   .input-wrap{position:relative;}
   .lfield input{
-    width:100%;padding:13px 14px;font-size:14.5px;border:1.5px solid var(--line);
-    border-radius:10px;background:#fff;color:var(--ink);font-family:inherit;
-    transition:border-color .15s,box-shadow .15s;
+    width:100%;
+    min-height:52px;
+    padding:0 15px;
+    border:1px solid var(--line);
+    border-radius:11px;
+    outline:none;
+    background:#fff;
+    color:var(--ink);
+    font:14px 'Inter',sans-serif;
+    transition:border-color .16s,box-shadow .16s,background .16s;
   }
-  .lfield input:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 4px rgba(214,31,44,0.10);}
-  .pw-wrap input{padding-right:54px;}
+  .lfield input::placeholder{color:#b1a7a6;}
+  .lfield input:hover{border-color:#cfc2be;}
+  .lfield input:focus{border-color:var(--red);background:#fffdfd;box-shadow:0 0 0 4px rgba(189,39,52,.1);}
+  .pw-wrap input{padding-right:74px;}
   .pw-toggle{
-    position:absolute;right:6px;top:50%;transform:translateY(-50%);
-    border:none;background:transparent;color:var(--muted);cursor:pointer;
-    font-size:10.5px;font-weight:700;letter-spacing:0.4px;padding:7px 9px;border-radius:7px;
+    position:absolute;
+    top:50%;
+    right:9px;
+    min-width:48px;
+    padding:8px;
+    transform:translateY(-50%);
+    border:0;
+    border-radius:7px;
+    background:transparent;
+    color:#77696b;
+    cursor:pointer;
+    font:700 10px 'Inter',sans-serif;
+    letter-spacing:.6px;
   }
-  .pw-toggle:hover{background:var(--paper);color:var(--maroon);}
-
-  .remember-row{display:flex;align-items:center;gap:8px;margin:-2px 0 22px;}
-  .remember-row input[type=checkbox]{width:15px;height:15px;accent-color:var(--red);cursor:pointer;margin:0;}
-  .remember-row label{font-size:12.5px;color:var(--ink);cursor:pointer;user-select:none;}
-
+  .pw-toggle:hover{background:#f7f1ef;color:var(--maroon);}
+  .pw-toggle:focus-visible,.login-btn:focus-visible,.form-foot a:focus-visible{outline:3px solid rgba(189,39,52,.3);outline-offset:3px;}
+  .remember-row{display:flex;align-items:center;gap:9px;margin:1px 0 24px;}
+  .remember-row input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:var(--maroon);cursor:pointer;}
+  .remember-row label{color:#65595b;font-size:12px;cursor:pointer;user-select:none;}
   .login-btn{
-    width:100%;border:none;border-radius:10px;padding:14px;font-size:14.5px;font-weight:700;
-    cursor:pointer;color:#fff;letter-spacing:0.2px;font-family:inherit;
-    background:linear-gradient(135deg,var(--red),var(--red-dark));
-    box-shadow:0 12px 26px rgba(214,31,44,0.28);
-    transition:transform .15s,box-shadow .15s,opacity .15s;
+    width:100%;
+    min-height:52px;
+    border:0;
+    border-radius:11px;
+    background:linear-gradient(120deg,#8a2029,#5d111a);
+    box-shadow:0 10px 22px rgba(104,23,34,.19);
+    color:#fff;
+    cursor:pointer;
+    font:700 14px 'Inter',sans-serif;
+    letter-spacing:.15px;
+    transition:transform .16s,box-shadow .16s,opacity .16s;
   }
-  .login-btn:hover{transform:translateY(-1px);box-shadow:0 16px 32px rgba(214,31,44,0.34);}
+  .login-btn:hover{transform:translateY(-1px);box-shadow:0 14px 26px rgba(104,23,34,.24);}
   .login-btn:active{transform:translateY(0);}
-  .login-btn:disabled{opacity:0.65;cursor:default;transform:none;}
-
-  .login-error{
-    margin-top:16px;background:#FBE7E9;border:1px solid #F3C2C6;color:var(--red-dark);
-    font-size:12.5px;padding:11px 13px;border-radius:9px;display:none;
+  .login-btn:disabled{opacity:.65;cursor:default;transform:none;}
+  .login-error{display:none;margin-top:16px;padding:12px 14px;border:1px solid #efc7c9;border-radius:10px;background:#fff1f1;color:#9f1c28;font-size:12px;line-height:1.5;}
+  .form-foot{margin-top:30px;padding-top:22px;border-top:1px solid #eee8e5;color:var(--muted);font-size:12px;text-align:center;}
+  .form-foot a{color:var(--maroon);font-weight:700;text-decoration:none;}
+  .form-foot a:hover{text-decoration:underline;text-underline-offset:3px;}
+  @media (max-width:900px){
+    body{padding:20px;}
+    .stage{min-height:620px;grid-template-columns:.9fr 1.1fr;}
+    .panel-brand{padding:38px 34px 28px;}
+    .panel-form{padding:42px 36px;}
+    .feature-mark{width:124px;height:124px;margin:24px 0;}
+    .feature-mark img{width:64px;height:64px;}
   }
-  .form-foot{text-align:center;margin-top:26px;font-size:12px;color:var(--muted);}
-  .form-foot a{color:var(--red);text-decoration:none;font-weight:700;}
-  .form-foot a:hover{text-decoration:underline;}
+  @media (max-width:640px){
+    body{display:block;padding:14px;background:#f5f1ed;}
+    .stage{width:100%;min-height:calc(100dvh - 28px);grid-template-columns:1fr;grid-template-rows:auto 1fr;border-radius:20px;}
+    .panel-brand{min-height:230px;padding:23px 24px 25px;}
+    .brand-mark{width:40px;height:40px;border-radius:12px;}
+    .live-pill{margin-top:24px;padding:7px 10px;font-size:9px;}
+    .panel-heading{margin-top:18px;}
+    .panel-heading h1{max-width:360px;margin-bottom:8px;font-size:clamp(27px,8vw,35px);letter-spacing:-1px;}
+    .panel-heading p,.feature-mark,.feature-list,.panel-foot{display:none;}
+    .panel-form{padding:34px 25px 28px;align-items:start;}
+    .form-card h2{font-size:30px;}
+    .form-card .sub{margin-bottom:27px;}
+  }
+  @media (max-width:380px){
+    body{padding:0;}
+    .stage{min-height:100dvh;border:0;border-radius:0;}
+    .panel-brand{min-height:210px;padding-right:20px;padding-left:20px;}
+    .panel-form{padding-right:20px;padding-left:20px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;}
+  }
 </style>
 </head>
 <body>
@@ -158,19 +246,19 @@
   <div class="panel-brand">
     <div>
       <div class="brand-row">
-        <img src="logo.png" alt="Planet Drugstore" class="brand-mark">
+        <img src="../assets/images/logo.png" alt="Planet Drugstore" class="brand-mark">
         <div class="brand-word">PLANET<span>DRUGSTORE</span></div>
       </div>
-      <div class="live-pill"><span class="live-dot"></span> Updates in real time</div>
+      <div class="live-pill"><span class="live-dot"></span> Secure department sign-in</div>
 
       <div class="panel-heading">
-        <div class="eyebrow">Department Access</div>
-        <h1>Welcome To The Planet Drugstore System Console.</h1>
-        <!-- <p>See entries the moment employees save them, across every Medical Mission and Peoples Day.</p> -->
+        <div class="eyebrow">Department Portal</div>
+        <h1>Your team, one secure workspace.</h1>
+        <p>Manage schedules, deployments, and employee access from one central console.</p>
       </div>
 
       <div class="feature-mark">
-        <img src="logo.png" alt="Planet Drugstore">
+        <img src="../assets/images/logo.png" alt="Planet Drugstore">
       </div>
     </div>
 
@@ -186,9 +274,9 @@
 
   <div class="panel-form">
     <div class="form-card">
-      <div class="access-pill">Department Access</div>
-      <h2>Sign in to the console</h2>
-      <p class="sub">Authorized Department Only To Access The Console</p>
+      <div class="access-pill">Authorized department access</div>
+      <h2>Welcome back</h2>
+      <p class="sub">Sign in with your department account to continue to the system console.</p>
 
       <form id="loginForm" autocomplete="on">
         <div class="lfield">
@@ -201,7 +289,7 @@
           <label for="loginPassword">Password</label>
           <div class="input-wrap pw-wrap">
             <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
-            <button type="button" class="pw-toggle" id="pwToggle">SHOW</button>
+            <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" aria-pressed="false">SHOW</button>
           </div>
         </div>
         <div class="remember-row">
@@ -209,7 +297,7 @@
           <label for="rememberMe">Remember me on this device</label>
         </div>
         <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
-        <div class="login-error" id="loginError"></div>
+        <div class="login-error" id="loginError" role="alert" aria-live="polite"></div>
       </form>
 
       <div class="form-foot"><a href="/fu3hriaj0m">Employee Login &rarr;</a></div>
@@ -229,7 +317,7 @@
 // bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
 // doesn't match what this tab is currently running — shows a small banner
 // instead of silently staying on stale code.
-const APP_VERSION = "2026-09-12.1";
+const APP_VERSION = "2026-10-13.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -323,6 +411,8 @@ startVersionWatch();
     const showing = pwInput.type === 'text';
     pwInput.type = showing ? 'password' : 'text';
     document.getElementById('pwToggle').textContent = showing ? 'SHOW' : 'HIDE';
+    document.getElementById('pwToggle').setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+    document.getElementById('pwToggle').setAttribute('aria-pressed', String(!showing));
   });
 
   // Remember Me — prefill the last-used email so admins don't have to retype
