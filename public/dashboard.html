@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#241012">
-  <meta name="description" content="Planet Drugstore operations portal for schedules, stock requests, and peripherals receiving.">
+  <meta name="description" content="The Planet Drugstore Operations Portal brings together the Ordering System, Event Schedule, Billing Tracker, and Peripheral Receiving tools, with access tailored to each role.">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -251,7 +251,7 @@
 
     <div class="intro-strip" aria-label="Portal overview">
       <div class="intro-stat scroll-reveal"><span class="stat-number">01</span><span class="stat-label"><strong>Connected workflows</strong>One operations portal</span></div>
-      <div class="intro-stat scroll-reveal"><span class="stat-number">03</span><span class="stat-label"><strong>Core workflows</strong>Schedules, stock, receiving</span></div>
+      <div class="intro-stat scroll-reveal"><span class="stat-number">04</span><span class="stat-label"><strong>Connected systems</strong>Ordering, events, billing, peripherals</span></div>
       <div class="intro-stat scroll-reveal"><span class="stat-number">24/7</span><span class="stat-label"><strong>Access when needed</strong>Web and mobile support</span></div>
     </div>
 
@@ -260,7 +260,7 @@
         <div class="scroll-reveal">
           <p class="section-kicker">About the portal</p>
           <h2 class="section-title">Daily work, brought into focus.</h2>
-          <p class="section-lead">PLANETDRUGSTORE brings event staffing, employee schedules, stock requests, and peripherals receiving records into a shared operations experience. Teams can find the right workflow, act on current information, and keep important updates visible.</p>
+          <p class="section-lead">The Planet Drugstore Operations Portal brings the Ordering System, Event Schedule, Billing Tracker, and Peripheral Receiving tools together in one role-based workspace. Teams can find the right workflow, act on current information, and keep important updates visible.</p>
           <p class="section-lead">Employees and administrators have separate sign-in routes, with access directed to the pages used for their role.</p>
         </div>
         <div class="about-photo-wrap scroll-reveal">
@@ -305,7 +305,7 @@
         <div class="scroll-reveal">
           <p class="section-kicker">Your work starts here</p>
           <h2 class="section-title" id="accessTitle">Choose your sign-in.</h2>
-          <p class="section-lead" id="accessLead">Use your employee account for schedules and receiving workflows, or your admin account for department and system tools.</p>
+          <p class="section-lead" id="accessLead">Use your account to access the Ordering System, Event Schedule, Billing Tracker, and Peripheral Receiving tools available to your role.</p>
         </div>
         <div class="access-actions scroll-reveal">
           <a class="button button-primary" data-login-link href="/fu3hriaj0m">Employee sign in <span aria-hidden="true">&#8594;</span></a>
@@ -373,8 +373,8 @@
       <button class="dialog-close" type="button" id="dialogClose" aria-label="Close sign-in choices">&times;</button>
     </div>
     <div class="dialog-body">
-      <a data-login-link href="/fu3hriaj0m"><span>Employee sign in<small>Schedules, requests, and receiving</small></span><span aria-hidden="true">&#8594;</span></a>
-      <a data-login-link href="/839jgl8ang"><span>Admin sign in<small>Department and system tools</small></span><span aria-hidden="true">&#8594;</span></a>
+      <a data-login-link href="/fu3hriaj0m"><span>Employee sign in<small>Role-based access to schedules and work tools</small></span><span aria-hidden="true">&#8594;</span></a>
+      <a data-login-link href="/839jgl8ang"><span>Admin sign in<small>Role-based access to operations and admin tools</small></span><span aria-hidden="true">&#8594;</span></a>
       <a data-employee-portal hidden href="/ed3od6ldsq"><span>Go to Employee Portal<small>Open your schedules and work tools</small></span><span aria-hidden="true">&#8594;</span></a>
       <p>New employee? Contact IT Admin to set up your account.</p>
     </div>
@@ -441,7 +441,7 @@
             employeeSession.name || employeeSession.staffId,
             '/ed3od6ldsq',
             'Go to Employee Portal',
-            'Open your employee portal to access schedules and work tools.'
+            'Open your role-based workspace for the Ordering System, Event Schedule, Billing Tracker, and Peripheral Receiving tools available to you.'
           );
           return;
         }
@@ -480,7 +480,7 @@
               claims.staffId,
               '/ed3od6ldsq',
               'Open Employee Portal',
-              'You are signed in. Open the employee portal when you are ready.'
+              'Open your role-based workspace for the Ordering System, Event Schedule, Billing Tracker, and Peripheral Receiving tools available to you.'
             );
             return;
           }
@@ -503,7 +503,7 @@
             auth.currentUser.displayName || email || 'Admin',
             isStockAdmin ? '/r5c8j2ndxa' : '/8niuis7jih',
             isStockAdmin ? 'Open ' + stockCategory + ' Stock Requests' : 'Open Admin Portal',
-            'You are signed in. Choose a workspace when you are ready.'
+            'Open your role-based workspace for the Ordering System, Event Schedule, Billing Tracker, and Peripheral Receiving tools available to you.'
           );
           return;
         }
@@ -551,7 +551,7 @@
           pharmacistProfile?.name || auth.currentUser.displayName || auth.currentUser.email || 'Admin',
           destination,
           pharmacistProfile ? 'Go to Event Schedule' : isStockRequestAdmin ? 'Go to ' + stockCategory + ' Stock Request Admin' : 'Go to Admin Portal',
-          pharmacistProfile ? 'Open the Pharmacy Event Schedule.' : isStockRequestAdmin ? 'Open your ' + stockCategory + ' Stock Request dashboard.' : 'Open your admin portal to manage your department and system tools.'
+          'Open your role-based workspace for the Ordering System, Event Schedule, Billing Tracker, and Peripheral Receiving tools available to you.'
         );
       }catch(error){
         console.info('Signed-in state check unavailable; showing public dashboard.', error);

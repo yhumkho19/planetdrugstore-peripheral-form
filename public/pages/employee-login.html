@@ -6,7 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Employee Login — Planet Drugstore Peripherals</title>
+<meta name="description" content="Sign in to the Planet Drugstore Operations Portal for role-appropriate access to event schedules, stock requests, billing tasks, and peripheral receiving.">
+<title>Employee Login — Planet Drugstore Operations Portal</title>
 <link rel="icon" type="image/x-icon" href="../assets/images/logo-transparent.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -147,7 +148,7 @@ body.notes .tag{display:block}
     <h1 id="hTitle">Your workday, all in one place.</h1>
     <i class="tag" style="left:0;top:76px">Animation: headline words slide up one by one on page load</i>
     <p class="lead">Sign in to access your assignments, records, and employee tools.</p>
-    <div class="chips"><span class="chip" style="animation-delay:0.50s">Log peripherals</span><span class="chip" style="animation-delay:0.62s">Track submissions</span><span class="chip" style="animation-delay:0.74s">View deployments</span><i class="tag" style="left:0;top:-30px">Animation: chips pop in one after another</i></div>
+    <div class="chips"><span class="chip" style="animation-delay:0.50s">Event schedules</span><span class="chip" style="animation-delay:0.62s">Stock requests</span><span class="chip" style="animation-delay:0.74s">Billing tracker</span><span class="chip" style="animation-delay:0.86s">Peripheral receiving</span><i class="tag" style="left:0;top:-30px">Animation: chips pop in one after another</i></div>
     <div class="live"><span class="dot"></span><span>Secure employee sign-in</span><span id="clock"></span>
       <i class="tag" style="left:0;top:-30px">Animation: green dot pulses; live Manila clock ticks every second</i></div>
   </section>
@@ -308,8 +309,9 @@ startVersionWatch();
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
-    initializeFirestore, doc, getDoc
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    getAuth, signInWithCustomToken, signOut, setPersistence,
+    browserLocalPersistence, browserSessionPersistence
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   // Same Firebase project as the rest of the system.
   const firebaseConfig = {
     apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
@@ -321,27 +323,26 @@ startVersionWatch();
   };
 
   const app = initializeApp(firebaseConfig);
-  const db = initializeFirestore(app, {
-    experimentalForceLongPolling: true,
-    useFetchStreams: false
-  });
-  // Employees are no longer real Firebase Auth users — each Staff ID is a
-  // document in the "employees" collection (doc ID = lowercased Staff ID)
-  // holding a SHA-256 password hash. "Signed in" is just a small session
-  // record kept in localStorage/sessionStorage (see SESSION_KEY below).
+  const auth = getAuth(app);
+  await auth.authStateReady();
+  const EMPLOYEE_AUTH_URL = 'https://peripherals-push.pds-peripherals.workers.dev/employee-authenticate';
+  // The Worker validates Staff ID/password and issues a Firebase employee token.
   const SESSION_KEY = 'pdEmployeeSession';
-
-  async function hashPassword(pw){
-    const enc = new TextEncoder().encode(pw);
-    const buf = await crypto.subtle.digest('SHA-256', enc);
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-  }
 
   function readSession(){
     try{
       const raw = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
       return raw ? JSON.parse(raw) : null;
     }catch(e){ return null; }
+  }
+
+  function clearSession(){
+    try{
+      localStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(SESSION_KEY);
+    }catch(error){
+      console.error('Unable to clear employee session:', error);
+    }
   }
 
   function saveSession(session, remember, staffId){
@@ -398,14 +399,32 @@ startVersionWatch();
     rememberMe.checked = true;
   }
 
-  // Already signed in as an employee? Skip straight to the form.
-  if(readSession()){
-    window.location.replace('/ed3od6ldsq');
+  // Only restore a saved session when Firebase confirms the same employee identity.
+  const savedSession = readSession();
+  if(savedSession){
+    try{
+      const user = auth.currentUser;
+      const token = user ? await user.getIdTokenResult() : null;
+      const sessionStaffId = String(savedSession.staffId || '').trim().toLowerCase();
+      const tokenStaffId = String(token?.claims.staffId || '').trim().toLowerCase();
+      if(token?.claims.employee === true && sessionStaffId && sessionStaffId === tokenStaffId){
+        window.location.replace('/ed3od6ldsq');
+      }else{
+        clearSession();
+      }
+    }catch(error){
+      console.error('Unable to verify saved employee sign-in:', error);
+      loginError.textContent = 'Unable to verify your saved sign-in. Please sign in again.';
+      loginError.style.display = 'block';
+    }
   }
 
   // Bounced back here because an Admin deleted this account.
   if(new URLSearchParams(window.location.search).get('deleted') === '1'){
     loginError.textContent = 'This account has been deleted by an Admin. Please contact your Admin / IT for a new account.';
+    loginError.style.display = 'block';
+  }else if(new URLSearchParams(window.location.search).get('reauth') === '1'){
+    loginError.textContent = 'Please sign in again to secure access to your employee profile.';
     loginError.style.display = 'block';
   }
 
@@ -417,29 +436,44 @@ startVersionWatch();
     PDLoader.show();
     const staffId = document.getElementById('staffId').value.trim();
     const password = document.getElementById('loginPassword').value;
-    const staffDocId = staffId.toLowerCase();
     try{
-      const snap = await getDoc(doc(db, 'employees', staffDocId));
-      if(!snap.exists()){
-        throw { code: 'not-found' };
-      }
-      const profile = snap.data();
-      const passwordHash = await hashPassword(password);
-      if(passwordHash !== profile.passwordHash){
-        throw { code: 'wrong-password' };
+      const response = await fetch(EMPLOYEE_AUTH_URL, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ staffId, password })
+      });
+      if(!response.ok){
+        const message = (await response.text()).trim();
+        const error = new Error(message || `Employee sign-in failed (${response.status}).`);
+        error.status = response.status;
+        throw error;
       }
 
+      const result = await response.json();
+      if(typeof result.customToken !== 'string' || !result.employee
+          || typeof result.employee.staffId !== 'string'){
+        throw new Error('The sign-in service returned an invalid employee account.');
+      }
+      await setPersistence(auth, rememberMe.checked ? browserLocalPersistence : browserSessionPersistence);
+      const credential = await signInWithCustomToken(auth, result.customToken);
+      const token = await credential.user.getIdTokenResult();
+      const canonicalStaffId = result.employee.staffId.trim();
+      if(token.claims.employee !== true
+          || String(token.claims.staffId || '').trim().toLowerCase() !== canonicalStaffId.toLowerCase()){
+        await signOut(auth);
+        throw new Error('The employee identity could not be verified after sign-in.');
+      }
+      const employee = result.employee;
       const session = {
-        staffId: profile.staffId || staffId,
-        name: profile.name || '',
-        email: profile.email || '',
-        department: profile.department || '',
-        branch: profile.branch || '',
+        staffId: employee.staffId,
+        name: employee.name || '',
+        email: employee.email || '',
+        department: employee.department || '',
+        branch: employee.branch || '',
         signedInAt: Date.now()
       };
 
-      // Fall back to session storage if persistent browser storage is full or blocked.
-      saveSession(session, rememberMe.checked, staffId);
+      saveSession(session, rememberMe.checked, canonicalStaffId);
       window.location.href = '/ed3od6ldsq';
     }catch(err){
       PDLoader.hide();
@@ -452,6 +486,21 @@ startVersionWatch();
 
   function friendlyAuthError(err){
     const code = err && err.code || '';
+    if(err?.status === 401){
+      return 'Incorrect Staff ID or password.';
+    }
+    if(err?.status === 400){
+      return 'Enter a valid Staff ID and password.';
+    }
+    if(err?.status === 429){
+      return 'Too many sign-in attempts. Please try again later.';
+    }
+    if(err?.status === 503){
+      return 'Employee sign-in is temporarily unavailable. Please try again later.';
+    }
+    if(err instanceof TypeError){
+      return 'Network error — check your connection and try again.';
+    }
     if(err && (err.name === 'QuotaExceededError' || code.toLowerCase().includes('quota'))){
       return 'Browser storage is full. Clear some site data, then sign in again.';
     }

@@ -1210,11 +1210,9 @@ startVersionWatch();
   window.firebaseReady = true;
 
   // ---- Employee auth guard ----
-  // This form is only reachable by a signed-in employee (Staff ID + password,
-  // via employee-login.html). Employees are no longer real Firebase Auth
-  // users — "signed in" is a small session record in localStorage/
-  // sessionStorage (written by employee-login.html), re-checked here against
-  // Firestore on every load so a deleted account is still kicked out.
+  // Employee login uses a Worker-verified Firebase custom token plus the
+  // local session from employee-login.html; re-check the employee document
+  // here so a deleted account is still kicked out.
   // window.currentEmployee.uid is kept as a stable key (= their Staff ID) so
   // the rest of this file — entries, live co-fill sessions, "My Logs" — works
   // exactly as before.

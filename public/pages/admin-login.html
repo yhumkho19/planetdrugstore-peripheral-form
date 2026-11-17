@@ -6,7 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Admin Login — Planet Drugstore System Console</title>
+<meta name="description" content="Sign in to the Planet Drugstore Operations Portal to access the Ordering System, Event Schedule, Billing Tracker, and Peripheral Receiving tools available to your role.">
+<title>Admin Login — Planet Drugstore Operations Portal</title>
 <link rel="icon" type="image/x-icon" href="../assets/images/logo-transparent.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -146,8 +147,8 @@ body.notes .tag{display:block}
     <div class="brand"><div class="lg" role="img" aria-label="Planet Drugstore"></div>Planet Drugstore</div>
     <h1 id="hTitle">Your team, one secure workspace.</h1>
     <i class="tag" style="left:0;top:76px">Animation: headline words slide up one by one on page load</i>
-    <p class="lead">Manage schedules, deployments, and employee access from one central console.</p>
-    <div class="chips"><span class="chip" style="animation-delay:0.50s">Real-time records</span><span class="chip" style="animation-delay:0.62s">Schedules and roster</span><span class="chip" style="animation-delay:0.74s">Employee access</span><i class="tag" style="left:0;top:-30px">Animation: chips pop in one after another</i></div>
+    <p class="lead">Access the Ordering System, Event Schedule, Billing Tracker, and Peripheral Receiving tools from one role-based operations portal.</p>
+    <div class="chips"><span class="chip" style="animation-delay:0.50s">Ordering</span><span class="chip" style="animation-delay:0.62s">Event Schedule</span><span class="chip" style="animation-delay:0.74s">Billing Tracker</span><span class="chip" style="animation-delay:0.86s">Peripheral Receiving</span><i class="tag" style="left:0;top:-30px">Animation: chips pop in one after another</i></div>
     <div class="live"><span class="dot"></span><span>Secure department sign-in</span><span id="clock"></span>
       <i class="tag" style="left:0;top:-30px">Animation: green dot pulses; live Manila clock ticks every second</i></div>
   </section>
@@ -342,6 +343,23 @@ startVersionWatch();
     if(email === STOCK_REQ_EMAIL) return '/r5c8j2ndxa';
     return isEventScheduleUser(user) ? '/dkjyg56lvm' : '/8niuis7jih';
   }
+  function readEmployeeSession(){
+    try{
+      const raw = localStorage.getItem('pdEmployeeSession') || sessionStorage.getItem('pdEmployeeSession');
+      return raw ? JSON.parse(raw) : null;
+    }catch(error){
+      console.error('Unable to read employee session:', error);
+      return null;
+    }
+  }
+  function clearEmployeeSession(){
+    try{
+      localStorage.removeItem('pdEmployeeSession');
+      sessionStorage.removeItem('pdEmployeeSession');
+    }catch(error){
+      console.error('Unable to clear employee session:', error);
+    }
+  }
 
   const loginForm = document.getElementById('loginForm');
   const loginBtn = document.getElementById('loginBtn');
@@ -370,8 +388,6 @@ startVersionWatch();
     rememberMe.checked = true;
   }
 
-  await setPersistence(auth, browserLocalPersistence).catch(()=>{});
-
   // Already signed in (e.g. came back to this page)? Skip straight to the
   // right landing page for that account. We wait for authStateReady()
   // instead of reacting to every onAuthStateChanged fire — a live listener
@@ -380,7 +396,20 @@ startVersionWatch();
   // between this page and the landing page in a loop.
   await auth.authStateReady();
   if(auth.currentUser){
-    window.location.replace(landingFor(auth.currentUser));
+    const user = auth.currentUser;
+    const token = await user.getIdTokenResult();
+    if(token.claims.employee === true){
+      const sessionStaffId = String(readEmployeeSession()?.staffId || '').trim().toLowerCase();
+      const tokenStaffId = String(token.claims.staffId || '').trim().toLowerCase();
+      window.location.replace(
+        sessionStaffId && sessionStaffId === tokenStaffId
+          ? '/ed3od6ldsq'
+          : '/fu3hriaj0m?reauth=1'
+      );
+    }else{
+      clearEmployeeSession();
+      window.location.replace(landingFor(user));
+    }
   }
 
   loginForm.addEventListener('submit', async (e)=>{
@@ -396,6 +425,7 @@ startVersionWatch();
       // Unchecked -> signed out again once the browser/tab is closed (session).
       await setPersistence(auth, rememberMe.checked ? browserLocalPersistence : browserSessionPersistence);
       await signInWithEmailAndPassword(auth, email, password);
+      clearEmployeeSession();
       if(rememberMe.checked){
         localStorage.setItem(REMEMBER_KEY, email);
       }else{

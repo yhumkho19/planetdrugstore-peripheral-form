@@ -14,14 +14,14 @@ The **Open console** button securely hands the connected Firebase session to the
 
 ## Company distribution
 
-Do not distribute the debug APK. IT must create and securely back up the company's release keystore, then set these environment variables on the build machine (never commit the keystore or passwords):
+Do not distribute the debug APK. The permanent release keystore is stored outside the repository at `%USERPROFILE%\.android\pds-release-key.jks`; its local signing settings are in `%USERPROFILE%\.android\pds-release.properties`. Keep both files in an organization-approved secure backup. Never commit or share the keystore or its passwords. The release build verifies the certificate fingerprint and fails if a different key is configured.
 
 - `PDS_RELEASE_STORE_FILE`
 - `PDS_RELEASE_STORE_PASSWORD`
 - `PDS_RELEASE_KEY_ALIAS`
 - `PDS_RELEASE_KEY_PASSWORD`
 
-Build the signed APK with `gradlew assembleRelease`. After signing/authentication review, distribute it through Firebase App Distribution using app ID `1:115454971026:android:d5de21244f5b4f7d6cea4b` and an IT-managed tester email list.
+Environment variables take precedence over the local signing settings. Build the signed APK with `gradlew assembleRelease`. For the first release signed with a new key, testers must uninstall the old app and install this APK once; all later releases must use this same key to update in place. Distribute it through Firebase App Distribution using app ID `1:115454971026:android:d5de21244f5b4f7d6cea4b` and an IT-managed tester email list.
 
 The app registers employee tokens by Staff ID and department-head tokens by the authenticated head role with the existing Cloudflare push worker. Event reminders use a high-importance notification plus the device's default alarm ringtone for up to 60 seconds, with a Stop alarm action.
 

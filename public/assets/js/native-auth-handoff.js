@@ -1,6 +1,17 @@
-import { signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const AUTH_HANDOFF_URL = "https://peripherals-push.pds-peripherals.workers.dev/auth-handoff/exchange";
+
+export function watchNativeLogout(auth, onLogout) {
+  let hasAuthenticatedUser = Boolean(auth.currentUser);
+  return onAuthStateChanged(auth, user => {
+    if (user) {
+      hasAuthenticatedUser = true;
+    } else if (hasAuthenticatedUser) {
+      onLogout();
+    }
+  });
+}
 
 export async function consumeNativeAuthHandoff(auth) {
   const url = new URL(window.location.href);

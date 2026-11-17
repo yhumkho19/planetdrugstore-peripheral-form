@@ -94,7 +94,7 @@ textarea{min-height:76px;resize:vertical;line-height:1.5}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
-import { watchNativeLogout } from "../assets/js/native-auth-handoff.js";
+import { watchNativeLogout } from "../assets/js/native-auth-handoff.js?v=2";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   initializeFirestore, collection, doc, getDoc, onSnapshot, query,
