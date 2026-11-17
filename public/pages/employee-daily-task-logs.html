@@ -94,6 +94,7 @@ textarea{min-height:76px;resize:vertical;line-height:1.5}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
+import { watchNativeLogout } from "../assets/js/native-auth-handoff.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   initializeFirestore, collection, doc, getDoc, onSnapshot, query,
@@ -111,6 +112,7 @@ const app = initializeApp(getFirebaseConfigForHost({
 const auth = getAuth(app);
 const db = initializeFirestore(app, { experimentalForceLongPolling: true, useFetchStreams: false });
 connectLocalFirebaseEmulators({ db, auth });
+watchNativeLogout(auth, () => window.location.replace("/fu3hriaj0m"));
 
 const $ = id => document.getElementById(id);
 const taskList = $("taskList");

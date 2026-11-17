@@ -850,6 +850,7 @@ input,select{width:100%;min-width:0;min-height:40px;padding:8px 11px;border:1px 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
+import { watchNativeLogout } from "../assets/js/native-auth-handoff.js";
 import {
   initializeFirestore, collection, doc, getDoc, getDocs, onSnapshot, query,
   runTransaction, serverTimestamp, setDoc, updateDoc, where, writeBatch
@@ -873,6 +874,7 @@ const app = initializeApp(getFirebaseConfigForHost({
 const db = initializeFirestore(app, { experimentalForceLongPolling: true, useFetchStreams: false });
 const auth = getAuth(app);
 connectLocalFirebaseEmulators({ db, auth });
+watchNativeLogout(auth, () => window.location.replace("/839jgl8ang"));
 
 const $ = id => document.getElementById(id);
 const themeToggle = $("themeToggle");

@@ -10,306 +10,246 @@
 <link rel="icon" type="image/x-icon" href="../assets/images/logo-transparent.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{
-    color-scheme:light;
-    --maroon:#681722;
-    --maroon-dark:#3c0c13;
-    --red:#bd2734;
-    --gold:#d7a14a;
-    --paper:#f5f1ed;
-    --line:#e7e1dd;
-    --ink:#2c2021;
-    --muted:#817477;
-  }
-  *{box-sizing:border-box;}
-  html,body{min-height:100%;margin:0;}
-  body{
-    min-height:100vh;
-    min-height:100dvh;
-    display:grid;
-    place-items:center;
-    padding:32px;
-    background:
-      radial-gradient(ellipse at 12% 8%,rgba(189,39,52,.09),transparent 30%),
-      radial-gradient(ellipse at 90% 92%,rgba(215,161,74,.12),transparent 34%),
-      var(--paper);
-    color:var(--ink);
-    font-family:'Inter',-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
-  }
-  .stage{
-    width:min(1120px,100%);
-    min-height:680px;
-    display:grid;
-    grid-template-columns:1.04fr .96fr;
-    overflow:hidden;
-    border:1px solid rgba(71,35,37,.08);
-    border-radius:28px;
-    background:#fff;
-    box-shadow:0 28px 80px rgba(55,24,27,.14),0 4px 14px rgba(55,24,27,.05);
-  }
-  .panel-brand{
-    position:relative;
-    isolation:isolate;
-    overflow:hidden;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-    padding:38px 52px 30px;
-    color:#fff;
-    background:
-      radial-gradient(ellipse at 80% 92%,rgba(215,161,74,.2),transparent 36%),
-      radial-gradient(ellipse at 14% 4%,rgba(189,39,52,.34),transparent 42%),
-      linear-gradient(148deg,#4c1018 0%,#26080c 100%);
-  }
-  .panel-brand::before,.panel-brand::after{
-    position:absolute;
-    z-index:-1;
-    content:"";
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:50%;
-    pointer-events:none;
-  }
-  .panel-brand::before{width:520px;height:520px;right:-285px;top:14%;}
-  .panel-brand::after{width:410px;height:410px;right:-230px;top:22%;box-shadow:0 0 0 28px rgba(255,255,255,.025);}
-  .brand-row{display:flex;align-items:center;gap:13px;}
-  .brand-mark{width:48px;height:48px;border:1px solid rgba(255,255,255,.2);border-radius:14px;object-fit:cover;flex:none;}
-  .brand-word{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;letter-spacing:.8px;line-height:1.2;}
-  .brand-word span{display:block;color:#e37a72;}
-  .live-pill{
-    display:inline-flex;
-    align-items:center;
-    gap:9px;
-    margin-top:34px;
-    padding:8px 12px;
-    border:1px solid rgba(255,255,255,.16);
-    border-radius:999px;
-    background:rgba(255,255,255,.07);
-    color:rgba(255,255,255,.8);
-    font-size:10px;
-    font-weight:700;
-    letter-spacing:1.15px;
-    text-transform:uppercase;
-  }
-  .live-dot{width:7px;height:7px;border-radius:50%;background:#7fdfa0;box-shadow:0 0 0 4px rgba(127,223,160,.12);}
-  .panel-heading{max-width:450px;margin-top:22px;}
-  .eyebrow{
-    margin-bottom:18px;
-    color:#f0c779;
-    font-size:11px;
-    font-weight:700;
-    letter-spacing:1.8px;
-    text-transform:uppercase;
-  }
-  .panel-heading h1{
-    max-width:430px;
-    margin:0 0 16px;
-    font-family:'Space Grotesk',sans-serif;
-    font-size:clamp(34px,4vw,48px);
-    font-weight:700;
-    letter-spacing:-1.8px;
-    line-height:1.08;
-  }
-  .panel-heading p{max-width:390px;margin:0;color:rgba(255,255,255,.69);font-size:14px;line-height:1.75;}
-  .feature-mark{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    width:130px;
-    height:130px;
-    margin:20px 0;
-    border:1px solid rgba(255,255,255,.13);
-    border-radius:50%;
-    background:radial-gradient(circle at 36% 30%,rgba(255,255,255,.12),rgba(255,255,255,.015) 68%);
-    box-shadow:0 18px 48px rgba(0,0,0,.12);
-  }
-  .feature-mark img{width:76px;height:76px;border:1px solid rgba(255,255,255,.22);border-radius:22px;object-fit:cover;box-shadow:0 10px 26px rgba(0,0,0,.24);}
-  .feature-list{display:grid;gap:13px;margin:0;padding:0;list-style:none;}
-  .feature-list li{display:flex;align-items:flex-start;gap:11px;color:rgba(255,255,255,.76);font-size:12px;line-height:1.55;}
-  .feature-list .dot{width:7px;height:7px;margin-top:5px;border-radius:50%;background:var(--gold);flex:none;}
-  .panel-foot{margin-top:24px;color:rgba(255,255,255,.45);font-size:10px;letter-spacing:.3px;}
-  .panel-form{display:grid;place-items:center;padding:58px 64px;background:linear-gradient(145deg,#fff 0%,#fffdfc 100%);}
-  .form-card{width:100%;max-width:390px;}
-  .access-pill{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    margin-bottom:24px;
-    padding:8px 11px;
-    border:1px solid #f0d9d9;
-    border-radius:8px;
-    background:#fff6f5;
-    color:var(--maroon);
-    font-size:10px;
-    font-weight:700;
-    letter-spacing:1px;
-    text-transform:uppercase;
-  }
-  .access-pill::before{width:7px;height:7px;border-radius:50%;background:var(--red);content:"";}
-  .form-card h2{margin:0 0 8px;color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:34px;font-weight:700;letter-spacing:-1.2px;}
-  .form-card .sub{margin:0 0 34px;color:var(--muted);font-size:13px;line-height:1.65;}
-  .lfield{margin-bottom:20px;}
-  .lfield label{display:block;margin-bottom:8px;color:#413638;font-size:12px;font-weight:600;}
-  .input-wrap{position:relative;}
-  .lfield input{
-    width:100%;
-    min-height:52px;
-    padding:0 15px;
-    border:1px solid var(--line);
-    border-radius:11px;
-    outline:none;
-    background:#fff;
-    color:var(--ink);
-    font:14px 'Inter',sans-serif;
-    transition:border-color .16s,box-shadow .16s,background .16s;
-  }
-  .lfield input::placeholder{color:#b1a7a6;}
-  .lfield input:hover{border-color:#cfc2be;}
-  .lfield input:focus{border-color:var(--red);background:#fffdfd;box-shadow:0 0 0 4px rgba(189,39,52,.1);}
-  .pw-wrap input{padding-right:74px;}
-  .pw-toggle{
-    position:absolute;
-    top:50%;
-    right:9px;
-    min-width:48px;
-    padding:8px;
-    transform:translateY(-50%);
-    border:0;
-    border-radius:7px;
-    background:transparent;
-    color:#77696b;
-    cursor:pointer;
-    font:700 10px 'Inter',sans-serif;
-    letter-spacing:.6px;
-  }
-  .pw-toggle:hover{background:#f7f1ef;color:var(--maroon);}
-  .pw-toggle:focus-visible,.login-btn:focus-visible,.form-foot a:focus-visible{outline:3px solid rgba(189,39,52,.3);outline-offset:3px;}
-  .remember-row{display:flex;align-items:center;gap:9px;margin:1px 0 24px;}
-  .remember-row input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:var(--maroon);cursor:pointer;}
-  .remember-row label{color:#65595b;font-size:12px;cursor:pointer;user-select:none;}
-  .login-btn{
-    width:100%;
-    min-height:52px;
-    border:0;
-    border-radius:11px;
-    background:linear-gradient(120deg,#8a2029,#5d111a);
-    box-shadow:0 10px 22px rgba(104,23,34,.19);
-    color:#fff;
-    cursor:pointer;
-    font:700 14px 'Inter',sans-serif;
-    letter-spacing:.15px;
-    transition:transform .16s,box-shadow .16s,opacity .16s;
-  }
-  .login-btn:hover{transform:translateY(-1px);box-shadow:0 14px 26px rgba(104,23,34,.24);}
-  .login-btn:active{transform:translateY(0);}
-  .login-btn:disabled{opacity:.65;cursor:default;transform:none;}
-  .login-error{display:none;margin-top:16px;padding:12px 14px;border:1px solid #efc7c9;border-radius:10px;background:#fff1f1;color:#9f1c28;font-size:12px;line-height:1.5;}
-  .form-foot{margin-top:30px;padding-top:22px;border-top:1px solid #eee8e5;color:var(--muted);font-size:12px;text-align:center;}
-  .form-foot a{color:var(--maroon);font-weight:700;text-decoration:none;}
-  .form-foot a:hover{text-decoration:underline;text-underline-offset:3px;}
-  @media (max-width:900px){
-    body{padding:20px;}
-    .stage{min-height:620px;grid-template-columns:.9fr 1.1fr;}
-    .panel-brand{padding:38px 34px 28px;}
-    .panel-form{padding:42px 36px;}
-    .feature-mark{width:124px;height:124px;margin:24px 0;}
-    .feature-mark img{width:64px;height:64px;}
-  }
-  @media (max-width:640px){
-    body{display:block;padding:14px;background:#f5f1ed;}
-    .stage{width:100%;min-height:calc(100dvh - 28px);grid-template-columns:1fr;grid-template-rows:auto 1fr;border-radius:20px;}
-    .panel-brand{min-height:230px;padding:23px 24px 25px;}
-    .brand-mark{width:40px;height:40px;border-radius:12px;}
-    .live-pill{margin-top:24px;padding:7px 10px;font-size:9px;}
-    .panel-heading{margin-top:18px;}
-    .panel-heading h1{max-width:360px;margin-bottom:8px;font-size:clamp(27px,8vw,35px);letter-spacing:-1px;}
-    .panel-heading p,.feature-mark,.feature-list,.panel-foot{display:none;}
-    .panel-form{padding:34px 25px 28px;align-items:start;}
-    .form-card h2{font-size:30px;}
-    .form-card .sub{margin-bottom:27px;}
-  }
-  @media (max-width:380px){
-    body{padding:0;}
-    .stage{min-height:100dvh;border:0;border-radius:0;}
-    .panel-brand{min-height:210px;padding-right:20px;padding-left:20px;}
-    .panel-form{padding-right:20px;padding-left:20px;}
-  }
-  @media (max-height:760px){
-    body{display:block;overflow-y:auto;}
-    .stage{margin:0 auto;}
-  }
-  @media (prefers-reduced-motion:reduce){
-    *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;}
-  }
+@property --a{syntax:"<angle>";initial-value:0deg;inherits:false}
+:root{--saturn:url("data:image/png;base64,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");--bg:#12040a;--wine:#5a111c;--red:#d02a3a;--gold:#f4be55;--text:#fbf1ee;--mute:#b79ea1;--ease:cubic-bezier(.22,.8,.3,1)}
+*{box-sizing:border-box;margin:0}
+html,body{min-height:100%}
+body{font-family:"DM Sans",system-ui,sans-serif;color:var(--text);background:radial-gradient(120% 90% at 20% 100%,#3a0c16,var(--bg) 60%);overflow-x:hidden}
+body{min-height:100vh}
+
+/* ===== Background layers ===== */
+#stars{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+.aurora{position:fixed;border-radius:50%;filter:blur(90px);z-index:0;animation:drift 16s ease-in-out infinite alternate}
+.aurora.a{width:520px;height:520px;background:#b3202f;opacity:.35;top:-160px;right:5%}
+.aurora.b{width:420px;height:420px;background:#e08a2e;opacity:.18;bottom:-120px;right:30%;animation-duration:22s;animation-delay:-8s}
+@keyframes drift{to{transform:translate(-80px,70px) scale(1.2)}}
+
+.planet-wrap{position:fixed;left:-170px;bottom:-230px;width:640px;height:640px;z-index:1;pointer-events:none}
+.planet{position:absolute;inset:60px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#ff6a5c,var(--red) 28%,#7d1624 62%,#2a060d);box-shadow:inset -40px -30px 90px rgba(0,0,0,.65),0 0 120px rgba(208,42,58,.35);overflow:hidden}
+.planet::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(100deg,transparent 0 40px,rgba(255,255,255,.05) 40px 70px,transparent 70px 120px);width:200%;animation:surface 40s linear infinite}
+@keyframes surface{to{transform:translateX(-50%)}}
+.ring{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(244,190,85,.4);transform:rotateX(72deg) rotateZ(-20deg);animation:ringspin 30s linear infinite;box-shadow:0 0 30px rgba(244,190,85,.2)}
+.ring i{position:absolute;top:-9px;left:50%;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:var(--gold);box-shadow:0 0 18px var(--gold)}
+@keyframes ringspin{to{transform:rotateX(72deg) rotateZ(340deg)}}
+
+.pills{position:fixed;inset:0;z-index:1;pointer-events:none}
+.pill{position:absolute;transition:transform .8s var(--ease)}
+.cap{display:block;aspect-ratio:396/282;background:var(--saturn) center/contain no-repeat;animation:float var(--d) ease-in-out infinite;animation-delay:var(--dl)}
+@keyframes float{0%,100%{transform:translateY(0) rotate(var(--r))}50%{transform:translateY(-28px) rotate(calc(var(--r) + 16deg))}}
+
+/* ===== Layout ===== */
+.stage{position:relative;z-index:5;min-height:100vh;max-width:1200px;margin:auto;padding:40px 32px;display:grid;grid-template-columns:1.1fr 480px;gap:60px;align-items:center}
+.brand{display:flex;align-items:center;gap:12px;font:700 19px "Bricolage Grotesque";letter-spacing:-.01em}
+.brand .lg{width:58px;aspect-ratio:396/282;background:var(--saturn) center/contain no-repeat;filter:drop-shadow(0 6px 18px rgba(208,42,58,.55));animation:float 7s ease-in-out infinite;--r:-8deg}
+.brand img{display:block;width:100%;height:auto}
+h1{font:800 clamp(38px,5.4vw,68px)/1.02 "Bricolage Grotesque";letter-spacing:-.035em;margin:44px 0 18px;max-width:580px;position:relative}
+.w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.1em;margin-right:.22em}
+.w>span{display:inline-block;transform:translateY(115%);animation:up .9s var(--ease) forwards}
+@keyframes up{to{transform:none}}
+.lead{color:var(--mute);font-size:17px;line-height:1.55;max-width:440px;position:relative;transition:opacity .3s}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:30px;position:relative}
+.chip{padding:10px 16px;border-radius:99px;font-size:14px;font-weight:500;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);backdrop-filter:blur(8px);opacity:0;transform:scale(.6);animation:pop .6s var(--ease) forwards}
+@keyframes pop{to{opacity:1;transform:none}}
+.live{display:flex;gap:10px;align-items:center;margin-top:34px;font-size:13.5px;color:var(--mute);position:relative}
+.dot{width:9px;height:9px;border-radius:50%;background:#5ee08a;animation:ping 2s infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(94,224,138,.6)}70%,100%{box-shadow:0 0 0 10px rgba(94,224,138,0)}}
+
+/* ===== Card ===== */
+.tilt{perspective:1100px}
+.glow{position:relative;padding:1.5px;border-radius:28px;background:conic-gradient(from var(--a),rgba(255,255,255,.1) 0 55%,var(--gold),var(--red),rgba(255,255,255,.1) 95%);animation:turn 6s linear infinite,enter 1s var(--ease) both;transition:transform .15s;box-shadow:0 40px 90px -30px rgba(0,0,0,.8),0 0 80px -20px rgba(208,42,58,.4)}
+@keyframes turn{to{--a:360deg}}
+@keyframes enter{from{opacity:0;transform:translateY(40px) scale(.96)}}
+.card{position:relative;border-radius:27px;padding:38px 36px 30px;background:rgba(24,7,12,.78);backdrop-filter:blur(22px) saturate(1.2);overflow:hidden}
+.card h2{font:700 29px "Bricolage Grotesque";letter-spacing:-.02em}
+.sub{color:var(--mute);font-size:14.5px;line-height:1.5;margin:8px 0 24px;min-height:44px}
+.form{transition:opacity .35s,transform .35s var(--ease)}
+.card.ok .form{opacity:0;transform:scale(.95);pointer-events:none}
+
+.tabs{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:14px;background:rgba(255,255,255,.07);margin-bottom:22px}
+.tabs a{position:relative;z-index:1;display:block;text-align:center;text-decoration:none;color:var(--mute);font:600 14px "DM Sans";padding:11px;border-radius:10px;cursor:pointer;transition:color .3s}
+.tabs a[aria-current]{color:#2a060d}
+.thumb{animation:thumbin .7s .5s var(--ease) backwards;position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:10px;background:var(--gold);transition:transform .45s var(--ease);box-shadow:0 6px 18px rgba(244,190,85,.4)}
+[data-page=employee] .thumb{transform:translateX(100%)}
+.fields.swap{animation:swapin .55s var(--ease)}
+@keyframes swapin{from{opacity:0;transform:translateX(24px)}}
+
+.field{position:relative;margin-bottom:14px}
+.field input{width:100%;height:58px;padding:22px 16px 6px 50px;border-radius:14px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--text);font:500 15.5px "DM Sans";outline:none;transition:border-color .25s,background .25s,box-shadow .25s}
+.field input:focus{border-color:var(--gold);background:rgba(255,255,255,.08);box-shadow:0 0 0 4px rgba(244,190,85,.14)}
+.field label{position:absolute;left:50px;top:19px;color:var(--mute);font-size:15px;pointer-events:none;transition:all .25s var(--ease)}
+.field input:focus~label,.field input:not(:placeholder-shown)~label{top:9px;font-size:11.5px;font-weight:600;color:var(--gold)}
+.field svg{position:absolute;left:16px;top:19px;width:21px;height:21px;fill:none;stroke:var(--mute);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:stroke .25s,transform .4s var(--ease)}
+.field input:focus~svg{stroke:var(--gold);transform:scale(1.15) rotate(-6deg)}
+.field::after{content:"";position:absolute;left:18px;right:18px;bottom:1px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--red));transform:scaleX(0);transition:transform .5s var(--ease)}
+.field:focus-within::after{transform:scaleX(1)}
+.eye{position:absolute;right:10px;top:15px;border:0;background:none;color:var(--mute);font:600 12.5px "DM Sans";padding:6px 9px;border-radius:8px;cursor:pointer}
+.eye:hover{background:rgba(255,255,255,.08);color:var(--text)}
+.field.shake{animation:shake .45s}
+.field.shake input{border-color:var(--red)}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.opts{position:relative;display:flex;justify-content:space-between;align-items:center;font-size:13.5px;color:var(--mute);margin:6px 0 20px}
+.opts label{display:flex;gap:8px;align-items:center;cursor:pointer}
+.opts input{accent-color:var(--gold);width:16px;height:16px}
+a{color:var(--gold);font-weight:600;text-decoration:none}
+a:hover{text-decoration:underline}
+
+.btn{position:relative;width:100%;height:56px;border:0;border-radius:15px;color:#fff;font:700 16px "DM Sans";cursor:pointer;overflow:hidden;background:linear-gradient(135deg,var(--red),#8a1626);box-shadow:0 16px 30px -12px rgba(208,42,58,.8);transition:box-shadow .3s,background .4s}
+.btn:hover{box-shadow:0 20px 40px -10px rgba(208,42,58,.95)}
+.btn::after{content:"";position:absolute;inset:0;width:35%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:translateX(-160%) skewX(-20deg);animation:shine 3.8s ease-in-out 1.6s infinite}
+@keyframes shine{45%,100%{transform:translateX(380%) skewX(-20deg)}}
+.rip{position:absolute;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:rgba(255,255,255,.45);transform:scale(0);animation:rip .65s ease-out forwards;pointer-events:none}
+@keyframes rip{to{transform:scale(16);opacity:0}}
+.btn .spin{display:none;width:22px;height:22px;margin:auto;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.btn.loading .txt{display:none}.btn.loading .spin{display:block}
+.foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.09);font-size:13.5px;color:var(--mute)}
+
+/* ===== Animation notes ===== */
+.tag{display:none;position:absolute;z-index:90;max-width:230px;background:var(--gold);color:#2a060d;font:600 11.5px/1.35 "DM Sans";padding:6px 9px;border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,.4);pointer-events:none;font-style:normal}
+.tag.fx{position:fixed}
+body.notes .tag{display:block}
+
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+@media(max-width:900px){
+  .stage{grid-template-columns:1fr;gap:28px;padding:28px 18px}
+  h1{margin-top:22px}.chips,.live,.lead{display:none}
+  .planet-wrap{width:420px;height:420px;left:-150px;bottom:-170px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}.w>span{transform:none}.chip{opacity:1;transform:none}}
+
+@keyframes thumbin{from{transform:translateX(0)}}
+.login-error{display:none;margin-top:16px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,141,152,.35);background:rgba(208,42,58,.16);color:#ffb7be;font-size:13px;line-height:1.5;animation:swapin .35s}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px}
+.btn:disabled{opacity:.85;cursor:default}
+.btn:disabled::before{content:"";width:18px;height:18px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite}
+.field input:-webkit-autofill~label{top:9px;font-size:11.5px;font-weight:600;color:var(--gold)}
+.field input:-webkit-autofill{-webkit-text-fill-color:var(--text);caret-color:var(--text);box-shadow:0 0 0 100px #2b121a inset;transition:background-color 9999s}
+.foot{margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.09);color:var(--mute);font-size:13px;line-height:1.5;text-align:center}
+.hero{position:relative}
 </style>
 </head>
-<body>
+<body data-page="department">
 
-<div class="stage">
-  <div class="panel-brand">
-    <div>
-      <div class="brand-row">
-        <img src="../assets/images/logo.png" alt="Planet Drugstore" class="brand-mark">
-        <div class="brand-word">PLANET<span>DRUGSTORE</span></div>
-      </div>
-      <div class="live-pill"><span class="live-dot"></span> Secure department sign-in</div>
+<canvas id="stars" aria-hidden="true"></canvas>
+<i class="tag fx" style="left:44vw;top:3vh">Animation: stars twinkle and drift; a shooting star streaks across every few seconds</i>
+<div class="aurora a"></div><div class="aurora b"></div>
+<i class="tag fx" style="left:68vw;top:92vh">Animation: soft color glows drift slowly in the background</i>
+<div class="planet-wrap" aria-hidden="true"><div class="planet"></div><div class="ring"><i></i></div></div>
+<i class="tag fx" style="left:2vw;top:70vh">Animation: planet surface slowly rotates; the gold ring tilts and spins with a moon orbiting it</i>
+<div class="pills" id="pills" aria-hidden="true"></div>
+<i class="tag fx" style="left:40vw;top:16vh">Animation: floating Saturn logos drift, gently sway, and shift with your mouse (parallax)</i>
 
-      <div class="panel-heading">
-        <div class="eyebrow">Department Portal</div>
-        <h1>Your team, one secure workspace.</h1>
-        <p>Manage schedules, deployments, and employee access from one central console.</p>
-      </div>
+<main class="stage">
+  <section class="hero">
+    <div class="brand"><div class="lg" role="img" aria-label="Planet Drugstore"></div>Planet Drugstore</div>
+    <h1 id="hTitle">Your team, one secure workspace.</h1>
+    <i class="tag" style="left:0;top:76px">Animation: headline words slide up one by one on page load</i>
+    <p class="lead">Manage schedules, deployments, and employee access from one central console.</p>
+    <div class="chips"><span class="chip" style="animation-delay:0.50s">Real-time records</span><span class="chip" style="animation-delay:0.62s">Schedules and roster</span><span class="chip" style="animation-delay:0.74s">Employee access</span><i class="tag" style="left:0;top:-30px">Animation: chips pop in one after another</i></div>
+    <div class="live"><span class="dot"></span><span>Secure department sign-in</span><span id="clock"></span>
+      <i class="tag" style="left:0;top:-30px">Animation: green dot pulses; live Manila clock ticks every second</i></div>
+  </section>
 
-      <div class="feature-mark">
-        <img src="../assets/images/logo.png" alt="Planet Drugstore">
-      </div>
-    </div>
+  <section class="tilt">
+    <div class="glow" id="glow">
+      <i class="tag" style="left:20px;top:-34px">Animation: gold-red light travels around the card border; card rises in on load and tilts in 3D toward your mouse</i>
+      <div class="card">
+        <h2>Welcome back</h2>
+        <p class="sub">Sign in with your department account to continue to the system console.</p>
 
-    <div>
-      <ul class="feature-list">
-        <li><span class="dot"></span> Records and entries update in real time.</li>
-        <li><span class="dot"></span> Manage schedules and deployment roster</li>
-        <li><span class="dot"></span> Manage employee accounts and login access</li>
-      </ul>
-      <div class="panel-foot">Planet Drugstore &middot; Records, Scheduling &amp; Employee Management</div>
-    </div>
-  </div>
+        <nav class="tabs" aria-label="Login type">
+          <span class="thumb"></span>
+          <i class="tag" style="right:0;top:-34px">Animation: gold pill slides to the active tab on page load</i>
+          <a href="#" aria-current="page">Department</a>
+          <a href="/fu3hriaj0m">Employee</a>
+        </nav>
 
-  <div class="panel-form">
-    <div class="form-card">
-      <div class="access-pill">Authorized department access</div>
-      <h2>Welcome back</h2>
-      <p class="sub">Sign in with your department account to continue to the system console.</p>
-
-      <form id="loginForm" autocomplete="on">
-        <div class="lfield">
-          <label for="loginEmail">Email</label>
-          <div class="input-wrap">
-            <input type="email" id="loginEmail" placeholder="you@planetdrugstore.ph" required autocomplete="username">
+        <form id="loginForm" autocomplete="on">
+          <div class="field">
+            <i class="tag" style="right:0;top:-30px">Animation: icon wiggles, border glows, underline sweeps in, label floats up on focus; fields shake on error</i>
+            <input type="email" id="loginEmail" autocomplete="username" placeholder=" " required>
+            <label for="loginEmail">Email</label>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v12H3zM3 7l9 7 9-7"/></svg>
           </div>
-        </div>
-        <div class="lfield">
-          <label for="loginPassword">Password</label>
-          <div class="input-wrap pw-wrap">
-            <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
-            <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" aria-pressed="false">SHOW</button>
+          <div class="field">
+            <input type="password" id="loginPassword" placeholder=" " required autocomplete="current-password">
+            <label for="loginPassword">Password</label>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>
+            <button type="button" class="eye" id="pwToggle" aria-label="Show password" aria-pressed="false">SHOW</button>
           </div>
-        </div>
-        <div class="remember-row">
-          <input type="checkbox" id="rememberMe" checked>
-          <label for="rememberMe">Remember me on this device</label>
-        </div>
-        <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
-        <div class="login-error" id="loginError" role="alert" aria-live="polite"></div>
-      </form>
-
-      <div class="form-foot"><a href="/fu3hriaj0m">Employee Login &rarr;</a></div>
-      <div class="form-foot" style="margin-top: 10px; padding-top: 0; border-top: 0;">New employee? <a href="/register">Create an account</a>.</div>
+          <div class="opts"><i class="tag" style="left:0;top:44px">Animation (Sign in button below): shine sweeps across; follows your cursor; ripple on click; spinner while signing in</i>
+            <label><input type="checkbox" id="rememberMe" checked> Remember me on this device</label></div>
+          <button type="submit" class="btn" id="loginBtn">Sign In</button>
+          <div class="login-error" id="loginError" role="alert" aria-live="polite"></div>
+        </form>
+        <div class="foot">Planet Drugstore · Records, Scheduling &amp; Employee Management</div>
+      </div>
     </div>
-  </div>
-</div>
+  </section>
+</main>
 
+<script>
+/* ============ Visual layer (animations only; login logic lives in the module script below) ============ */
+(function(){
+  var $=function(i){return document.getElementById(i)}, reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  /* Add ?notes=1 to the URL to see a label on every animation */
+  if(/[?&]notes=1/.test(location.search))document.body.classList.add('notes');
+
+  /* ANIMATION: headline words slide up one by one on page load */
+  var h=$('hTitle'),txt=h.textContent;h.setAttribute('aria-label',txt);h.textContent='';
+  txt.split(' ').forEach(function(w,i){var s=document.createElement('span');s.className='w';s.setAttribute('aria-hidden','true');s.innerHTML='<span style="animation-delay:'+(i*.09)+'s">'+w+'</span>';h.appendChild(s)});
+
+  /* ANIMATION: live Manila clock ticks every second (green dot pulse is CSS) */
+  function tick(){$('clock').textContent='· '+new Date().toLocaleTimeString('en-PH',{timeZone:'Asia/Manila',hour:'numeric',minute:'2-digit',second:'2-digit'})}
+  tick();setInterval(tick,1000);
+
+  /* ANIMATION: starfield twinkles and drifts; a shooting star streaks across every few seconds */
+  var cv=$('stars'),cx=cv.getContext('2d'),W,H,S=[],sh=null;
+  function size(){W=cv.width=innerWidth;H=cv.height=innerHeight;S=Array.from({length:Math.min(220,W*H/8000|0)},function(){return{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.3+.25,p:Math.random()*6.28,s:Math.random()*.004+.001,v:Math.random()*.12+.02}})}
+  function draw(t){
+    cx.clearRect(0,0,W,H);
+    S.forEach(function(s){if(!reduce){s.x+=s.v;if(s.x>W)s.x=0}cx.fillStyle='rgba(255,236,214,'+(.3+.7*Math.abs(Math.sin(t*s.s+s.p)))+')';cx.beginPath();cx.arc(s.x,s.y,s.r,0,6.28);cx.fill()});
+    if(reduce)return;
+    if(!sh&&Math.random()<.003)sh={x:W*(.3+Math.random()*.7),y:Math.random()*H*.35,l:0};
+    if(sh){sh.x-=13;sh.y+=6.5;sh.l++;var g=cx.createLinearGradient(sh.x,sh.y,sh.x+90,sh.y-45);g.addColorStop(0,'rgba(255,255,255,.9)');g.addColorStop(1,'rgba(255,255,255,0)');cx.strokeStyle=g;cx.lineWidth=2;cx.beginPath();cx.moveTo(sh.x,sh.y);cx.lineTo(sh.x+90,sh.y-45);cx.stroke();if(sh.l>70)sh=null}
+    requestAnimationFrame(draw);
+  }
+  size();addEventListener('resize',size);requestAnimationFrame(draw);
+
+  /* ANIMATION: floating Saturn logos drift, gently sway, and shift with the mouse (parallax) */
+  var pills=$('pills'),P=[];
+  for(var i=0;i<9;i++){
+    var d=.25+Math.random()*.9,w=70+d*110,el=document.createElement('div');el.className='pill';el.dataset.d=d;
+    el.style.left=(Math.random()*90+2)+'%';el.style.top=(Math.random()*84+3)+'%';
+    var cap=document.createElement('div');cap.className='cap';
+    cap.style.cssText='width:'+w+'px;--d:'+(7+Math.random()*7)+'s;--dl:-'+(Math.random()*8)+'s;--r:'+(-25+Math.random()*50)+'deg;opacity:'+(.18+d*.42)+';filter:blur('+(d<.45?2.5:0)+'px) drop-shadow(0 0 22px rgba(208,42,58,.5))';
+    el.appendChild(cap);pills.appendChild(el);P.push(el);
+  }
+  /* ANIMATION: card tilts in 3D toward the mouse */
+  var glow=$('glow');
+  addEventListener('mousemove',function(e){
+    if(reduce)return;
+    var x=e.clientX/innerWidth-.5,y=e.clientY/innerHeight-.5;
+    P.forEach(function(p){var d=+p.dataset.d;p.style.transform='translate('+(-x*d*70)+'px,'+(-y*d*70)+'px)'});
+    glow.style.transform='rotateY('+(x*7)+'deg) rotateX('+(-y*6)+'deg)';
+  });
+
+  /* ANIMATION: Sign in button follows the cursor slightly (magnetic) and ripples on click */
+  var btn=$('loginBtn');
+  btn.addEventListener('mousemove',function(e){if(btn.disabled)return;var r=btn.getBoundingClientRect();btn.style.transform='translate('+((e.clientX-r.left-r.width/2)/r.width*10)+'px,'+((e.clientY-r.top-r.height/2)/r.height*8-2)+'px)'});
+  btn.addEventListener('mouseleave',function(){btn.style.transform=''});
+  btn.addEventListener('click',function(e){var r=btn.getBoundingClientRect(),s=document.createElement('span');s.className='rip';s.style.left=(e.clientX-r.left)+'px';s.style.top=(e.clientY-r.top)+'px';btn.appendChild(s);setTimeout(function(){s.remove()},700)});
+
+  /* ANIMATION: fields shake whenever the login error message appears */
+  var le=$('loginError');
+  new MutationObserver(function(){
+    if(le.style.display!=='block')return;
+    document.querySelectorAll('.field').forEach(function(f){f.classList.remove('shake');void f.offsetWidth;f.classList.add('shake')});
+  }).observe(le,{attributes:true,attributeFilter:['style']});
+})();
+</script>
 <script type="module">
 // ---------- Update/version check ----------
 // This page is a single static HTML file served with no per-deploy hashed
@@ -322,7 +262,7 @@
 // bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
 // doesn't match what this tab is currently running — shows a small banner
 // instead of silently staying on stale code.
-const APP_VERSION = "2026-10-28.6";
+const APP_VERSION = "2026-11-17.1";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -367,10 +307,8 @@ function startVersionWatch() {
 startVersionWatch();
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { doc, getDoc, getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
   import {
-    getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence,
+    getAuth, onAuthStateChanged, signInWithEmailAndPassword, setPersistence,
     browserLocalPersistence, browserSessionPersistence
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -384,10 +322,8 @@ startVersionWatch();
     appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
   };
 
-  const app = initializeApp(getFirebaseConfigForHost(firebaseConfig));
+  const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const db = getFirestore(app);
-  connectLocalFirebaseEmulators({ auth, db });
 
   // Event Schedule has its own fixed account — this login page is shared
   // by IT Admin and the Event Schedule team; we branch on the signed-in
@@ -397,113 +333,22 @@ startVersionWatch();
     'billingdepart@planetdrugstore.ph',
     'informationdepart@planetdrugstore.ph'
   ];
-  const STOCK_REQ_EMAILS = [
-    'adminstockreqmeds@planetdrugstore.ph',
-    'adminstockreqsup@planetdrugstore.ph'
-  ];
-  const VIEWER_EMAIL = 'pdsviewing@planetdrugstore.ph';
-  const DEPARTMENT_EDITOR_EMAIL = 'departments.editor@planetdrugstore.ph';
-  async function landingFor(user){
-    const email = String(user && user.email || '').trim().toLowerCase();
-    if(email === DEPARTMENT_EDITOR_EMAIL) return '/department-editor';
-    if(email === VIEWER_EMAIL){
-      const viewerSession = {
-        staffId: 'PDSVIEWING',
-        name: 'PDS Viewing',
-        email: VIEWER_EMAIL,
-        department: 'Viewer',
-        branch: 'All Departments',
-        role: 'viewer',
-        signedInAt: Date.now()
-      };
-      try{
-        localStorage.setItem('pdEmployeeSession', JSON.stringify(viewerSession));
-        sessionStorage.removeItem('pdEmployeeSession');
-      }catch(error){
-        try{
-          sessionStorage.setItem('pdEmployeeSession', JSON.stringify(viewerSession));
-        }catch(storageError){
-          console.error('Unable to prepare the viewer session:', storageError);
-          throw storageError;
-        }
-      }
-      return '/ed3od6ldsq';
-    }
-    if(STOCK_REQ_EMAILS.includes(email)) return '/r5c8j2ndxa';
-    if(EVENT_SCHEDULE_EMAILS.includes(email)) return '/dkjyg56lvm';
-    if(user?.uid){
-      try{
-        const profile = await getDoc(doc(db, 'eventScheduleAdmins', user.uid));
-        if(profile.exists() && profile.data().role === 'pharmacist'){
-          if(profile.data().active === true && profile.data().deleted !== true){
-            return '/dkjyg56lvm';
-          }
-          await signOut(auth);
-          return '/839jgl8ang?access=revoked';
-        }
-      }catch(error){
-        console.error('Could not verify Pharmacy schedule admin profile:', error);
-      }
-    }
-    return '/8niuis7jih';
+  function isEventScheduleUser(user){
+    return EVENT_SCHEDULE_EMAILS.includes((user && user.email || '').toLowerCase());
+  }
+  const STOCK_REQ_EMAIL = 'adminstockreq@planetdrugstore.ph';
+  function landingFor(user){
+    const email = (user && user.email || '').toLowerCase();
+    if(email === STOCK_REQ_EMAIL) return '/r5c8j2ndxa';
+    return isEventScheduleUser(user) ? '/dkjyg56lvm' : '/8niuis7jih';
   }
 
   const loginForm = document.getElementById('loginForm');
   const loginBtn = document.getElementById('loginBtn');
   const loginError = document.getElementById('loginError');
   const emailInput = document.getElementById('loginEmail');
-  if(new URLSearchParams(location.search).get('access') === 'revoked'){
-    loginError.textContent = 'This Operations account is disabled and cannot access the Event Schedule.';
-    loginError.style.display = 'block';
-  }
   const rememberMe = document.getElementById('rememberMe');
   const REMEMBER_KEY = 'pd_remembered_adminEmail';
-  const LOGIN_LOCK_KEY = 'pd_admin_login_lock';
-  const MAX_LOGIN_FAILURES = 5;
-  const LOGIN_LOCK_MS = 3 * 60 * 1000;
-
-  function getLoginLock(){
-    try{
-      const state = JSON.parse(localStorage.getItem(LOGIN_LOCK_KEY) || '{"failures":0,"lockedUntil":0}');
-      if(state.lockedUntil && state.lockedUntil <= Date.now()){
-        const reset = { failures: 0, lockedUntil: 0 };
-        localStorage.setItem(LOGIN_LOCK_KEY, JSON.stringify(reset));
-        return reset;
-      }
-      return state;
-    }catch(err){ return { failures: 0, lockedUntil: 0 }; }
-  }
-
-  function showLoginLock(){
-    const remaining = getLoginLock().lockedUntil - Date.now();
-    if(remaining <= 0){
-      loginBtn.disabled = false;
-      loginBtn.textContent = 'Sign In';
-      if(loginError.textContent.startsWith('Too many failed attempts.')) loginError.style.display = 'none';
-      return false;
-    }
-    const seconds = Math.ceil(remaining / 1000);
-    loginBtn.disabled = true;
-    loginBtn.textContent = `Try again in ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-    loginError.textContent = 'Too many failed attempts. Sign-in is blocked for 3 minutes.';
-    loginError.style.display = 'block';
-    return true;
-  }
-
-  function recordLoginFailure(){
-    const state = getLoginLock();
-    state.failures += 1;
-    if(state.failures >= MAX_LOGIN_FAILURES) state.lockedUntil = Date.now() + LOGIN_LOCK_MS;
-    try{ localStorage.setItem(LOGIN_LOCK_KEY, JSON.stringify(state)); }catch(err){}
-    return state.failures >= MAX_LOGIN_FAILURES;
-  }
-
-  function clearLoginFailures(){
-    try{ localStorage.removeItem(LOGIN_LOCK_KEY); }catch(err){}
-  }
-
-  showLoginLock();
-  setInterval(showLoginLock, 1000);
 
   // Show/Hide password
   const pwInput = document.getElementById('loginPassword');
@@ -535,12 +380,11 @@ startVersionWatch();
   // between this page and the landing page in a loop.
   await auth.authStateReady();
   if(auth.currentUser){
-    window.location.replace(await landingFor(auth.currentUser));
+    window.location.replace(landingFor(auth.currentUser));
   }
 
   loginForm.addEventListener('submit', async (e)=>{
     e.preventDefault();
-    if(showLoginLock()) return;
     loginError.style.display = 'none';
     loginBtn.disabled = true;
     loginBtn.textContent = 'Signing in…';
@@ -557,20 +401,13 @@ startVersionWatch();
       }else{
         localStorage.removeItem(REMEMBER_KEY);
       }
-      clearLoginFailures();
-      window.location.href = await landingFor(auth.currentUser);
+      window.location.href = landingFor(auth.currentUser);
     }catch(err){
       PDLoader.hide();
-      const code = err && err.code || '';
-      const credentialFailure = code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found');
-      const locked = credentialFailure && recordLoginFailure();
-      loginError.textContent = locked ? 'Too many failed attempts. Sign-in is blocked for 3 minutes.' : friendlyAuthError(err);
+      loginError.textContent = friendlyAuthError(err);
       loginError.style.display = 'block';
-      if(locked) showLoginLock();
-      else{
-        loginBtn.disabled = false;
-        loginBtn.textContent = 'Sign In';
-      }
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Sign In';
     }
   });
 

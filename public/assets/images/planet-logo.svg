@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 60" fill="none">
+  <defs>
+    <radialGradient id="planet" cx="35%" cy="28%" r="78%">
+      <stop offset="0" stop-color="#ed2b1c"/>
+      <stop offset="1" stop-color="#c91a10"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="7" y1="39" x2="65" y2="22" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#c3170e"/>
+      <stop offset=".52" stop-color="#e92717"/>
+      <stop offset="1" stop-color="#d21c12"/>
+    </linearGradient>
+  </defs>
+  <circle cx="35" cy="31" r="20" fill="url(#planet)"/>
+  <path d="M7 36.5 64 20.7l2 4.1L9 40.6l-2-4.1Z" fill="url(#ring)"/>
+</svg>
