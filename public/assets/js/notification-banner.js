@@ -1,9 +1,8 @@
 let activeBannerResolver = null;
 
 window.showScheduleTopBanner = (notification, message, onOpen) => new Promise(resolve => {
-	if (activeBannerResolver) activeBannerResolver();
+	if (activeBannerResolver) activeBannerResolver("replaced");
 	document.getElementById("scheduleTopBanner")?.remove();
-	activeBannerResolver = resolve;
 
 	const isCancelled = notification && notification.type === "eventCancelled";
 	const isReinstated = notification && notification.type === "eventReinstated";
@@ -42,18 +41,19 @@ window.showScheduleTopBanner = (notification, message, onOpen) => new Promise(re
 
 	const actions = document.createElement("div");
 	actions.style.cssText = "display:flex;gap:8px;align-items:center;justify-content:flex-end";
-	const finish = () => {
-		if (activeBannerResolver === resolve) activeBannerResolver = null;
+	const finish = result => {
+		if (activeBannerResolver === finish) activeBannerResolver = null;
 		banner.remove();
-		resolve();
+		resolve(result);
 	};
+	activeBannerResolver = finish;
 	if (typeof onOpen === "function") {
 		const viewButton = document.createElement("button");
 		viewButton.type = "button";
 		viewButton.textContent = "View event";
 		viewButton.style.cssText = "border:0;border-radius:4px;padding:8px 11px;background:#18212b;color:#fff;font:600 13px 'IBM Plex Sans',system-ui,sans-serif;cursor:pointer";
 		viewButton.addEventListener("click", () => {
-			try { onOpen(); } finally { finish(); }
+			try { onOpen(); } finally { finish("open"); }
 		});
 		actions.appendChild(viewButton);
 	}
@@ -62,7 +62,7 @@ window.showScheduleTopBanner = (notification, message, onOpen) => new Promise(re
 	dismissButton.textContent = "Dismiss";
 	dismissButton.setAttribute("aria-label", "Dismiss schedule notification");
 	dismissButton.style.cssText = "border:1px solid #aab3bd;border-radius:4px;padding:8px 11px;background:#fff;color:#18212b;font:600 13px 'IBM Plex Sans',system-ui,sans-serif;cursor:pointer";
-	dismissButton.addEventListener("click", finish);
+	dismissButton.addEventListener("click", () => finish("dismiss"));
 	actions.appendChild(dismissButton);
 
 	banner.append(content, actions);

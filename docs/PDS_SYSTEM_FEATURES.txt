@@ -1,0 +1,160 @@
+PLANET DRUGSTORE SYSTEM
+IMPLEMENTED FEATURE INVENTORY
+As of 2026-10-17
+
+TABLE OF CONTENTS
+-----------------
+1.  
+2. Event Scheduling
+3. Stock Request (SR#)
+4. Peripheral Receiving Form
+5. IT Admin Console
+6. Notifications and Device Support
+7. PDS Operations Teams Bot
+8. Important Behavior Notes
+
+Scope
+-----
+This document summarizes user-facing features found in the current workspace. It covers the web system, event scheduling, stock requests, peripheral receiving, admin tools, notifications, Android companion, and Teams operations bot. It describes implemented behavior, not planned features.
+
+1. ACCESS, ACCOUNTS, AND HOME PAGES
+-----------------------------------
+- IT/admin sign-in and employee sign-in.
+- Employee self-registration with name, email, department, automatically derived branch, assigned site name, Staff ID, and password.
+- Admin/IT employee account registration and account management through the admin console.
+- Separate role-specific schedule pages for Pharmacist, Billing, and IT/Information.
+- Employee home page links to the event schedule, peripheral receiving form, and eligible Stock Request page.
+- Stock Request and Event Schedule use separate account/login flows; there is no shared single sign-on in the current system.
+
+Primary web routes:
+- IT/Admin landing: /8niuis7jih
+- IT/Admin console: /2mp58eri7h
+- Admin sign-in: /839jgl8ang
+- Employee sign-in: /fu3hriaj0m
+- Employee self-signup: /k5v3z8jyla
+- Employee home: /ed3od6ldsq
+- Employee event schedule: /47fto0gim6
+- Event schedule landing: /dkjyg56lvm
+- Pharmacist schedule: /tz8lc2ct4y
+- Billing schedule: /jszdttqedv
+- IT/Information schedule: /51qx617jve
+- Stock Request landing: /r5c8j2ndxa
+- Employee Stock Request: /w6n3d8ycrq
+- Stock Request admin: /h9b4t2zvfe
+- Peripheral receiving form: /gui2dtdgtb
+- Leaderboard: /30k1jkejh3
+
+2. EVENT SCHEDULING
+-------------------
+Pharmacist and department-head tools:
+- Create event dates and site cards with branch/region, event type, location, date, time, and cutoff.
+- Assign Event Team roles and Store Reliever coverage, including reliever store and start time.
+- Add and remove staffing rows, assign employees, and update a published site without replacing unrelated site assignments.
+- Save drafts separately from sending/publishing the employee roster.
+- Filter and organize the schedule by branch, date, and status; review open roles, staffing counts, and site status.
+- Attach a site photo and view schedule coverage summaries.
+- Cancel and reinstate an event; remove a site or date and notify affected employees.
+- Mark a published site inactive or active again. Existing assignments remain; new employee signups are blocked while inactive.
+- The inactive/reactivated action is immediately saved after confirmation; it does not require Save Draft.
+- Predictive site-name picker combines fuzzy text matching with a smoothed selection-frequency prior. For example, "mpro" can match "AMPARO". Selection counts are stored locally in the browser/device.
+- A cross-branch signup confirmation appears when an employee's assigned branch differs from the event branch.
+- A Store Reliever confirmation warns when the employee's branch differs from the reliever store branch; the store name is checked first, with event branch as fallback.
+- Pharmacy Assistant Event Team signup can offer to create an open Store Reliever row for the employee's registered store.
+- Event reminders can be sent to assigned employees.
+- Pharmacist department notes can be sent to assigned employees.
+
+Employee schedule:
+- View published event sites grouped by date and branch, with event details, open roles, roster names, and staffing status.
+- Filter/sort sites and view cutoff countdowns.
+- Claim an open role allowed for the employee's department; a transaction prevents two employees claiming the same slot.
+- Employees can have only one active schedule assignment at a time; leave an existing slot before claiming another.
+- Role rules restrict claims to eligible departments. Store Reliever slots support Pharmacy Assistant and Billing employees.
+- Employees can leave their own assignment when allowed.
+- Inactive or cancelled sites and sites past cutoff cannot accept new signups.
+- Assignment changes, removals, branch/date/event changes, event cancellation/reinstatement, site inactive/reactivated changes, and department notes appear in the notification experience.
+- Notification history is shown only to the employee or head who is an intended recipient; clearing a history item affects that viewer's list, not other users' records.
+- Leaderboard displays participation based on schedule assignments.
+
+Site inactive/reactivated notifications:
+- Assigned employees receive employee-specific notices and are notified again on reactivation.
+- Pharmacist, Billing, and IT/Information heads receive separate department-facing notices.
+- In-app history keeps separate entries for inactive and active-again changes.
+
+3. STOCK REQUEST (SR#)
+----------------------
+Employee Stock Request:
+- Submit one or more numeric SR# values for an eligible request day.
+- The form is available only on active days assigned to the employee and before the cutoff.
+- Edit or remove a submitted request while the request window is open; an edit requires a reason.
+- View request status and personal SR# history/search.
+- Requests lock when the cutoff passes; status reflects completion/closure.
+
+Stock Request admin:
+- Assign allowed request weekdays to employees.
+- Set and confirm a cutoff time, activate a request day, close early, or reopen by setting a future cutoff.
+- Review incoming requests and filter by branch/employee/day.
+- Remove or unblock requests, mark work complete, and manage request status.
+- Search SR# history and clean up older records.
+- Receive notifications for stock-day activation/closure, schedule changes, cutoff changes, and employee request changes.
+
+Base eligible employee departments are Billing, Pharmacist, and Pharmacy Assistant. Department/day assignment and the active request window are also required.
+
+4. PERIPHERAL RECEIVING FORM
+----------------------------
+Admin/IT form setup:
+- Configure venue/location, event type, usable date, and the peripheral item list with starting quantities.
+- Edit existing form item lists and restore the default item list.
+- Generate a Control Number together with the saved form setup; edit an existing control number without replacing it.
+- Create/print mission tags with branch and mission details.
+- Manage Control Numbers by state: unused, used, locked, and cancelled; restore eligible numbers and review their history.
+- Unused Control Numbers older than seven days are hidden from the unused list but remain on file.
+
+Employee receiving/returning workflow:
+- Load a form using an IT/Admin-issued Control Number; the number is checked for validity, usable date, and state before it is claimed.
+- Record before-use issued/received quantities, condition, and remarks for damage, missing items, or other notes.
+- Record after-use return quantities, condition, and remarks.
+- Record prepared, returned, and received-by details including date/time, name, department, and contact number.
+- Capture signatures and photo attachments for before/after and Received By sections.
+- Save the form and print a receiving copy.
+- Join another employee's live fill-up using a join request; the host can accept or decline. Accepted collaborators share the live draft, including fields, item rows, signatures, and attachments.
+- Review personal peripheral logs in a calendar and open saved/joined entries by date.
+- Remember previously used venue, returner, and receiver details to speed up repeat forms.
+
+5. IT ADMIN CONSOLE
+-------------------
+- Browse peripheral entries in table or card view.
+- Search entries by Control Number, venue, or filler; filter/view entries by calendar date.
+- Open entry details, edit where permitted, or delete entries.
+- Register employees, search recently registered employees, change passwords, and manage account records.
+- Configure the Peripheral Form item list and generate/edit Control Numbers.
+- Review unused, used, locked, and cancelled Control Numbers; restore eligible numbers and inspect their status/reason.
+- Access the Ordering System and calendar from the console.
+- Scan and clean up old notifications.
+- A protected danger zone provides a permanent delete-all-data operation with confirmation.
+
+6. NOTIFICATIONS AND DEVICE SUPPORT
+-----------------------------------
+- Web push notifications are opt-in per browser/device and require notification permission.
+- The push worker routes schedule and Stock Request alerts to targeted employees or department-head roles.
+- Supported alerts include schedule assignments/changes, event reminders, event state changes, site inactive/reactivated status, stock request opening/closing/cutoff changes, and request status changes.
+- Event inactive/reactivated alerts go only to the site-assigned employee IDs and the configured schedule heads; employee and head messages differ.
+- Notification history supports unread state and per-viewer clearing without deleting another user's history.
+- The Android PDS Schedule Alarm app signs in employees by Staff ID and heads by their role account, registers device push tokens, and opens the correct schedule/admin destination.
+- Android event reminders can use a high-importance notification and the device alarm sound, with a Stop alarm action. Android battery/background settings and notification permission can affect delivery.
+- Android head WebView access uses a short-lived, one-use authentication handoff through the push worker.
+
+7. PDS OPERATIONS TEAMS BOT
+---------------------------
+- Accept a prefilled Contact Admin report in a private Teams chat.
+- Validate the tenant and require Name, Role, Event Site, Date, and a non-empty Concern.
+- Post the report to the configured PDS Operations channel only after the employee sends it.
+- Reply to the employee when the report is accepted, rejected as incomplete, unavailable because the channel is not configured, or fails to post.
+- The bot does not submit a report automatically. Current Contact Admin links open the configured Teams channel; they do not open a prefilled bot chat.
+
+8. IMPORTANT BEHAVIOR NOTES
+---------------------------
+- Event Schedule and Stock Request have separate account/login flows; do not assume a single shared dashboard login.
+- Push delivery depends on user opt-in, device/browser support, network/provider configuration, and the push worker being available.
+- Site-name selection frequency is learned per local browser/device; it is not a shared model across employees.
+- Event roster drafts are separate from employee-published schedules. A newly saved draft is not automatically a published employee roster.
+- Peripheral Control Numbers and SR#s are separate workflows and should not be treated as one inventory database.

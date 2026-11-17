@@ -5,7 +5,7 @@ const AUTH_HANDOFF_URL = "https://peripherals-push.pds-peripherals.workers.dev/a
 export async function consumeNativeAuthHandoff(auth) {
   const url = new URL(window.location.href);
   const handoffCode = url.searchParams.get("authHandoff");
-  if (!handoffCode) return;
+  if (!handoffCode) return false;
 
   url.searchParams.delete("authHandoff");
   window.history.replaceState(null, "", url);
@@ -27,8 +27,9 @@ export async function consumeNativeAuthHandoff(auth) {
       throw new Error("The authentication handoff did not return a Firebase token.");
     }
     await signInWithCustomToken(auth, result.customToken);
+    return true;
   } catch (error) {
     console.error("Could not sign in from the Android app:", error);
-    window.alert("Could not sign in from the Android app. Please reopen this page from the app or sign in again.");
+    throw error;
   }
 }

@@ -3,62 +3,515 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function isAdmin() {
       return request.auth != null
-        && request.auth.token.email != null
-        && !request.auth.token.email.matches('.*@staff[.]planetdrugstore[.]local$');
+        && request.auth.token.get('email', '') is string
+        && request.auth.token.get('email', '').matches('^.+@.+$')
+        && !request.auth.token.get('email', '').matches('.*@staff[.]planetdrugstore[.]local$')
+        && request.auth.token.get('email', '').lower() != 'departments.editor@planetdrugstore.ph'
+        && !isViewer();
+    }
+    function isViewer() {
+      return request.auth != null
+        && request.auth.token.get('email', '').lower() == 'pdsviewing@planetdrugstore.ph';
+    }
+    function isDepartmentDirectoryEditor() {
+      return request.auth != null
+        && request.auth.token.get('email', '').lower() == 'departments.editor@planetdrugstore.ph'
+        && request.auth.token.firebase.sign_in_provider == 'password';
+    }
+    function isBillingDailyTaskProfileUser() {
+      return request.auth != null
+        && (request.auth.token.get('email', '').lower() == 'billingdepart@planetdrugstore.ph'
+          || (request.auth.token.get('employee', false) == true
+            && request.auth.token.firebase.sign_in_provider == 'custom'
+            && request.auth.token.get('staffId', '') is string
+            && exists(/databases/$(database)/documents/employees/$(request.auth.token.staffId.lower()))
+            && get(/databases/$(database)/documents/employees/$(request.auth.token.staffId.lower())).data.get('department', '')
+              .lower().matches('^billing( north| south| manila)?$')));
+    }
+    function ownsDailyTaskProfilePhoto(profileKey) {
+      return isBillingDailyTaskProfileUser()
+        && ((profileKey == 'billing-head'
+            && request.auth.token.get('email', '').lower() == 'billingdepart@planetdrugstore.ph')
+          || (request.auth.token.get('employee', false) == true
+            && request.auth.token.get('staffId', '') is string
+            && request.auth.token.staffId.lower() == profileKey));
+    }
+    function isProfiledEmployee() {
+      return request.auth != null
+        && !isViewer()
+        && request.auth.token.get('employee', false) == true
+        && request.auth.token.firebase.sign_in_provider == 'custom'
+        && request.auth.token.get('staffId', '') is string
+        && exists(/databases/$(database)/documents/employees/$(request.auth.token.staffId.lower()));
+    }
+    function canReadRosterProfilePhotos() {
+      return request.auth != null
+        && (isProfiledEmployee()
+          || request.auth.token.get('email', '').lower() in [
+            'pharmacistdepart@planetdrugstore.ph',
+            'billingdepart@planetdrugstore.ph',
+            'informationdepart@planetdrugstore.ph'
+          ]
+          || (exists(/databases/$(database)/documents/eventScheduleAdmins/$(request.auth.uid))
+            && get(/databases/$(database)/documents/eventScheduleAdmins/$(request.auth.uid)).data.get('active', false) == true
+            && get(/databases/$(database)/documents/eventScheduleAdmins/$(request.auth.uid)).data.get('role', '') == 'pharmacist'));
+    }
+    function ownsRosterProfilePhoto(profileKey) {
+      return isProfiledEmployee()
+        && request.auth.token.staffId.lower() == profileKey;
+    }
+    function validSelfRegistration(staffId) {
+      let employee = request.resource.data;
+      return employee.keys().hasOnly([
+          'name', 'email', 'staffId', 'department', 'branch', 'siteName',
+          'passwordHash', 'createdAt', 'createdBy'
+        ])
+        && employee.keys().hasAll([
+          'name', 'email', 'staffId', 'department', 'branch', 'siteName',
+          'passwordHash', 'createdAt', 'createdBy'
+        ])
+        && employee.name is string
+        && employee.name.size() >= 2
+        && employee.name.size() <= 120
+        && employee.email is string
+        && employee.email.size() <= 254
+        && employee.email.matches('^.+@.+[.].+$')
+        && employee.staffId is string
+        && employee.staffId.size() >= 1
+        && employee.staffId.size() <= 40
+        && employee.staffId.matches('^[A-Za-z0-9._-]+$')
+        && staffId == employee.staffId.lower()
+        && employee.department in [
+          'IT NORTH', 'IT SOUTH',
+          'BILLING NORTH', 'BILLING SOUTH', 'BILLING MANILA',
+          'PHARMACIST NORTH', 'PHARMACIST SOUTH',
+          'Pharmacy Assistant NORTH', 'Pharmacy Assistant SOUTH'
+        ]
+        && employee.branch in ['north', 'south', 'manila']
+        && ((employee.department in [
+              'IT NORTH', 'BILLING NORTH', 'PHARMACIST NORTH',
+              'Pharmacy Assistant NORTH'
+            ] && employee.branch == 'north')
+          || (employee.department in [
+              'IT SOUTH', 'BILLING SOUTH', 'PHARMACIST SOUTH',
+              'Pharmacy Assistant SOUTH'
+            ] && employee.branch == 'south')
+          || (employee.department == 'BILLING MANILA' && employee.branch == 'manila'))
+        && employee.siteName is string
+        && employee.siteName.size() >= 1
+        && employee.siteName.size() <= 120
+        && employee.passwordHash is string
+        && employee.passwordHash.matches('^[a-f0-9]{64}$')
+        && employee.createdAt == request.time
+        && employee.createdBy == 'self-registration'
+        && exists(/databases/$(database)/documents/config/employeeRegistration)
+        && get(/databases/$(database)/documents/config/employeeRegistration).data.get('registrationEnabled', false) == true;
+    }
+    function isPharmacyScheduleOwner() {
+      return request.auth != null
+        && request.auth.token.get('email', '') == 'pharmacistdepart@planetdrugstore.ph';
+    }
+    function isBillingScheduleOwner() {
+      return request.auth != null
+        && request.auth.token.get('email', '') == 'billingdepart@planetdrugstore.ph';
+    }
+    function isPharmacistScheduleAdmin() {
+      return request.auth != null
+        && !isViewer()
+        && (isPharmacyScheduleOwner()
+          || (exists(/databases/$(database)/documents/eventScheduleAdmins/$(request.auth.uid))
+            && get(/databases/$(database)/documents/eventScheduleAdmins/$(request.auth.uid)).data.get('active', false) == true
+            && get(/databases/$(database)/documents/eventScheduleAdmins/$(request.auth.uid)).data.get('role', '') == 'pharmacist'));
+    }
+    function pharmacistPresenceNameMatches() {
+      return isPharmacyScheduleOwner()
+        ? request.resource.data.name in ['Operations', 'Pharmacist']
+        : request.resource.data.name == get(/databases/$(database)/documents/eventScheduleAdmins/$(request.auth.uid)).data.name;
     }
 
     match /employees/{staffId} {
       allow get: if true;
-      allow list: if isAdmin();
-      allow create: if !exists(/databases/$(database)/documents/employees/$(staffId))
-                    && request.resource.data.staffId is string
-                    && request.resource.data.name is string
-                    && request.resource.data.email is string
-                    && request.resource.data.department is string
-                    && request.resource.data.passwordHash is string;
+      allow list: if isAdmin() || isViewer();
+      allow create: if !isViewer() && (isAdmin() || validSelfRegistration(staffId));
       allow update, delete: if isAdmin();
     }
 
+    match /departmentDirectory/{departmentId} {
+      function validDepartmentEntry() {
+        return departmentId in [
+            'it', 'purchasing', 'hr', 'warehouse', 'billing', 'accounting', 'operation'
+          ]
+          && request.resource.data.keys().hasOnly([
+            'head', 'email', 'phone', 'location', 'hours', 'updatedAt', 'updatedBy'
+          ])
+          && request.resource.data.keys().hasAll([
+            'head', 'email', 'phone', 'location', 'hours', 'updatedAt', 'updatedBy'
+          ])
+          && request.resource.data.head is string
+          && request.resource.data.head.size() <= 120
+          && request.resource.data.email is string
+          && request.resource.data.email.size() <= 254
+          && request.resource.data.phone is string
+          && request.resource.data.phone.size() <= 60
+          && request.resource.data.location is string
+          && request.resource.data.location.size() <= 160
+          && request.resource.data.hours is string
+          && request.resource.data.hours.size() <= 120
+          && request.resource.data.updatedAt == request.time
+          && request.resource.data.updatedBy == request.auth.token.email;
+      }
+      allow read: if true;
+      allow create, update: if isDepartmentDirectoryEditor() && validDepartmentEntry();
+      allow delete: if false;
+    }
+
+    function validCustomDepartmentTeamPositionId(positionId) {
+      return positionId.matches('^it-custom-[a-f0-9]{32}$');
+    }
+
+    match /departmentTeamPositions/{positionId} {
+      function validDepartmentTeamPosition() {
+        let position = request.resource.data;
+        return position.keys().hasOnly([
+            'department', 'team', 'level', 'label', 'createdAt', 'createdBy'
+          ])
+          && position.keys().hasAll([
+            'department', 'team', 'level', 'label', 'createdAt', 'createdBy'
+          ])
+          && position.department == 'it'
+          && position.team in [
+            'System Administration', 'Infrastructure', 'User Support & Service'
+          ]
+          && position.level in ['Manager', 'Team Leader', 'Senior', 'Junior']
+          && position.label is string
+          && position.label.size() > 0
+          && position.label.size() <= 80
+          && position.createdAt == request.time
+          && position.createdBy == request.auth.token.email;
+      }
+      allow get, list: if true;
+      allow create: if isDepartmentDirectoryEditor()
+        && validCustomDepartmentTeamPositionId(positionId)
+        && validDepartmentTeamPosition();
+      allow update, delete: if false;
+    }
+
+    match /departmentTeamProfiles/{profileId} {
+      function validDepartmentTeamProfile() {
+        return (profileId in [
+            'it-head',
+            'it-sys-ad-team-leader', 'it-sys-ad-senior-1',
+            'it-infrastructure-team-leader', 'it-infrastructure-junior-1',
+            'it-user-support-team-leader',
+            'it-user-support-senior-1', 'it-user-support-senior-2', 'it-user-support-senior-3',
+            'it-user-support-junior-1', 'it-user-support-junior-2', 'it-user-support-junior-3',
+            'it-user-support-junior-4', 'it-user-support-junior-5', 'it-user-support-junior-6',
+            'it-user-support-junior-7'
+          ]
+          || (validCustomDepartmentTeamPositionId(profileId)
+            && exists(/databases/$(database)/documents/departmentTeamPositions/$(profileId))))
+          && request.resource.data.keys().hasOnly([
+            'department', 'name', 'bio', 'photoData', 'updatedAt', 'updatedBy'
+          ])
+          && request.resource.data.keys().hasAll([
+            'department', 'name', 'bio', 'photoData', 'updatedAt', 'updatedBy'
+          ])
+          && request.resource.data.department == 'it'
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() <= 120
+          && request.resource.data.bio is string
+          && request.resource.data.bio.size() <= 240
+          && (request.resource.data.photoData == null
+            || (request.resource.data.photoData is string
+              && request.resource.data.photoData.size() <= 180000
+              && request.resource.data.photoData.matches('^data:image/jpeg;base64,[A-Za-z0-9+/]+=*$')))
+          && request.resource.data.updatedAt == request.time
+          && request.resource.data.updatedBy == request.auth.token.email;
+      }
+      allow get: if true;
+      allow list: if false;
+      allow create, update: if isDepartmentDirectoryEditor() && validDepartmentTeamProfile();
+      allow delete: if false;
+    }
+
+    match /userProfiles/{uid} {
+      function validUserProfile() {
+        return request.resource.data.keys().hasOnly([
+            'displayName', 'about', 'photoData', 'updatedAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'displayName', 'about', 'photoData', 'updatedAt'
+          ])
+          && request.resource.data.displayName is string
+          && request.resource.data.displayName.size() > 0
+          && request.resource.data.displayName.size() <= 120
+          && request.resource.data.about is string
+          && request.resource.data.about.size() <= 300
+          && (request.resource.data.photoData == null
+            || (request.resource.data.photoData is string
+              && request.resource.data.photoData.size() <= 180000
+              && request.resource.data.photoData.matches('^data:image/jpeg;base64,[A-Za-z0-9+/]+=*$')))
+          && request.resource.data.updatedAt == request.time;
+      }
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list: if false;
+      allow create, update: if request.auth != null
+        && !isViewer()
+        && request.auth.uid == uid
+        && validUserProfile();
+      allow delete: if false;
+    }
+
+    match /dailyTaskProfilePhotos/{profileKey} {
+      function validProfilePhoto() {
+        return request.resource.data.keys().hasOnly(['photoData', 'displayName', 'updatedAt'])
+          && request.resource.data.keys().hasAll(['photoData', 'updatedAt'])
+          && (request.resource.data.photoData == null
+            || (request.resource.data.photoData is string
+              && request.resource.data.photoData.size() <= 180000
+              && request.resource.data.photoData.matches('^data:image/jpeg;base64,[A-Za-z0-9+/]+=*$')))
+          && (!request.resource.data.keys().hasAny(['displayName'])
+            || (request.resource.data.displayName is string
+              && request.resource.data.displayName.size() > 0
+              && request.resource.data.displayName.size() <= 120))
+          && request.resource.data.updatedAt == request.time;
+      }
+      allow get: if canReadRosterProfilePhotos() || isViewer();
+      allow list: if false;
+      allow create, update: if request.auth != null
+        && profileKey.matches('^[a-z0-9._-]+$')
+        && (ownsDailyTaskProfilePhoto(profileKey) || ownsRosterProfilePhoto(profileKey))
+        && validProfilePhoto();
+      allow delete: if false;
+    }
+
+    match /billingEmployeeConversations/{staffId} {
+      function validParticipants() {
+        return staffId == staffId.lower()
+          && exists(/databases/$(database)/documents/employees/$(staffId))
+          && request.resource.data.staffId == staffId
+          && request.resource.data.employeeName
+            == get(/databases/$(database)/documents/employees/$(staffId)).data.name
+          && request.resource.data.department
+            == get(/databases/$(database)/documents/employees/$(staffId)).data.department
+          && request.resource.data.department.lower()
+            in ['billing north', 'billing south', 'billing manila'];
+      }
+      function validMessageMetadata() {
+        return request.resource.data.lastMessage is string
+          && request.resource.data.lastMessage.size() <= 1000
+          && request.resource.data.lastMessageAt == request.time
+          && request.resource.data.lastMessageBy in ['billingHead', 'employee']
+          && request.resource.data.unreadForEmployee is bool
+          && request.resource.data.unreadForHead is bool
+          && request.resource.data.updatedAt == request.time;
+      }
+      allow read: if isViewer() || isBillingScheduleOwner() || dailyTaskEmployee(staffId);
+      allow list: if isBillingScheduleOwner();
+      allow create: if isBillingScheduleOwner()
+        && request.resource.data.keys().hasOnly([
+          'staffId', 'employeeName', 'department', 'createdAt', 'updatedAt',
+          'lastMessage', 'lastMessageAt', 'lastMessageBy', 'unreadForEmployee',
+          'unreadForHead'
+        ])
+        && request.resource.data.keys().hasAll([
+          'staffId', 'employeeName', 'department', 'createdAt', 'updatedAt',
+          'lastMessage', 'lastMessageAt', 'lastMessageBy', 'unreadForEmployee',
+          'unreadForHead'
+        ])
+        && validParticipants()
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.lastMessage == ''
+        && request.resource.data.lastMessageAt == request.time
+        && request.resource.data.lastMessageBy == ''
+        && request.resource.data.unreadForEmployee == false
+        && request.resource.data.unreadForHead == false;
+      allow update: if (isBillingScheduleOwner() || dailyTaskEmployee(staffId))
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'lastMessage', 'lastMessageAt', 'lastMessageBy',
+          'unreadForEmployee', 'unreadForHead', 'updatedAt'
+        ])
+        && validMessageMetadata()
+        && ((isBillingScheduleOwner()
+            && request.resource.data.lastMessageBy == 'billingHead'
+            && request.resource.data.unreadForEmployee == true
+            && request.resource.data.unreadForHead == false)
+          || (dailyTaskEmployee(staffId)
+            && request.resource.data.lastMessageBy == 'employee'
+            && request.resource.data.unreadForEmployee == false
+            && request.resource.data.unreadForHead == true));
+      allow update: if isBillingScheduleOwner()
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['unreadForHead', 'updatedAt'])
+        && request.resource.data.unreadForHead == false
+        && request.resource.data.updatedAt == request.time;
+      allow update: if dailyTaskEmployee(staffId)
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['unreadForEmployee', 'updatedAt'])
+        && request.resource.data.unreadForEmployee == false
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isBillingScheduleOwner()
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['billingHeadActiveAt'])
+        && request.resource.data.billingHeadActiveAt == request.time;
+      allow update: if dailyTaskEmployee(staffId)
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['employeeActiveAt'])
+        && request.resource.data.employeeActiveAt == request.time;
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        function parentConversationPath() {
+          return /databases/$(database)/documents/billingEmployeeConversations/$(staffId);
+        }
+        allow read: if isViewer() || isBillingScheduleOwner() || dailyTaskEmployee(staffId);
+        allow create: if exists(parentConversationPath())
+          && request.resource.data.keys().hasOnly([
+            'senderRole', 'senderId', 'body', 'sentAt', 'readAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'senderRole', 'senderId', 'body', 'sentAt', 'readAt'
+          ])
+          && request.resource.data.body is string
+          && request.resource.data.body.size() > 0
+          && request.resource.data.body.size() <= 1000
+          && request.resource.data.sentAt == request.time
+          && request.resource.data.readAt == null
+          && ((isBillingScheduleOwner()
+              && request.resource.data.senderRole == 'billingHead'
+              && request.resource.data.senderId == request.auth.token.get('email', ''))
+            || (dailyTaskEmployee(staffId)
+              && request.resource.data.senderRole == 'employee'
+              && request.resource.data.senderId == request.auth.token.staffId));
+        allow update: if isBillingScheduleOwner()
+          && resource.data.senderRole == 'employee'
+          && resource.data.readAt == null
+          && request.resource.data.keys().hasOnly([
+            'senderRole', 'senderId', 'body', 'sentAt', 'readAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'senderRole', 'senderId', 'body', 'sentAt', 'readAt'
+          ])
+          && request.resource.data.senderRole == resource.data.senderRole
+          && request.resource.data.senderId == resource.data.senderId
+          && request.resource.data.body == resource.data.body
+          && request.resource.data.sentAt == resource.data.sentAt
+          && request.resource.data.readAt is timestamp;
+        allow update: if dailyTaskEmployee(staffId)
+          && resource.data.senderRole == 'billingHead'
+          && resource.data.readAt == null
+          && request.resource.data.keys().hasOnly([
+            'senderRole', 'senderId', 'body', 'sentAt', 'readAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'senderRole', 'senderId', 'body', 'sentAt', 'readAt'
+          ])
+          && request.resource.data.senderRole == resource.data.senderRole
+          && request.resource.data.senderId == resource.data.senderId
+          && request.resource.data.body == resource.data.body
+          && request.resource.data.sentAt == resource.data.sentAt
+          && request.resource.data.readAt is timestamp;
+        allow delete: if false;
+      }
+    }
+
     match /entries/{entryId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if !isViewer();
     }
     match /reservedControlNos/{controlNo} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if !isViewer();
     }
     match /liveSessions/{controlNo} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if !isViewer();
     }
     match /receivers/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if !isViewer();
     }
     match /returners/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if !isViewer();
     }
     match /venues/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if !isViewer();
     }
     match /config/{id} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if id == 'employeeRegistration'
+        ? isAdmin()
+          && request.resource.data.keys().hasOnly(['registrationEnabled', 'updatedAt', 'updatedBy'])
+          && request.resource.data.keys().hasAll(['registrationEnabled', 'updatedAt', 'updatedBy'])
+          && request.resource.data.registrationEnabled is bool
+          && request.resource.data.updatedAt == request.time
+          && request.resource.data.updatedBy == request.auth.token.email
+        : isAdmin();
     }
     match /preparers/{id} {
       allow read, write: if isAdmin();
     }
     match /eventSchedule/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if !isViewer();
+    }
+    match /eventScheduleAdmins/{adminUid} {
+      allow get: if request.auth != null
+        && (request.auth.uid == adminUid || isPharmacyScheduleOwner());
+      allow list: if isPharmacyScheduleOwner();
+      allow create, update: if isPharmacyScheduleOwner()
+        && request.resource.data.keys().hasOnly(['name','email','role','active','createdAt','createdBy','deleted','deletedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.email is string
+        && request.resource.data.email.size() <= 254
+        && request.resource.data.role == 'pharmacist'
+        && request.resource.data.active is bool
+        && (!('deleted' in request.resource.data) || request.resource.data.deleted is bool)
+        && (!('deletedAt' in request.resource.data) || request.resource.data.deletedAt is timestamp)
+        && (request.resource.data.get('deleted', false) != true
+          || (request.resource.data.active == false && request.resource.data.deletedAt is timestamp));
+      allow delete: if isPharmacyScheduleOwner();
+    }
+    match /eventSchedulePresence/{adminUid} {
+      allow read: if isPharmacistScheduleAdmin();
+      allow create, update: if isPharmacistScheduleAdmin()
+        && request.auth.uid == adminUid
+        && request.resource.data.keys().hasOnly(['name','x','y','updatedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 80
+        && pharmacistPresenceNameMatches()
+        && request.resource.data.x is number
+        && request.resource.data.x >= 0
+        && request.resource.data.x <= 100
+        && request.resource.data.y is number
+        && request.resource.data.y >= 0
+        && request.resource.data.y <= 100
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isPharmacistScheduleAdmin() && request.auth.uid == adminUid;
     }
     match /eventScheduleArchive/{eventId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if !isViewer();
     }
     match /emergencyNotifications/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if !isViewer();
     }
     match /notifCenterCleared/{viewerKey} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if !isViewer();
     }
 
     // ---- Stock requests (Ordering System) ----
-    // Doc ID = "<YYYY-MM-DD>_<lowercase staffId>" -> one request per employee per day.
+    // Medicine requests and legacy Medicine records use stockRequests.
+    // Supplies requests use suppliesStockRequests and retain the _supplies ID suffix.
     // Employees do not use Firebase Auth, so reads and writes are open, but:
     //  - only fixed fields are allowed, with size limits
     //  - the doc ID must match the date and staffId
@@ -72,11 +525,17 @@ service cloud.firestore {
     }
     // Open if: (1) today in Philippine time and before the cutoff, or (2) any of the next 7 days.
     function stockOpen(d, cm) {
-      return (d == phDayStr(0) && (phNow().hours() * 60 + phNow().minutes()) < cm)
-          || d in [phDayStr(1), phDayStr(2), phDayStr(3), phDayStr(4), phDayStr(5), phDayStr(6), phDayStr(7)];
+      let now = phNow();
+      let today = phDayStr(0);
+      let lastOpenDay = phDayStr(7);
+      return (d == today && (now.hours() * 60 + now.minutes()) < cm)
+          || (d.matches('^\\d{4}-\\d{2}-\\d{2}$') && d > today && d <= lastOpenDay);
     }
-    function stockDataOk(reqId) {
-      return request.resource.data.keys().hasOnly(['staffId','name','siteName','branch','sr','removedSr','srSearchTerms','date','day','updatedAt','history','status','removalReason','removedAt','removedBy','removalViewedAt','adminCompleted','adminCompletedAt','adminCompletedBy'])
+    function stockDayId(d, requestType) {
+      return d + (requestType == 'supplies' ? '_supplies' : '');
+    }
+    function stockDataOk(reqId, expectedType) {
+      return request.resource.data.keys().hasOnly(['staffId','name','siteName','branch','sr','removedSr','srSearchTerms','date','day','requestType','updatedAt','history','status','removalReason','removedAt','removedBy','removalViewedAt','adminCompleted','adminCompletedAt','adminCompletedBy'])
           && request.resource.data.staffId is string
           && request.resource.data.name is string
           && request.resource.data.siteName is string
@@ -85,15 +544,17 @@ service cloud.firestore {
               && (!('srSearchTerms' in request.resource.data)
                 || (request.resource.data.srSearchTerms is list && request.resource.data.srSearchTerms.size() <= 30))
         && (!('branch' in request.resource.data)
-          || (request.resource.data.branch is string && request.resource.data.branch in ['north','south']))
+          || (request.resource.data.branch is string && request.resource.data.branch in ['north','south','manila']))
         && ((!('status' in request.resource.data)
            && !('removalReason' in request.resource.data)
            && !('removedAt' in request.resource.data))
           || (request.resource.data.status == 'removed'
-            && request.resource.data.removalReason is string
-            && request.resource.data.removalReason.size() >= 5
-            && request.resource.data.removalReason.size() <= 200
-            && request.resource.data.removedAt is timestamp))
+            && request.resource.data.removedAt is timestamp
+            && ((!('removalReason' in request.resource.data)
+                && request.resource.data.get('removedBy', '') == 'employee')
+              || (request.resource.data.removalReason is string
+                && request.resource.data.removalReason.size() >= 5
+                && request.resource.data.removalReason.size() <= 200))))
           && (!('removedBy' in request.resource.data) || request.resource.data.removedBy in ['employee','admin'])
           && (!('removalViewedAt' in request.resource.data) || request.resource.data.removalViewedAt is timestamp)
             && (!('adminCompleted' in request.resource.data) || request.resource.data.adminCompleted is bool)
@@ -107,21 +568,15 @@ service cloud.firestore {
           && request.resource.data.sr.size() <= 100
           && request.resource.data.date is string
           && request.resource.data.day is string
-          && reqId == request.resource.data.date + '_' + request.resource.data.staffId.lower();
+          && request.resource.data.get('requestType', expectedType) == expectedType
+          && reqId == request.resource.data.date + '_' + request.resource.data.staffId.lower()
+              + (expectedType == 'supplies' ? '_supplies' : '');
     }
-    // When the SR# changes on an existing request, history must include a new entry
-    // (oldSr, newSr, reason 5-200 chars). If the SR# is unchanged, history must remain unchanged.
+    // SR# edits retain existing history; prior SR# values remain searchable in srSearchTerms.
     function stockChangeOk() {
       let h = request.resource.data.get('history', []);
       let old = resource.data.get('history', []);
-      return request.resource.data.sr == resource.data.sr
-        ? h == old
-        : (h is list && h.size() == old.size() + 1 && h.size() <= 10
-           && h[h.size() - 1].oldSr == resource.data.sr
-           && h[h.size() - 1].newSr == request.resource.data.sr
-           && h[h.size() - 1].reason is string
-           && h[h.size() - 1].reason.size() >= 5
-           && h[h.size() - 1].reason.size() <= 200);
+      return h == old;
     }
     function stockRemovalOk() {
       return resource.data.get('status', '') != 'removed'
@@ -130,8 +585,31 @@ service cloud.firestore {
           && request.resource.data.sr == ''
           && request.resource.data.get('history', []) == resource.data.get('history', []);
     }
+    function stockAdminType() {
+      return request.auth != null
+          && request.auth.token.get('email', '') is string
+          && request.auth.token.get('email', '').lower() in [
+            'adminstockreqmeds@planetdrugstore.ph',
+            'adminstockreqsup@planetdrugstore.ph'
+          ]
+          ? request.auth.token.get('email', '').lower()
+          : '';
+    }
+    function isStockMedicineAdmin() {
+      return stockAdminType() == 'adminstockreqmeds@planetdrugstore.ph';
+    }
+    function isStockSuppliesAdmin() {
+      return stockAdminType() == 'adminstockreqsup@planetdrugstore.ph';
+    }
+    function isStockAdminFor(requestType) {
+      return (requestType == 'medicine' && isStockMedicineAdmin())
+          || (requestType == 'supplies' && isStockSuppliesAdmin());
+    }
+    function isStockAdmin() {
+      return stockAdminType() != '';
+    }
         function stockAdminRemoveOk() {
-      return isAdmin()
+          return isStockAdminFor(resource.data.get('requestType', 'medicine'))
           && resource.data.get('status', '') != 'removed'
           && request.resource.data.status == 'removed'
           && request.resource.data.removedBy == 'admin'
@@ -140,23 +618,23 @@ service cloud.firestore {
           && request.resource.data.staffId == resource.data.staffId
           && request.resource.data.get('history', []) == resource.data.get('history', []);
         }
-    function stockAdminCompleteOk() {
-      return isAdmin()
+    function stockAdminCompleteOk(expectedType) {
+      return isStockAdminFor(expectedType)
+          && resource.data.get('requestType', expectedType) == expectedType
           && resource.data.get('status', '') != 'removed'
           && resource.data.get('adminCompleted', false) != true
           && resource.data.sr is string
           && resource.data.sr.size() > 0
-          && request.resource.data.adminCompleted == true
-          && request.resource.data.adminCompletedAt is timestamp
-          && request.resource.data.adminCompletedBy == request.auth.token.email
-          && request.resource.data.sr == resource.data.sr
-          && request.resource.data.date == resource.data.date
-          && request.resource.data.staffId == resource.data.staffId
+          && request.resource.data.get('adminCompleted', false) == true
+          && request.resource.data.get('adminCompletedAt', null) is timestamp
+          && request.resource.data.get('adminCompletedBy', '') is string
+          && request.resource.data.get('adminCompletedBy', '').lower() == request.auth.token.get('email', '').lower()
+          && request.resource.data.diff(resource.data).affectedKeys().hasAll(['adminCompleted','adminCompletedAt','adminCompletedBy'])
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['adminCompleted','adminCompletedAt','adminCompletedBy']);
     }
             function stockAdminReopenCompleteOk() {
-          let dayPath = /databases/$(database)/documents/stockDays/$(resource.data.date);
-          return isAdmin()
+          let dayPath = /databases/$(database)/documents/stockDays/$(stockDayId(resource.data.date, resource.data.get('requestType', 'medicine')));
+          return isStockAdminFor(resource.data.get('requestType', 'medicine'))
               && resource.data.get('adminCompleted', false) == true
               && !('adminCompleted' in request.resource.data)
               && !('adminCompletedAt' in request.resource.data)
@@ -169,6 +647,7 @@ service cloud.firestore {
             }
     function stockReopenOk() {
       return resource.data.get('status', '') == 'removed'
+          && resource.data.get('removedBy', '') != 'admin'
           && !('status' in request.resource.data)
           && !('removalReason' in request.resource.data)
           && !('removedAt' in request.resource.data)
@@ -177,14 +656,14 @@ service cloud.firestore {
           && !('history' in request.resource.data);
     }
         function stockAdminMarkRemovalViewed() {
-      return isAdmin()
+          return isStockAdminFor(resource.data.get('requestType', 'medicine'))
           && resource.data.get('status', '') == 'removed'
           && request.resource.data.status == 'removed'
           && request.resource.data.removalViewedAt is timestamp
           && !('removalViewedAt' in resource.data)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['removalViewedAt']);
         }
-    // The admin activates a day: stockDays/<YYYY-MM-DD> = { active: true }.
+    // Medicine uses stockDays/<YYYY-MM-DD>; Supplies uses stockDays/<YYYY-MM-DD>_supplies.
     // Employees cannot create, update, or delete requests until that date has an active document.
     // Per-employee schedule: employees/<staffId>.requestDays = ['TUESDAY', ...]
     // If requestDays is absent, all days are allowed.
@@ -196,53 +675,757 @@ service cloud.firestore {
       let employee = get(/databases/$(database)/documents/employees/$(staffId.lower())).data;
       let department = employee.get('department', '');
       return department is string
-          && department.lower().matches('^(billing|pharmacist|pharmacy assistant)( north| south)?$');
+          && department.lower().matches('^(billing( north| south)?|pharmacist( north| south)?|pharmacy assistant( north| south)?)$');
     }
     // The date must be active (by admin), match the weekday, and be allowed by the employee's schedule.
-    function stockDayActive(d, staffId, day) {
-      return exists(/databases/$(database)/documents/stockDays/$(d))
-          && get(/databases/$(database)/documents/stockDays/$(d)).data.active == true
-          && get(/databases/$(database)/documents/stockDays/$(d)).data.day == day
-          && stockOpen(d, get(/databases/$(database)/documents/stockDays/$(d)).data.get('cutoffMin', 840))
+    function stockDayActive(d, staffId, day, requestType) {
+      let dayPath = /databases/$(database)/documents/stockDays/$(stockDayId(d, requestType));
+      return exists(dayPath)
+          && get(dayPath).data.active == true
+          && get(dayPath).data.get('requestType', 'medicine') == requestType
+          && get(dayPath).data.day == day
+          && stockOpen(d, get(dayPath).data.get('cutoffMin', 840))
           && empAllowedDay(staffId, day);
     }
-    match /stockDays/{day} {
-      allow read: if true;
-      allow create, update: if isAdmin()
-                  && request.resource.data.keys().hasOnly(['active','date','day','activatedAt','cutoffMin','closedEarly','closedAt'])
+    function stockRequestEditable(d, staffId, day, requestType) {
+      let dayPath = /databases/$(database)/documents/stockDays/$(stockDayId(d, requestType));
+      let cutoffMin = exists(dayPath) ? get(dayPath).data.get('cutoffMin', 840) : 840;
+      return (!exists(dayPath)
+          || (get(dayPath).data.get('requestType', 'medicine') == requestType
+            && get(dayPath).data.day == day
+            && get(dayPath).data.active == true))
+          && stockOpen(d, cutoffMin)
+          && empAllowedDay(staffId, day);
+    }
+    function stockAdminUnblockOk() {
+      // Admin restoration is not subject to the employee submission window.
+      return isStockAdminFor(resource.data.get('requestType', 'medicine'))
+          && resource.data.get('status', '') == 'removed'
+          && resource.data.get('removedBy', '') == 'admin'
+          && request.resource.data.sr == resource.data.get('removedSr', '')
+          && request.resource.data.sr is string
+          && request.resource.data.sr.size() > 0
+          && !('status' in request.resource.data)
+          && !('removedSr' in request.resource.data)
+          && !('removalReason' in request.resource.data)
+          && !('removedAt' in request.resource.data)
+          && !('removedBy' in request.resource.data)
+          && !('removalViewedAt' in request.resource.data)
+          && request.resource.data.date == resource.data.date
+          && request.resource.data.staffId == resource.data.staffId
+          && request.resource.data.get('history', []) == resource.data.get('history', [])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sr','removedSr','status','removalReason','removedAt','removedBy','removalViewedAt','updatedAt']);
+    }
+    match /stockDays/{dayId} {
+      allow read: if request.auth == null
+          || !isStockAdmin()
+          || (isStockMedicineAdmin()
+            && resource.data.get('requestType', 'medicine') == 'medicine'
+            && dayId == resource.data.date)
+          || (isStockSuppliesAdmin()
+            && resource.data.get('requestType', 'medicine') == 'supplies'
+            && dayId == resource.data.date + '_supplies');
+      allow create, update: if request.resource.data.keys().hasOnly(['active','date','day','requestType','activatedAt','cutoffMin','closedEarly','closedAt'])
                             && (!('cutoffMin' in request.resource.data) || (request.resource.data.cutoffMin is int
                                 && request.resource.data.cutoffMin >= 0 && request.resource.data.cutoffMin <= 1439))
                   && (!('closedEarly' in request.resource.data) || request.resource.data.closedEarly is bool)
                   && (!('closedAt' in request.resource.data) || request.resource.data.closedAt is timestamp)
                             && request.resource.data.active is bool
-                            && day == request.resource.data.date;
-      allow delete: if isAdmin();
+                            && request.resource.data.date is string
+                            && ((dayId == request.resource.data.date
+                                && request.resource.data.get('requestType', 'medicine') == 'medicine'
+                                && isStockMedicineAdmin())
+                              || (dayId == request.resource.data.date + '_supplies'
+                                && request.resource.data.get('requestType', 'supplies') == 'supplies'
+                                && isStockSuppliesAdmin()));
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cutoffMin'])
+          && request.resource.data.cutoffMin is int
+          && request.resource.data.cutoffMin >= 0
+          && request.resource.data.cutoffMin <= 1439
+          && ((isStockMedicineAdmin()
+                && resource.data.get('requestType', 'medicine') == 'medicine'
+                && dayId == resource.data.date)
+              || (isStockSuppliesAdmin()
+                && resource.data.get('requestType', 'supplies') == 'supplies'
+                && dayId == resource.data.date + '_supplies'));
+      allow delete: if (isStockMedicineAdmin()
+                          && resource.data.get('requestType', 'medicine') == 'medicine'
+                          && dayId == resource.data.date)
+                    || (isStockSuppliesAdmin()
+                          && resource.data.get('requestType', 'medicine') == 'supplies'
+                          && dayId == resource.data.date + '_supplies');
     }
     match /stockRequests/{reqId} {
-      allow read: if true;
-      allow create: if stockDataOk(reqId)
+      allow read: if request.auth == null
+          || isStockMedicineAdmin()
+          || isViewer()
+          || (isStockSuppliesAdmin() && resource.data.get('requestType', 'medicine') == 'supplies');
+      allow create: if !isViewer()
+                    && stockDataOk(reqId, 'medicine')
                     && stockRequester(request.resource.data.staffId)
                     && !('history' in request.resource.data)
             && !('status' in request.resource.data)
-                    && stockDayActive(request.resource.data.date, request.resource.data.staffId, request.resource.data.day);
-      allow update: if stockDataOk(reqId)
-                && ((isAdmin() && stockAdminRemoveOk())
-                  || stockAdminCompleteOk()
-                  || stockAdminReopenCompleteOk()
-                || (stockRequester(request.resource.data.staffId)
+                    && stockDayActive(request.resource.data.date, request.resource.data.staffId, request.resource.data.day, 'medicine');
+      allow update: if !isViewer() && (stockAdminCompleteOk('medicine')
+                || (stockDataOk(reqId, 'medicine')
+                && ((stockRequester(request.resource.data.staffId)
                    && resource.data.get('adminCompleted', false) != true
                          && (stockChangeOk() || stockRemovalOk() || stockReopenOk())
               && request.resource.data.date == resource.data.date
-              && stockDayActive(request.resource.data.date, request.resource.data.staffId, request.resource.data.day))
-                || stockAdminMarkRemovalViewed());
-        allow delete: if isAdmin()
+              && stockRequestEditable(request.resource.data.date, request.resource.data.staffId, request.resource.data.day, 'medicine'))
+                || stockAdminMarkRemovalViewed()
+                  || stockAdminRemoveOk()
+                  || stockAdminUnblockOk()
+                    || stockAdminReopenCompleteOk()
+                )));
+      allow delete: if !isViewer() && (isStockAdminFor(resource.data.get('requestType', 'medicine'))
               || (stockRequester(resource.data.staffId)
                 && resource.data.get('adminCompleted', false) != true
-                && stockDayActive(resource.data.date, resource.data.staffId, resource.data.day));
+              && stockDayActive(resource.data.date, resource.data.staffId, resource.data.day, resource.data.get('requestType', 'medicine'))));
     }
       match /stockRequestHistory/{historyId} {
-        allow read: if true;
-        allow create, update, delete: if isAdmin();
+        allow read: if request.auth == null
+            || isStockMedicineAdmin()
+          || isViewer()
+            || (isStockSuppliesAdmin() && resource.data.get('requestType', 'medicine') == 'supplies');
+      allow create, update: if !isViewer() && isStockAdminFor(request.resource.data.get('requestType', 'medicine'));
+      allow delete: if !isViewer() && isStockAdminFor(resource.data.get('requestType', 'medicine'));
       }
+    match /suppliesStockRequests/{reqId} {
+      allow read: if request.auth == null
+        || isStockSuppliesAdmin()
+        || isViewer();
+    allow create: if !isViewer()
+                  && stockDataOk(reqId, 'supplies')
+                    && stockRequester(request.resource.data.staffId)
+                    && !('history' in request.resource.data)
+                    && !('status' in request.resource.data)
+                    && stockDayActive(request.resource.data.date, request.resource.data.staffId, request.resource.data.day, 'supplies');
+      allow update: if !isViewer() && (stockAdminCompleteOk('supplies')
+                || (stockDataOk(reqId, 'supplies')
+                && ((stockRequester(request.resource.data.staffId)
+                    && resource.data.get('adminCompleted', false) != true
+                    && (stockChangeOk() || stockRemovalOk() || stockReopenOk())
+                    && request.resource.data.date == resource.data.date
+                    && stockRequestEditable(request.resource.data.date, request.resource.data.staffId, request.resource.data.day, 'supplies'))
+                || stockAdminMarkRemovalViewed()
+                  || stockAdminRemoveOk()
+                  || stockAdminUnblockOk()
+                  || stockAdminReopenCompleteOk()
+              )));
+    allow delete: if !isViewer() && (isStockAdminFor(resource.data.get('requestType', 'supplies'))
+              || (stockRequester(resource.data.staffId)
+                && resource.data.get('adminCompleted', false) != true
+              && stockDayActive(resource.data.date, resource.data.staffId, resource.data.day, 'supplies')));
+    }
+    match /suppliesStockRequestHistory/{historyId} {
+      allow read: if request.auth == null
+          || isStockSuppliesAdmin()
+          || isViewer();
+    allow create, update: if !isViewer() && isStockAdminFor(request.resource.data.get('requestType', 'supplies'));
+    allow delete: if !isViewer() && isStockAdminFor(resource.data.get('requestType', 'supplies'));
+      }
+      function dailyTaskBillingEmployee(staffId) {
+        let employeePath = /databases/$(database)/documents/employees/$(staffId.lower());
+        return staffId is string
+          && exists(employeePath)
+          && get(employeePath).data.get('department', '') is string
+          && get(employeePath).data.department.lower().matches('^billing( north| south| manila)?$');
+      }
+      function dailyTaskEmployee(staffId) {
+        return request.auth != null
+          && !isViewer()
+          && request.auth.token.firebase.sign_in_provider == 'custom'
+          && request.auth.token.employee == true
+          && request.auth.token.staffId == staffId.lower()
+          && dailyTaskBillingEmployee(staffId);
+      }
+      function dailyTaskHistorySnapshotValid(snapshot) {
+        return snapshot.keys().hasOnly([
+            'date', 'time', 'description', 'descriptionOther',
+            'location', 'status', 'remarks', 'attachments'
+          ])
+          && snapshot.keys().hasAll([
+            'date', 'time', 'description', 'descriptionOther',
+            'location', 'status', 'remarks'
+          ])
+          && snapshot.date is string
+          && snapshot.time is string
+          && snapshot.description in ['', 'Medical Mission', "People's Day", 'Regular Stock', 'Rolling Stocks', 'Others']
+          && snapshot.descriptionOther is string
+          && snapshot.location is string
+          && snapshot.status in ['', 'Collected', 'Pending', 'Completed', 'For Compliance']
+          && snapshot.remarks is string
+          && (!snapshot.keys().hasAny(['attachments'])
+            || dailyTaskAttachmentsValid(snapshot.attachments));
+      }
+      function dailyTaskAttachmentValid(attachment) {
+        return attachment is map
+          && attachment.keys().hasOnly(['name', 'data'])
+          && attachment.keys().hasAll(['name', 'data'])
+          && attachment.name is string
+          && attachment.name.size() > 0
+          && attachment.name.size() <= 200
+          && attachment.data is string
+          && attachment.data.matches('^data:image/jpeg;base64,[A-Za-z0-9+/]+=*$')
+          && attachment.data.size() <= 140000;
+      }
+      function dailyTaskAttachmentsValid(attachments) {
+        return attachments is list
+          && attachments.size() <= 5
+          && (attachments.size() < 1 || dailyTaskAttachmentValid(attachments[0]))
+          && (attachments.size() < 2 || dailyTaskAttachmentValid(attachments[1]))
+          && (attachments.size() < 3 || dailyTaskAttachmentValid(attachments[2]))
+          && (attachments.size() < 4 || dailyTaskAttachmentValid(attachments[3]))
+          && (attachments.size() < 5 || dailyTaskAttachmentValid(attachments[4]));
+      }
+      match /dailyTasks/{taskId} {
+        allow read: if isViewer() || isBillingScheduleOwner() || dailyTaskEmployee(resource.data.staffId);
+        allow create: if request.resource.data.keys().hasOnly([
+            'staffId', 'name', 'date', 'time', 'department',
+            'description', 'descriptionOther', 'location', 'status', 'remarks',
+            'attachments', 'createdAt'
+          ])
+          && request.auth != null
+          && request.auth.token.firebase.sign_in_provider == 'custom'
+          && request.auth.token.employee == true
+          && request.auth.token.staffId == request.resource.data.staffId.lower()
+          && dailyTaskBillingEmployee(request.resource.data.staffId)
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() <= 120
+          && request.resource.data.name == get(
+            /databases/$(database)/documents/employees/$(request.resource.data.staffId.lower())
+          ).data.name
+          && request.resource.data.date is string
+          && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+          && request.resource.data.time is string
+          && request.resource.data.time.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')
+          && request.resource.data.department
+            == get(/databases/$(database)/documents/employees/$(request.resource.data.staffId.lower())).data.department
+          && request.resource.data.description in ['', 'Medical Mission', "People's Day", 'Regular Stock', 'Rolling Stocks', 'Others']
+          && request.resource.data.descriptionOther is string
+          && request.resource.data.descriptionOther.size() <= 300
+          && ((request.resource.data.description == 'Others')
+            || (request.resource.data.description != 'Others'
+              && request.resource.data.descriptionOther == ''))
+          && request.resource.data.location is string
+          && request.resource.data.location.size() <= 200
+          && request.resource.data.status in ['', 'Collected', 'Pending', 'Completed', 'For Compliance']
+          && request.resource.data.remarks is string
+          && request.resource.data.remarks.size() <= 2000
+          && dailyTaskAttachmentsValid(
+            request.resource.data.attachments
+          )
+          && request.resource.data.createdAt == request.time;
+        allow update: if dailyTaskEmployee(resource.data.staffId)
+          && resource.data.status in ['', 'Pending', 'For Compliance']
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'date', 'time', 'description', 'descriptionOther',
+            'location', 'status', 'remarks', 'attachments', 'updatedAt', 'lastEditId'
+          ])
+          && request.resource.data.diff(resource.data).affectedKeys().hasAny([
+            'date', 'time', 'description', 'descriptionOther', 'location', 'status', 'remarks', 'attachments'
+          ])
+          && request.resource.data.date is string
+          && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+          && request.resource.data.time is string
+          && request.resource.data.time.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')
+          && request.resource.data.description in ['', 'Medical Mission', "People's Day", 'Regular Stock', 'Rolling Stocks', 'Others']
+          && request.resource.data.descriptionOther is string
+          && request.resource.data.descriptionOther.size() <= 300
+          && ((request.resource.data.description == 'Others')
+            || (request.resource.data.description != 'Others'
+              && request.resource.data.descriptionOther == ''))
+          && request.resource.data.location is string
+          && request.resource.data.location.size() <= 200
+          && request.resource.data.status in ['', 'Collected', 'Pending', 'Completed', 'For Compliance']
+          && request.resource.data.remarks is string
+          && request.resource.data.remarks.size() <= 2000
+          && dailyTaskAttachmentsValid(request.resource.data.attachments)
+          && request.resource.data.updatedAt == request.time
+          && request.resource.data.lastEditId is string
+          && request.resource.data.lastEditId.size() > 0
+          && request.resource.data.lastEditId.size() <= 150
+          && existsAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId))
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.editedBy == request.auth.token.staffId
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.editedAt == request.time
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.before.date == resource.data.date
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.before.time == resource.data.time
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.before.description == resource.data.description
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.before.descriptionOther == resource.data.descriptionOther
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.before.location == resource.data.location
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.before.status == resource.data.status
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.before.remarks == resource.data.remarks
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.before.attachments == resource.data.get('attachments', [])
+          && !getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.after.keys().hasAny(['attachments'])
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.after.date == request.resource.data.date
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.after.time == request.resource.data.time
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.after.description == request.resource.data.description
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.after.descriptionOther == request.resource.data.descriptionOther
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.after.location == request.resource.data.location
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.after.status == request.resource.data.status
+          && getAfter(/databases/$(database)/documents/dailyTasks/$(taskId)/history/$(request.resource.data.lastEditId)).data.after.remarks == request.resource.data.remarks;
+        allow delete: if isBillingScheduleOwner();
+
+        match /reactions/{reactionId} {
+          function parentTaskPath() {
+            return /databases/$(database)/documents/dailyTasks/$(taskId);
+          }
+          function validTaskReaction() {
+            return request.resource.data.keys().hasOnly([
+                'reactionKey', 'emoji', 'label', 'reactedBy', 'reactedAt'
+              ])
+              && request.resource.data.keys().hasAll([
+                'reactionKey', 'emoji', 'label', 'reactedBy', 'reactedAt'
+              ])
+              && request.resource.data.reactionKey in [
+                'hundred', 'heart', 'wow', 'angry', 'like', 'good-job', 'nice', 'better-luck'
+              ]
+              && (
+                (request.resource.data.reactionKey == 'hundred'
+                  && request.resource.data.emoji == '💯'
+                  && request.resource.data.label == '100')
+                || (request.resource.data.reactionKey == 'heart'
+                  && request.resource.data.emoji == '❤️'
+                  && request.resource.data.label == 'Heart')
+                || (request.resource.data.reactionKey == 'wow'
+                  && request.resource.data.emoji == '😮'
+                  && request.resource.data.label == 'Wow')
+                || (request.resource.data.reactionKey == 'angry'
+                  && request.resource.data.emoji == '😡'
+                  && request.resource.data.label == 'Angry')
+                || (request.resource.data.reactionKey == 'like'
+                  && request.resource.data.emoji == '👍'
+                  && request.resource.data.label == 'Like')
+                || (request.resource.data.reactionKey == 'good-job'
+                  && request.resource.data.emoji == '🎉'
+                  && request.resource.data.label == 'Good job!')
+                || (request.resource.data.reactionKey == 'nice'
+                  && request.resource.data.emoji == '✨'
+                  && request.resource.data.label == 'Nice!')
+                || (request.resource.data.reactionKey == 'better-luck'
+                  && request.resource.data.emoji == '💪'
+                  && request.resource.data.label == 'Better luck next time')
+              )
+              && request.resource.data.reactedBy == request.auth.token.get('email', '')
+              && request.resource.data.reactedAt == request.time;
+          }
+          allow read: if isViewer() || isBillingScheduleOwner()
+            || dailyTaskEmployee(get(parentTaskPath()).data.staffId);
+          allow create, update: if isBillingScheduleOwner()
+            && reactionId == 'billingHead'
+            && exists(parentTaskPath())
+            && validTaskReaction();
+          allow delete: if isBillingScheduleOwner() && reactionId == 'billingHead';
+        }
+
+        match /history/{editId} {
+          function parentTaskPath() {
+            return /databases/$(database)/documents/dailyTasks/$(taskId);
+          }
+          allow read: if isViewer() || isBillingScheduleOwner()
+            || dailyTaskEmployee(get(parentTaskPath()).data.staffId);
+          allow create: if dailyTaskEmployee(get(parentTaskPath()).data.staffId)
+            && get(parentTaskPath()).data.status in ['', 'Pending', 'For Compliance']
+            && request.resource.data.keys().hasOnly(['before', 'after', 'editedBy', 'editedAt'])
+            && dailyTaskHistorySnapshotValid(request.resource.data.before)
+            && dailyTaskHistorySnapshotValid(request.resource.data.after)
+            && request.resource.data.editedBy == request.auth.token.staffId
+            && request.resource.data.editedAt == request.time
+            && getAfter(parentTaskPath()).data.lastEditId == editId
+            && getAfter(parentTaskPath()).data.updatedAt == request.time
+            && request.resource.data.before.date == get(parentTaskPath()).data.date
+            && request.resource.data.before.time == get(parentTaskPath()).data.time
+            && request.resource.data.before.description == get(parentTaskPath()).data.description
+            && request.resource.data.before.descriptionOther == get(parentTaskPath()).data.descriptionOther
+            && request.resource.data.before.location == get(parentTaskPath()).data.location
+            && request.resource.data.before.status == get(parentTaskPath()).data.status
+            && request.resource.data.before.remarks == get(parentTaskPath()).data.remarks
+            && request.resource.data.before.attachments == get(parentTaskPath()).data.get('attachments', [])
+            && request.resource.data.after.date == getAfter(parentTaskPath()).data.date
+            && request.resource.data.after.time == getAfter(parentTaskPath()).data.time
+            && request.resource.data.after.description == getAfter(parentTaskPath()).data.description
+            && request.resource.data.after.descriptionOther == getAfter(parentTaskPath()).data.descriptionOther
+            && request.resource.data.after.location == getAfter(parentTaskPath()).data.location
+            && request.resource.data.after.status == getAfter(parentTaskPath()).data.status
+            && request.resource.data.after.remarks == getAfter(parentTaskPath()).data.remarks
+            && !request.resource.data.after.keys().hasAny(['attachments']);
+          allow update: if false;
+          allow delete: if isBillingScheduleOwner();
+        }
+
+        match /comments/{commentId} {
+          function parentTaskPath() {
+            return /databases/$(database)/documents/dailyTasks/$(taskId);
+          }
+          function parentCommentPath() {
+            return /databases/$(database)/documents/dailyTasks/$(taskId)/comments/$(commentId);
+          }
+          function validConversationReceiptUpdate() {
+            let changed = request.resource.data.diff(resource.data).affectedKeys();
+            return changed.hasAny(['deliveredAt', 'seenAt'])
+              && changed.hasOnly(['deliveredAt', 'seenAt'])
+              && (changed.hasAny(['deliveredAt'])
+                ? (!('deliveredAt' in resource.data)
+                  && request.resource.data.deliveredAt == request.time)
+                : request.resource.data.get('deliveredAt', null)
+                  == resource.data.get('deliveredAt', null))
+              && (changed.hasAny(['seenAt'])
+                ? (!('seenAt' in resource.data)
+                  && request.resource.data.seenAt == request.time)
+                : request.resource.data.get('seenAt', null)
+                  == resource.data.get('seenAt', null))
+              && (!('seenAt' in request.resource.data)
+                || request.resource.data.get('deliveredAt', null) is timestamp);
+          }
+          allow read: if isViewer() || isBillingScheduleOwner()
+            || dailyTaskEmployee(get(parentTaskPath()).data.staffId);
+          allow create: if isBillingScheduleOwner()
+            && request.resource.data.keys().hasOnly([
+              'staffId', 'employeeName', 'taskId', 'taskDescription',
+              'taskDescriptionOther', 'taskDate', 'taskTime', 'taskLocation',
+              'comment', 'commentedBy', 'commentedAt'
+            ])
+            && request.resource.data.keys().hasAll([
+              'staffId', 'employeeName', 'taskId', 'taskDescription',
+              'taskDescriptionOther', 'taskDate', 'taskTime', 'taskLocation',
+              'comment', 'commentedBy', 'commentedAt'
+            ])
+            && exists(parentTaskPath())
+            && existsAfter(parentTaskPath())
+            && request.resource.data.staffId == get(parentTaskPath()).data.staffId
+            && dailyTaskBillingEmployee(request.resource.data.staffId)
+            && request.resource.data.employeeName == get(parentTaskPath()).data.name
+            && request.resource.data.taskId == taskId
+            && request.resource.data.taskDescription == get(parentTaskPath()).data.description
+            && request.resource.data.taskDescriptionOther == get(parentTaskPath()).data.descriptionOther
+            && request.resource.data.taskDate == get(parentTaskPath()).data.date
+            && request.resource.data.taskTime == get(parentTaskPath()).data.time
+            && request.resource.data.taskLocation == get(parentTaskPath()).data.location
+            && request.resource.data.comment is string
+            && request.resource.data.comment.size() > 0
+            && request.resource.data.comment.size() <= 1000
+            && request.resource.data.commentedBy == request.auth.token.get('email', '')
+            && request.resource.data.commentedAt == request.time;
+          allow update: if dailyTaskEmployee(get(parentTaskPath()).data.staffId)
+            && validConversationReceiptUpdate();
+          allow delete: if isBillingScheduleOwner();
+
+          match /typing/{typingId} {
+            function validTypingPresence() {
+              return request.resource.data.keys().hasOnly([
+                  'authorRole', 'isTyping', 'updatedAt'
+                ])
+                && request.resource.data.keys().hasAll([
+                  'authorRole', 'isTyping', 'updatedAt'
+                ])
+                && request.resource.data.isTyping is bool
+                && request.resource.data.updatedAt == request.time
+                && exists(parentCommentPath())
+                && ((isBillingScheduleOwner()
+                    && request.resource.data.authorRole == 'billingHead')
+                  || (dailyTaskEmployee(get(parentTaskPath()).data.staffId)
+                    && request.resource.data.authorRole == 'employee'));
+            }
+            allow read: if isViewer() || isBillingScheduleOwner()
+              || dailyTaskEmployee(get(parentTaskPath()).data.staffId);
+            allow create: if request.auth != null
+              && typingId == request.auth.uid
+              && validTypingPresence();
+            allow update: if request.auth != null
+              && typingId == request.auth.uid
+              && resource.data.authorRole == request.resource.data.authorRole
+              && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['isTyping', 'updatedAt'])
+              && validTypingPresence();
+            allow delete: if isBillingScheduleOwner()
+              || (request.auth != null
+                && typingId == request.auth.uid
+                && resource.data.authorRole == 'employee'
+                && dailyTaskEmployee(get(parentTaskPath()).data.staffId));
+          }
+
+          match /replies/{replyId} {
+            function parentTaskPath() {
+              return /databases/$(database)/documents/dailyTasks/$(taskId);
+            }
+            function parentCommentPath() {
+              return /databases/$(database)/documents/dailyTasks/$(taskId)/comments/$(commentId);
+            }
+            allow read: if isViewer() || isBillingScheduleOwner()
+              || dailyTaskEmployee(get(parentTaskPath()).data.staffId);
+            allow create: if exists(parentTaskPath())
+              && exists(parentCommentPath())
+              && request.resource.data.keys().hasOnly([
+                'taskId', 'commentId', 'staffId', 'employeeName', 'authorRole',
+                'reply', 'repliedBy', 'taskDescription', 'taskDescriptionOther',
+                'taskDate', 'taskTime', 'taskLocation', 'repliedAt'
+              ])
+              && request.resource.data.keys().hasAll([
+                'taskId', 'commentId', 'staffId', 'employeeName', 'authorRole',
+                'reply', 'repliedBy', 'taskDescription', 'taskDescriptionOther',
+                'taskDate', 'taskTime', 'taskLocation', 'repliedAt'
+              ])
+              && request.resource.data.taskId == taskId
+              && request.resource.data.commentId == commentId
+              && request.resource.data.staffId == get(parentTaskPath()).data.staffId
+              && request.resource.data.employeeName == get(parentTaskPath()).data.name
+              && request.resource.data.reply is string
+              && request.resource.data.reply.size() > 0
+              && request.resource.data.reply.size() <= 1000
+              && request.resource.data.taskDescription == get(parentTaskPath()).data.description
+              && request.resource.data.taskDescriptionOther == get(parentTaskPath()).data.descriptionOther
+              && request.resource.data.taskDate == get(parentTaskPath()).data.date
+              && request.resource.data.taskTime == get(parentTaskPath()).data.time
+              && request.resource.data.taskLocation == get(parentTaskPath()).data.location
+              && request.resource.data.repliedAt == request.time
+              && ((dailyTaskEmployee(get(parentTaskPath()).data.staffId)
+                  && request.resource.data.authorRole == 'employee'
+                  && request.resource.data.repliedBy == request.auth.token.staffId)
+                || (isBillingScheduleOwner()
+                  && request.resource.data.authorRole == 'billingHead'
+                  && request.resource.data.repliedBy == request.auth.token.get('email', '')));
+            allow update: if ((resource.data.authorRole == 'billingHead'
+                && dailyTaskEmployee(get(parentTaskPath()).data.staffId))
+              || (resource.data.authorRole == 'employee' && isBillingScheduleOwner()))
+              && validConversationReceiptUpdate();
+            allow delete: if isBillingScheduleOwner();
+          }
+        }
+
+      match /dailyTaskDeletionNotifications/{notificationId} {
+        allow create: if isBillingScheduleOwner()
+          && request.resource.data.keys().hasOnly([
+            'staffId', 'employeeName', 'taskId', 'submission',
+            'reason', 'deletedBy', 'deletedAt', 'readAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'staffId', 'employeeName', 'taskId', 'submission',
+            'reason', 'deletedBy', 'deletedAt', 'readAt'
+          ])
+          && request.resource.data.staffId is string
+          && dailyTaskBillingEmployee(request.resource.data.staffId)
+          && request.resource.data.employeeName is string
+          && request.resource.data.employeeName.size() > 0
+          && request.resource.data.taskId is string
+          && request.resource.data.taskId.size() > 0
+          && !existsAfter(
+            /databases/$(database)/documents/dailyTasks/$(request.resource.data.taskId)
+          )
+          && request.resource.data.submission is map
+          && request.resource.data.submission == get(
+            /databases/$(database)/documents/dailyTasks/$(request.resource.data.taskId)
+          ).data
+          && request.resource.data.submission.staffId == request.resource.data.staffId
+          && request.resource.data.submission.name == request.resource.data.employeeName
+          && request.resource.data.reason is string
+          && request.resource.data.reason.size() > 0
+          && request.resource.data.reason.size() <= 1000
+          && request.resource.data.deletedBy == request.auth.token.get('email', '')
+          && request.resource.data.deletedAt == request.time
+          && request.resource.data.readAt == null;
+        allow read: if isViewer() || isBillingScheduleOwner()
+          || dailyTaskEmployee(resource.data.staffId);
+        allow update: if dailyTaskEmployee(resource.data.staffId)
+          && resource.data.readAt == null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readAt'])
+          && request.resource.data.readAt == request.time;
+        allow delete: if dailyTaskEmployee(resource.data.staffId);
+      }
+
+      match /dailyTaskCommentNotifications/{commentId} {
+        function commentPath() {
+          return /databases/$(database)/documents/dailyTasks/$(request.resource.data.taskId)/comments/$(request.resource.data.commentId);
+        }
+        allow create: if isBillingScheduleOwner()
+          && request.resource.data.keys().hasOnly([
+            'commentId', 'staffId', 'employeeName', 'taskId', 'taskDescription',
+            'taskDescriptionOther', 'taskDate', 'taskTime', 'taskLocation',
+            'comment', 'commentedBy', 'commentedAt', 'readAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'commentId', 'staffId', 'employeeName', 'taskId', 'taskDescription',
+            'taskDescriptionOther', 'taskDate', 'taskTime', 'taskLocation',
+            'comment', 'commentedBy', 'commentedAt', 'readAt'
+          ])
+          && request.resource.data.taskId is string
+          && request.resource.data.taskId.size() > 0
+          && request.resource.data.commentId is string
+          && request.resource.data.commentId.size() > 0
+          && existsAfter(commentPath())
+          && request.resource.data.staffId == getAfter(commentPath()).data.staffId
+          && dailyTaskBillingEmployee(request.resource.data.staffId)
+          && request.resource.data.employeeName == getAfter(commentPath()).data.employeeName
+          && request.resource.data.taskDescription == getAfter(commentPath()).data.taskDescription
+          && request.resource.data.taskDescriptionOther == getAfter(commentPath()).data.taskDescriptionOther
+          && request.resource.data.taskDate == getAfter(commentPath()).data.taskDate
+          && request.resource.data.taskTime == getAfter(commentPath()).data.taskTime
+          && request.resource.data.taskLocation == getAfter(commentPath()).data.taskLocation
+          && request.resource.data.comment == getAfter(commentPath()).data.comment
+          && request.resource.data.commentedBy == getAfter(commentPath()).data.commentedBy
+          && request.resource.data.commentedAt == getAfter(commentPath()).data.commentedAt
+          && request.resource.data.commentedAt == request.time
+          && request.resource.data.readAt == null;
+        allow read: if isViewer() || isBillingScheduleOwner() || dailyTaskEmployee(resource.data.staffId);
+        allow update: if dailyTaskEmployee(resource.data.staffId)
+          && resource.data.readAt == null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readAt'])
+          && request.resource.data.readAt == request.time;
+        allow delete: if isBillingScheduleOwner() || dailyTaskEmployee(resource.data.staffId);
+      }
+
+      match /dailyTaskReactionNotifications/{taskId} {
+        function taskPath() {
+          return /databases/$(database)/documents/dailyTasks/$(taskId);
+        }
+        function reactionPath() {
+          return /databases/$(database)/documents/dailyTasks/$(taskId)/reactions/billingHead;
+        }
+        function reactionNotificationMatchesTask() {
+          return existsAfter(taskPath())
+            && existsAfter(reactionPath())
+            && request.resource.data.staffId == getAfter(taskPath()).data.staffId
+            && dailyTaskBillingEmployee(request.resource.data.staffId)
+            && request.resource.data.employeeName == getAfter(taskPath()).data.name
+            && request.resource.data.taskDescription == getAfter(taskPath()).data.description
+            && request.resource.data.taskDescriptionOther
+              == getAfter(taskPath()).data.get('descriptionOther', '')
+            && request.resource.data.taskDate == getAfter(taskPath()).data.date
+            && request.resource.data.taskTime == getAfter(taskPath()).data.time
+            && request.resource.data.reactionKey == getAfter(reactionPath()).data.reactionKey
+            && request.resource.data.emoji == getAfter(reactionPath()).data.emoji
+            && request.resource.data.label == getAfter(reactionPath()).data.label
+            && request.resource.data.reactedBy == getAfter(reactionPath()).data.reactedBy
+            && request.resource.data.reactedAt == getAfter(reactionPath()).data.reactedAt
+            && request.resource.data.reactedAt == request.time
+            && request.resource.data.reactionChanged
+              == (exists(reactionPath())
+                && get(reactionPath()).data.reactionKey != request.resource.data.reactionKey)
+            && (request.resource.data.reactionChanged
+              ? request.resource.data.previousReactionKey == get(reactionPath()).data.reactionKey
+                && request.resource.data.previousReactionEmoji == get(reactionPath()).data.emoji
+                && request.resource.data.previousReactionLabel == get(reactionPath()).data.label
+              : request.resource.data.previousReactionKey == ''
+                && request.resource.data.previousReactionEmoji == ''
+                && request.resource.data.previousReactionLabel == '')
+            && request.resource.data.readAt == null;
+        }
+        allow read: if isViewer() || isBillingScheduleOwner()
+          || dailyTaskEmployee(resource.data.staffId);
+        allow create, update: if isBillingScheduleOwner()
+          && request.resource.data.keys().hasOnly([
+            'taskId', 'staffId', 'employeeName', 'taskDescription',
+            'taskDescriptionOther', 'taskDate', 'taskTime', 'reactionKey',
+            'emoji', 'label', 'reactedBy', 'reactedAt', 'reactionChanged',
+            'previousReactionEmoji', 'previousReactionLabel',
+            'previousReactionKey', 'readAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'taskId', 'staffId', 'employeeName', 'taskDescription',
+            'taskDescriptionOther', 'taskDate', 'taskTime', 'reactionKey',
+            'emoji', 'label', 'reactedBy', 'reactedAt', 'reactionChanged',
+            'previousReactionEmoji', 'previousReactionLabel',
+            'previousReactionKey', 'readAt'
+          ])
+          && request.resource.data.taskId == taskId
+          && reactionNotificationMatchesTask();
+        allow update: if dailyTaskEmployee(resource.data.staffId)
+          && resource.data.readAt == null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readAt'])
+          && request.resource.data.readAt == request.time;
+        allow delete: if isBillingScheduleOwner() || dailyTaskEmployee(resource.data.staffId);
+      }
+
+      match /dailyTaskReplyNotifications/{notificationId} {
+        function replyPath() {
+          return /databases/$(database)/documents/dailyTasks/$(request.resource.data.taskId)/comments/$(request.resource.data.commentId)/replies/$(request.resource.data.replyId);
+        }
+        allow create: if dailyTaskEmployee(request.resource.data.staffId)
+          && request.resource.data.keys().hasOnly([
+            'replyId', 'taskId', 'commentId', 'staffId', 'employeeName', 'authorRole',
+            'reply', 'repliedBy', 'taskDescription', 'taskDescriptionOther',
+            'taskDate', 'taskTime', 'taskLocation', 'repliedAt', 'recipientRole', 'readAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'replyId', 'taskId', 'commentId', 'staffId', 'employeeName', 'authorRole',
+            'reply', 'repliedBy', 'taskDescription', 'taskDescriptionOther',
+            'taskDate', 'taskTime', 'taskLocation', 'repliedAt', 'recipientRole', 'readAt'
+          ])
+          && request.resource.data.replyId is string
+          && request.resource.data.replyId.size() > 0
+          && existsAfter(replyPath())
+          && request.resource.data.taskId == getAfter(replyPath()).data.taskId
+          && request.resource.data.commentId == getAfter(replyPath()).data.commentId
+          && request.resource.data.staffId == getAfter(replyPath()).data.staffId
+          && request.resource.data.employeeName == getAfter(replyPath()).data.employeeName
+          && request.resource.data.authorRole == 'employee'
+          && request.resource.data.authorRole == getAfter(replyPath()).data.authorRole
+          && request.resource.data.recipientRole == 'billingHead'
+          && request.resource.data.reply == getAfter(replyPath()).data.reply
+          && request.resource.data.repliedBy == getAfter(replyPath()).data.repliedBy
+          && request.resource.data.taskDescription == getAfter(replyPath()).data.taskDescription
+          && request.resource.data.taskDescriptionOther == getAfter(replyPath()).data.taskDescriptionOther
+          && request.resource.data.taskDate == getAfter(replyPath()).data.taskDate
+          && request.resource.data.taskTime == getAfter(replyPath()).data.taskTime
+          && request.resource.data.taskLocation == getAfter(replyPath()).data.taskLocation
+          && request.resource.data.repliedAt == getAfter(replyPath()).data.repliedAt
+          && request.resource.data.repliedAt == request.time
+          && request.resource.data.readAt == null;
+        allow read: if isViewer() || isBillingScheduleOwner();
+        allow update: if isBillingScheduleOwner()
+          && resource.data.readAt == null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readAt'])
+          && request.resource.data.readAt == request.time;
+        allow delete: if isBillingScheduleOwner();
+      }
+
+      match /dailyTaskHeadReplyNotifications/{notificationId} {
+        function replyPath() {
+          return /databases/$(database)/documents/dailyTasks/$(request.resource.data.taskId)/comments/$(request.resource.data.commentId)/replies/$(request.resource.data.replyId);
+        }
+        allow create: if isBillingScheduleOwner()
+          && request.resource.data.keys().hasOnly([
+            'replyId', 'taskId', 'commentId', 'staffId', 'employeeName', 'authorRole',
+            'reply', 'repliedBy', 'taskDescription', 'taskDescriptionOther',
+            'taskDate', 'taskTime', 'taskLocation', 'repliedAt', 'recipientRole', 'readAt'
+          ])
+          && request.resource.data.keys().hasAll([
+            'replyId', 'taskId', 'commentId', 'staffId', 'employeeName', 'authorRole',
+            'reply', 'repliedBy', 'taskDescription', 'taskDescriptionOther',
+            'taskDate', 'taskTime', 'taskLocation', 'repliedAt', 'recipientRole', 'readAt'
+          ])
+          && request.resource.data.replyId is string
+          && request.resource.data.replyId.size() > 0
+          && existsAfter(replyPath())
+          && request.resource.data.taskId == getAfter(replyPath()).data.taskId
+          && request.resource.data.commentId == getAfter(replyPath()).data.commentId
+          && request.resource.data.staffId == getAfter(replyPath()).data.staffId
+          && dailyTaskBillingEmployee(request.resource.data.staffId)
+          && request.resource.data.employeeName == getAfter(replyPath()).data.employeeName
+          && request.resource.data.authorRole == 'billingHead'
+          && request.resource.data.authorRole == getAfter(replyPath()).data.authorRole
+          && request.resource.data.reply == getAfter(replyPath()).data.reply
+          && request.resource.data.repliedBy == getAfter(replyPath()).data.repliedBy
+          && request.resource.data.taskDescription == getAfter(replyPath()).data.taskDescription
+          && request.resource.data.taskDescriptionOther == getAfter(replyPath()).data.taskDescriptionOther
+          && request.resource.data.taskDate == getAfter(replyPath()).data.taskDate
+          && request.resource.data.taskTime == getAfter(replyPath()).data.taskTime
+          && request.resource.data.taskLocation == getAfter(replyPath()).data.taskLocation
+          && request.resource.data.repliedAt == getAfter(replyPath()).data.repliedAt
+          && request.resource.data.repliedAt == request.time
+          && request.resource.data.recipientRole == 'employee'
+          && request.resource.data.readAt == null;
+        allow read: if isViewer() || isBillingScheduleOwner() || dailyTaskEmployee(resource.data.staffId);
+        allow update: if dailyTaskEmployee(resource.data.staffId)
+          && resource.data.readAt == null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readAt'])
+          && request.resource.data.readAt == request.time;
+        allow delete: if isBillingScheduleOwner() || dailyTaskEmployee(resource.data.staffId);
+      }
+    }
+    match /{document=**} {
+      allow read: if isViewer();
+    }
   }
 }

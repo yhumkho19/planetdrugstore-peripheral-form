@@ -8,12 +8,14 @@
 | `employee-schedule.html` | `8239c52d-7d8a-4d4a-b95f-ee2bc26387e2.html` | `47fto0gim6.html` | `public/pages/employee-schedule.html` | `https://planetdrugstoreconsole.web.app/47fto0gim6` |
 | `employee-signup.html` | `3a4d4da5-98e1-4505-a085-b33a81d3fccb.html` | `k5v3z8jyla.html` | `public/pages/employee-signup.html` | `https://planetdrugstoreconsole.web.app/k5v3z8jyla` |
 | `event-schedule-landing.html` | `30c370ca-747d-4142-a3ed-a7a9efc41b00.html` | `dkjyg56lvm.html` | `public/pages/event-schedule-landing.html` | `https://planetdrugstoreconsole.web.app/dkjyg56lvm` |
+| Billing Home (Billing Head landing) | — | `billing-home` | `public/pages/event-schedule-landing.html` | `https://planetdrugstoreconsole.web.app/billing-home` |
 | `event-team-schedule.html` | `006e0e3e-4f70-432f-a7dc-dfd562b91e46.html` | `apd2zu9bdf.html` | — (no matching file in the repository) | `https://planetdrugstoreconsole.web.app/apd2zu9bdf` |
 | `landing-employee-page.html` | `8f67af40-5343-4057-bf18-b3bec86e8489.html` | `ed3od6ldsq.html` | `public/pages/landing-employee-page.html` | `https://planetdrugstoreconsole.web.app/ed3od6ldsq` |
 | `landing-page.html` | `f9de501d-cde5-4459-bcc2-9e0809fa19a7.html` | `8niuis7jih.html` | `public/pages/landing-page.html` | `https://planetdrugstoreconsole.web.app/8niuis7jih` |
 | `leaderboard.html` | `afee64d5-e1c6-4843-b51b-06ae167ffa1f.html` | `30k1jkejh3.html` | `public/pages/leaderboard.html` | `https://planetdrugstoreconsole.web.app/30k1jkejh3` |
 | `peripheral-form.html` | `4b912a36-2344-4640-b0b6-0a9d3dffe50b.html` | `gui2dtdgtb.html` | `public/pages/peripheral-form.html` | `https://planetdrugstoreconsole.web.app/gui2dtdgtb` |
-| `register-employee.html` | `797f133b-b98e-4744-9668-d816426b85c6.html` | `oa9gukdtnh.html` | `public/pages/register-employee.html` | `https://planetdrugstoreconsole.web.app/oa9gukdtnh` |
+| `register-employee.html` | `797f133b-b98e-4744-9668-d816426b85c6.html` | `register` | `public/pages/register-employee.html` | `https://planetdrugstoreconsole.web.app/register` |
+| Legacy employee registration URL (redirects) | — | `oa9gukdtnh` | `public/pages/register-employee.html` | `https://planetdrugstoreconsole.web.app/oa9gukdtnh` → `/register` |
 | `pharmacy-schedule.html` *(new — split from `event-team-schedule.html`)* | — | `tz8lc2ct4y.html` | `public/pages/pharmacy-schedule.html` | `https://planetdrugstoreconsole.web.app/tz8lc2ct4y` |
 | `billing-schedule.html` *(new — split from `event-team-schedule.html`)* | — | `jszdttqedv.html` | `public/pages/billing-schedule.html` | `https://planetdrugstoreconsole.web.app/jszdttqedv` |
 | `it-schedule.html` *(new — split from `event-team-schedule.html`)* | — | `51qx617jve.html` | `public/pages/it-schedule.html` | `https://planetdrugstoreconsole.web.app/51qx617jve` |

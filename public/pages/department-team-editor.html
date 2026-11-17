@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fbf5f4">
+  <meta name="description" content="Edit profiles for department reporting positions.">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Edit Team Profiles | PLANETDRUGSTORE</title>
+  <link rel="icon" href="/assets/images/logo-transparent.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --ink:#2a1416;
+      --muted:#8c6b6e;
+      --red:#b8221c;
+      --red-dark:#741913;
+      --soft-red:#fbe7e9;
+      --paper:#fbf5f4;
+      --line:#eadedf;
+      --white:#fff;
+      --sans:'DM Sans',Arial,sans-serif;
+      --display:'Manrope',Arial,sans-serif;
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+    button,input,select,textarea{font:inherit;}
+    .site-header{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 max(24px,calc((100vw - 980px)/2));background:#fff;border-bottom:1px solid var(--line);}
+    .brand{display:flex;align-items:center;gap:10px;color:var(--ink);font-size:11px;font-weight:700;letter-spacing:.03em;text-decoration:none;}
+    .brand img{width:36px;height:36px;object-fit:contain;}
+    .header-actions{display:flex;align-items:center;gap:8px;}
+    .header-actions a,.header-actions button{padding:9px 12px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--red);font-size:10px;font-weight:700;text-decoration:none;cursor:pointer;}
+    .header-actions a:hover,.header-actions button:hover{border-color:var(--red);background:var(--red);color:#fff;}
+    main{width:min(760px,calc(100% - 40px));margin:0 auto;padding:36px 0 52px;}
+    .eyebrow{margin:0 0 8px;color:var(--red);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;}
+    h1{margin:0;font:800 clamp(30px,5vw,42px)/1.08 var(--display);letter-spacing:-.045em;}
+    .intro{max-width:620px;margin:10px 0 24px;color:var(--muted);font-size:12px;line-height:1.7;}
+    .editor-card,.gate-card{padding:24px;border:1px solid var(--line);border-radius:12px;background:var(--white);box-shadow:0 5px 18px rgba(42,20,22,.04);}
+    .gate-card{margin-top:24px;}
+    .gate-card h2{margin:0 0 8px;font:700 19px var(--display);}
+    .gate-card p{margin:0 0 16px;color:var(--muted);font-size:12px;line-height:1.6;}
+    .gate-card a{color:var(--red);font-size:11px;font-weight:700;}
+    [hidden]{display:none!important;}
+    .field{display:grid;gap:6px;margin-top:16px;}
+    label{color:#4d3435;font-size:10px;font-weight:700;}
+    select,input,textarea{width:100%;min-height:40px;padding:10px 11px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);font-size:12px;}
+    textarea{min-height:92px;resize:vertical;line-height:1.55;}
+    select:focus,input:focus,textarea:focus{outline:2px solid rgba(184,34,28,.16);border-color:var(--red);}
+    .profile-photo-row{display:flex;align-items:center;gap:16px;margin-top:18px;padding:15px;border:1px solid var(--line);border-radius:8px;background:#fff9f9;}
+    .avatar{display:grid;width:76px;height:76px;flex:none;place-items:center;overflow:hidden;border-radius:50%;background:var(--soft-red);color:var(--red);font:800 22px var(--display);}
+    .avatar img{width:100%;height:100%;object-fit:cover;}
+    .photo-actions{display:flex;flex-wrap:wrap;gap:8px;}
+    .secondary-button{min-height:36px;padding:0 12px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--red);font-size:10px;font-weight:700;cursor:pointer;}
+    .secondary-button:hover{border-color:var(--red);}
+    .hint{margin:7px 0 0;color:var(--muted);font-size:9px;line-height:1.5;}
+    .editor-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px;padding-top:18px;border-top:1px solid var(--line);}
+    .status{min-height:17px;margin:0;color:var(--red-dark);font-size:10px;line-height:1.5;}
+    .status.error{color:var(--red-dark);}
+    .save-button{min-height:40px;padding:0 18px;border:0;border-radius:6px;background:var(--red);color:#fff;font-size:11px;font-weight:700;cursor:pointer;}
+    .save-button:hover{background:var(--red-dark);}
+    .save-button:disabled{opacity:.55;cursor:wait;}
+    footer{padding:14px max(24px,calc((100vw - 760px)/2));background:#fff;color:var(--muted);font-size:8px;}
+    @media(max-width:600px){
+      .site-header{height:62px;padding:0 16px;}
+      .brand{gap:7px;font-size:9px;}
+      .brand img{width:32px;height:32px;}
+      .header-actions{gap:5px;}
+      .header-actions a,.header-actions button{padding:8px;font-size:9px;}
+      main{width:calc(100% - 32px);padding-top:27px;}
+      .editor-card,.gate-card{padding:18px;}
+      .editor-footer{align-items:flex-start;flex-direction:column;}
+      .save-button{width:100%;}
+      .profile-photo-row{align-items:flex-start;flex-direction:column;}
+      footer{padding:14px 16px;}
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/departments" aria-label="Planet Drugstore department directory">
+      <img src="/assets/images/logo-transparent.png" alt="">
+      <span>PLANETDRUGSTORE | TEAM PROFILE EDITOR</span>
+    </a>
+    <div class="header-actions">
+      <a href="/department-editor">Directory editor</a>
+      <button id="signOutButton" type="button" hidden>Sign out</button>
+    </div>
+  </header>
+
+  <main>
+    <p class="eyebrow">Authorized editor access</p>
+    <h1>Edit IT team profiles</h1>
+    <p class="intro">Add the name, photo, and bio or motto for each position in the IT reporting tree. Only the Department Editor account can make changes; the profiles are visible to the Department Viewing account.</p>
+
+    <section class="gate-card" id="accessGate" aria-live="polite">
+      <h2 id="gateTitle">Checking editor access…</h2>
+      <p id="gateMessage">Please wait while your editor account is checked.</p>
+      <a id="loginLink" href="/839jgl8ang" hidden>Go to Department Login</a>
+    </section>
+
+    <form class="editor-card" id="profileForm" hidden>
+      <div class="field">
+        <label for="positionSelect">Position</label>
+        <select id="positionSelect" required></select>
+      </div>
+      <div class="profile-photo-row">
+        <div class="avatar" id="avatarPreview" aria-label="Profile photo preview">
+          <span id="avatarInitials">?</span>
+          <img id="photoPreview" alt="" hidden>
+        </div>
+        <div>
+          <div class="photo-actions">
+            <button class="secondary-button" id="choosePhoto" type="button">Attach photo</button>
+            <button class="secondary-button" id="removePhoto" type="button" hidden>Remove photo</button>
+          </div>
+          <p class="hint">JPG, PNG, or WebP. The image is resized before saving.</p>
+          <input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+        </div>
+      </div>
+      <div class="field">
+        <label for="nameInput">Name</label>
+        <input id="nameInput" maxlength="120" autocomplete="name" required>
+      </div>
+      <div class="field">
+        <label for="bioInput">Bio / motto</label>
+        <textarea id="bioInput" maxlength="240" placeholder="Write a short bio or motto for this team member."></textarea>
+        <p class="hint" id="bioCount">0 / 240 characters</p>
+      </div>
+      <div class="editor-footer">
+        <p class="status" id="saveStatus" role="status" aria-live="polite"></p>
+        <button class="save-button" id="saveButton" type="submit">Save profile</button>
+      </div>
+    </form>
+  </main>
+
+  <footer>PLANETDRUGSTORE · Department team profiles</footer>
+
+  <script type="module">
+    import { IT_PROFILE_ROLES } from '/assets/js/department-team-roles.js';
+
+    const EDITOR_EMAIL = 'departments.editor@planetdrugstore.ph';
+    const MAX_SOURCE_PHOTO_SIZE = 15 * 1024 * 1024;
+    const MAX_PHOTO_DATA_LENGTH = 180000;
+    const accessGate = document.getElementById('accessGate');
+    const gateTitle = document.getElementById('gateTitle');
+    const gateMessage = document.getElementById('gateMessage');
+    const loginLink = document.getElementById('loginLink');
+    const profileForm = document.getElementById('profileForm');
+    const positionSelect = document.getElementById('positionSelect');
+    const nameInput = document.getElementById('nameInput');
+    const bioInput = document.getElementById('bioInput');
+    const photoInput = document.getElementById('photoInput');
+    const photoPreview = document.getElementById('photoPreview');
+    const avatarInitials = document.getElementById('avatarInitials');
+    const removePhotoButton = document.getElementById('removePhoto');
+    const saveButton = document.getElementById('saveButton');
+    const saveStatus = document.getElementById('saveStatus');
+    const signOutButton = document.getElementById('signOutButton');
+    let auth;
+    let db;
+    let editorUser;
+    let photoData = null;
+    let loadGeneration = 0;
+
+    function showGate(title, message, showLogin = false){
+      gateTitle.textContent = title;
+      gateMessage.textContent = message;
+      accessGate.hidden = false;
+      loginLink.hidden = !showLogin;
+      profileForm.hidden = true;
+    }
+
+    function initialsFor(name){
+      return String(name || '').trim().split(/\s+/).slice(0, 2)
+        .map(part => part[0] || '').join('').toUpperCase() || '?';
+    }
+
+    function showPhoto(data, name = nameInput.value){
+      const valid = typeof data === 'string'
+        && data.length <= MAX_PHOTO_DATA_LENGTH
+        && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(data);
+      avatarInitials.textContent = initialsFor(name);
+      photoPreview.hidden = !valid;
+      removePhotoButton.hidden = !valid;
+      if(valid) photoPreview.src = data;
+      else photoPreview.removeAttribute('src');
+    }
+
+    function populatePositions(){
+      let currentGroup = '';
+      let groupElement;
+      IT_PROFILE_ROLES.forEach(role => {
+        if(role.team !== currentGroup){
+          currentGroup = role.team;
+          groupElement = document.createElement('optgroup');
+          groupElement.label = currentGroup;
+          positionSelect.append(groupElement);
+        }
+        const option = document.createElement('option');
+        option.value = role.id;
+        option.textContent = role.label;
+        groupElement.append(option);
+      });
+    }
+
+    async function compressPhoto(file){
+      if(!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)){
+        throw new Error('Choose a JPG, PNG, or WebP image.');
+      }
+      if(!file.size || file.size > MAX_SOURCE_PHOTO_SIZE){
+        throw new Error('Choose an image smaller than 15 MB.');
+      }
+      const bitmap = await createImageBitmap(file);
+      try{
+        let scale = Math.min(1, 512 / Math.max(bitmap.width, bitmap.height));
+        for(let attempt = 0; attempt < 14; attempt += 1){
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+          canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+          const context = canvas.getContext('2d');
+          if(!context) throw new Error('Photo resizing is unavailable in this browser.');
+          context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+          const compressed = canvas.toDataURL('image/jpeg', Math.max(0.42, 0.82 - attempt * 0.035));
+          if(compressed.length <= MAX_PHOTO_DATA_LENGTH) return compressed;
+          scale *= 0.82;
+        }
+      }finally{
+        bitmap.close();
+      }
+      throw new Error('Could not resize this image enough. Try a smaller picture.');
+    }
+
+    async function loadSelectedProfile(){
+      const generation = ++loadGeneration;
+      const role = IT_PROFILE_ROLES.find(item => item.id === positionSelect.value);
+      if(!role) return;
+      saveStatus.textContent = 'Loading profile…';
+      saveStatus.classList.remove('error');
+      saveButton.disabled = true;
+      try{
+        const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+        const snapshot = await getDoc(doc(db, 'departmentTeamProfiles', role.id));
+        if(generation !== loadGeneration) return;
+        const data = snapshot.exists() ? snapshot.data() : {};
+        nameInput.value = typeof data.name === 'string' ? data.name : '';
+        bioInput.value = typeof data.bio === 'string' ? data.bio : '';
+        photoData = typeof data.photoData === 'string'
+          && data.photoData.length <= MAX_PHOTO_DATA_LENGTH
+          && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(data.photoData)
+          ? data.photoData
+          : null;
+        document.getElementById('bioCount').textContent = `${bioInput.value.length} / 240 characters`;
+        showPhoto(photoData);
+        saveStatus.textContent = snapshot.exists() ? 'Profile loaded.' : 'No profile saved for this position yet.';
+      }catch(error){
+        console.error('Unable to load team profile:', error);
+        if(generation === loadGeneration){
+          saveStatus.textContent = 'Could not load this profile. Check your connection and editor permission.';
+          saveStatus.classList.add('error');
+        }
+      }finally{
+        if(generation === loadGeneration) saveButton.disabled = false;
+      }
+    }
+
+    async function initializeEditor(){
+      populatePositions();
+      const [{ initializeApp }, { getAuth }, { getFirestore }] = await Promise.all([
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js'),
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js')
+      ]);
+      const app = initializeApp({
+        apiKey: 'AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ',
+        authDomain: 'planetdrugstore-peripher-d24c0.firebaseapp.com',
+        projectId: 'planetdrugstore-peripher-d24c0',
+        storageBucket: 'planetdrugstore-peripher-d24c0.firebasestorage.app',
+        messagingSenderId: '115454971026',
+        appId: '1:115454971026:web:0357eaa6bfb171e86cea4'
+      });
+      auth = getAuth(app);
+      db = getFirestore(app);
+      await auth.authStateReady();
+      editorUser = auth.currentUser;
+
+      if(!editorUser){
+        showGate('Sign in required', 'Sign in with the dedicated Department Editor account to edit team profiles.', true);
+        return;
+      }
+      const token = await editorUser.getIdTokenResult();
+      if(String(editorUser.email || '').trim().toLowerCase() !== EDITOR_EMAIL
+          || token.signInProvider !== 'password'){
+        showGate('Editor access only', 'Sign in with the Department Editor password account to edit team profiles.');
+        return;
+      }
+
+      accessGate.hidden = true;
+      profileForm.hidden = false;
+      signOutButton.hidden = false;
+      positionSelect.addEventListener('change', loadSelectedProfile);
+      await loadSelectedProfile();
+    }
+
+    document.getElementById('choosePhoto').addEventListener('click', () => photoInput.click());
+    photoInput.addEventListener('change', async () => {
+      const file = photoInput.files?.[0];
+      photoInput.value = '';
+      if(!file) return;
+      saveStatus.textContent = '';
+      saveStatus.classList.remove('error');
+      try{
+        photoData = await compressPhoto(file);
+        showPhoto(photoData);
+      }catch(error){
+        console.error('Unable to prepare team profile photo:', error);
+        saveStatus.textContent = error instanceof Error ? error.message : 'Unable to prepare this photo.';
+        saveStatus.classList.add('error');
+      }
+    });
+    removePhotoButton.addEventListener('click', () => {
+      photoData = null;
+      showPhoto(null);
+    });
+    nameInput.addEventListener('input', () => showPhoto(photoData));
+    bioInput.addEventListener('input', () => {
+      document.getElementById('bioCount').textContent = `${bioInput.value.length} / 240 characters`;
+    });
+    profileForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const role = IT_PROFILE_ROLES.find(item => item.id === positionSelect.value);
+      const name = nameInput.value.trim();
+      const bio = bioInput.value.trim();
+      if(!role || !editorUser || !name || name.length > 120 || bio.length > 240){
+        saveStatus.textContent = 'Enter a name up to 120 characters and a bio/motto up to 240 characters.';
+        saveStatus.classList.add('error');
+        return;
+      }
+
+      saveButton.disabled = true;
+      saveStatus.classList.remove('error');
+      saveStatus.textContent = 'Saving profile…';
+      try{
+        const { doc, serverTimestamp, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+        await setDoc(doc(db, 'departmentTeamProfiles', role.id), {
+          department: 'it',
+          name,
+          bio,
+          photoData,
+          updatedAt: serverTimestamp(),
+          updatedBy: editorUser.email
+        });
+        saveStatus.textContent = 'Profile saved. It is now available to the Department Viewing account.';
+      }catch(error){
+        console.error('Unable to save team profile:', error);
+        saveStatus.textContent = 'Could not save this profile. Check your connection and editor permission, then try again.';
+        saveStatus.classList.add('error');
+      }finally{
+        saveButton.disabled = false;
+      }
+    });
+    signOutButton.addEventListener('click', async () => {
+      signOutButton.disabled = true;
+      try{
+        const { signOut } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+        await signOut(auth);
+        window.location.replace('/839jgl8ang');
+      }catch(error){
+        console.error('Unable to sign out the team profile editor:', error);
+        signOutButton.disabled = false;
+        showGate('Sign out failed', 'Could not sign out. Please try again or close the browser session.');
+      }
+    });
+
+    initializeEditor().catch(error => {
+      console.error('Unable to initialize the team profile editor:', error);
+      showGate('Editor unavailable', 'Could not load the profile editor. Please try again later or contact IT/Admin.');
+    });
+  </script>
+</body>
+</html>

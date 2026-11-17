@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fbf5f4">
+  <meta name="description" content="Explore Planet Drugstore departments and the work each team handles.">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Departments | PLANETDRUGSTORE</title>
+  <link rel="icon" href="/assets/images/logo-transparent-pds.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      color-scheme:light;
+      --ink:#2a1416;
+      --muted:#8c6b6e;
+      --red:#b8221c;
+      --red-dark:#741913;
+      --soft-red:#fbe7e9;
+      --paper:#fbf5f4;
+      --line:#eadedf;
+      --white:#fff;
+      --sans:'DM Sans',Arial,sans-serif;
+      --display:'Manrope',Arial,sans-serif;
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+    button{font:inherit;}
+    .site-header{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 max(24px,calc((100vw - 1180px)/2));background:#fff;border-bottom:1px solid var(--line);}
+    .brand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;font-size:11px;font-weight:700;letter-spacing:.03em;}
+    .brand img{width:36px;height:36px;object-fit:contain;border-radius:50%;background:transparent;}
+    .editor-link{padding:9px 13px;border:1px solid var(--red);border-radius:6px;color:var(--red);font-size:10px;font-weight:700;text-decoration:none;}
+    .editor-link:hover{background:var(--red);color:#fff;}
+    main{width:min(1120px,calc(100% - 48px));margin:0 auto;padding:38px 0 44px;}
+    .directory-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;margin-bottom:24px;}
+    .eyebrow,.detail-kicker{margin:0 0 9px;color:var(--red);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;}
+    h1{margin:0;font:800 clamp(34px,5vw,46px)/1.08 var(--display);letter-spacing:-.045em;}
+    .intro{max-width:390px;margin:9px 0 0;color:var(--muted);font-size:12px;line-height:1.6;}
+    .department-count{display:flex;align-items:center;gap:8px;flex:none;padding-bottom:4px;color:var(--muted);font-size:9px;line-height:1.4;}
+    .department-count strong{color:var(--red);font:800 36px/.9 var(--display);letter-spacing:-.06em;}
+    .department-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+    .department-card,.help-card{min-height:156px;border:1px solid var(--line);border-radius:11px;background:var(--white);text-align:left;box-shadow:0 4px 12px rgba(42,20,22,.025);}
+    .department-card{display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;color:var(--ink);transition:background .16s ease,color .16s ease,border-color .16s ease,transform .16s ease;}
+    .department-card:hover{transform:translateY(-2px);border-color:#d6a1a1;}
+    .department-card.active{border-color:var(--red);background:var(--red);color:#fff;}
+    .department-select{width:100%;min-height:112px;display:flex;flex:1;flex-direction:column;justify-content:space-between;gap:9px;padding:12px 12px 8px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;}
+    .department-select:focus-visible,.department-subordinates:focus-visible{outline:2px solid #e29b38;outline-offset:-3px;}
+    .card-top,.card-title-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+    .department-icon{width:27px;height:27px;display:grid;place-items:center;border-radius:7px;background:var(--soft-red);color:var(--red);font:700 8px var(--display);letter-spacing:.02em;}
+    .department-card.active .department-icon{background:rgba(255,255,255,.16);color:#fff;}
+    .department-number{color:#9b7c7f;font:600 8px var(--display);}
+    .department-card.active .department-number{color:#f3c2c6;}
+    .department-card strong{display:block;font:700 15px/1.1 var(--display);letter-spacing:-.025em;}
+    .department-card-description{display:block;margin-top:5px;color:var(--muted);font-size:9px;line-height:1.45;}
+    .department-card.active .department-card-description{color:rgba(255,255,255,.84);}
+    .department-subordinates{display:inline-flex;align-items:center;gap:5px;align-self:flex-start;margin:0 12px 12px;padding:6px 8px;border:1px solid var(--line);border-radius:5px;color:var(--red);font-size:8px;font-weight:700;text-decoration:none;}
+    .department-card.active .department-subordinates{border-color:rgba(255,255,255,.4);color:#fff;}
+    .department-subordinates:hover{background:var(--soft-red);}
+    .department-card.active .department-subordinates:hover{background:rgba(255,255,255,.14);}
+    .help-card{display:flex;flex-direction:column;justify-content:space-between;padding:12px;background:transparent;box-shadow:none;}
+    .help-card h2{max-width:150px;margin:0;font:700 15px/1.14 var(--display);letter-spacing:-.03em;}
+    .help-card a{display:inline-flex;align-items:center;gap:7px;color:var(--red);font-size:9px;font-weight:700;text-decoration:none;}
+    .help-card a:hover{text-decoration:underline;}
+    .detail-panel{display:grid;grid-template-columns:1.2fr .8fr;margin-top:24px;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:#fff;}
+    .department-detail{min-height:226px;padding:25px 28px;}
+    .department-detail h2{margin:0;font:800 clamp(24px,3vw,30px)/1.1 var(--display);letter-spacing:-.045em;}
+    .department-description{max-width:500px;margin:9px 0 18px;color:var(--muted);font-size:11px;line-height:1.65;}
+    .directory-status{margin:0 0 14px;color:var(--red-dark);font-size:10px;line-height:1.5;}
+    .directory-status:empty{display:none;}
+    .detail-subhead{margin:0 0 7px;color:#735556;font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;}
+    .responsibility-list{margin:0;padding:0;list-style:none;border-top:1px solid var(--line);}
+    .responsibility-list li{display:flex;align-items:center;gap:9px;min-height:30px;border-bottom:1px solid var(--line);color:#4d3435;font-size:9px;}
+    .responsibility-list li::before{color:var(--red);content:'✓';font-size:10px;font-weight:700;}
+    .contact-panel{padding:25px;background:var(--soft-red);}
+    .contact-panel dl{margin:14px 0 0;}
+    .contact-panel dl div{padding:8px 0;border-top:1px solid var(--line);}
+    .contact-panel dt{margin-bottom:3px;color:var(--muted);font-size:8px;}
+    .contact-panel dd{margin:0;color:var(--ink);font-size:10px;font-weight:600;overflow-wrap:anywhere;}
+    .contact-panel dd a{color:var(--red-dark);text-decoration:none;}
+    .contact-panel dd a:hover{text-decoration:underline;}
+    footer{display:flex;justify-content:space-between;gap:16px;padding:14px max(24px,calc((100vw - 1120px)/2));background:#fff;color:var(--muted);font-size:8px;}
+    .footer-departments{max-width:70%;text-align:right;}
+    @media(max-width:760px){
+      main{width:min(100% - 32px,620px);padding-top:30px;}
+      .department-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+      .detail-panel{grid-template-columns:1fr;}
+      .contact-panel{padding:22px 28px;}
+      footer{flex-direction:column;}
+      .footer-departments{max-width:none;text-align:left;}
+    }
+    @media(max-width:480px){
+      .site-header{height:62px;padding:0 16px;}
+      .brand{font-size:9px;gap:7px;}
+      .brand img{width:32px;height:32px;}
+      .editor-link{padding:8px;font-size:9px;}
+      main{width:calc(100% - 32px);padding:26px 0 32px;}
+      .directory-heading{align-items:flex-start;}
+      .department-count{gap:5px;padding-top:22px;font-size:8px;}
+      .department-count strong{font-size:30px;}
+      .department-grid{gap:8px;}
+      .department-card,.help-card{min-height:150px;}
+      .department-select{min-height:108px;padding:10px 10px 8px;}
+      .department-subordinates{margin:0 10px 10px;}
+      .department-card strong,.help-card h2{font-size:13px;}
+      .department-card-description{font-size:8px;}
+      .department-detail{padding:22px 18px;}
+      .contact-panel{padding:20px 18px;}
+      footer{padding:14px 16px;}
+    }
+    @media(prefers-reduced-motion:reduce){
+      *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;}
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/dashboard.html" aria-label="Planet Drugstore dashboard">
+      <img src="/assets/images/logo-transparent.png" alt="">
+      <span>PLANETDRUGSTORE | COMPANY DIRECTORY</span>
+    </a>
+    <a class="editor-link" id="editDirectoryLink" href="/department-editor" hidden>Edit directory</a>
+  </header>
+
+  <main>
+    <div class="directory-heading">
+      <div>
+        <p class="eyebrow">Company directory</p>
+        <h1>Our Departments</h1>
+        <p class="intro">Find the right team, see what they handle, and know exactly who to reach out to.</p>
+      </div>
+      <div class="department-count" aria-label="7 departments, one company"><strong>07</strong><span>departments<br>one company</span></div>
+    </div>
+
+    <section class="department-grid" aria-label="Departments">
+      <article class="department-card active">
+        <button class="department-select" type="button" data-department="it" aria-pressed="true">
+          <span class="card-top"><span class="department-icon" aria-hidden="true">IT</span><span class="department-number">01</span></span>
+          <span class="card-copy"><strong>Information Technology</strong><span class="department-card-description">Keeps systems, networks, and devices running so everyone can work.</span></span>
+        </button>
+        <a class="department-subordinates" href="/department-subordinates?department=it">Subordinates <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="department-card">
+        <button class="department-select" type="button" data-department="purchasing" aria-pressed="false">
+          <span class="card-top"><span class="department-icon" aria-hidden="true">PR</span><span class="department-number">02</span></span>
+          <span class="card-copy"><strong>Purchasing</strong><span class="department-card-description">Sources suppliers and handles purchase requests from start to delivery.</span></span>
+        </button>
+        <a class="department-subordinates" href="/department-subordinates?department=purchasing">Subordinates <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="department-card">
+        <button class="department-select" type="button" data-department="hr" aria-pressed="false">
+          <span class="card-top"><span class="department-icon" aria-hidden="true">HR</span><span class="department-number">03</span></span>
+          <span class="card-copy"><strong>HR</strong><span class="department-card-description">Looks after hiring, employee records, and everything people-related.</span></span>
+        </button>
+        <a class="department-subordinates" href="/department-subordinates?department=hr">Subordinates <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="department-card">
+        <button class="department-select" type="button" data-department="warehouse" aria-pressed="false">
+          <span class="card-top"><span class="department-icon" aria-hidden="true">WH</span><span class="department-number">04</span></span>
+          <span class="card-copy"><strong>Warehouse</strong><span class="department-card-description">Receives, stores, and dispatches goods with accurate stock records.</span></span>
+        </button>
+        <a class="department-subordinates" href="/department-subordinates?department=warehouse">Subordinates <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="department-card">
+        <button class="department-select" type="button" data-department="billing" aria-pressed="false">
+          <span class="card-top"><span class="department-icon" aria-hidden="true">BL</span><span class="department-number">05</span></span>
+          <span class="card-copy"><strong>Billing</strong><span class="department-card-description">Prepares invoices and statements, and follows up customer payments.</span></span>
+        </button>
+        <a class="department-subordinates" href="/department-subordinates?department=billing">Subordinates <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="department-card">
+        <button class="department-select" type="button" data-department="accounting" aria-pressed="false">
+          <span class="card-top"><span class="department-icon" aria-hidden="true">AC</span><span class="department-number">06</span></span>
+          <span class="card-copy"><strong>Accounting</strong><span class="department-card-description">Maintains the books and produces the reports the business relies on.</span></span>
+        </button>
+        <a class="department-subordinates" href="/department-subordinates?department=accounting">Subordinates <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="department-card">
+        <button class="department-select" type="button" data-department="operation" aria-pressed="false">
+          <span class="card-top"><span class="department-icon" aria-hidden="true">OP</span><span class="department-number">07</span></span>
+          <span class="card-copy"><strong>Operation</strong><span class="department-card-description">Coordinates daily work across teams so services are delivered on time.</span></span>
+        </button>
+        <a class="department-subordinates" href="/department-subordinates?department=operation">Subordinates <span aria-hidden="true">→</span></a>
+      </article>
+      <aside class="help-card">
+        <h2>Not sure which team to ask?</h2>
+        <a href="mailto:informationdepart@planetdrugstore.ph">See contact details <span aria-hidden="true">→</span></a>
+      </aside>
+    </section>
+
+    <section class="detail-panel" aria-label="Selected department details" aria-live="polite">
+      <div class="department-detail">
+        <p class="detail-kicker" id="detailKicker">Information Technology</p>
+        <h2 id="detailTitle">Information Technology</h2>
+        <p class="department-description" id="detailDescription">Keeps systems, networks, and devices running so everyone can work.</p>
+        <p class="detail-subhead">What they handle</p>
+        <p class="directory-status" id="directoryStatus" role="status" aria-live="polite"></p>
+        <ul class="responsibility-list" id="responsibilityList">
+          <li>Technical support and troubleshooting</li>
+          <li>Network, servers, and system access</li>
+          <li>Hardware, software, and security</li>
+        </ul>
+      </div>
+      <aside class="contact-panel">
+        <p class="detail-kicker">Contact details</p>
+        <dl>
+          <div><dt>Department head</dt><dd id="departmentHead">Contact IT/Admin</dd></div>
+          <div><dt>Email</dt><dd id="departmentEmail"><a href="mailto:informationdepart@planetdrugstore.ph">informationdepart@planetdrugstore.ph</a></dd></div>
+          <div><dt>Local number</dt><dd id="departmentPhone">Contact IT/Admin</dd></div>
+          <div><dt>Location</dt><dd id="departmentLocation">Contact IT/Admin</dd></div>
+          <div><dt>Office hours</dt><dd id="departmentHours">Contact IT/Admin</dd></div>
+        </dl>
+      </aside>
+    </section>
+  </main>
+
+  <footer>
+    <span>PLANETDRUGSTORE · Internal directory</span>
+    <span class="footer-departments">Information Technology · Purchasing · HR · Warehouse · Billing · Accounting · Operation</span>
+  </footer>
+
+  <script type="module">
+    const departmentDetails = {
+      it: {
+        name: 'Information Technology',
+        description: 'Keeps systems, networks, and devices running so everyone can work.',
+        responsibilities: ['Technical support and troubleshooting', 'Network, servers, and system access', 'Hardware, software, and security'],
+        head: 'Contact IT/Admin',
+        email: 'informationdepart@planetdrugstore.ph',
+        phone: 'Contact IT/Admin',
+        location: 'Contact IT/Admin',
+        hours: 'Contact IT/Admin'
+      },
+      purchasing: {
+        name: 'Purchasing',
+        description: 'Sources suppliers and handles purchase requests from start to delivery.',
+        responsibilities: ['Supplier sourcing and coordination', 'Purchase requests and approvals', 'Order tracking and delivery follow-up'],
+        head: 'Contact IT/Admin',
+        email: '',
+        phone: 'Contact IT/Admin',
+        location: 'Contact IT/Admin',
+        hours: 'Contact IT/Admin'
+      },
+      hr: {
+        name: 'HR',
+        description: 'Looks after hiring, employee records, and everything people-related.',
+        responsibilities: ['Recruitment and onboarding', 'Employee records and support', 'People programs and workplace coordination'],
+        head: 'Contact IT/Admin',
+        email: '',
+        phone: 'Contact IT/Admin',
+        location: 'Contact IT/Admin',
+        hours: 'Contact IT/Admin'
+      },
+      warehouse: {
+        name: 'Warehouse',
+        description: 'Receives, stores, and dispatches goods with accurate stock records.',
+        responsibilities: ['Receiving and checking deliveries', 'Storage and inventory records', 'Order preparation and dispatch'],
+        head: 'Contact IT/Admin',
+        email: '',
+        phone: 'Contact IT/Admin',
+        location: 'Contact IT/Admin',
+        hours: 'Contact IT/Admin'
+      },
+      billing: {
+        name: 'Billing',
+        description: 'Prepares invoices and statements, and follows up customer payments.',
+        responsibilities: ['Invoice and statement preparation', 'Payment tracking and follow-up', 'Billing record coordination'],
+        head: 'Contact IT/Admin',
+        email: 'billingdepart@planetdrugstore.ph',
+        phone: 'Contact IT/Admin',
+        location: 'Contact IT/Admin',
+        hours: 'Contact IT/Admin'
+      },
+      accounting: {
+        name: 'Accounting',
+        description: 'Maintains the books and produces the reports the business relies on.',
+        responsibilities: ['Financial record keeping', 'Reconciliation and reporting', 'Documentation for business transactions'],
+        head: 'Contact IT/Admin',
+        email: '',
+        phone: 'Contact IT/Admin',
+        location: 'Contact IT/Admin',
+        hours: 'Contact IT/Admin'
+      },
+      operation: {
+        name: 'Operation',
+        description: 'Coordinates daily work across teams so services are delivered on time.',
+        responsibilities: ['Daily operational coordination', 'Cross-team workflow support', 'Service and process follow-through'],
+        head: 'Contact IT/Admin',
+        email: '',
+        phone: 'Contact IT/Admin',
+        location: 'Contact IT/Admin',
+        hours: 'Contact IT/Admin'
+      }
+    };
+
+    const detailKicker = document.getElementById('detailKicker');
+    const detailTitle = document.getElementById('detailTitle');
+    const detailDescription = document.getElementById('detailDescription');
+    const responsibilityList = document.getElementById('responsibilityList');
+    const departmentEmail = document.getElementById('departmentEmail');
+    const departmentHead = document.getElementById('departmentHead');
+    const departmentPhone = document.getElementById('departmentPhone');
+    const departmentLocation = document.getElementById('departmentLocation');
+    const departmentHours = document.getElementById('departmentHours');
+
+    function selectDepartment(key){
+      const department = departmentDetails[key];
+      if(!department) return;
+
+      document.querySelectorAll('[data-department]').forEach(button => {
+        const selected = button.dataset.department === key;
+        button.setAttribute('aria-pressed', String(selected));
+        button.closest('.department-card')?.classList.toggle('active', selected);
+      });
+
+      detailKicker.textContent = department.name;
+      detailTitle.textContent = department.name;
+      detailDescription.textContent = department.description;
+      document.querySelector(`[data-department="${key}"] .card-copy strong`).textContent = department.name;
+      document.querySelector(`[data-department="${key}"] .department-card-description`).textContent = department.description;
+      const responsibilities = Array.isArray(department.responsibilities)
+        ? department.responsibilities
+        : String(department.responsibilities || '').split(/\r?\n/).map(item => item.trim()).filter(Boolean);
+      responsibilityList.replaceChildren(...responsibilities.map(item => {
+        const row = document.createElement('li');
+        row.textContent = item;
+        return row;
+      }));
+
+      departmentHead.textContent = department.head || 'Contact IT/Admin';
+      departmentPhone.textContent = department.phone || 'Contact IT/Admin';
+      departmentLocation.textContent = department.location || 'Contact IT/Admin';
+      departmentHours.textContent = department.hours || 'Contact IT/Admin';
+      departmentEmail.replaceChildren();
+      if(department.email){
+        const link = document.createElement('a');
+        link.href = `mailto:${department.email}`;
+        link.textContent = department.email;
+        departmentEmail.append(link);
+      }else{
+        departmentEmail.textContent = 'Contact IT/Admin';
+      }
+    }
+
+    document.querySelectorAll('[data-department]').forEach(button => {
+      button.addEventListener('click', () => selectDepartment(button.dataset.department));
+    });
+
+    const firebaseConfig = {
+      apiKey: 'AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ',
+      authDomain: 'planetdrugstore-peripher-d24c0.firebaseapp.com',
+      projectId: 'planetdrugstore-peripher-d24c0',
+      storageBucket: 'planetdrugstore-peripher-d24c0.firebasestorage.app',
+      messagingSenderId: '115454971026',
+      appId: '1:115454971026:web:0357eaa6bfb171e86cea4b'
+    };
+
+    async function loadDepartmentDirectory(){
+      const [{ initializeApp }, { getAuth }, { getFirestore, doc, getDoc }] = await Promise.all([
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js'),
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js')
+      ]);
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      await auth.authStateReady();
+      const editorLink = document.getElementById('editDirectoryLink');
+      if(String(auth.currentUser?.email || '').trim().toLowerCase() === 'departments.editor@planetdrugstore.ph'){
+        editorLink.hidden = false;
+      }
+
+      const entries = await Promise.all(Object.keys(departmentDetails).map(async key => {
+        const snapshot = await getDoc(doc(db, 'departmentDirectory', key));
+        return snapshot.exists() ? [key, snapshot.data()] : null;
+      }));
+      entries.filter(Boolean).forEach(([key, data]) => {
+        departmentDetails[key] = {
+          ...departmentDetails[key],
+          head: data.head || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          location: data.location || '',
+          hours: data.hours || ''
+        };
+      });
+      const activeKey = document.querySelector('[data-department][aria-pressed="true"]')?.dataset.department || 'it';
+      selectDepartment(activeKey);
+    }
+
+    loadDepartmentDirectory().catch(error => {
+      console.error('Unable to load saved department details:', error);
+      document.getElementById('directoryStatus').textContent = 'Could not load saved directory details. Showing the default information; please refresh or contact IT/Admin.';
+    });
+  </script>
+</body>
+</html>

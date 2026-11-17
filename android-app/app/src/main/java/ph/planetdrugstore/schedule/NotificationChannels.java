@@ -8,9 +8,9 @@ import android.media.RingtoneManager;
 import android.os.Build;
 
 public final class NotificationChannels {
-    public static final String UPDATES = "schedule_updates_v2";
-    public static final String PRIORITY_UPDATES = "priority_schedule_updates_v1";
-    public static final String EVENT_ALARMS = "event_alarms_v2";
+    public static final String UPDATES = "pds_updates_v1";
+    public static final String PRIORITY_UPDATES = "pds_priority_updates_v1";
+    public static final String EVENT_ALARMS = "pds_event_alarms_v1";
     public static final String ALARM_PLAYBACK = "alarm_playback";
 
     private NotificationChannels() {}
@@ -20,22 +20,22 @@ public final class NotificationChannels {
         NotificationManager manager = context.getSystemService(NotificationManager.class);
         if (manager == null) return;
 
-        NotificationChannel updates = new NotificationChannel(UPDATES, "Schedule updates", NotificationManager.IMPORTANCE_HIGH);
-        updates.setDescription("Changes and assignments from the Pharmacy schedule.");
+        NotificationChannel updates = new NotificationChannel(UPDATES, "PDS notifications", NotificationManager.IMPORTANCE_HIGH);
+        updates.setDescription("Updates from Planet Drugstore apps, including schedules and stock requests.");
         updates.enableVibration(true);
         updates.setVibrationPattern(new long[]{0, 180, 100, 180});
         updates.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
                 new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).build());
 
-        NotificationChannel priorityUpdates = new NotificationChannel(PRIORITY_UPDATES, "Important schedule alerts", NotificationManager.IMPORTANCE_HIGH);
-        priorityUpdates.setDescription("Important notes and employee assignment changes from department heads.");
+        NotificationChannel priorityUpdates = new NotificationChannel(PRIORITY_UPDATES, "Important PDS alerts", NotificationManager.IMPORTANCE_HIGH);
+        priorityUpdates.setDescription("Important updates and actions from Planet Drugstore apps.");
         priorityUpdates.enableVibration(true);
         priorityUpdates.setVibrationPattern(new long[]{0, 180, 100, 180});
         priorityUpdates.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
             new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).build());
 
-        NotificationChannel alarms = new NotificationChannel(EVENT_ALARMS, "Event alarms", NotificationManager.IMPORTANCE_HIGH);
-        alarms.setDescription("Urgent reminders for today's Pharmacy events.");
+        NotificationChannel alarms = new NotificationChannel(EVENT_ALARMS, "PDS event alarms", NotificationManager.IMPORTANCE_HIGH);
+        alarms.setDescription("Urgent reminders for Pharmacy events.");
         alarms.enableVibration(true);
         alarms.setVibrationPattern(new long[]{0, 180, 100, 180, 100, 360});
         android.net.Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
@@ -45,7 +45,7 @@ public final class NotificationChannels {
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build());
 
-        NotificationChannel playback = new NotificationChannel(ALARM_PLAYBACK, "Alarm sound", NotificationManager.IMPORTANCE_LOW);
+        NotificationChannel playback = new NotificationChannel(ALARM_PLAYBACK, "PDS alarm sound", NotificationManager.IMPORTANCE_LOW);
         playback.setDescription("Ongoing notification while an event alarm is sounding.");
         playback.setSound(null, null);
         playback.enableVibration(false);

@@ -140,14 +140,16 @@
     transition:background .15s ease;
   }
   .badge-dropdown-item:hover{ background:rgba(255,255,255,0.1); }
+  a.badge-dropdown-item{text-decoration:none;}
   .welcome-avatar{
     width:30px;height:30px;border-radius:50%;
     background:linear-gradient(145deg, var(--red), var(--red-dark));
-    display:flex;align-items:center;justify-content:center;
+    display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
     font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:12.5px;color:#fff;
     flex:none;
     box-shadow:0 4px 10px rgba(214,31,44,0.4);
   }
+  .welcome-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .welcome-text{line-height:1.2;}
   .welcome-text .wt-hi{
     display:block;font-size:10.5px;letter-spacing:0.8px;text-transform:uppercase;
@@ -274,6 +276,64 @@
   @keyframes spin{ to{ transform:rotate(360deg); } }
   @keyframes pulse{ 0%,100%{ transform:scale(1); opacity:0.9; } 50%{ transform:scale(1.08); opacity:1; } }
   @keyframes float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+  .update-history-trigger{position:fixed;right:20px;bottom:20px;z-index:1000;display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:10px 15px;border:1px solid rgba(255,255,255,.55);border-radius:999px;background:#fff;color:var(--maroon);box-shadow:0 10px 28px rgba(0,0,0,.3);font:inherit;font-size:12px;font-weight:800;cursor:pointer}
+  .update-history-trigger:hover{background:#fff1ef;transform:translateY(-1px)}
+  .update-history-trigger[hidden]{display:none}
+  .update-history-dialog{width:min(92vw,620px);max-width:none;max-height:85vh;overflow:hidden;margin:auto;padding:0;border:1px solid rgba(255,255,255,.55);border-radius:16px;background:#fff;color:var(--ink);box-shadow:0 24px 80px rgba(0,0,0,.4)}
+  .update-history-dialog::backdrop{background:rgba(35,8,12,.72);backdrop-filter:blur(4px)}
+  .update-history-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 22px;background:linear-gradient(135deg,#6E1620,#8d1d2b);color:#fff}
+  .update-history-header h2{margin:0;font-size:20px}
+  .update-history-header p{margin:5px 0 0;color:#f8e6e7;font-size:12px;line-height:1.5}
+  .update-history-close{flex:none;width:34px;height:34px;border:1px solid rgba(255,255,255,.5);border-radius:50%;background:transparent;color:#fff;font:inherit;font-size:22px;cursor:pointer}
+  .update-history-list{display:grid;max-height:calc(85vh - 100px);gap:10px;overflow:auto;padding:16px 20px 20px}
+  .update-history-entry{padding:13px;border:1px solid var(--line);border-radius:10px;background:#fffafa}
+  .update-history-entry time{display:block;margin-bottom:5px;color:var(--red);font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+  .update-history-entry h3{margin:0 0 6px;color:var(--maroon);font-size:14px}
+  .update-history-entry ul{margin:0;padding-left:18px;color:var(--muted);font-size:12px;line-height:1.55}
+  @media(max-width:480px){.update-history-trigger{right:12px;bottom:12px}.update-history-header{padding:17px}.update-history-list{padding:13px}}
+  .profile-dialog{width:min(92vw,820px);max-width:none;max-height:90dvh;overflow:auto;margin:auto;padding:0;border:1px solid rgba(255,255,255,.55);border-radius:16px;background:#fff;color:var(--ink);box-shadow:0 24px 80px rgba(0,0,0,.4)}
+  .profile-dialog::backdrop{background:rgba(35,8,12,.72);backdrop-filter:blur(4px)}
+  .profile-header{position:sticky;top:0;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:17px 22px;background:linear-gradient(135deg,#6E1620,#8d1d2b);color:#fff}
+  .profile-header h2{margin:0;font-size:20px}
+  .profile-header p{margin:5px 0 0;color:#f8e6e7;font-size:12px;line-height:1.5}
+  .profile-close{flex:none;width:34px;height:34px;border:1px solid rgba(255,255,255,.5);border-radius:50%;background:transparent;color:#fff;font:inherit;font-size:22px;cursor:pointer}
+  .profile-form{display:grid;grid-template-columns:220px minmax(0,1fr);align-items:start;gap:16px;padding:20px}
+  .profile-identity-card,.profile-personal-card{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#fff}
+  .profile-identity-card{text-align:center}
+  .profile-cover{height:60px;background:linear-gradient(125deg,#6E1620,#8d1d2b)}
+  .profile-identity-body{padding:0 14px 15px}
+  .profile-photo-wrap{position:relative;display:grid;justify-items:center;gap:8px;margin:0 0 8px;padding:0 0 14px;border-bottom:1px solid var(--line)}
+  .profile-photo{position:relative;display:grid;width:104px;height:104px;place-items:center;overflow:hidden;border:3px solid #fff;border-radius:50%;background:linear-gradient(145deg,#d61f2c,#6E1620);box-shadow:0 5px 18px rgba(42,20,22,.2);color:#fff;font-size:26px;font-weight:800}
+  .profile-photo{margin-top:-42px}
+  .profile-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .profile-close-photo{position:absolute;top:47px;left:calc(50% + 28px);display:grid;width:30px;height:30px;place-items:center;padding:0;border:2px solid #fff;border-radius:50%;background:var(--maroon);color:#fff;cursor:pointer}
+  .profile-identity-name{overflow-wrap:anywhere;margin:0;color:var(--ink);font-size:16px;font-weight:800}
+  .profile-identity-department{display:inline-flex;margin-top:6px;padding:5px 10px;border-radius:99px;background:#fae8e8;color:var(--maroon);font-size:11px;font-weight:700}
+  .profile-identity-email{overflow-wrap:anywhere;margin:9px 0 0;color:var(--muted);font-size:11px;line-height:1.45}
+  .profile-photo-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+  .profile-photo-actions button{min-height:34px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--maroon);font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+  .profile-photo-actions button:hover{border-color:var(--maroon);background:#fff7f6}
+  .profile-photo-input{display:none}
+  .profile-personal-card{padding:17px}
+  .profile-personal-heading{margin-bottom:13px}
+  .profile-personal-heading h3{margin:0;color:var(--dark);font-size:15px}
+  .profile-personal-heading p{margin:4px 0 0;color:var(--muted);font-size:11px;line-height:1.5}
+  .profile-field{display:grid;gap:5px;margin-top:10px}
+  .profile-field-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:10px}
+  .profile-form label{margin:0;color:var(--maroon);font-size:11px;font-weight:700}
+  .profile-form input:not([type="file"]){width:100%;min-width:0;min-height:40px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;color:var(--ink);font:inherit;font-size:12px}
+  .profile-form input[readonly]{background:#f7f3f3;color:var(--muted)}
+  .profile-form textarea{width:100%;min-height:92px;resize:vertical;padding:9px 11px;border:1px solid var(--line);border-radius:8px;color:var(--ink);font:inherit;font-size:12px;line-height:1.45}
+  .profile-form textarea[readonly]{background:#f7f3f3;color:var(--muted)}
+  .profile-help{margin:0;color:var(--muted);font-size:11px;line-height:1.5}
+  .profile-error{grid-column:1/-1;margin:0;color:#a21c26;font-size:12px;line-height:1.4}
+  .profile-error[hidden]{display:none}
+  .profile-actions{display:flex;justify-content:flex-end;gap:8px;margin:16px -17px -17px;padding:12px 17px;border-top:1px solid #f3eaea;background:#fdfbfa}
+  .profile-actions button{min-height:38px;padding:8px 13px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--maroon);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+  .profile-actions .profile-save{border-color:var(--maroon);background:var(--maroon);color:#fff}
+  .profile-actions button:disabled{opacity:.55;cursor:wait}
+  @media(max-width:640px){.profile-dialog{width:min(94vw,480px);max-height:92dvh}.profile-form{grid-template-columns:minmax(0,1fr);gap:12px;padding:14px}.profile-identity-card{display:grid;grid-template-columns:1fr}.profile-identity-body{padding:0 14px 14px}.profile-personal-card{padding:15px}.profile-actions{margin:14px -15px -15px;padding:11px 15px}}
+  @media(max-width:420px){.profile-dialog{width:calc(100vw - 18px);max-height:94dvh;border-radius:13px}.profile-header{padding:14px}.profile-form{padding:10px}.profile-field-row{grid-template-columns:minmax(0,1fr);gap:0}.profile-personal-card{padding:13px}.profile-actions{margin:12px -13px -13px;padding:10px 13px}}
 </style>
 </head>
 <body>
@@ -286,7 +346,10 @@
       <div class="brand-name">PLANET<span>DRUGSTORE EVENT SCHEDULE</span></div>
     </div>
     <div class="welcome-badge" id="welcomeBadge">
-      <div class="welcome-avatar" id="welcomeAvatar">ES</div>
+      <div class="welcome-avatar" id="welcomeAvatar">
+        <span id="welcomeAvatarInitials">ES</span>
+        <img id="welcomeAvatarImage" alt="" hidden>
+      </div>
       <div class="welcome-text">
         <span class="wt-hi">Welcome back</span>
         <span class="wt-name" id="welcomeName">EVENT TEAM</span>
@@ -294,6 +357,8 @@
       <span class="welcome-dot"></span>
       <span class="badge-chevron"></span>
       <div class="badge-dropdown" id="badgeDropdown">
+        <a class="badge-dropdown-item" href="/dashboard.html">Go to Dashboard</a>
+        <button type="button" class="badge-dropdown-item" id="openProfileButton">My Profile</button>
         <button type="button" class="badge-dropdown-item" id="OnLogout">🚪 Log Out</button>
       </div>
     </div>
@@ -308,6 +373,7 @@
       </p>
       <div class="hero-ctas">
         <a href="/tz8lc2ct4y" id="goToScheduleBtn" class="btn-ghost">📅 Go to Event Schedule</a>
+        <a href="/billing-daily-tasks" id="billingDailyTasksBtn" class="btn-ghost" style="display:none">📝 BILLING DAILY TASK TRACKER</a>
       </div>
       <div class="trust-row">
         <div><strong>2</strong>Branches Covered</div>
@@ -334,6 +400,99 @@
   </div>
 
 </div>
+<button class="update-history-trigger" id="billingUpdateHistoryButton" type="button" aria-haspopup="dialog" aria-controls="billingUpdateHistoryDialog" hidden>↻ Update history</button>
+<dialog class="update-history-dialog" id="billingUpdateHistoryDialog" aria-labelledby="billingUpdateHistoryTitle">
+  <header class="update-history-header">
+    <div>
+      <h2 id="billingUpdateHistoryTitle">Billing Update History</h2>
+      <p>Previous Billing Daily Tasks announcements are saved here.</p>
+    </div>
+    <button class="update-history-close" id="closeBillingUpdateHistory" type="button" aria-label="Close update history">&times;</button>
+  </header>
+  <div class="update-history-list">
+    <article class="update-history-entry">
+      <time datetime="2026-11-02">November 2, 2026</time>
+      <h3>Daily task progress and filters</h3>
+      <ul>
+        <li>Added a task progress meter for completed, collected, pending, and for-compliance totals.</li>
+        <li>Made the totals respond to the selected transaction, employee, and date filters.</li>
+        <li>Added status chips to help find matching submissions.</li>
+      </ul>
+    </article>
+    <article class="update-history-entry">
+      <time datetime="2026-11-03">November 3, 2026</time>
+      <h3>No Status task tracking</h3>
+      <ul>
+        <li>Added a No Status count to the task meter and a filter to find those submissions.</li>
+        <li>Employees can see incomplete tasks in Pending Logs and update them later.</li>
+      </ul>
+    </article>
+  </div>
+</dialog>
+<dialog class="profile-dialog" id="profileDialog" aria-labelledby="profileTitle">
+  <header class="profile-header">
+    <div>
+      <h2 id="profileTitle">My profile</h2>
+      <p>Personalize your account and profile picture.</p>
+    </div>
+    <button class="profile-close" id="closeProfileButton" type="button" aria-label="Close profile">&times;</button>
+  </header>
+  <form class="profile-form" id="profileForm">
+    <section class="profile-identity-card" aria-label="Profile picture and account summary">
+      <div class="profile-cover"></div>
+      <div class="profile-identity-body">
+        <div class="profile-photo-wrap">
+          <div class="profile-photo" id="profilePhotoPreview">
+            <span id="profilePhotoInitials">BD</span>
+            <img id="profilePhotoImage" alt="Profile picture preview" hidden>
+          </div>
+          <button class="profile-close-photo" id="cameraProfilePhoto" type="button" aria-label="Choose profile picture">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h3l2-3h6l2 3h3v13H4z"/><circle cx="12" cy="13" r="3"/></svg>
+          </button>
+        </div>
+        <p class="profile-identity-name" id="profileIdentityName">Profile</p>
+        <span class="profile-identity-department" id="profileIdentityDepartment">Department</span>
+        <p class="profile-identity-email" id="profileIdentityEmail"></p>
+        <div class="profile-photo-actions">
+          <button id="chooseProfilePhoto" type="button">Choose photo</button>
+          <button id="removeProfilePhoto" type="button">Remove photo</button>
+        </div>
+        <input class="profile-photo-input" id="profilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp">
+        <p class="profile-help">JPG, PNG, or WebP. Resized before saving.</p>
+        <p class="profile-help">Your picture appears beside your name in staff schedules.</p>
+      </div>
+    </section>
+    <section class="profile-personal-card" aria-labelledby="profilePersonalHeading">
+      <header class="profile-personal-heading">
+        <h3 id="profilePersonalHeading">Personal information</h3>
+        <p>Only your display name and bio can be changed. Other details are managed by your administrator.</p>
+      </header>
+      <div class="profile-field">
+        <label for="profileDisplayName">Display name</label>
+        <input id="profileDisplayName" name="displayName" type="text" maxlength="120" autocomplete="name" required>
+      </div>
+      <div class="profile-field-row">
+        <div class="profile-field">
+          <label for="profileEmail">Account email</label>
+          <input id="profileEmail" type="email" readonly>
+        </div>
+        <div class="profile-field">
+          <label for="profileDepartment">Department</label>
+          <input id="profileDepartment" type="text" readonly>
+        </div>
+      </div>
+      <div class="profile-field">
+        <label for="profileAbout">About me</label>
+        <textarea id="profileAbout" maxlength="300" placeholder="Add a short introduction"></textarea>
+      </div>
+      <p class="profile-error" id="profileError" role="alert" hidden></p>
+      <div class="profile-actions">
+        <button id="cancelProfileButton" type="button">Cancel</button>
+        <button class="profile-save" id="saveProfileButton" type="submit">Save profile</button>
+      </div>
+    </section>
+  </form>
+</dialog>
 <script src="loader.js"></script>
 <script type="module">
 // ---------- Update/version check ----------
@@ -347,7 +506,7 @@
 // bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
 // doesn't match what this tab is currently running — shows a small banner
 // instead of silently staying on stale code.
-const APP_VERSION = "2026-09-23.1";
+const APP_VERSION = "2026-11-09.2";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -393,7 +552,8 @@ startVersionWatch();
 
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
+  import { initializeFirestore, doc, getDoc, serverTimestamp, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     getAuth, onAuthStateChanged, signOut, setPersistence,
     indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence,
@@ -411,22 +571,27 @@ startVersionWatch();
     appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
   };
 
-  const app = initializeApp(firebaseConfig);
+  const app = initializeApp(getFirebaseConfigForHost(firebaseConfig));
   const db = initializeFirestore(app, {
     experimentalForceLongPolling: true,
     useFetchStreams: false
   });
   const auth = getAuth(app);
+  connectLocalFirebaseEmulators({ db, auth });
 
   // Each Event Schedule account gets its own display label/initials for
   // the welcome badge, keyed by email — instead of the old hardcoded
   // "ES / EVENT TEAM" placeholder that showed the same thing no matter
   // who was actually signed in.
   const EVENT_SCHEDULE_ACCOUNTS = {
-    'pharmacistdepart@planetdrugstore.ph': { label: 'Pharmacy Department', initials: 'PD', file: '/tz8lc2ct4y' },
+    'pharmacistdepart@planetdrugstore.ph': { label: 'Operations', initials: 'OPS', file: '/tz8lc2ct4y' },
     'billingdepart@planetdrugstore.ph':    { label: 'Billing Department',  initials: 'BD', file: '/jszdttqedv' },
     'informationdepart@planetdrugstore.ph':{ label: 'Information Technology', initials: 'IT', file: '/51qx617jve' }
   };
+  const MAX_PROFILE_PHOTO_SOURCE_SIZE = 15 * 1024 * 1024;
+  const MAX_PROFILE_PHOTO_DATA_LENGTH = 180000;
+  let activeProfile = null;
+  let pendingProfilePhoto = null;
 
   // Only the Event Schedule account belongs on this page — anyone else
   // (not signed in, or signed in as a different account) gets sent back
@@ -438,17 +603,244 @@ startVersionWatch();
   await auth.authStateReady();
   const currentUser = auth.currentUser;
   const currentEmail = (currentUser?.email || '').toLowerCase();
-  const account = EVENT_SCHEDULE_ACCOUNTS[currentEmail];
+  let account = EVENT_SCHEDULE_ACCOUNTS[currentEmail];
+  const profileDialog = document.getElementById('profileDialog');
+  const profileForm = document.getElementById('profileForm');
+  const profileError = document.getElementById('profileError');
+  let profileLoadError = '';
+  let profilePhotoSyncError = '';
+
+  function applyProfilePicture(photoData, displayName, fallbackInitials = 'BD') {
+    const initials = displayName.trim().split(/\s+/).map(part => part[0]).join('').slice(0, 3).toUpperCase()
+      || fallbackInitials;
+    const welcomeInitials = document.getElementById('welcomeAvatarInitials');
+    const welcomeImage = document.getElementById('welcomeAvatarImage');
+    const previewInitials = document.getElementById('profilePhotoInitials');
+    const previewImage = document.getElementById('profilePhotoImage');
+    welcomeInitials.textContent = initials;
+    previewInitials.textContent = initials;
+    if (photoData) {
+      welcomeImage.src = photoData;
+      welcomeImage.hidden = false;
+      previewImage.src = photoData;
+      previewImage.hidden = false;
+      welcomeInitials.hidden = true;
+      previewInitials.hidden = true;
+    } else {
+      welcomeImage.removeAttribute('src');
+      welcomeImage.hidden = true;
+      previewImage.removeAttribute('src');
+      previewImage.hidden = true;
+      welcomeInitials.hidden = false;
+      previewInitials.hidden = false;
+    }
+  }
+
+  async function compressProfilePicture(file) {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      throw new Error('Choose a JPG, PNG, or WebP image.');
+    }
+    if (!file.size || file.size > MAX_PROFILE_PHOTO_SOURCE_SIZE) {
+      throw new Error('Choose an image smaller than 15 MB.');
+    }
+    const bitmap = await createImageBitmap(file);
+    try {
+      let scale = Math.min(1, 512 / Math.max(bitmap.width, bitmap.height));
+      for (let attempt = 0; attempt < 14; attempt += 1) {
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+        const context = canvas.getContext('2d');
+        if (!context) throw new Error('Photo resizing is unavailable in this browser.');
+        context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        const photoData = canvas.toDataURL('image/jpeg', Math.max(0.42, 0.82 - attempt * 0.035));
+        if (photoData.length <= MAX_PROFILE_PHOTO_DATA_LENGTH) return photoData;
+        scale *= 0.82;
+      }
+    } finally {
+      bitmap.close();
+    }
+    throw new Error('Could not resize this image enough. Try a smaller picture.');
+  }
+
+  if (!account && currentUser) {
+    try {
+      const profileSnapshot = await getDoc(doc(db, 'eventScheduleAdmins', currentUser.uid));
+      const profile = profileSnapshot.exists() ? profileSnapshot.data() : null;
+      if (profile?.active === true && profile?.role === 'pharmacist'
+          && String(profile.email || '').trim().toLowerCase() === currentEmail) {
+        const initials = String(profile.name || 'Pharmacist').split(/\s+/).map(part => part[0]).join('').slice(0, 3);
+        account = { label: profile.name || 'Pharmacist', initials, file: '/tz8lc2ct4y' };
+      }
+    } catch (error) {
+      console.error('Could not verify Pharmacy schedule admin profile:', error);
+    }
+  }
   if(!currentUser || !account){
     window.location.replace('/839jgl8ang');
   } else {
-    document.getElementById('welcomeName').textContent = account.label.toUpperCase();
-    document.getElementById('welcomeAvatar').textContent = account.initials;
+    let savedProfile = null;
+    try {
+      const profileSnapshot = await getDoc(doc(db, 'userProfiles', currentUser.uid));
+      savedProfile = profileSnapshot.exists() ? profileSnapshot.data() : null;
+    } catch (error) {
+      profileLoadError = 'Unable to load your profile. Refresh the page before editing it.';
+      console.error('Unable to load the signed-in user profile:', error);
+    }
+    const displayName = typeof savedProfile?.displayName === 'string' && savedProfile.displayName.trim()
+      ? savedProfile.displayName.trim()
+      : currentUser.displayName || account.label;
+    const about = typeof savedProfile?.about === 'string' ? savedProfile.about : '';
+    const photoData = typeof savedProfile?.photoData === 'string'
+        && savedProfile.photoData.length <= MAX_PROFILE_PHOTO_DATA_LENGTH
+        && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(savedProfile.photoData)
+      ? savedProfile.photoData
+      : null;
+    activeProfile = { displayName, about, photoData };
+    document.getElementById('welcomeName').textContent = displayName.toUpperCase();
+    applyProfilePicture(photoData, displayName, account.initials);
+    document.getElementById('profileDisplayName').value = displayName;
+    document.getElementById('profileEmail').value = currentUser.email || '';
+    document.getElementById('profileDepartment').value = account.label;
+    document.getElementById('profileIdentityName').textContent = displayName;
+    document.getElementById('profileIdentityEmail').textContent = currentUser.email || '';
+    document.getElementById('profileIdentityDepartment').textContent = account.label;
+    document.getElementById('profileAbout').value = about;
     // Pharmacy, Billing, and IT each got their own file now — send this
     // head to theirs instead of the one combined file it used to be.
     const goBtn = document.getElementById('goToScheduleBtn');
     if (goBtn) goBtn.href = account.file;
+    if (currentEmail === 'billingdepart@planetdrugstore.ph') {
+      document.getElementById('billingDailyTasksBtn').style.display = '';
+      document.getElementById('billingUpdateHistoryButton').hidden = false;
+      if (!profileLoadError) {
+        try {
+          const taskPhotoRef = doc(db, 'dailyTaskProfilePhotos', 'billing-head');
+          const taskPhotoSnapshot = await getDoc(taskPhotoRef);
+          if (!taskPhotoSnapshot.exists()
+              || taskPhotoSnapshot.data().photoData !== photoData
+              || taskPhotoSnapshot.data().displayName !== displayName) {
+            await setDoc(taskPhotoRef, { photoData, displayName, updatedAt: serverTimestamp() });
+          }
+        } catch (error) {
+          profilePhotoSyncError = 'Your photo could not be synced to Billing task conversations. Save your profile again to retry.';
+          console.error('Unable to sync the Billing Head profile photo:', error);
+        }
+      }
+    }
   }
+
+  document.getElementById('openProfileButton').addEventListener('click', () => {
+    window.location.href = '/pages/profile.html';
+  });
+  document.getElementById('closeProfileButton').addEventListener('click', () => profileDialog.close());
+  document.getElementById('cancelProfileButton').addEventListener('click', () => profileDialog.close());
+  document.getElementById('cameraProfilePhoto').addEventListener('click', () => {
+    document.getElementById('profilePhotoInput').click();
+  });
+  document.getElementById('profileDisplayName').addEventListener('input', event => {
+    document.getElementById('profileIdentityName').textContent = event.currentTarget.value.trim()
+      || account?.label
+      || 'Profile';
+  });
+  profileDialog.addEventListener('click', event => {
+    if (event.target === profileDialog) profileDialog.close();
+  });
+  document.getElementById('chooseProfilePhoto').addEventListener('click', () => {
+    document.getElementById('profilePhotoInput').click();
+  });
+  document.getElementById('profilePhotoInput').addEventListener('change', async event => {
+    const file = event.currentTarget.files?.[0];
+    if (!file) return;
+    profileError.hidden = true;
+    profileError.textContent = '';
+    try {
+      pendingProfilePhoto = await compressProfilePicture(file);
+      applyProfilePicture(
+        pendingProfilePhoto,
+        document.getElementById('profileDisplayName').value.trim() || account?.label || 'Profile',
+        account?.initials || 'BD'
+      );
+    } catch (error) {
+      console.error('Unable to prepare the profile picture:', error);
+      profileError.textContent = error.message || 'Unable to prepare this photo.';
+      profileError.hidden = false;
+    } finally {
+      event.currentTarget.value = '';
+    }
+  });
+  document.getElementById('removeProfilePhoto').addEventListener('click', () => {
+    pendingProfilePhoto = null;
+    applyProfilePicture(
+      null,
+      document.getElementById('profileDisplayName').value.trim() || account?.label || 'Profile',
+      account?.initials || 'BD'
+    );
+  });
+  profileForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    const displayName = document.getElementById('profileDisplayName').value.trim();
+    const about = document.getElementById('profileAbout').value.trim();
+    const saveButton = document.getElementById('saveProfileButton');
+    profileError.hidden = true;
+    profileError.textContent = '';
+    if (profileLoadError) {
+      profileError.textContent = profileLoadError;
+      profileError.hidden = false;
+      return;
+    }
+    if (!currentUser || !displayName || displayName.length > 120 || about.length > 300) {
+      profileError.textContent = 'Enter a display name up to 120 characters and an About me up to 300 characters.';
+      profileError.hidden = false;
+      return;
+    }
+    saveButton.disabled = true;
+    saveButton.textContent = 'Saving...';
+    try {
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'userProfiles', currentUser.uid), {
+        displayName,
+        about,
+        photoData: pendingProfilePhoto,
+        updatedAt: serverTimestamp()
+      });
+      if (currentEmail === 'billingdepart@planetdrugstore.ph') {
+        batch.set(doc(db, 'dailyTaskProfilePhotos', 'billing-head'), {
+          photoData: pendingProfilePhoto,
+          displayName,
+          updatedAt: serverTimestamp()
+        });
+      }
+      await batch.commit();
+      profilePhotoSyncError = '';
+      activeProfile = { displayName, about, photoData: pendingProfilePhoto };
+      document.getElementById('welcomeName').textContent = displayName.toUpperCase();
+      applyProfilePicture(pendingProfilePhoto, displayName, account?.initials || 'BD');
+      profileDialog.close();
+    } catch (error) {
+      console.error('Unable to update the account profile:', error);
+      profileError.textContent = 'Unable to save your profile. Please try again or contact IT/Admin.';
+      profileError.hidden = false;
+    } finally {
+      saveButton.disabled = false;
+      saveButton.textContent = 'Save profile';
+    }
+  });
+
+  document.getElementById('billingDailyTasksBtn').addEventListener('click', () => {
+    try {
+      sessionStorage.setItem('pdBillingDailyTaskEntry', String(Date.now()));
+    } catch (error) {
+      console.error('Unable to prepare the Billing Daily Tasks update notice:', error);
+    }
+  });
+
+  const billingUpdateHistoryDialog = document.getElementById('billingUpdateHistoryDialog');
+  document.getElementById('billingUpdateHistoryButton').addEventListener('click', () => billingUpdateHistoryDialog.showModal());
+  document.getElementById('closeBillingUpdateHistory').addEventListener('click', () => billingUpdateHistoryDialog.close());
+  billingUpdateHistoryDialog.addEventListener('click', event => {
+    if (event.target === billingUpdateHistoryDialog) billingUpdateHistoryDialog.close();
+  });
 
   document.getElementById('OnLogout').addEventListener('click', async (e)=>{
     e.preventDefault();

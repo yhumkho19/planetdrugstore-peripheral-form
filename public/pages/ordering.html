@@ -56,38 +56,11 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:'Figtree','Se
 .act.isOn{background:#e6f5ea;color:#1f8a4c;border:1px solid #bfe6cb}
 .act:disabled{opacity:.5;cursor:default}
 .mbox.wide{max-width:640px;max-height:88vh;display:flex;flex-direction:column}
-.mbox.history-modal{max-width:980px;max-height:88vh;display:flex;flex-direction:column;padding:14px 18px 18px;background:#fff;border-radius:12px;border:1px solid var(--line);box-shadow:0 10px 30px rgba(61,10,16,.08)}
 .cleanup-modal{max-width:460px}
 .cleanup-range{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 16px}
 .cleanup-range label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--maroon);letter-spacing:.02em}
 .cleanup-range input{margin:0;font-size:14px;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
 .cleanup-range input:focus{border-color:#d4a0a4;box-shadow:0 0 0 3px rgba(214,31,44,.06)}
-.history-modal h2{margin:0 0 6px;color:var(--maroon);font-size:26px;font-weight:800;letter-spacing:-.02em}
-.history-modal > p{margin:0 0 18px;color:var(--muted);font-size:13px;line-height:1.5}
-.history-search{display:flex;gap:12px;align-items:center;margin-bottom:12px;padding:10px 12px;border:1px solid #ebd6d7;border-radius:10px;background:#f9efee;min-height:54px}
-.history-search .sfind{margin:0;min-width:0;border:1px solid #e5cfcf;background:rgba(255,255,255,.35);color:var(--ink);box-shadow:none}
-.history-search .btn{width:auto;flex:none;margin:0;padding:10px 18px;min-width:110px}
-.history-filters{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:12px;margin:0 0 10px;align-items:end}
-.history-filters label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--maroon);letter-spacing:.02em}
-.history-filters input{margin:0;font-size:15px;padding:10px 12px;border:1px solid #d9c7c8;border-radius:8px;background:#f9f4f3;color:var(--ink);box-shadow:none;transition:border-color .15s ease,background .15s ease}
-.history-filters input:focus{border-color:#c99599;background:#fff;box-shadow:0 0 0 3px rgba(214,31,44,.06)}
-.history-filters input[type="date"]{min-height:42px;line-height:1.4}
-.history-filters input[type="search"]{min-height:42px;line-height:1.4}
-.history-filters input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.8;filter:brightness(.45) saturate(1.6)}
-.history-status-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:0 0 8px;padding:4px;border:1px solid var(--line);border-radius:9px;background:#faf6f5}
-.history-status-tab{min-width:0;padding:8px 6px;border:0;border-radius:6px;background:transparent;color:var(--maroon);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
-.history-status-tab[aria-pressed="true"]{background:var(--maroon);color:#fff}
-.history-status-count{margin-left:3px;opacity:.75;font-variant-numeric:tabular-nums}
-.history-results{overflow:auto;min-height:150px;max-height:58vh;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:#fff;box-shadow:inset 0 1px 2px rgba(61,10,16,.02)}
-.history-entry{display:grid;grid-template-columns:minmax(190px,1.7fr) minmax(120px,.9fr) minmax(110px,.8fr) auto;gap:18px;align-items:center;padding:18px 16px;border-bottom:1px solid var(--line)}
-.history-entry:last-child{border-bottom:0}
-.history-entry strong{display:block;color:var(--maroon);font-size:16px;font-weight:800;line-height:1.3;overflow-wrap:anywhere}
-.history-entry small{display:block;margin-bottom:4px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;overflow-wrap:anywhere}
-.history-entry .history-employee{margin-top:6px;font-size:13px;font-weight:600;color:var(--ink);line-height:1.4;overflow-wrap:anywhere}
-.history-entry .removed-reason{grid-column:1/-1;padding:9px 11px;border-left:3px solid var(--amber);background:var(--amber-bg);color:#684600;font-size:13px;line-height:1.5;border-radius:8px;overflow-wrap:anywhere}
-.history-status{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:4px 10px;border-radius:999px;background:#f8eceb;border:1px solid #f0d7d8;color:var(--maroon);font-size:11px;font-weight:700;white-space:nowrap}
-.history-empty{padding:26px 14px;text-align:center;color:var(--muted);font-size:14px}
-.history-note{margin:12px 0 0;color:var(--muted);font-size:12px;line-height:1.45}
 .sfind{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:15px;font-family:inherit;margin-bottom:10px;background:var(--paper)}
 .branch-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:4px;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;background:#faf6f5}
 .branch-tab{padding:9px 12px;border:0;border-radius:7px;background:transparent;color:var(--maroon);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
@@ -114,12 +87,12 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:'Figtree','Se
 .snote{font-size:12px;color:var(--muted);margin:8px 0 0;line-height:1.4}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
 .card{position:relative;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;word-break:break-word}
-.card.edited{border-left:4px solid #E0A030}
 .card.has-actions{padding-right:154px}
 .nm{font-size:16px;font-weight:700}
 .st{font-size:13px;color:var(--muted);margin-top:2px}
 .request-status{display:inline-flex;align-items:center;min-height:24px;margin-top:10px;padding:3px 9px;border:1px solid #f0d7d8;border-radius:999px;background:#f8eceb;color:var(--maroon);font-size:11px;font-weight:700}
 .request-status.completed{border-color:#bfe6cb;background:#e6f5ea;color:#1f7040}
+.request-status.no-status{border-color:#d8dde5;background:#f1f3f6;color:#5c6675}
 .sr{display:inline-flex;align-items:baseline;gap:8px;margin-top:12px;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:19px;font-weight:800}
 .sr small{font-size:12px;font-weight:600;color:var(--muted)}
 .card-actions{position:absolute;top:10px;right:10px;display:flex;gap:6px}
@@ -128,6 +101,8 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:'Figtree','Se
 .fold.remove-sr:hover{background:#fdecec;border-color:var(--red-dark)}
 .fold.complete-sr{border-color:#bfe6cb;background:#e6f5ea;color:#1f7040}
 .fold.complete-sr:hover{background:#d8f0df;border-color:#1f8a4c}
+.fold.unblock-sr{border-color:#bfe6cb;background:#e6f5ea;color:#1f7040}
+.fold.unblock-sr:hover{background:#d8f0df;border-color:#1f8a4c}
 .fold:hover{border-color:var(--amber)}
 .fold svg{width:100%;height:100%;display:block}
 .fold .cnt{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center}
@@ -145,12 +120,134 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:'Figtree','Se
 .reason-footer{align-items:center;justify-content:space-between;gap:12px}
 .reason-actor{font-size:13px;font-weight:700;color:var(--muted)}
 .mact .btn{background:var(--red);border-color:var(--red);color:#fff}
-@media(max-width:720px){.history-filters{grid-template-columns:1fr 1fr}.history-filters label:last-child{grid-column:1/-1}.history-modal h2{font-size:18px}.history-modal p{font-size:13px}}
 @media(max-width:720px){
  .grid{grid-template-columns:1fr}
  .app{padding:10px 10px 40px}
  .day{font-size:22px}
- .history-entry{grid-template-columns:1fr 1fr;gap:6px 10px}
+}
+
+/* Stock request admin layout */
+.app{max-width:1200px;padding:0 16px 48px}
+.top{justify-content:space-between;padding:10px 18px;border-radius:0}
+.logo{width:38px;height:38px}
+.brand-copy small{display:block;margin-bottom:1px;color:#f0d7d9;font-size:9px;font-weight:700;letter-spacing:.08em}
+.banner h1{font-size:clamp(15px,2.6vw,19px)}
+.body{gap:0;margin-top:0}
+#logoutBtn{display:inline-flex;align-items:center;gap:6px;margin-left:0;padding:7px 12px;border-color:rgba(255,255,255,.35);background:transparent;color:#fff;font-size:12px}
+#logoutBtn:hover{background:rgba(255,255,255,.12);border-color:#fff}
+#logoutBtn svg{width:13px;height:13px}
+.side{gap:4px;padding:0 10px;border-bottom:1px solid var(--line);background:#fff}
+.side a,.side .btn{padding:12px 10px;border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;font-size:12px;white-space:nowrap}
+.side .btn.on,.side .btn:hover,.side a:hover{border-bottom-color:var(--maroon);background:transparent;color:var(--maroon)}
+.side .cleanup-btn{margin-left:auto;color:#7a5559!important;border-color:transparent!important}
+.side .cleanup-btn:hover{background:#fff8f8!important;border-bottom-color:transparent!important}
+.green{padding:16px 18px 20px;border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px;background:#fff}
+.days{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;overflow:visible;margin:0 0 16px;padding:0;border:0;background:transparent}
+.days hr,.days .btn:first-child{display:none}
+.days .btn:first-child{display:flex}
+.days .btn{display:flex;min-width:0;min-height:58px;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 10px;border:1px solid #f0e2e2;border-radius:12px;background:#fff;color:var(--maroon);font-size:12px;font-weight:700;text-transform:uppercase}
+.days .btn:hover{background:#fff8f8}
+.days .btn.on{background:var(--maroon);border-color:var(--maroon);color:#fff}
+.day-card-label{font-size:10px;font-weight:700;letter-spacing:.06em;opacity:.72}
+.day-card-date{font-size:18px;font-weight:800;line-height:1}
+.day-card-today{font-size:9px;font-weight:800;letter-spacing:.05em}
+.days .btn:not(.is-today) .day-card-today{display:none}
+.head{gap:12px;margin-bottom:18px}
+.head-controls{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;min-width:min(100%,520px);max-width:720px;padding:10px 12px;border:1px solid #f3c2c6;border-radius:12px;background:#fff3f3}
+.head-controls.is-open{border-color:var(--line);background:#fff}
+.lock{position:relative;display:flex;align-items:center;gap:10px;min-width:0;max-width:none;padding:0;border:0;border-radius:0;background:transparent;color:var(--maroon);font-size:13px}
+.lock::before{display:none}
+.lock.closed{border:0;background:transparent;color:#a5151f}
+.lock-icon{width:30px;height:30px;display:grid;place-items:center;flex:none;border-radius:50%;background:rgba(214,31,44,.12)}
+.lock-icon svg{width:15px;height:15px}
+.lock-copy{display:grid;gap:2px}
+.lock-copy small{color:var(--muted);font-size:11px;font-weight:500;line-height:1.35}
+.cut{display:flex;flex-direction:column;gap:5px;font-size:10px;color:var(--maroon);text-transform:uppercase;letter-spacing:.04em}
+.cut input{padding:8px 10px;font-size:14px;text-transform:none;letter-spacing:normal}
+.head-controls .act{align-self:end;padding:10px 14px;border-radius:9px;font-size:12px}
+.request-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 18px}
+.request-branch-tabs{display:flex;flex-wrap:wrap;gap:6px;width:auto;max-width:none;margin:0;padding:0;border:0;border-radius:0;background:transparent}
+.request-branch-tabs .branch-tab{min-width:76px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:12px;white-space:nowrap}
+.request-branch-tabs .branch-tab[aria-pressed="true"]{background:var(--maroon);color:#fff;border-color:var(--maroon)}
+.filter-count{display:inline-flex;min-width:18px;height:18px;align-items:center;justify-content:center;margin-left:4px;padding:0 5px;border-radius:9px;background:#f3e8e8;color:var(--maroon);font-size:10px;line-height:18px}
+.branch-tab[aria-pressed="true"] .filter-count{background:rgba(255,255,255,.2);color:#fff}
+.panel{margin-top:0}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.panel-head h2{margin:0;color:var(--ink);font-size:15px}
+.request-head-actions{display:flex;align-items:center;gap:10px}
+.request-summary{color:var(--muted);font-size:12px}
+.complete-all-btn{padding:7px 12px;font-size:12px}
+.complete-all-btn:disabled{opacity:.55;cursor:default}
+.grid{display:flex;flex-direction:column;gap:8px;align-items:stretch}
+.card{position:relative;display:grid;grid-template-columns:minmax(180px,1fr) auto auto;align-items:center;gap:14px;min-width:0;padding:10px 12px;border-radius:11px}
+.card.has-actions{padding-right:12px}
+.request-person{display:flex;align-items:center;gap:10px;min-width:0}
+.request-avatar{display:grid;width:36px;height:36px;flex:none;place-items:center;border-radius:50%;background:#f7e9e9;color:var(--maroon);font-size:12px;font-weight:800}
+.request-person-copy{min-width:0}
+.nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:800}
+.st{display:flex;align-items:center;gap:5px;overflow:hidden;color:var(--muted);font-size:11px;text-overflow:ellipsis;white-space:nowrap}
+.st::before{content:"";width:6px;height:6px;flex:none;border:1px solid currentColor;border-radius:50%}
+.request-meta{display:flex;align-items:center;justify-content:flex-end;gap:10px}
+.request-status{margin:0;padding:4px 9px;white-space:nowrap}
+.sr{margin:0;padding:5px 10px;font-size:17px;white-space:nowrap}
+.card-actions{position:static;display:flex;align-items:center;gap:6px}
+.fold{display:inline-flex;width:auto;height:34px;align-items:center;justify-content:center;gap:6px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--maroon);font:inherit;font-size:12px;font-weight:700;white-space:nowrap}
+.fold.remove-sr{border-color:#f3c2c6;background:#fff;color:#a5151f}
+.fold.complete-sr,.fold.unblock-sr{border-color:var(--maroon);background:var(--maroon);color:#fff}
+.fold svg{width:14px;height:14px;flex:none}
+.fold:hover{filter:brightness(.97)}
+.request-empty{padding:34px 14px}
+@media(min-width:561px) and (max-width:720px){
+ .green{padding:12px}
+ .head{flex-wrap:nowrap;gap:8px}
+ .day{font-size:22px}
+ .head-controls{flex:1;min-width:0;gap:5px;padding:8px}
+ .lock{min-width:0;max-width:none;padding:0}
+ .lock-icon{width:26px;height:26px}
+ .lock-copy small{font-size:10px}
+ .cut{font-size:9px}
+ .cut input{width:78px;padding:7px 5px}
+ .head-controls .act{padding:9px 10px;font-size:11px}
+ .request-toolbar{gap:8px}
+ .request-branch-tabs{gap:4px}
+ .request-branch-tabs .branch-tab{min-width:62px;padding:7px 8px}
+ .card{grid-template-columns:minmax(130px,1fr) auto auto;gap:8px;padding:8px}
+ .card.has-actions{padding-right:8px}
+ .request-meta{gap:6px}
+ .sr{padding:5px 7px;font-size:15px}
+ .request-status{padding:3px 6px;font-size:10px}
+ .card-actions{gap:4px}
+ .fold{padding:6px 8px;font-size:11px}
+}
+@media(max-width:560px){
+ .app{padding:0 10px 30px}
+ .top{padding:9px 12px}
+ .side{gap:2px;overflow-x:auto;flex-wrap:nowrap}
+ .side a,.side .btn{padding:12px 9px;font-size:11px}
+ .side .cleanup-btn{margin-left:auto}
+ .green{padding:12px}
+ .days{gap:5px;margin-bottom:14px}
+ .days .btn{min-height:54px;padding:7px 4px;font-size:10px}
+ .day-card-date{font-size:16px}
+ .head{align-items:flex-start;margin-bottom:14px}
+ .day{font-size:22px}
+ .head-controls{width:100%;min-width:0;max-width:none;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;padding:9px}
+ .lock{grid-column:1;grid-row:1 / span 2}
+ .lock-icon{width:26px;height:26px}
+ .lock-copy small{font-size:10px}
+ .cut{grid-column:2;grid-row:1 / span 2;flex:0 0 auto}
+ .cut input{width:86px;padding:7px 5px}
+ .head-controls .act{grid-column:3;grid-row:1 / span 2;padding:9px 10px;font-size:11px}
+ .head-controls .cut-actions{grid-column:2 / 4;grid-row:3;justify-content:flex-end}
+ .request-toolbar{align-items:stretch;flex-direction:column;gap:10px}
+ .request-branch-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+ .request-branch-tabs .branch-tab{min-width:0;padding:8px 4px}
+ .card{grid-template-columns:minmax(0,1fr) auto;gap:8px}
+ .request-meta{grid-column:1;justify-content:flex-start;padding-left:46px}
+ .card-actions{grid-column:2;grid-row:1 / span 2;flex-direction:column;align-items:stretch}
+ .fold{justify-content:flex-start}
+ .panel-head{align-items:flex-start}
+ .request-summary{text-align:right}
 }
 
 </style>
@@ -160,11 +257,11 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:'Figtree','Se
 
 <div class="app" id="app" style="display:none">
   <div class="top">
-    <div class="tag">ORDERING</div>
     <div class="banner">
       <div class="logo"><img src="logo.png" alt="Planet Drugstore" onerror="this.parentNode.innerHTML='<span>PLANET</span><span>DRUGSTORE</span>'"></div>
-      <h1>Planet Drugstore Ordering System</h1>
+      <div class="brand-copy"><small>PLANET DRUGSTORE · ADMIN</small><h1 id="orderingTitle">Stock Requests</h1></div>
     </div>
+    <button class="btn" type="button" id="logoutBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg>Log out</button>
   </div>
 
   <div class="body">
@@ -172,57 +269,30 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:'Figtree','Se
       <a href="/2mp58eri7h" id="homeLink">Home</a>
       <button class="btn on" type="button">Stock requests</button>
       <button class="btn" type="button" id="schedBtn">Employee days</button>
-      <button class="btn" type="button" id="historyBtn">History</button>
       <button class="btn cleanup-btn" type="button" id="cleanupBtn">Clean up old SR#s</button>
       <button class="push-toggle-button" type="button" id="pushToggleButton" data-push-head="true" aria-live="polite" style="display:none">Enable phone notifications</button>
-      <button class="btn" type="button" id="logoutBtn">Log out</button>
     </nav>
 
     <div class="green">
-      <nav class="days" id="days">
-        <button class="btn on" type="button">STOCK REQ.</button>
-        <hr>
-      </nav>
-
-      <div class="request-branch-tabs" role="group" aria-label="Filter stock requests by branch">
-        <button class="branch-tab" type="button" data-request-branch="all" aria-pressed="true">All</button>
-        <button class="branch-tab" type="button" data-request-branch="north" aria-label="North Caloocan" title="North Caloocan" aria-pressed="false">North</button>
-        <button class="branch-tab" type="button" data-request-branch="south" aria-label="South Caloocan" title="South Caloocan" aria-pressed="false">South</button>
-        <button class="branch-tab" type="button" data-request-branch="removed" aria-pressed="false">Removed <span class="removed-count" id="removedRequestCount">0</span></button>
-      </div>
+      <nav class="days" id="days" aria-label="Select request day"></nav>
 
       <section class="panel">
         <div class="head">
           <div class="day" id="dayTitle"></div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><div class="lock" id="lockMsg"></div><label class="cut">Cutoff <input type="time" id="cutIn" value="14:00"></label><div class="cut-actions" id="cutoffActions" hidden><button type="button" class="btn" id="cancelCutoffBtn">Cancel</button><button type="button" class="btn on" id="saveCutoffBtn">Confirm cutoff</button></div><button type="button" class="act" id="actBtn">Activate this day</button></div>
+          <div class="head-controls"><div class="lock" id="lockMsg"></div><label class="cut">Cutoff time<input type="time" id="cutIn" value="14:00"></label><div class="cut-actions" id="cutoffActions" hidden><button type="button" class="btn" id="cancelCutoffBtn">Cancel</button><button type="button" class="btn on" id="saveCutoffBtn">Confirm cutoff</button></div><button type="button" class="act" id="actBtn">Activate this day</button></div>
         </div>
+        <div class="request-toolbar">
+          <div class="request-branch-tabs" role="group" aria-label="Filter stock requests by branch">
+            <button class="branch-tab" type="button" data-request-branch="all" aria-pressed="true">All <span class="filter-count" data-count="all">0</span></button>
+            <button class="branch-tab" type="button" data-request-branch="north" aria-label="North Caloocan" title="North Caloocan" aria-pressed="false">North <span class="filter-count" data-count="north">0</span></button>
+            <button class="branch-tab" type="button" data-request-branch="south" aria-label="South Caloocan" title="South Caloocan" aria-pressed="false">South <span class="filter-count" data-count="south">0</span></button>
+            <button class="branch-tab" type="button" data-request-branch="removed" aria-pressed="false">Removed <span class="filter-count" id="removedRequestCount">0</span></button>
+          </div>
+        </div>
+        <div class="panel-head"><h2>Requests</h2><div class="request-head-actions"><button type="button" class="btn on complete-all-btn" id="completeAllBtn" hidden>Complete all</button><span class="request-summary" id="requestSummary">0 pending · 0 completed</span></div></div>
         <div class="grid" id="grid"></div>
       </section>
     </div>
-  </div>
-</div>
-
-<div class="modal" id="historyModal" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
-  <div class="mbox history-modal">
-    <h2 id="historyTitle">SR# History</h2>
-    <p>Filter active, removed, and archived requests by date, employee, or SR#.</p>
-    <div class="history-filters">
-      <label for="historyFrom">From<input id="historyFrom" type="date"></label>
-      <label for="historyTo">To<input id="historyTo" type="date"></label>
-      <label for="historyName">Employee name<input id="historyName" type="search" placeholder="Search employee"></label>
-    </div>
-    <div class="history-search">
-      <input class="sfind" id="historySearch" inputmode="numeric" placeholder="Enter SR#" autocomplete="off">
-      <button class="btn" id="historySearchBtn" type="button">Search</button>
-    </div>
-    <div class="history-status-tabs" role="group" aria-label="Filter history by status">
-      <button type="button" class="history-status-tab" data-history-status="all" aria-pressed="true">All <span class="history-status-count" data-status-count="all">0</span></button>
-      <button type="button" class="history-status-tab" data-history-status="pending" aria-pressed="false">Pending <span class="history-status-count" data-status-count="pending">0</span></button>
-      <button type="button" class="history-status-tab" data-history-status="completed" aria-pressed="false">Completed <span class="history-status-count" data-status-count="completed">0</span></button>
-      <button type="button" class="history-status-tab" data-history-status="removed" aria-pressed="false">Removed <span class="history-status-count" data-status-count="removed">0</span></button>
-    </div>
-    <div class="history-results" id="historyResults"><div class="history-empty">Loading history…</div></div>
-    <div class="mact"><button type="button" class="btn" id="historyClose">Close</button></div>
   </div>
 </div>
 
@@ -296,7 +366,8 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:'Figtree','Se
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { initializeFirestore, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, deleteField, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
+import { initializeFirestore, collection, query, where, limit, onSnapshot, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, deleteField, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { consumeNativeAuthHandoff } from "../assets/js/native-auth-handoff.js";
 
@@ -309,9 +380,10 @@ const firebaseConfig = {
   appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
 };
 const STAFF_DOMAIN = 'staff.planetdrugstore.local';
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(getFirebaseConfigForHost(firebaseConfig));
 const db = initializeFirestore(app, { experimentalForceLongPolling: true, useFetchStreams: false });
 const auth = getAuth(app);
+connectLocalFirebaseEmulators({ db, auth });
 await consumeNativeAuthHandoff(auth);
 
 function showConfirmModal(message, { title='Confirm action', confirmText='Confirm' }={}){
@@ -346,7 +418,59 @@ function showConfirmModal(message, { title='Confirm action', confirmText='Confir
 }
 
 const DAYS = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY'];
-// The admin sets the cutoff with the time input and saves it to stockDays/<date>.cutoffMin (minutes after midnight, Philippine time).
+const STOCK_ADMIN_EMAILS = {
+  medicine: 'adminstockreqmeds@planetdrugstore.ph',
+  supplies: 'adminstockreqsup@planetdrugstore.ph'
+};
+const VIEWER_EMAIL = 'pdsviewing@planetdrugstore.ph';
+let stockRequestType = 'medicine';
+function stockRequestsCollectionName(type = stockRequestType){
+  return type === 'supplies' ? 'suppliesStockRequests' : 'stockRequests';
+}
+function stockRequestHistoryCollectionName(type = stockRequestType){
+  return type === 'supplies' ? 'suppliesStockRequestHistory' : 'stockRequestHistory';
+}
+function stockRequestsCollection(type = stockRequestType){
+  return collection(db, stockRequestsCollectionName(type));
+}
+function stockRequestHistoryCollection(type = stockRequestType){
+  return collection(db, stockRequestHistoryCollectionName(type));
+}
+async function moveLegacySuppliesRecords(sourceName, destinationName){
+  while(true){
+    const snapshot = await getDocs(query(
+      collection(db, sourceName),
+      where('requestType','==','supplies'),
+      limit(450)
+    ));
+    if(snapshot.empty) return;
+    const batch = writeBatch(db);
+    snapshot.docs.forEach(record=>{
+      batch.set(doc(db, destinationName, record.id), record.data(), { merge:true });
+      batch.delete(record.ref);
+    });
+    await batch.commit();
+  }
+}
+async function migrateLegacySuppliesRecords(){
+  await moveLegacySuppliesRecords('stockRequests', 'suppliesStockRequests');
+  await moveLegacySuppliesRecords('stockRequestHistory', 'suppliesStockRequestHistory');
+}
+function requestTypeOf(request){
+  return request.requestType === 'supplies' ? 'supplies' : 'medicine';
+}
+function stockRequestDocumentId(request){
+  const staffId = String(request.staffId || '').trim().toLowerCase();
+  return String(request.date || '') + '_' + staffId + (requestTypeOf(request) === 'supplies' ? '_supplies' : '');
+}
+function stockDayDocumentId(date, type = stockRequestType){
+  return String(date) + (type === 'supplies' ? '_supplies' : '');
+}
+function stockDayDocument(date, type = stockRequestType){
+  return doc(db, 'stockDays', stockDayDocumentId(date, type));
+}
+const stockTypeLabel = type => type === 'supplies' ? 'Supplies' : 'Medicine';
+// Each stock type stores its cutoff in its own stockDays document.
 const cutIn = document.getElementById('cutIn');
 const toMin = v => { const p = String(v || '14:00').split(':').map(Number); return (p[0]||0)*60 + (p[1]||0); };
 const minToInput = m => String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
@@ -360,7 +484,7 @@ let cutoffSaving = false;
 function updateCutoffActions(){
   cutoffActions.hidden = !cutoffDirty;
   cutIn.disabled = cutoffSaving;
-  saveCutoffBtn.disabled = cutoffSaving || dayClosedEarly;
+  saveCutoffBtn.disabled = cutoffSaving;
   cancelCutoffBtn.disabled = cutoffSaving;
 }
 async function dispatchStockSchedule(notification){
@@ -384,7 +508,7 @@ function stockDayIsOpen(date, cutoffMin){
 }
 
 async function clearManualCompletionsForDay(date){
-  const snapshot = await getDocs(query(collection(db,'stockRequests'), where('date','==',date)));
+  const snapshot = await getDocs(query(stockRequestsCollection(), where('date','==',date)));
   const completed = snapshot.docs.filter(request=>request.data().adminCompleted === true);
   for(let start=0; start<completed.length; start+=450){
     const batch = writeBatch(db);
@@ -397,20 +521,19 @@ async function clearManualCompletionsForDay(date){
   }
 }
 
-// Get the next date for a weekday, including today; index 0 = Monday.
-function dateForDay(i){
-  const t = new Date(); t.setHours(0,0,0,0);
-  t.setDate(t.getDate() + ((i + 1 - t.getDay() + 7) % 7));
-  return t;
+// Return the date for a weekday in the current Manila calendar week; index 0 = Monday.
+function dateForDay(i, now = new Date()){
+  const [year, month, day] = currentWeekMondayKey(now).split('-').map(Number);
+  return new Date(year, month - 1, day + i, 12);
 }
 const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const isLocked = d => { const m = toMin(cutIn.value), c = new Date(d); c.setHours(Math.floor(m/60), m%60, 0, 0); return new Date() >= c; };
+const isLocked = d => !stockDayIsOpen(iso(d), toMin(cutIn.value));
 const esc = s => String(s ?? '').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
-function currentWeekMondayKey(){
+function currentWeekMondayKey(now = new Date()){
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone:'Asia/Manila', year:'numeric', month:'2-digit', day:'2-digit'
-  }).formatToParts(new Date());
+  }).formatToParts(now);
   const values = Object.fromEntries(parts.map(part=>[part.type, part.value]));
   const monday = new Date(Date.UTC(Number(values.year), Number(values.month)-1, Number(values.day)));
   monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay()+6)%7));
@@ -430,15 +553,6 @@ function buildSrSearchTerms(request){
   return [...terms];
 }
 
-function archivedSrValues(request){
-  return buildSrSearchTerms(request);
-}
-
-function formatArchiveTime(value){
-  const date = value && typeof value.toDate === 'function' ? value.toDate() : null;
-  return date ? date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
-}
-
 function manilaDateAndMinutes(now = new Date()){
   const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
     timeZone:'Asia/Manila', year:'numeric', month:'2-digit', day:'2-digit',
@@ -450,19 +564,6 @@ function manilaDateAndMinutes(now = new Date()){
   };
 }
 
-async function loadCutoffsForRecords(records){
-  const dates = [...new Set(records.map(record=>String(record.date || '')).filter(date=>/^\d{4}-\d{2}-\d{2}$/.test(date)))];
-  const entries = await Promise.all(dates.map(async date=>{
-    const snapshot = await getDoc(doc(db,'stockDays',date));
-    const day = snapshot.exists() ? snapshot.data() : {};
-    return [date, {
-      cutoffMin: Number.isInteger(day.cutoffMin) ? day.cutoffMin : null,
-      closedEarly: day.closedEarly === true
-    }];
-  }));
-  return Object.fromEntries(entries);
-}
-
 function isCompletedRequest(request, dayCutoffMin){
   if(!request || !request.date) return false;
   if(request.adminCompleted === true) return true;
@@ -472,140 +573,13 @@ function isCompletedRequest(request, dayCutoffMin){
 }
 
 function requestStatusLabel(request, closedEarly=false){
-  if(closedEarly || request.closedEarly === true || isCompletedRequest(request, request.dayCutoffMin)) return 'Completed';
+  if(request.adminCompleted === true) return 'Completed';
   if(request.status === 'removed'){
     return 'Removed by ' + (request.removedBy === 'admin' ? 'admin' : 'employee');
   }
-  if(!request.date) return 'Pending';
+  if(closedEarly || request.closedEarly === true) return 'No Status';
   return 'Pending';
 }
-
-let historyStatusFilter = 'all';
-let cachedHistoryRecords = [];
-let cachedHistoryFilters = null;
-
-function historyStatusKey(status){
-  if(status === 'Completed') return 'completed';
-  if(status.startsWith('Removed by')) return 'removed';
-  return 'pending';
-}
-
-function renderHistoryResults(records, filters){
-  const results = document.getElementById('historyResults');
-  cachedHistoryRecords = records;
-  cachedHistoryFilters = filters;
-  const matchingRecords = records.filter(record=>{
-    const date = String(record.date || '');
-    if(date < filters.from || date > filters.to) return false;
-    if(filters.name && !String(record.name || '').toLowerCase().includes(filters.name)) return false;
-    if(filters.sr && !archivedSrValues(record).includes(filters.sr)) return false;
-    return true;
-  }).map(record=>({
-    record,
-    status: requestStatusLabel({ ...record, dayCutoffMin: filters.cutoffs[record.date]?.cutoffMin }, filters.cutoffs[record.date]?.closedEarly)
-  }));
-  const counts = { all:matchingRecords.length, pending:0, completed:0, removed:0 };
-  matchingRecords.forEach(item=>counts[historyStatusKey(item.status)]++);
-  Object.entries(counts).forEach(([key,count])=>{
-    const countEl = document.querySelector('[data-status-count="' + key + '"]');
-    if(countEl) countEl.textContent = count;
-  });
-  const filteredRecords = historyStatusFilter === 'all'
-    ? matchingRecords
-    : matchingRecords.filter(item=>historyStatusKey(item.status) === historyStatusFilter);
-  if(!filteredRecords.length){
-    const label = historyStatusFilter === 'all' ? 'requests' : historyStatusFilter + ' requests';
-    results.innerHTML = '<div class="history-empty">No ' + esc(label) + ' found for these filters.</div>';
-    return;
-  }
-  results.innerHTML = filteredRecords.map(({record,status})=>{
-    const matched = archivedSrValues(record).find(value=>value === filters.sr);
-    const sr = matched || record.removedSr || record.sr || 'SR# unavailable';
-    const date = record.date || 'Date unavailable';
-    const employeeName = record.name || record.employeeName || 'Employee';
-    const archivedLabel = record.archivedAt ? formatArchiveTime(record.archivedAt) : '—';
-    const reason = record.removalReason ? '<div class="removed-reason">Reason: ' + esc(record.removalReason) + '</div>' : '';
-    return '<article class="history-entry"><div><small>SR#</small><strong>' + esc(sr) + '</strong><div class="history-employee">' + esc(employeeName) + '</div></div>' +
-      '<div><small>Request date</small><strong>' + esc(date) + '</strong></div>' +
-      '<div><small>Archived</small><strong>' + esc(archivedLabel) + '</strong></div>' +
-      '<div><small>Status</small><strong class="history-status">' + esc(status) + '</strong></div>' + reason + '</article>';
-  }).join('');
-}
-
-async function searchRequestHistory(){
-  const term = document.getElementById('historySearch').value.trim();
-  const from = document.getElementById('historyFrom').value;
-  const to = document.getElementById('historyTo').value;
-  const name = document.getElementById('historyName').value.trim().toLowerCase();
-  const results = document.getElementById('historyResults');
-  if(!from || !to){
-    results.innerHTML = '<div class="empty">Select both start and end dates.</div>';
-    return;
-  }
-  if(from > to){
-    results.innerHTML = '<div class="empty">The start date must be on or before the end date.</div>';
-    return;
-  }
-  results.innerHTML = '<div class="empty">Searching…</div>';
-  try{
-    const archive = collection(db,'stockRequestHistory');
-    const active = collection(db,'stockRequests');
-    if(term && !/^\d+$/.test(term)){
-      results.innerHTML = '<div class="empty">SR# search accepts numbers only.</div>';
-      return;
-    }
-    const sourceQueries = [archive, active].flatMap(source=>term
-      ? [
-          query(source, where('srSearchTerms','array-contains',term), limit(100)),
-          query(source, where('sr','==',term), limit(100)),
-          query(source, where('removedSr','==',term), limit(100))
-        ]
-      : [query(source, where('date','>=',from), where('date','<=',to), orderBy('date','desc'), limit(500))]
-    );
-    const snapshots = await Promise.all(sourceQueries.map(getDocs));
-    const records = new Map();
-    snapshots.forEach(snapshot=>snapshot.docs.forEach(document=>{
-      const record = document.data();
-      const key = String(record.date || '') + '_' + String(record.staffId || document.id);
-      records.set(key, record);
-    }));
-    const historyRecords = [...records.values()];
-    const cutoffs = await loadCutoffsForRecords(historyRecords);
-    renderHistoryResults(historyRecords, { from, to, name, sr:term, cutoffs });
-  }catch(error){
-    results.innerHTML = '<div class="empty">History search failed (' + esc(error.code || error.message) + ').</div>';
-  }
-}
-
-function openHistory(){
-  const modal = document.getElementById('historyModal');
-  modal.classList.add('show');
-  const today = new Date();
-  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-  document.getElementById('historyFrom').value = iso(monthStart);
-  document.getElementById('historyTo').value = iso(today);
-  document.getElementById('historyName').value = '';
-  document.getElementById('historySearch').value = '';
-  searchRequestHistory();
-}
-function closeHistory(){ document.getElementById('historyModal').classList.remove('show'); }
-document.getElementById('historyBtn').addEventListener('click', openHistory);
-document.getElementById('historySearchBtn').addEventListener('click', searchRequestHistory);
-document.querySelectorAll('[data-history-status]').forEach(button=>button.addEventListener('click', ()=>{
-  historyStatusFilter = button.dataset.historyStatus;
-  document.querySelectorAll('[data-history-status]').forEach(tab=>tab.setAttribute('aria-pressed', String(tab === button)));
-  if(cachedHistoryFilters) renderHistoryResults(cachedHistoryRecords, cachedHistoryFilters);
-}));
-document.getElementById('historyFrom').addEventListener('change', searchRequestHistory);
-document.getElementById('historyTo').addEventListener('change', searchRequestHistory);
-document.getElementById('historyName').addEventListener('input', searchRequestHistory);
-document.getElementById('historySearch').addEventListener('keydown', event=>{
-  if(event.key === 'Enter'){ event.preventDefault(); searchRequestHistory(); }
-});
-document.getElementById('historyClose').addEventListener('click', closeHistory);
-document.getElementById('historyModal').addEventListener('click', event=>{
-  if(event.target === document.getElementById('historyModal')) closeHistory();
-});
 
 function openCleanupModal(){
   const today = new Date();
@@ -634,7 +608,7 @@ async function cleanupOldRequests(){
   const button = document.getElementById('cleanupBtn');
   const confirmed = await showConfirmModal(
     'Archive and remove all stock requests from ' + from + ' to ' + to + '? This includes removed requests. ' +
-    'Archived SR#s will remain searchable in History.',
+    'Archived requests will be retained separately from active requests.',
     { title:'Archive stock requests', confirmText:'Archive range' }
   );
   if(!confirmed) return;
@@ -644,7 +618,7 @@ async function cleanupOldRequests(){
   let archived = 0;
   try{
     const cleanupQuery = query(
-      collection(db,'stockRequests'),
+      stockRequestsCollection(),
       where('date','>=',from),
       where('date','<=',to),
       limit(500)
@@ -652,20 +626,21 @@ async function cleanupOldRequests(){
     const snapshot = await getDocs(cleanupQuery);
     if(!snapshot.empty){
       const batch = writeBatch(db);
-      snapshot.docs.forEach(request=>{
+      const categoryRequests = snapshot.docs;
+      categoryRequests.forEach(request=>{
         const record = request.data();
-        batch.set(doc(db,'stockRequestHistory',request.id), {
+        batch.set(doc(stockRequestHistoryCollection(),request.id), {
           ...record,
           srSearchTerms: buildSrSearchTerms(record),
           archivedAt: serverTimestamp()
         }, { merge:true });
         batch.delete(request.ref);
       });
-      await batch.commit();
-      archived = snapshot.size;
+      if(categoryRequests.length) await batch.commit();
+      archived = categoryRequests.length;
     }
     alert(archived
-      ? archived + ' stock request(s) archived to History and removed from active requests for the selected range.'
+      ? archived + ' stock request(s) archived separately from active requests for the selected range.'
       : 'There are no stock requests in that date range to archive.');
     closeCleanupModal();
   }catch(error){
@@ -683,21 +658,47 @@ document.getElementById('cleanupConfirm').addEventListener('click', cleanupOldRe
 const nav = document.getElementById('days');
 DAYS.forEach((n,i)=>{
   const b = document.createElement('button');
-  b.className='btn'; b.type='button'; b.textContent=n; b.dataset.i=i;
+  const date = dateForDay(i);
+  const today = iso(date) === manilaDateAndMinutes().date;
+  b.className='btn' + (today ? ' is-today' : '');
+  b.type='button';
+  b.dataset.i=i;
+  b.setAttribute('aria-label', n + ' ' + date.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) + (today ? ', Today' : ''));
+  b.setAttribute('aria-pressed','false');
+  b.innerHTML = '<span class="day-card-label">' + n.slice(0,3) + '</span><span class="day-card-date">' +
+    date.getDate() + '</span><span class="day-card-today">TODAY</span>';
   b.onclick=()=>select(i);
   nav.appendChild(b);
 });
 
 const grid = document.getElementById('grid');
-let current = -1, unsub = null, unsubDay = null, selectedDateKey = '', dayActive = false, dayClosedEarly = false;
+let current = -1, unsub = null, unsubDay = null, selectedDateKey = '', dayActive = false, dayClosedEarly = false, dayStatusLoaded = false, dayStatusError = null;
 let rowsNow = [], visibleRows = [], selectedRequestBranch = 'all', requestRenderToken = 0;
 const employeeBranchCache = new Map();
+
+function refreshDayNavigation(selectedIndex=current){
+  const today = manilaDateAndMinutes().date;
+  nav.querySelectorAll('button[data-i]').forEach(button=>{
+    const index = Number(button.dataset.i);
+    const date = dateForDay(index);
+    const isToday = iso(date) === today;
+    button.classList.toggle('is-today', isToday);
+    button.classList.toggle('on', index === selectedIndex);
+    button.setAttribute('aria-pressed', String(index === selectedIndex));
+    button.setAttribute('aria-label', DAYS[index] + ' ' +
+      date.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) + (isToday ? ', Today' : ''));
+    button.innerHTML = '<span class="day-card-label">' + DAYS[index].slice(0,3) +
+      '</span><span class="day-card-date">' + date.getDate() +
+      '</span><span class="day-card-today">TODAY</span>';
+  });
+}
 
 function normalizeBranch(branch, department=''){
   const value = String(branch || '').trim().toLowerCase();
   if(value.includes('north')) return 'north';
   if(value.includes('south')) return 'south';
-  const match = String(department || '').trim().match(/\s+(north|south)$/i);
+  if(value.includes('manila')) return 'manila';
+  const match = String(department || '').trim().match(/\s+(north|south|manila)$/i);
   return match ? match[1].toLowerCase() : 'unset';
 }
 
@@ -720,58 +721,115 @@ async function resolveRequestBranch(request){
 
 function paintHeader(){
   const d = dateForDay(current), locked = isLocked(d) || dayClosedEarly;
+  const statusLoading = !dayStatusLoaded && !dayStatusError;
   document.getElementById('dayTitle').innerHTML =
     DAYS[current] + '<small>' + d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) + '</small>';
   const lm = document.getElementById('lockMsg');
-  lm.textContent = dayClosedEarly ? 'Order request closed early' : locked ? 'Order is locked' : (dayActive ? 'Active — locks at ' + fmtMin(toMin(cutIn.value)) : 'Not activated — employees cannot request yet');
-  lm.classList.toggle('closed', locked || !dayActive);
+  const lockTitle = dayStatusError
+    ? 'Could not verify request status'
+    : statusLoading
+      ? 'Checking request status'
+      : dayClosedEarly
+        ? 'Requests are closed early'
+        : locked
+          ? 'Requests are locked'
+          : dayActive
+            ? 'Requests are open'
+            : 'Requests are not active';
+  const lockDetail = dayStatusError
+    ? 'Refresh this page to retry. (' + (dayStatusError.code || dayStatusError.message || 'connection error') + ')'
+    : statusLoading
+      ? 'Loading the latest activation status…'
+      : dayClosedEarly
+        ? 'This day was deactivated by an admin.'
+        : locked
+          ? 'Cutoff passed at ' + fmtMin(toMin(cutIn.value)) + '. Employees cannot submit new requests.'
+          : dayActive
+            ? 'Employees can submit requests until ' + fmtMin(toMin(cutIn.value)) + '.'
+            : 'Activate this day to allow employees to submit requests.';
+  lm.innerHTML = '<span class="lock-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span><span class="lock-copy"><strong>' +
+    esc(lockTitle) + '</strong><small>' + esc(lockDetail) + '</small></span>';
+  lm.classList.toggle('closed', statusLoading || !!dayStatusError || locked || !dayActive);
+  const controls = document.querySelector('.head-controls');
+  controls.classList.toggle('is-open', !statusLoading && !dayStatusError && !locked && dayActive);
+  controls.classList.toggle('is-closed', statusLoading || !!dayStatusError || locked || !dayActive);
   const ab = document.getElementById('actBtn');
-  ab.textContent = dayClosedEarly ? 'Unclose order' : locked ? (dayActive ? 'Closed' : 'Cutoff time passed') : (dayActive ? 'Active ✓ (tap to deactivate)' : 'Activate this day');
-  ab.classList.toggle('isOn', dayActive && !locked);
-  ab.disabled = dayClosedEarly ? cutoffSaving : locked || cutoffDirty || cutoffSaving;
+  ab.textContent = dayStatusError
+    ? 'Status unavailable'
+    : statusLoading
+      ? 'Checking status…'
+      : dayClosedEarly
+        ? 'Reopen ' + stockTypeLabel(stockRequestType)
+        : locked
+          ? (dayActive ? 'Closed' : 'Cutoff time passed')
+          : (dayActive ? stockTypeLabel(stockRequestType) + ' active ✓ (tap to deactivate)' : 'Activate ' + stockTypeLabel(stockRequestType));
+  ab.classList.toggle('isOn', dayStatusLoaded && !dayStatusError && dayActive && !locked);
+  ab.disabled = statusLoading || !!dayStatusError || (dayClosedEarly ? cutoffSaving : locked || cutoffDirty || cutoffSaving);
 }
 
 const fmtAt = ms => new Date(ms).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
-const FOLDER_SVG = '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 14h18l5 6h29v8H6z"/><path d="M6 14v38h46l6-24H14L6 52"/></svg>';
 const BELL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>';
+const UNLOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/><circle cx="12" cy="16" r="1"/></svg>';
 const TRASH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-.8 14H5.8L5 6m4 4v6m6-6v6"/></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>';
 function cardHtml(r, idx){
-  const h = Array.isArray(r.history) ? r.history : [];
   const removal = r.status === 'removed';
   const status = requestStatusLabel({ ...r, dayCutoffMin: toMin(cutIn.value) }, dayClosedEarly);
-  const historyButton = h.length
-    ? '<button type="button" class="fold" data-idx="' + idx + '" title="View change reason" aria-label="View change reason">' +
-      FOLDER_SVG + (h.length > 1 ? '<span class="cnt">' + h.length + '</span>' : '') + '</button>'
-    : '';
   const removalButton = removal
     ? '<button type="button" class="fold" data-removal-idx="' + idx + '" title="View removal reason" aria-label="View removal reason">' + BELL_SVG + '</button>'
+    : '';
+  const adminUnblockButton = removal && r.removedBy === 'admin' && r.removedSr
+    ? '<button type="button" class="fold unblock-sr" data-admin-unblock-idx="' + idx + '" title="Unblock employee and restore SR#" aria-label="Unblock employee and restore SR#">' + UNLOCK_SVG + '</button>'
     : '';
   const adminDeleteButton = removal
     ? '<button type="button" class="fold remove-sr" data-admin-delete-idx="' + idx + '" title="Permanently delete removed SR#" aria-label="Permanently delete removed SR#">' + TRASH_SVG + '</button>'
     : '';
   const adminRemoveButton = !removal
-    ? '<button type="button" class="fold remove-sr" data-admin-remove-idx="' + idx + '" title="Remove this SR#" aria-label="Remove this SR#">' + TRASH_SVG + '</button>'
+    ? '<button type="button" class="fold remove-sr" data-admin-remove-idx="' + idx + '" title="Remove this SR#" aria-label="Remove this SR#">' + TRASH_SVG + '<span>Remove</span></button>'
     : '';
   const adminCompleteButton = !removal && !r.adminCompleted && status !== 'Completed'
-    ? '<button type="button" class="fold complete-sr" data-admin-complete-idx="' + idx + '" title="Mark SR# as completed" aria-label="Mark SR# as completed">' + CHECK_SVG + '</button>'
+    ? '<button type="button" class="fold complete-sr" data-admin-complete-idx="' + idx + '" title="Mark SR# as completed" aria-label="Mark SR# as completed">' + CHECK_SVG + '<span>Complete</span></button>'
     : '';
-  const actions = historyButton || removalButton || adminDeleteButton || adminRemoveButton || adminCompleteButton
-    ? '<div class="card-actions">' + historyButton + removalButton + adminDeleteButton + adminRemoveButton + adminCompleteButton + '</div>'
+  const labelledRemovalButton = removalButton.replace('</button>', '<span>View reason</span></button>');
+  const labelledUnblockButton = adminUnblockButton.replace('</button>', '<span>Unblock</span></button>');
+  const labelledDeleteButton = adminDeleteButton.replace('</button>', '<span>Archive</span></button>');
+  const actions = labelledRemovalButton || labelledUnblockButton || labelledDeleteButton || adminRemoveButton || adminCompleteButton
+    ? '<div class="card-actions">' + labelledRemovalButton + labelledUnblockButton + labelledDeleteButton + adminRemoveButton + adminCompleteButton + '</div>'
     : '';
-  const classes = 'card' + (h.length || removal ? ' edited' : '') + (actions ? ' has-actions' : '');
+  const classes = 'card' + (actions ? ' has-actions' : '');
   const srValue = removal ? 'Removed' : esc(r.sr);
-  return '<div class="' + classes + '"><div class="nm">' + esc(r.name) + '</div>' +
-    '<div class="st">' + esc(r.siteName) + '</div><div class="request-status ' + (status === 'Completed' ? 'completed' : '') + '">' + esc(status) + '</div>' +
-    '<div class="sr"><small>SR#</small>' + srValue + '</div>' + actions + '</div>';
+  const initials = String(r.name || 'Employee').trim().split(/\s+/).slice(0,2).map(part=>part.charAt(0)).join('').toUpperCase();
+  return '<div class="' + classes + '"><div class="request-person"><span class="request-avatar" aria-hidden="true">' + esc(initials) + '</span>' +
+    '<span class="request-person-copy"><span class="nm">' + esc(r.name || 'Employee') + '</span><span class="st">' + esc(r.siteName || 'Site not set') + '</span></span></div>' +
+    '<div class="request-meta"><div class="sr"><small>SR#</small>' + srValue + '</div><span class="request-status ' +
+    (status === 'Completed' ? 'completed' : status === 'No Status' ? 'no-status' : '') + '">' + esc(status) + '</span></div>' +
+    actions + '</div>';
 }
 function renderRequestRows(){
-  const removedRows = rowsNow.filter(row=>row.status === 'removed');
+  const categoryRows = rowsNow.filter(row=>requestTypeOf(row) === stockRequestType);
+  const removedRows = categoryRows.filter(row=>row.status === 'removed' && row.removedBy === 'admin');
   document.getElementById('removedRequestCount').textContent = removedRows.filter(row=>!row.removalViewedAt).length;
-  visibleRows = selectedRequestBranch === 'removed'
-    ? removedRows
-    : rowsNow.filter(row=>row.status !== 'removed' &&
-      (selectedRequestBranch === 'all' || row.branch === selectedRequestBranch));
+  const activeRows = categoryRows.filter(row=>row.status !== 'removed');
+  const branchRows = {
+    all:activeRows,
+    north:activeRows.filter(row=>row.branch === 'north'),
+    south:activeRows.filter(row=>row.branch === 'south'),
+    removed:removedRows
+  };
+  document.querySelectorAll('[data-count]').forEach(counter=>{
+    counter.textContent = branchRows[counter.dataset.count]?.length ?? 0;
+  });
+  const completedCount = activeRows.filter(row=>requestStatusLabel(row, dayClosedEarly) === 'Completed').length;
+  const pendingCount = activeRows.filter(row=>requestStatusLabel(row, dayClosedEarly) === 'Pending').length;
+  const completableRows = activeRows.filter(row=>
+    !row.adminCompleted && requestStatusLabel(row, dayClosedEarly) !== 'Completed' && String(row.sr || '').trim()
+  );
+  const completeAllButton = document.getElementById('completeAllBtn');
+  completeAllButton.hidden = completableRows.length === 0;
+  completeAllButton.disabled = completingAllRequests;
+  completeAllButton.textContent = completingAllRequests ? 'Completing…' : 'Complete all (' + completableRows.length + ')';
+  document.getElementById('requestSummary').textContent = pendingCount + ' pending · ' + completedCount + ' completed';
+  visibleRows = branchRows[selectedRequestBranch] || branchRows.all;
   const emptyMessage = selectedRequestBranch === 'removed'
     ? 'No removed SR# requests for this day.'
     : selectedRequestBranch === 'all'
@@ -779,7 +837,7 @@ function renderRequestRows(){
       : 'No ' + (selectedRequestBranch === 'north' ? 'North' : 'South') + ' Caloocan stock requests for this day yet.';
   grid.innerHTML = visibleRows.length
     ? visibleRows.map((row,index)=>cardHtml(row,index)).join('')
-    : '<div class="empty">' + emptyMessage + '</div>';
+    : '<div class="empty request-empty">' + emptyMessage + '</div>';
 }
 
 async function markRemovalViewed(request){
@@ -787,9 +845,9 @@ async function markRemovalViewed(request){
   if(!request.staffId || !request.date) return;
   request.removalViewedAt = true;
   renderRequestRows();
-  const requestId = request.date + '_' + String(request.staffId).toLowerCase();
+  const requestId = stockRequestDocumentId(request);
   try{
-    await updateDoc(doc(db, 'stockRequests', requestId), { removalViewedAt: serverTimestamp() });
+    await updateDoc(doc(stockRequestsCollection(), requestId), { removalViewedAt: serverTimestamp() });
   }catch(error){
     request.removalViewedAt = null;
     renderRequestRows();
@@ -799,21 +857,21 @@ async function markRemovalViewed(request){
 
 async function archiveAndDeleteRemovedRequest(request){
   if(!request || request.status !== 'removed' || !request.staffId || !request.date) return;
-  if(!await showConfirmModal('Move this removed SR# to permanent History and remove it from this list? It will remain searchable.', {
+  if(!await showConfirmModal('Archive this removed SR# and remove it from the active list? The archived record will be retained separately.', {
     title:'Archive removed SR#', confirmText:'Archive SR#'
   })) return;
-  const requestId = request.date + '_' + String(request.staffId).toLowerCase();
+  const requestId = stockRequestDocumentId(request);
   const previousRows = rowsNow;
   rowsNow = rowsNow.filter(row=>row !== request);
   renderRequestRows();
   try{
     const batch = writeBatch(db);
-    batch.set(doc(db, 'stockRequestHistory', requestId), {
+    batch.set(doc(stockRequestHistoryCollection(), requestId), {
       ...request,
       srSearchTerms: buildSrSearchTerms(request),
       archivedAt: request.archivedAt || serverTimestamp()
     }, { merge:true });
-    batch.delete(doc(db, 'stockRequests', requestId));
+    batch.delete(doc(stockRequestsCollection(), requestId));
     await batch.commit();
   }catch(error){
     rowsNow = previousRows;
@@ -868,8 +926,9 @@ async function removeRequestAsAdmin(request){
   if(request.status === 'removed') return;
   const reason = await askAdminRemovalReason(request);
   if(reason === null) return;
+  const staffId = String(request.staffId).trim().toLowerCase();
   try{
-    await updateDoc(doc(db, 'stockRequests', request.date + '_' + String(request.staffId).toLowerCase()), {
+    await updateDoc(doc(stockRequestsCollection(), stockRequestDocumentId(request)), {
       sr: '',
       removedSr: request.sr || '',
       srSearchTerms: buildSrSearchTerms(request),
@@ -881,55 +940,177 @@ async function removeRequestAsAdmin(request){
     });
   }catch(error){
     alert('Could not remove the SR# (' + (error.code || error.message) + ').');
+    return;
+  }
+  try{
+    await dispatchStockSchedule({
+      id:'stock-request-removed-' + request.date + '-' + staffId + '-' + Date.now(),
+      type:'stockRequestRemoved',
+      staffId,
+      date:request.date,
+      day:request.day || ''
+    });
+  }catch(error){
+    console.error('SR# was removed, but the employee could not be notified:', error);
+    alert('SR# removed, but the employee notification could not be sent. (' + (error.code || error.message) + ')');
+  }
+}
+
+async function unblockRequestAsAdmin(request){
+  if(!request || request.status !== 'removed' || request.removedBy !== 'admin' || !request.removedSr || !request.staffId || !request.date) return;
+  if(!await showConfirmModal('Restore SR# ' + request.removedSr + ' and allow the employee to keep it or edit it?', {
+    title:'Unblock employee', confirmText:'Unblock employee'
+  })) return;
+  const staffId = String(request.staffId).trim().toLowerCase();
+  const requestRef = doc(stockRequestsCollection(),stockRequestDocumentId(request));
+  try{
+    await updateDoc(requestRef, {
+      sr: request.removedSr,
+      removedSr: deleteField(),
+      status: deleteField(),
+      removalReason: deleteField(),
+      removedAt: deleteField(),
+      removedBy: deleteField(),
+      removalViewedAt: deleteField(),
+      updatedAt: serverTimestamp()
+    });
+  }catch(error){
+    alert('Could not unblock the employee (' + (error.code || error.message) + ').');
+    return;
+  }
+  try{
+    await dispatchStockSchedule({
+      id:'stock-request-unblocked-' + request.date + '-' + staffId + '-' + Date.now(),
+      type:'stockRequestUnblocked',
+      staffId,
+      date:request.date,
+      day:request.day || ''
+    });
+  }catch(error){
+    console.error('Employee was unblocked, but the notification could not be sent:', error);
+    alert('Employee unblocked, but the notification could not be sent. (' + (error.code || error.message) + ')');
   }
 }
 
 async function markRequestCompletedAsAdmin(request){
   if(!request || !request.staffId || !request.date || request.status === 'removed' || request.adminCompleted) return;
-  if(isCompletedRequest(request, toMin(cutIn.value))) return;
   if(!await showConfirmModal('Mark SR# ' + (request.sr || '') + ' for ' + (request.name || 'this employee') + ' as Completed? The employee will no longer be able to edit it.', {
     title:'Mark request completed', confirmText:'Mark completed'
   })) return;
   try{
-    await updateDoc(doc(db,'stockRequests',request.date + '_' + String(request.staffId).toLowerCase()), {
+    await updateDoc(doc(stockRequestsCollection(),stockRequestDocumentId(request)), {
       adminCompleted: true,
       adminCompletedAt: serverTimestamp(),
       adminCompletedBy: auth.currentUser.email
     });
   }catch(error){
     alert('Could not mark this SR# as Completed (' + (error.code || error.message) + ').');
+    return;
+  }
+  try{
+    await notifyRequestsCompleted([request]);
+  }catch(error){
+    console.error('Stock request was marked completed, but its employee notification could not be sent:', error);
+    alert('Stock request was marked completed, but the employee notification could not be sent. (' + (error.code || error.message) + ').');
   }
 }
 
-// The modal shows only the latest edit.
-const $m = id => document.getElementById(id);
-function openReason(r){
-  if(r.status === 'removed'){
-    $m('mTitle').textContent = 'SR# removal reason';
-    $m('mActor').textContent = r.removedBy === 'admin' ? 'Removed by admin' : 'Removed by employee';
-    $m('mWho').textContent = (r.name || '') + ' — ' + (r.siteName || '');
-    $m('mChg').textContent = 'SR# removed';
-    const removedAt = r.removedAt && typeof r.removedAt.toMillis === 'function' ? r.removedAt.toMillis() : null;
-    if(removedAt !== null){
-      const time = document.createElement('span');
-      time.textContent = '  (' + fmtAt(removedAt) + ')';
-      $m('mChg').appendChild(time);
+let completingAllRequests = false;
+async function notifyRequestsCompleted(requests){
+  const timestamp = Date.now();
+  for(let start=0; start<requests.length; start+=100){
+    const notifications = requests.slice(start,start+100).map((request,index)=>{
+      const staffId = String(request.staffId || '').trim().toLowerCase();
+      return {
+        id:'stock-request-completed-' + stockRequestType + '-' + request.date + '-' + staffId + '-' + timestamp + '-' + index,
+        type:'stockRequestCompleted',
+        requestType:stockRequestType,
+        staffId,
+        date:request.date,
+        day:request.day || '',
+        sr:String(request.sr || '').trim()
+      };
+    });
+    await dispatchStockSchedule(notifications);
+  }
+}
+
+async function markAllRequestsCompletedAsAdmin(){
+  if(completingAllRequests) return;
+  const requests = rowsNow.filter(request=>
+    requestTypeOf(request) === stockRequestType
+    && request.status !== 'removed'
+    && !request.adminCompleted
+    && requestStatusLabel(request, dayClosedEarly) !== 'Completed'
+    && String(request.sr || '').trim()
+    && request.staffId
+    && request.date === selectedDateKey
+  );
+  if(!requests.length) return;
+  if(!await showConfirmModal(
+    'Mark all ' + requests.length + ' ' + stockTypeLabel(stockRequestType) + ' SR# requests for ' + DAYS[current] + ' as completed? This includes all branches. Each employee will be notified and can no longer edit their SR#.',
+    { title:'Complete all stock requests', confirmText:'Complete all' }
+  )) return;
+
+  completingAllRequests = true;
+  renderRequestRows();
+  let completedCount = 0;
+  try{
+    for(let start=0; start<requests.length; start+=450){
+      const batch = writeBatch(db);
+      requests.slice(start,start+450).forEach(request=>{
+        batch.update(doc(stockRequestsCollection(),stockRequestDocumentId(request)), {
+          adminCompleted:true,
+          adminCompletedAt:serverTimestamp(),
+          adminCompletedBy:auth.currentUser.email
+        });
+      });
+      await batch.commit();
+      completedCount += Math.min(450, requests.length-start);
     }
-    $m('mReason').textContent = r.removalReason || '';
-    $m('reasonModal').classList.add('show');
-    $m('mClose').focus();
+  }catch(error){
+    console.error('Could not complete all stock requests:', error);
+    if(completedCount){
+      try{
+        await notifyRequestsCompleted(requests.slice(0,completedCount));
+      }catch(notificationError){
+        console.error('Some completed stock requests could not be notified:', notificationError);
+        alert(completedCount + ' requests were completed, but the notifications could not all be sent. (' + (notificationError.code || notificationError.message) + ').');
+      }
+    }
+    alert('Could not complete all stock requests. ' + completedCount + ' of ' + requests.length + ' were completed before the error. (' + (error.code || error.message) + ').');
+    return;
+  }finally{
+    completingAllRequests = false;
+    renderRequestRows();
+  }
+
+  try{
+    await notifyRequestsCompleted(requests);
+  }catch(error){
+    console.error('Stock requests were completed, but employee notifications could not all be sent:', error);
+    alert('All ' + requests.length + ' requests were marked completed, but some employee notifications could not be sent. (' + (error.code || error.message) + ').');
     return;
   }
-  const h = Array.isArray(r.history) ? r.history : [];
-  if(!h.length) return;
-  $m('mTitle').textContent = 'Change reason';
-  $m('mActor').textContent = '';
-  const last = h[h.length - 1];
-  $m('mWho').textContent = (r.name || '') + ' — ' + (r.siteName || '') + (h.length > 1 ? ' (na-edit ' + h.length + '×)' : '');
-  $m('mChg').textContent = (last.oldSr ?? '') + ' → ' + (last.newSr ?? '');
-  const sp = document.createElement('span'); sp.textContent = '  (' + fmtAt(last.at) + ')';
-  $m('mChg').appendChild(sp);
-  $m('mReason').textContent = last.reason || '';
+  alert('Completed ' + requests.length + ' stock requests. Employees have been notified.');
+}
+
+document.getElementById('completeAllBtn').addEventListener('click', markAllRequestsCompletedAsAdmin);
+
+const $m = id => document.getElementById(id);
+function openReason(r){
+  if(r.status !== 'removed') return;
+  $m('mTitle').textContent = 'SR# removal reason';
+  $m('mActor').textContent = r.removedBy === 'admin' ? 'Removed by admin' : 'Removed by employee';
+  $m('mWho').textContent = (r.name || '') + ' — ' + (r.siteName || '');
+  $m('mChg').textContent = 'SR# removed';
+  const removedAt = r.removedAt && typeof r.removedAt.toMillis === 'function' ? r.removedAt.toMillis() : null;
+  if(removedAt !== null){
+    const time = document.createElement('span');
+    time.textContent = '  (' + fmtAt(removedAt) + ')';
+    $m('mChg').appendChild(time);
+  }
+  $m('mReason').textContent = r.removalReason || '';
   $m('reasonModal').classList.add('show');
   $m('mClose').focus();
 }
@@ -941,6 +1122,11 @@ grid.addEventListener('click', e=>{
   const adminCompleteButton = e.target.closest('[data-admin-complete-idx]');
   if(adminCompleteButton && visibleRows[+adminCompleteButton.dataset.adminCompleteIdx]){
     markRequestCompletedAsAdmin(visibleRows[+adminCompleteButton.dataset.adminCompleteIdx]);
+    return;
+  }
+  const adminUnblockButton = e.target.closest('[data-admin-unblock-idx]');
+  if(adminUnblockButton && visibleRows[+adminUnblockButton.dataset.adminUnblockIdx]){
+    unblockRequestAsAdmin(visibleRows[+adminUnblockButton.dataset.adminUnblockIdx]);
     return;
   }
   const adminDeleteButton = e.target.closest('[data-admin-delete-idx]');
@@ -960,39 +1146,52 @@ grid.addEventListener('click', e=>{
     markRemovalViewed(request);
     return;
   }
-  const b = e.target.closest('.fold');
-  if(b && visibleRows[+b.dataset.idx]) openReason(visibleRows[+b.dataset.idx]);
 });
 
 async function select(i){
+  if(cutoffSaving) return;
   if(cutoffDirty && !await showConfirmModal('Discard the unsaved cutoff change?', {
     title:'Discard cutoff change', confirmText:'Discard change'
   })) return;
+  if(cutoffSaving) return;
   cutoffDirty = false;
+  savedCutoffValue = '14:00';
+  cutIn.value = savedCutoffValue;
   updateCutoffActions();
   current = i;
+  refreshDayNavigation(i);
   const selectedDate = iso(dateForDay(i));
   selectedDateKey = selectedDate;
   requestRenderToken++;
   dayActive = false;
   dayClosedEarly = false;
-  nav.querySelectorAll('button[data-i]').forEach(b=>b.classList.toggle('on', +b.dataset.i===i));
+  dayStatusLoaded = false;
+  dayStatusError = null;
   paintHeader();
   grid.innerHTML = '<div class="empty">Loading…</div>';
   if(unsub) unsub();
   if(unsubDay) unsubDay();
-  unsubDay = onSnapshot(doc(db,'stockDays', selectedDate), snap=>{
+  unsubDay = onSnapshot(stockDayDocument(selectedDate), snap=>{
+    if(selectedDateKey !== selectedDate) return;
     const dd = snap.exists() ? snap.data() : null;
     dayActive = !!dd && dd.active === true;
     dayClosedEarly = !!dd?.closedEarly;
+    dayStatusLoaded = true;
+    dayStatusError = null;
     if(!cutoffDirty){
       savedCutoffValue = minToInput(dd && Number.isInteger(dd.cutoffMin) ? dd.cutoffMin : 840);
       if(document.activeElement !== cutIn) cutIn.value = savedCutoffValue;
     }
     paintHeader();
-  }, ()=>{});
+  }, error=>{
+    if(selectedDateKey !== selectedDate) return;
+    console.error('Could not load stock request activation status:', error);
+    dayStatusLoaded = false;
+    dayStatusError = error;
+    paintHeader();
+  });
   // Live updates appear here as soon as an employee submits a request.
-  unsub = onSnapshot(query(collection(db,'stockRequests'), where('date','==',selectedDate)), snap=>{
+  unsub = onSnapshot(query(stockRequestsCollection(), where('date','==',selectedDate)), snap=>{
     const renderToken = ++requestRenderToken;
     Promise.all(snap.docs.map(async requestDoc=>{
       const request = requestDoc.data();
@@ -1023,21 +1222,14 @@ cancelCutoffBtn.addEventListener('click', ()=>{
   paintHeader();
 });
 saveCutoffBtn.addEventListener('click', async ()=>{
-  if(!cutoffDirty || cutoffSaving || dayClosedEarly) return;
-  if(!dayActive){
-    savedCutoffValue = cutIn.value;
-    cutoffDirty = false;
-    updateCutoffActions();
-    paintHeader();
-    return;
-  }
+  if(!cutoffDirty || cutoffSaving) return;
   const date = iso(dateForDay(current));
   const nextCutoffMin = toMin(cutIn.value);
   const previousCutoffMin = toMin(savedCutoffValue);
   cutoffSaving = true;
   updateCutoffActions();
   try{
-    const stockDayRef = doc(db,'stockDays', date);
+    const stockDayRef = stockDayDocument(date);
     const stockDaySnapshot = await getDoc(stockDayRef);
     const actualPreviousCutoffMin = stockDaySnapshot.exists() && Number.isInteger(stockDaySnapshot.data().cutoffMin)
       ? stockDaySnapshot.data().cutoffMin
@@ -1047,17 +1239,27 @@ saveCutoffBtn.addEventListener('click', async ()=>{
       cutoffDirty = false;
       return;
     }
-    await updateDoc(stockDayRef, { cutoffMin: nextCutoffMin });
+    if(stockDaySnapshot.exists()){
+      await updateDoc(stockDayRef, { cutoffMin: nextCutoffMin });
+    }else{
+      await setDoc(stockDayRef, {
+        active:false,
+        date,
+        day:DAYS[current],
+        requestType:stockRequestType,
+        cutoffMin:nextCutoffMin
+      });
+    }
     savedCutoffValue = cutIn.value;
     cutoffDirty = false;
-    if(stockDayIsOpen(date, nextCutoffMin)){
+    if(dayActive && stockDayIsOpen(date, nextCutoffMin)){
       try{ await clearManualCompletionsForDay(date); }
       catch(error){
         console.error('Cutoff updated, but completed SR# statuses could not be reset:', error);
         alert('Cutoff updated, but some SR# statuses could not be reset to Pending. (' + (error.code || error.message) + ')');
       }
     }
-    try{
+    if(dayActive) try{
       const employees = await getDocs(collection(db,'employees'));
       const targetStaffIds = employees.docs.map(employeeDoc=>({ id:employeeDoc.id, ...employeeDoc.data() }))
         .filter(employee=>requesterGroup(employee.department) &&
@@ -1065,8 +1267,8 @@ saveCutoffBtn.addEventListener('click', async ()=>{
         .map(employee=>String(employee.staffId || employee.id).trim().toLowerCase())
         .filter(Boolean);
       await dispatchStockSchedule({
-        id:'stock-day-cutoff-' + date + '-' + Date.now(),
-        type:'stockDayCutoffUpdated', date, day:DAYS[current], cutoffMin:nextCutoffMin,
+        id:'stock-day-cutoff-' + stockRequestType + '-' + date + '-' + Date.now(),
+        type:'stockDayCutoffUpdated', requestType:stockRequestType, date, day:DAYS[current], cutoffMin:nextCutoffMin,
         previousCutoffMin:actualPreviousCutoffMin,
         reopened:date === manilaDateAndMinutes().date && actualPreviousCutoffMin <= manilaDateAndMinutes().minutes && nextCutoffMin > manilaDateAndMinutes().minutes,
         targetStaffIds
@@ -1103,11 +1305,11 @@ document.getElementById('actBtn').addEventListener('click', async ()=>{
     if(!await showConfirmModal('Reopen stock requests for ' + DAYS[current] + '? Employees can enter or edit their SR# until ' + fmtMin(cutoffMin) + '.', {
       title:'Unclose stock requests', confirmText:'Unclose order'
     })) return;
-    const ref = doc(db,'stockDays', date);
+    const ref = stockDayDocument(date);
     try{
       const snapshot = await getDoc(ref);
       const previousCutoffMin = snapshot.exists() && Number.isInteger(snapshot.data().cutoffMin) ? snapshot.data().cutoffMin : 840;
-      await updateDoc(ref, { active:true, closedEarly:false, cutoffMin, closedAt:serverTimestamp() });
+      await updateDoc(ref, { active:true, requestType:stockRequestType, closedEarly:false, cutoffMin, closedAt:serverTimestamp() });
       try{ await clearManualCompletionsForDay(date); }
       catch(error){
         console.error('Stock requests reopened, but completed SR# statuses could not be reset:', error);
@@ -1115,6 +1317,8 @@ document.getElementById('actBtn').addEventListener('click', async ()=>{
       }
       dayActive = true;
       dayClosedEarly = false;
+      dayStatusLoaded = true;
+      dayStatusError = null;
       cutoffDirty = false;
       savedCutoffValue = minToInput(cutoffMin);
       cutIn.value = savedCutoffValue;
@@ -1128,8 +1332,8 @@ document.getElementById('actBtn').addEventListener('click', async ()=>{
           .map(employee=>String(employee.staffId || employee.id).trim().toLowerCase())
           .filter(Boolean);
         await dispatchStockSchedule({
-          id:'stock-day-unclosed-' + date + '-' + Date.now(),
-          type:'stockDayCutoffUpdated', date, day:DAYS[current], cutoffMin, previousCutoffMin,
+          id:'stock-day-unclosed-' + stockRequestType + '-' + date + '-' + Date.now(),
+          type:'stockDayCutoffUpdated', requestType:stockRequestType, date, day:DAYS[current], cutoffMin, previousCutoffMin,
           reopened:true, unclosed:true, targetStaffIds
         });
       }catch(notificationError){
@@ -1142,7 +1346,7 @@ document.getElementById('actBtn').addEventListener('click', async ()=>{
     return;
   }
   if(isLocked(d)) return;
-  const ref = doc(db,'stockDays', iso(d));
+  const ref = stockDayDocument(iso(d));
   try{
     if(dayActive){
       if(!await showConfirmModal('Employees will no longer be able to submit or edit stock requests for this day.', {
@@ -1155,21 +1359,31 @@ document.getElementById('actBtn').addEventListener('click', async ()=>{
         .map(employee=>String(employee.staffId || employee.id).trim().toLowerCase())
         .filter(Boolean);
       await updateDoc(ref, { active:false, closedEarly:true, closedAt:serverTimestamp() });
+      dayActive = false;
+      dayClosedEarly = true;
+      dayStatusLoaded = true;
+      dayStatusError = null;
+      paintHeader();
       try{
         const date = iso(d);
         await dispatchStockSchedule([
-          { id:'stock-day-deactivated-' + date + '-' + Date.now(), type:'stockDayDeactivated', date, day:DAYS[current] },
-          { id:'stock-day-closed-early-' + date + '-' + Date.now(), type:'stockDayClosedEarly', date, day:DAYS[current], targetStaffIds }
+          { id:'stock-day-deactivated-' + stockRequestType + '-' + date + '-' + Date.now(), type:'stockDayDeactivated', requestType:stockRequestType, date, day:DAYS[current] },
+          { id:'stock-day-closed-early-' + stockRequestType + '-' + date + '-' + Date.now(), type:'stockDayClosedEarly', requestType:stockRequestType, date, day:DAYS[current], targetStaffIds }
         ]);
       }catch(notificationError){
         console.error('Day deactivated early, but its notification could not be sent:', notificationError);
         alert('Day closed early, but its notification could not be sent. (' + notificationError.message + ')');
       }
     } else {
-      if(!await showConfirmModal('Activate stock requests for ' + DAYS[current] + ' with a ' + fmtMin(toMin(cutIn.value)) + ' cutoff?', {
-        title:'Activate stock requests', confirmText:'Activate day'
+      if(!await showConfirmModal('Activate ' + stockTypeLabel(stockRequestType) + ' stock requests for ' + DAYS[current] + ' with a ' + fmtMin(toMin(cutIn.value)) + ' cutoff?', {
+        title:'Activate ' + stockTypeLabel(stockRequestType) + ' requests', confirmText:'Activate day'
       })) return;
-      await setDoc(ref, { active:true, date: iso(d), day: DAYS[current], cutoffMin: toMin(cutIn.value), activatedAt: serverTimestamp() });
+      await setDoc(ref, { active:true, date: iso(d), day: DAYS[current], requestType:stockRequestType, cutoffMin: toMin(cutIn.value), activatedAt: serverTimestamp() });
+      dayActive = true;
+      dayClosedEarly = false;
+      dayStatusLoaded = true;
+      dayStatusError = null;
+      paintHeader();
       try{
         const employees = await getDocs(collection(db,'employees'));
         const targetStaffIds = employees.docs.map(employeeDoc=>({ id:employeeDoc.id, ...employeeDoc.data() }))
@@ -1178,8 +1392,9 @@ document.getElementById('actBtn').addEventListener('click', async ()=>{
           .map(employee=>String(employee.staffId || employee.id).trim().toLowerCase())
           .filter(Boolean);
         await dispatchStockSchedule({
-          id:'stock-day-' + iso(d) + '-' + Date.now(),
+          id:'stock-day-' + stockRequestType + '-' + iso(d) + '-' + Date.now(),
           type:'stockDayActivated',
+          requestType:stockRequestType,
           date:iso(d),
           day:DAYS[current],
           cutoffMin:toMin(cutIn.value),
@@ -1204,17 +1419,20 @@ const REQUESTER_ROLES = [
 const REQUESTER_BRANCHES = [
   { key:'north', label:'North Caloocan' },
   { key:'south', label:'South Caloocan' },
+  { key:'manila', label:'Manila' },
   { key:'unset', label:'Branch not set' }
 ];
 function requesterGroup(department){
-  const team = String(department || '').trim().toLowerCase().replace(/\s+(north|south)$/i,'').trim();
+  if(/^billing\s+manila$/i.test(String(department || '').trim())) return null;
+  const team = String(department || '').trim().toLowerCase().replace(/\s+(north|south|manila)$/i,'').trim();
   return REQUESTER_ROLES.find(role=>role.key === team) || null;
 }
 function requesterBranch(employee){
   const storedBranch = String(employee.branch || '').trim().toLowerCase();
   if(storedBranch.includes('north')) return 'north';
   if(storedBranch.includes('south')) return 'south';
-  const match = String(employee.department || '').trim().match(/\s+(north|south)$/i);
+  if(storedBranch.includes('manila')) return 'manila';
+  const match = String(employee.department || '').trim().match(/\s+(north|south|manila)$/i);
   return match ? match[1].toLowerCase() : 'unset';
 }
 let empRows = [], unsubEmp = null;
@@ -1348,7 +1566,7 @@ document.getElementById('logoutBtn').addEventListener('click', async ()=>{
 });
 
 // Admin-only guard (same as admin console)
-onAuthStateChanged(auth, user=>{
+onAuthStateChanged(auth, async user=>{
   const isStaff = !user || (user.email && user.email.endsWith('@'+STAFF_DOMAIN));
   if(isStaff){
     // If an employee is already signed in, send them to the employee page instead of asking for admin credentials.
@@ -1358,13 +1576,35 @@ onAuthStateChanged(auth, user=>{
     return;
   }
   // Stock Request account: set its Home link to its dedicated landing page.
-  if((user.email||'').toLowerCase() === 'adminstockreq@planetdrugstore.ph'){
-    document.getElementById('homeLink').href='/r5c8j2ndxa';
+  const adminEmail = String(user.email || '').trim().toLowerCase();
+  const isViewer = adminEmail === VIEWER_EMAIL;
+  if(!isViewer && !Object.values(STOCK_ADMIN_EMAILS).includes(adminEmail)){
+    location.replace('/2mp58eri7h');
+    return;
+  }
+  const requestedType = new URLSearchParams(location.search).get('type');
+  stockRequestType = isViewer
+    ? (requestedType === 'supplies' ? 'supplies' : 'medicine')
+    : adminEmail === STOCK_ADMIN_EMAILS.supplies ? 'supplies' : 'medicine';
+  const stockAdminLabel = stockRequestType === 'supplies' ? 'Supplies' : 'Medicine';
+  document.getElementById('orderingTitle').textContent =
+    isViewer ? `${stockAdminLabel} Stock Requests — View Only` : stockAdminLabel + ' Stock Requests';
+  document.title = `${stockAdminLabel} Stock Requests${isViewer ? ' — View Only' : ''} — Planet Drugstore`;
+  document.getElementById('homeLink').href = isViewer ? '/ed3od6ldsq' : '/r5c8j2ndxa';
+  if(stockRequestType === 'supplies' && !isViewer){
+    try{
+      await migrateLegacySuppliesRecords();
+    }catch(error){
+      console.error('Could not migrate legacy Supplies SR# records:', error);
+      document.getElementById('checking').textContent =
+        'Could not load Supplies SR# records (' + (error.code || error.message) + '). Please refresh to retry.';
+      return;
+    }
   }
   document.getElementById('checking').style.display='none';
   document.getElementById('app').style.display='block';
   if(current === -1){
-    const g = new Date().getDay();
+    const g = new Date(manilaDateAndMinutes().date + 'T00:00:00Z').getUTCDay();
     const requestedDay = DAYS.indexOf(String(new URLSearchParams(location.search).get('day') || '').toUpperCase());
     select(requestedDay >= 0 ? requestedDay : g>=1 && g<=5 ? g-1 : 0);
     setInterval(()=>{

@@ -15,6 +15,9 @@ import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 public final class PushRegistrar {
     private static final String ENDPOINT = "https://peripherals-push.pds-peripherals.workers.dev/subscribe";
     private static final String APP_ORIGIN = "https://planetdrugstoreconsole.web.app";
@@ -56,23 +59,37 @@ public final class PushRegistrar {
     public static void syncSaved(Context context, String token) {
         String staffId = savedStaffId(context);
         String headRole = savedHeadRole(context);
-        if (!headRole.isEmpty()) request("POST", "", headRole, token, null);
-        else if (!staffId.isEmpty()) request("POST", staffId, "", token, null);
+        if (!headRole.isEmpty()) requestHead("POST", headRole, token, null);
+        else if (!staffId.isEmpty()) request("POST", staffId, "", token, "", null);
     }
 
     public static void subscribe(Context context, String staffId, String token, Callback callback) {
-        request("POST", staffId, "", token, callback);
+        request("POST", staffId, "", token, "", callback);
     }
 
     public static void subscribeHead(Context context, String headRole, String token, Callback callback) {
-        request("POST", "", headRole, token, callback);
+        requestHead("POST", headRole, token, callback);
     }
 
     public static void unsubscribe(Context context, String staffId, String headRole, String token, Callback callback) {
-        request("DELETE", staffId, headRole, token, callback);
+        if (!headRole.isEmpty()) requestHead("DELETE", headRole, token, callback);
+        else request("DELETE", staffId, "", token, "", callback);
     }
 
-    private static void request(String method, String staffId, String headRole, String token, Callback callback) {
+    private static void requestHead(String method, String headRole, String token, Callback callback) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            if (callback != null) MAIN.post(() -> callback.complete(false, "Sign in to the department account first."));
+            return;
+        }
+        user.getIdToken(false)
+                .addOnSuccessListener(result -> request(method, "", headRole, token, result.getToken(), callback))
+                .addOnFailureListener(error -> {
+                    if (callback != null) MAIN.post(() -> callback.complete(false, "Could not verify the department account."));
+                });
+    }
+
+    private static void request(String method, String staffId, String headRole, String token, String idToken, Callback callback) {
         NETWORK.execute(() -> {
             HttpURLConnection connection = null;
             boolean success = false;
@@ -88,6 +105,7 @@ public final class PushRegistrar {
                 connection.setReadTimeout(15000);
                 connection.setRequestProperty("Origin", APP_ORIGIN);
                 connection.setRequestProperty("Content-Type", "application/json");
+                if (!idToken.isEmpty()) connection.setRequestProperty("Authorization", "Bearer " + idToken);
                 connection.setDoOutput(true);
                 try (OutputStream output = connection.getOutputStream()) {
                     output.write(body.toString().getBytes(StandardCharsets.UTF_8));

@@ -274,6 +274,7 @@
       <div class="hero-ctas">
         <!-- <a href="/gui2dtdgtb" class="btn-primary">🧰 Open Peripheral Form</a> -->
         <a href="/2mp58eri7h#entries" class="btn-ghost">▶ View Entries</a>
+        <a href="/dashboard.html" class="btn-ghost">Go to Dashboard</a>
         <button class="btn-ghost" id="OnLogout">🚪 Log Out</button>
       </div>
       <div class="trust-row">
@@ -314,7 +315,7 @@
 // bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
 // doesn't match what this tab is currently running — shows a small banner
 // instead of silently staying on stale code.
-const APP_VERSION = "2026-10-11.1";
+const APP_VERSION = "2026-10-11.2";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -360,7 +361,8 @@ startVersionWatch();
 
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { initializeFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
+  import { initializeFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     getAuth, onAuthStateChanged, signOut, setPersistence,
     indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence,
@@ -368,6 +370,7 @@ startVersionWatch();
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   const STAFF_DOMAIN = 'staff.planetdrugstore.local';
+  const VIEWER_EMAIL = 'pdsviewing@planetdrugstore.ph';
 
   const firebaseConfig = {
     apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
@@ -378,12 +381,61 @@ startVersionWatch();
     appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
   };
 
-  const app = initializeApp(firebaseConfig);
+  const app = initializeApp(getFirebaseConfigForHost(firebaseConfig));
   const db = initializeFirestore(app, {
     experimentalForceLongPolling: true,
     useFetchStreams: false
   });
   const auth = getAuth(app);
+  connectLocalFirebaseEmulators({ db, auth });
+
+  await auth.authStateReady();
+  if (auth.currentUser) {
+    const email = String(auth.currentUser.email || "").trim().toLowerCase();
+    if (email === VIEWER_EMAIL) {
+      const viewerSession = {
+        staffId: 'PDSVIEWING',
+        name: 'PDS Viewing',
+        email: VIEWER_EMAIL,
+        department: 'Viewer',
+        branch: 'All Departments',
+        role: 'viewer',
+        signedInAt: Date.now()
+      };
+      try {
+        localStorage.setItem('pdEmployeeSession', JSON.stringify(viewerSession));
+        sessionStorage.removeItem('pdEmployeeSession');
+      } catch (error) {
+        try {
+          sessionStorage.setItem('pdEmployeeSession', JSON.stringify(viewerSession));
+        } catch (storageError) {
+          console.error('Unable to prepare the viewer session from the IT Admin landing page:', storageError);
+          throw storageError;
+        }
+      }
+      window.location.replace('/ed3od6ldsq');
+    } else if ([
+      "adminstockreqmeds@planetdrugstore.ph",
+      "adminstockreqsup@planetdrugstore.ph"
+    ].includes(email)) {
+      window.location.replace("/r5c8j2ndxa");
+    } else {
+      try {
+        const profileSnapshot = await getDoc(doc(db, "eventScheduleAdmins", auth.currentUser.uid));
+        const profile = profileSnapshot.exists() ? profileSnapshot.data() : null;
+        if (profile?.role === "pharmacist" && String(profile.email || "").trim().toLowerCase() === email) {
+          if (profile.active === true && profile.deleted !== true) {
+            window.location.replace("/dkjyg56lvm");
+          } else {
+            await signOut(auth);
+            window.location.replace("/839jgl8ang?access=revoked");
+          }
+        }
+      } catch (error) {
+        console.error("Could not verify Operations access on IT Admin landing page:", error);
+      }
+    }
+  }
 
   document.getElementById('OnLogout').addEventListener('click', async ()=>{
     await signOut(auth);

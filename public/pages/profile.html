@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>My Profile — Planet Drugstore</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--maroon:#6E1620;--dark:#3D0A10;--red:#d61f2c;--paper:#FBF5F4;--line:#E8D7D8;--ink:#2A1416;--muted:#8C6B6E}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font-family:'Figtree','Segoe UI',Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+:is(a,button,input,textarea):focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px max(16px,calc((100vw - 820px)/2));background:var(--maroon);color:#fff}
+.brand{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:800;letter-spacing:.45px}
+.brand img{width:36px;height:36px;border-radius:9px;object-fit:cover;background:#fff}
+.brand span{display:block;margin-top:2px;color:#ffd2d6;font-size:11px;font-weight:600;letter-spacing:1px}
+.back{display:inline-flex;align-items:center;gap:8px;flex:none;padding:10px 15px;border:1px solid rgba(255,255,255,.45);border-radius:9px;color:#fff;font-size:13px;font-weight:700;text-decoration:none}
+.back:hover{background:rgba(255,255,255,.12)}
+.wrap{width:min(calc(100% - 120px),820px);margin:30px auto 50px}
+.page-heading{margin-bottom:22px}
+.page-heading h1{margin:0;color:var(--dark);font-size:28px;letter-spacing:-.5px}
+.page-heading p{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
+.profile-form{display:grid;grid-template-columns:240px minmax(0,1fr);align-items:start;gap:20px}
+.identity-card,.personal-card{overflow:hidden;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:0 10px 24px rgba(61,10,16,.08)}
+.identity-card{text-align:center}
+.cover{height:70px;background:linear-gradient(125deg,var(--maroon),#8d1d2b)}
+.identity-body{padding:0 16px 18px}
+.photo-wrap{position:relative;width:88px;height:88px;margin:-44px auto 9px}
+.photo{position:relative;display:flex;width:88px;height:88px;align-items:center;justify-content:center;overflow:hidden;border:3px solid #fff;border-radius:50%;background:#f6e1e2;color:var(--maroon);box-shadow:0 3px 8px rgba(42,20,22,.18);font-size:28px;font-weight:800}
+.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.photo-camera{position:absolute;right:-2px;bottom:0;display:flex;width:30px;height:30px;align-items:center;justify-content:center;padding:0;border:2px solid #fff;border-radius:50%;background:var(--maroon);color:#fff;line-height:0;cursor:pointer}
+.photo-camera svg{display:block;flex:none;width:16px;height:16px}
+.identity-name{overflow-wrap:anywhere;margin:0;color:var(--ink);font-size:17px;font-weight:800}
+.department-chip{display:inline-flex;align-items:center;gap:5px;margin-top:7px;padding:5px 10px;border-radius:99px;background:#fae8e8;color:var(--maroon);font-size:11px;font-weight:700}
+.identity-email{overflow-wrap:anywhere;margin:10px 0 0;color:var(--muted);font-size:11px;line-height:1.45}
+.identity-divider{height:1px;margin:16px 0;background:#f0e5e5}
+.photo-actions{display:grid;gap:8px}
+.photo-actions button,.actions button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--maroon);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.photo-actions button:hover,.actions button:hover{border-color:var(--maroon);background:#fff7f6}
+.photo-actions .choose-photo{min-height:108px;flex-direction:column;border-style:dashed;border-color:#e6bfc2;background:#fcf8f7}
+.choose-photo-icon{display:grid;width:30px;height:30px;place-items:center;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:18px}
+.photo-actions .remove-photo{min-height:36px}
+.personal-card{padding:20px}
+.personal-heading{margin-bottom:16px}
+.personal-heading h2{margin:0;color:var(--dark);font-size:16px}
+.personal-heading p{margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.5}
+.field{display:grid;gap:6px;margin-top:12px}
+.field-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px}
+.profile-form label{color:var(--maroon);font-size:11px;font-weight:700}
+.profile-form input,.profile-form textarea{display:block;width:100%;min-width:0;min-height:42px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-size:12px}
+.profile-form textarea{min-height:96px;resize:vertical;line-height:1.5}
+.readonly-wrap{position:relative}
+.readonly-wrap input{padding-right:32px;background:#f8f4f3;color:var(--muted)}
+.field-lock{position:absolute;top:50%;right:12px;color:var(--muted);transform:translateY(-50%);pointer-events:none}
+.about-label-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.char-count{color:var(--muted);font-size:11px}
+.help{margin:0;color:var(--muted);font-size:11px;line-height:1.5}
+.error{margin:0;color:#9d1b25;font-size:12px;line-height:1.45}
+.error[hidden]{display:none}
+.actions{display:flex;justify-content:flex-end;gap:9px;margin:18px -20px -20px;padding:14px 20px;border-top:1px solid #f3eaea;background:#fdfbfa}
+.actions button{min-height:42px;padding:9px 14px}
+.actions .save{border-color:var(--maroon);background:var(--maroon);color:#fff}
+.actions .save:hover{background:var(--dark)}
+button:disabled{opacity:.55;cursor:wait}
+@media(max-width:700px){.topbar{padding:10px 16px}.wrap{width:min(calc(100% - 32px),520px);margin-top:22px}.page-heading{margin-bottom:18px}.profile-form{grid-template-columns:minmax(0,1fr);gap:16px}.identity-body{padding:0 18px 18px}.photo-actions{grid-template-columns:1fr 1fr}.photo-actions .choose-photo{min-height:54px;flex-direction:row}.identity-divider{margin:12px 0}.personal-card{padding:18px}.actions{margin:16px -18px -18px;padding:12px 18px}}
+@media(max-width:440px){.topbar{padding:9px 12px}.brand{gap:8px;font-size:13px}.brand img{width:32px;height:32px}.brand span{font-size:9px}.back{gap:5px;padding:8px 9px;font-size:11px}.wrap{width:calc(100% - 24px);margin-top:18px}.page-heading h1{font-size:25px}.page-heading p{font-size:12px}.field-row{grid-template-columns:minmax(0,1fr);gap:0}.personal-card{padding:15px}.actions{margin:14px -15px -15px;padding:11px 15px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><img src="../assets/images/logo.png" alt=""><div>PLANET DRUGSTORE<span>MY PROFILE</span></div></div>
+  <a class="back" id="backHome" href="/ed3od6ldsq"><span aria-hidden="true">&larr;</span> Back to Home</a>
+</header>
+<main class="wrap">
+  <header class="page-heading">
+    <h1 id="profileTitle">My Profile</h1>
+    <p>Update your profile picture and information. Your photo appears alongside your name across the system.</p>
+  </header>
+  <form class="profile-form" id="profileForm">
+    <section class="identity-card" aria-label="Profile picture and account summary">
+      <div class="cover"></div>
+      <div class="identity-body">
+        <div class="photo-wrap">
+          <div class="photo" id="profilePhoto">
+            <span id="profileInitials">EM</span>
+            <img id="profilePhotoImage" alt="Profile picture preview" hidden>
+          </div>
+          <button class="photo-camera" id="cameraPhoto" type="button" aria-label="Choose profile picture"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h3l2-3h6l2 3h3v13H4z"/><circle cx="12" cy="13" r="3"/></svg></button>
+        </div>
+        <p class="identity-name" id="identityName">Employee</p>
+        <span class="department-chip" id="identityDepartment">Department</span>
+        <p class="identity-email" id="identityEmail"></p>
+        <div class="identity-divider"></div>
+        <div class="photo-actions">
+          <button class="choose-photo" id="choosePhoto" type="button"><span class="choose-photo-icon" aria-hidden="true">&#8593;</span><span>Choose photo<small class="help"><br>JPG, PNG or WebP. Resized before saving.</small></span></button>
+          <button class="remove-photo" id="removePhoto" type="button" hidden>Remove photo</button>
+          <input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+        </div>
+      </div>
+    </section>
+    <section class="personal-card" aria-labelledby="personalHeading">
+      <header class="personal-heading">
+        <h2 id="personalHeading">Personal information</h2>
+        <p>Only your display name and bio can be changed. Other details are managed by your administrator.</p>
+      </header>
+      <div class="field">
+        <label for="displayName">Display name</label>
+        <input id="displayName" name="displayName" type="text" maxlength="120" autocomplete="name" required>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="accountEmail">Account email</label>
+          <span class="readonly-wrap"><input id="accountEmail" type="email" readonly><svg class="field-lock" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
+        </div>
+        <div class="field">
+          <label for="department">Department</label>
+          <span class="readonly-wrap"><input id="department" type="text" readonly><svg class="field-lock" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
+        </div>
+      </div>
+      <div class="field">
+        <div class="about-label-row"><label for="about">About me</label><span class="char-count" id="aboutCount">0 / 240</span></div>
+        <textarea id="about" name="about" maxlength="240" placeholder="Share a little about yourself, such as your role, what you work on, or how teammates can reach you."></textarea>
+      </div>
+      <p class="error" id="profileError" role="alert" hidden></p>
+      <div class="actions">
+        <button id="cancelProfile" type="button">Cancel</button>
+        <button class="save" id="saveProfile" type="submit">Save profile</button>
+      </div>
+    </section>
+  </form>
+</main>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { initializeFirestore, doc, getDoc, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp(getFirebaseConfigForHost({
+  apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
+  authDomain: "planetdrugstore-peripher-d24c0.firebaseapp.com",
+  projectId: "planetdrugstore-peripher-d24c0",
+  storageBucket: "planetdrugstore-peripher-d24c0.firebasestorage.app",
+  messagingSenderId: "115454971026",
+  appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
+}));
+const db = initializeFirestore(app, { experimentalForceLongPolling: true, useFetchStreams: false });
+const auth = getAuth(app);
+connectLocalFirebaseEmulators({ db, auth });
+
+const $ = id => document.getElementById(id);
+const MAX_SOURCE_PHOTO_SIZE = 15 * 1024 * 1024;
+const MAX_PHOTO_DATA_LENGTH = 180000;
+let profilePhoto = null;
+let account = null;
+
+function isValidPhoto(value) {
+  return typeof value === "string"
+    && value.length <= MAX_PHOTO_DATA_LENGTH
+    && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(value);
+}
+
+function showPhoto(photoData, displayName) {
+  const initials = String(displayName || "EM").trim().split(/\s+/).slice(0, 2)
+    .map(part => part[0]).join("").toUpperCase() || "EM";
+  $("profileInitials").textContent = initials;
+  if (isValidPhoto(photoData)) {
+    $("profilePhotoImage").src = photoData;
+    $("profilePhotoImage").hidden = false;
+    $("profileInitials").hidden = true;
+  } else {
+    $("profilePhotoImage").removeAttribute("src");
+    $("profilePhotoImage").hidden = true;
+    $("profileInitials").hidden = false;
+  }
+  $("removePhoto").hidden = !isValidPhoto(photoData);
+}
+
+async function compressPhoto(file) {
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    throw new Error("Choose a JPG, PNG, or WebP image.");
+  }
+  if (!file.size || file.size > MAX_SOURCE_PHOTO_SIZE) {
+    throw new Error("Choose an image smaller than 15 MB.");
+  }
+  const bitmap = await createImageBitmap(file);
+  try {
+    let scale = Math.min(1, 512 / Math.max(bitmap.width, bitmap.height));
+    for (let attempt = 0; attempt < 14; attempt += 1) {
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Photo resizing is unavailable in this browser.");
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const data = canvas.toDataURL("image/jpeg", Math.max(0.42, 0.82 - attempt * 0.035));
+      if (data.length <= MAX_PHOTO_DATA_LENGTH) return data;
+      scale *= 0.82;
+    }
+  } finally {
+    bitmap.close();
+  }
+  throw new Error("Could not resize this image enough. Try a smaller picture.");
+}
+
+function showError(text) {
+  $("profileError").textContent = text;
+  $("profileError").hidden = !text;
+}
+
+async function loadProfile() {
+  await auth.authStateReady();
+  const user = auth.currentUser;
+  if (!user) {
+    window.location.replace("/839jgl8ang");
+    return;
+  }
+
+  const email = String(user.email || "").trim().toLowerCase();
+  const departmentAccounts = {
+    "billingdepart@planetdrugstore.ph": {
+      department: "Billing Department",
+      displayName: "Billing Department",
+      photoKey: "billing-head",
+      homePath: "/billing-home",
+      isBillingHead: true
+    },
+    "pharmacistdepart@planetdrugstore.ph": {
+      department: "Operations",
+      displayName: "Operations",
+      homePath: "/tz8lc2ct4y"
+    },
+    "informationdepart@planetdrugstore.ph": {
+      department: "Information Technology",
+      displayName: "Information Technology",
+      homePath: "/51qx617jve"
+    }
+  };
+  if (departmentAccounts[email]) {
+    account = {
+      uid: user.uid,
+      email,
+      ...departmentAccounts[email]
+    };
+  } else {
+    let session;
+    try {
+      const rawSession = localStorage.getItem("pdEmployeeSession") || sessionStorage.getItem("pdEmployeeSession");
+      session = rawSession ? JSON.parse(rawSession) : null;
+    } catch (error) {
+      console.error("Unable to read employee session:", error);
+    }
+    const staffId = String(session?.staffId || "").trim();
+    const token = await user.getIdTokenResult();
+    if (token.claims.employee === true) {
+      if (!staffId || String(token.claims.staffId || "").toLowerCase() !== staffId.toLowerCase()) {
+        window.location.replace("/fu3hriaj0m");
+        return;
+      }
+      const employeeSnapshot = await getDoc(doc(db, "employees", staffId.toLowerCase()));
+      if (!employeeSnapshot.exists()) {
+        window.location.replace("/fu3hriaj0m");
+        return;
+      }
+      const employee = employeeSnapshot.data();
+      account = {
+        uid: user.uid,
+        email: employee.email || user.email || "",
+        department: employee.department || session.department || "",
+        displayName: employee.name || session.name || staffId,
+        photoKey: staffId.toLowerCase(),
+        homePath: "/ed3od6ldsq",
+        isBillingHead: false,
+        isEmployee: true
+      };
+    } else {
+      const adminSnapshot = await getDoc(doc(db, "eventScheduleAdmins", user.uid));
+      const admin = adminSnapshot.exists() ? adminSnapshot.data() : null;
+      if (admin?.active !== true || admin.role !== "pharmacist"
+          || String(admin.email || "").trim().toLowerCase() !== email) {
+        window.location.replace("/839jgl8ang");
+        return;
+      }
+      account = {
+        uid: user.uid,
+        email,
+        department: "Operations",
+        displayName: admin.name || "Pharmacist",
+        homePath: "/tz8lc2ct4y"
+      };
+    }
+  }
+
+  $("backHome").href = account.homePath;
+  $("accountEmail").value = account.email;
+  $("department").value = account.department;
+  const profileSnapshot = await getDoc(doc(db, "userProfiles", account.uid));
+  const savedProfile = profileSnapshot.exists() ? profileSnapshot.data() : null;
+  let sharedPhoto = null;
+  if (account.isBillingHead || account.isEmployee) {
+    const sharedPhotoSnapshot = await getDoc(doc(db, "dailyTaskProfilePhotos", account.photoKey));
+    const value = sharedPhotoSnapshot.exists() ? sharedPhotoSnapshot.data().photoData : null;
+    sharedPhoto = isValidPhoto(value) ? value : null;
+    if (savedProfile && isValidPhoto(savedProfile.photoData) && savedProfile.photoData !== sharedPhoto) {
+      try {
+        const batch = writeBatch(db);
+        batch.set(doc(db, "dailyTaskProfilePhotos", account.photoKey), {
+          photoData: savedProfile.photoData,
+          displayName: savedProfile.displayName || account.displayName,
+          updatedAt: serverTimestamp()
+        });
+        await batch.commit();
+        sharedPhoto = savedProfile.photoData;
+      } catch (error) {
+        console.error("Unable to sync profile photo to the event roster:", error);
+      }
+    }
+  }
+  profilePhoto = savedProfile
+    ? isValidPhoto(savedProfile.photoData) ? savedProfile.photoData : null
+    : sharedPhoto;
+  $("displayName").value = typeof savedProfile?.displayName === "string" && savedProfile.displayName.trim()
+    ? savedProfile.displayName.trim()
+    : account.displayName || currentUser.displayName || account.department;
+  $("about").value = typeof savedProfile?.about === "string" ? savedProfile.about : "";
+  $("identityName").textContent = $("displayName").value;
+  $("identityDepartment").textContent = account.department;
+  $("identityEmail").textContent = account.email;
+  $("aboutCount").textContent = `${$("about").value.length} / 240`;
+  showPhoto(profilePhoto, $("displayName").value);
+}
+
+try {
+  await loadProfile();
+} catch (error) {
+  console.error("Unable to load account profile:", error);
+  showError("Unable to load your profile. Refresh the page or contact IT/Admin.");
+  $("saveProfile").disabled = true;
+}
+
+$("choosePhoto").addEventListener("click", () => $("photoInput").click());
+$("cameraPhoto").addEventListener("click", () => $("photoInput").click());
+$("photoInput").addEventListener("change", async event => {
+  const input = event.currentTarget;
+  const file = input.files?.[0];
+  if (!file) return;
+  showError("");
+  try {
+    profilePhoto = await compressPhoto(file);
+    showPhoto(profilePhoto, $("displayName").value);
+  } catch (error) {
+    console.error("Unable to prepare profile photo:", error);
+    showError(error instanceof Error ? error.message : "Unable to prepare this photo.");
+  } finally {
+    input.value = "";
+  }
+});
+$("removePhoto").addEventListener("click", () => {
+  profilePhoto = null;
+  showPhoto(null, $("displayName").value);
+});
+$("displayName").addEventListener("input", () => {
+  $("identityName").textContent = $("displayName").value.trim() || account?.displayName || "Employee";
+  showPhoto(profilePhoto, $("displayName").value);
+});
+$("about").addEventListener("input", () => {
+  $("aboutCount").textContent = `${$("about").value.length} / 240`;
+});
+$("cancelProfile").addEventListener("click", () => {
+  window.location.href = $("backHome").href;
+});
+
+$("profileForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  showError("");
+  const user = auth.currentUser;
+  const displayName = $("displayName").value.trim();
+  const about = $("about").value.trim();
+  if (!account || !user || user.uid !== account.uid || !displayName
+      || displayName.length > 120 || about.length > 240) {
+    showError("Enter a display name up to 120 characters and an About me up to 240 characters.");
+    return;
+  }
+  const button = $("saveProfile");
+  button.disabled = true;
+  button.textContent = "Saving...";
+  try {
+    const batch = writeBatch(db);
+    batch.set(doc(db, "userProfiles", account.uid), {
+      displayName,
+      about,
+      photoData: profilePhoto,
+      updatedAt: serverTimestamp()
+    });
+    if (account.isBillingHead || account.isEmployee) {
+      batch.set(doc(db, "dailyTaskProfilePhotos", account.photoKey), {
+        photoData: profilePhoto,
+        displayName,
+        updatedAt: serverTimestamp()
+      });
+    }
+    await batch.commit();
+    $("profileTitle").textContent = "Profile saved";
+    window.setTimeout(() => { $("profileTitle").textContent = "My Profile"; }, 1800);
+  } catch (error) {
+    console.error("Unable to save account profile:", error);
+    showError("Unable to save your profile. Please retry or contact IT/Admin.");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Save profile";
+  }
+});
+</script>
+</body>
+</html>

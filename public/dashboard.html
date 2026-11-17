@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#241012">
+  <meta name="description" content="Planet Drugstore operations portal for schedules, stock requests, and peripherals receiving.">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>PLANETDRUGSTORE | Operations Portal</title>
+  <link rel="icon" href="/assets/images/logo-transparent-pds.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --ink:#211719;
+      --paper:#f8f6f2;
+      --red:#b8221c;
+      --red-dark:#741913;
+      --red-bright:#e54235;
+      --line:#ded8d1;
+      --muted:#726a66;
+      --white:#fff;
+      --serif:'Barlow Condensed','Arial Narrow',sans-serif;
+      --sans:'DM Sans',sans-serif;
+    }
+    *{box-sizing:border-box;}
+    html{scroll-behavior:smooth;scroll-padding-top:84px;}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+    a{color:inherit;}
+    button{font:inherit;}
+    .site-header{height:82px;position:absolute;inset:0 0 auto;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,5.5vw,88px);color:#fff;border-bottom:1px solid rgba(255,255,255,.2);}
+    .brand{display:flex;align-items:center;gap:11px;text-decoration:none;}
+    .brand img{width:44px;height:44px;object-fit:contain;background:#fff;border-radius:50%;}
+    .brand-word{font:700 17px/1 var(--serif);letter-spacing:1px;}
+    .brand-word span{display:block;margin-top:4px;font:600 9px/1 var(--sans);letter-spacing:2px;color:#f4c1ba;}
+    .nav-links{display:flex;align-items:center;gap:32px;}
+    .nav-links a{font-size:12px;font-weight:600;color:rgba(255,255,255,.82);text-decoration:none;transition:color .18s ease;}
+    .nav-links a:hover{color:#fff;}
+    .nav-signin{padding:11px 18px;border:1px solid rgba(255,255,255,.58);background:rgba(255,255,255,.08);color:#fff;border-radius:2px;cursor:pointer;font-size:12px;font-weight:700;transition:background .18s ease,border-color .18s ease;}
+    .nav-signin:hover{background:var(--red);border-color:var(--red);}
+    .employee-header-user{display:flex;align-items:center;gap:12px;}
+    [hidden]{display:none!important;}
+    body.auth-checking [data-login-link]{visibility:hidden;}
+    .employee-identity{display:flex;flex-direction:column;gap:3px;text-align:right;}
+    .employee-identity-label{color:rgba(255,255,255,.65);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+    .employee-identity-value{max-width:220px;overflow:hidden;color:#fff;font-size:12px;font-weight:700;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap;}
+    .employee-identity-name{color:rgba(255,255,255,.72);font-size:10px;}
+    .employee-portal-button{min-height:40px;padding:0 14px;border:1px solid rgba(255,255,255,.58);border-radius:2px;background:var(--red-bright);color:#fff;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;}
+    .employee-portal-button:hover{background:#c92a22;}
+    .menu-toggle{display:none;width:42px;height:42px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;cursor:pointer;}
+    .menu-toggle span,.menu-toggle::before,.menu-toggle::after{display:block;width:18px;height:1px;margin:4px auto;background:currentColor;content:"";}
+
+    .hero{position:relative;min-height:700px;height:min(900px,100svh);display:flex;align-items:flex-end;overflow:hidden;background:linear-gradient(118deg,#281012 0%,#541510 54%,#a9231c 100%);color:#fff;}
+    .hero-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 42%;}
+    .hero-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(23,11,12,.91) 0%,rgba(35,12,12,.73) 42%,rgba(33,11,12,.16) 100%),linear-gradient(0deg,rgba(20,10,10,.46),transparent 55%);}
+    .hero-content{position:relative;z-index:1;width:min(1220px,100%);margin:0 auto;padding:150px 42px 70px;}
+    .eyebrow{display:flex;align-items:center;gap:11px;margin:0 0 25px;color:#ffd2ca;font-size:10px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;}
+    .eyebrow::before{width:34px;height:2px;background:var(--red-bright);content:"";}
+    h1{max-width:820px;margin:0;font:800 clamp(58px,8vw,108px)/.86 var(--serif);letter-spacing:.3px;text-transform:uppercase;}
+    h1 span{display:block;color:#ef6659;}
+    .brand-tagline{margin:20px 0 0;color:#ffd2ca;font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;}
+    .hero-copy{max-width:490px;margin:27px 0 0;color:rgba(255,255,255,.82);font-size:15px;line-height:1.75;}
+    .hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:31px;}
+    .button{min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:11px;padding:0 21px;border:1px solid transparent;border-radius:2px;text-decoration:none;font-size:12px;font-weight:700;cursor:pointer;transition:transform .18s ease,background .18s ease,border-color .18s ease;}
+    .button:hover{transform:translateY(-2px);}
+    .button-primary{background:var(--red-bright);color:#fff;}
+    .button-primary:hover{background:#c92a22;}
+    .button-outline{border-color:rgba(255,255,255,.58);background:rgba(255,255,255,.06);color:#fff;}
+    .button-outline:hover{background:rgba(255,255,255,.14);}
+    .hero-index{position:absolute;right:clamp(22px,5.5vw,88px);bottom:70px;display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.65);font-size:10px;letter-spacing:1.6px;text-transform:uppercase;}
+    .hero-index::before{width:54px;height:1px;background:rgba(255,255,255,.6);content:"";}
+
+    .intro-strip{display:grid;grid-template-columns:1.1fr 1fr 1fr;max-width:1220px;margin:0 auto;padding:0 42px;border-bottom:1px solid var(--line);}
+    .intro-stat{min-height:105px;display:flex;align-items:center;gap:16px;padding:22px 24px;border-left:1px solid var(--line);}
+    .intro-stat:first-child{border-left:0;padding-left:0;}
+    .stat-number{font:700 33px/1 var(--serif);color:var(--red);}
+    .stat-label{font-size:11px;line-height:1.5;color:var(--muted);}
+    .stat-label strong{display:block;color:var(--ink);font-size:12px;}
+
+    .section{padding:105px 24px;}
+    .section-inner{width:min(1120px,100%);margin:0 auto;}
+    .section-kicker{margin:0 0 14px;color:var(--red);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+    .section-title{max-width:700px;margin:0;font:700 56px/.96 var(--serif);letter-spacing:.2px;text-transform:uppercase;}
+    .section-lead{max-width:570px;margin:22px 0 0;color:var(--muted);font-size:14px;line-height:1.8;}
+    .about-grid{display:grid;grid-template-columns:1fr .82fr;gap:85px;align-items:center;}
+    .about-photo-wrap{position:relative;min-height:390px;background:linear-gradient(145deg,#5b1815,#a8271f 58%,#d95240);overflow:hidden;}
+    .about-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+    .about-photo-wrap::after{position:absolute;inset:0;border:1px solid rgba(255,255,255,.28);margin:14px;content:"";pointer-events:none;}
+    .about-mark{position:absolute;right:-18px;bottom:-18px;width:150px;height:150px;object-fit:contain;padding:0;background:transparent;}
+    .operation-section{background:#eeeae4;}
+    .operation-head{display:flex;align-items:flex-end;justify-content:space-between;gap:30px;margin-bottom:38px;}
+    .operation-head .section-lead{max-width:390px;margin:0;}
+    .operation-list{border-top:1px solid #cfc8bf;}
+    .operation-item{display:grid;grid-template-columns:74px minmax(180px,.8fr) 1.3fr 30px;align-items:center;gap:24px;min-height:100px;border-bottom:1px solid #cfc8bf;text-decoration:none;transition:padding .2s ease,background .2s ease;}
+    .operation-item:hover{padding:0 15px;background:rgba(255,255,255,.42);}
+    .operation-no{font:600 16px var(--serif);color:var(--red);}
+    .operation-name{font:700 25px/1 var(--serif);text-transform:uppercase;}
+    .operation-desc{max-width:470px;color:var(--muted);font-size:12px;line-height:1.65;}
+    .operation-arrow{font-size:22px;color:var(--red);text-align:right;}
+
+    .access-band{position:relative;overflow:hidden;background:#251113;color:#fff;}
+    .access-grid{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center;}
+    .access-band .section-kicker{color:#ff9f92;}
+    .access-band .section-title{max-width:650px;}
+    .access-band .section-lead{color:rgba(255,255,255,.68);}
+    .access-actions{display:flex;flex-direction:column;gap:10px;min-width:190px;}
+
+    .faq-grid{display:grid;grid-template-columns:.7fr 1fr;gap:80px;}
+    .faq-list{border-top:1px solid var(--line);}
+    details{border-bottom:1px solid var(--line);}
+    summary{position:relative;padding:21px 35px 21px 0;list-style:none;cursor:pointer;font-size:13px;font-weight:700;}
+    summary::-webkit-details-marker{display:none;}
+    summary::after{position:absolute;right:4px;top:18px;color:var(--red);content:"+";font:500 23px var(--serif);}
+    details[open] summary::after{content:"−";}
+    details p{max-width:590px;margin:0;padding:0 30px 22px 0;color:var(--muted);font-size:12px;line-height:1.8;}
+
+    .contact-section{padding:0 24px 80px;}
+    .contact-panel{position:relative;display:grid;grid-template-columns:1.2fr .8fr;gap:50px;align-items:center;padding:50px 55px;background:#e5ddd5;}
+    .contact-panel::before{position:absolute;top:0;left:0;width:6px;height:100%;background:var(--red);content:"";}
+    .contact-panel h2{margin:0;font:700 42px/.95 var(--serif);text-transform:uppercase;}
+    .contact-panel p{max-width:560px;margin:15px 0 0;color:var(--muted);font-size:12px;line-height:1.75;}
+    .contact-links{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;}
+    .contact-links .button-outline{border-color:#93857f;color:var(--ink);background:transparent;}
+    .contact-links .button-outline:hover{background:#fff;}
+    footer{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:28px clamp(24px,5.5vw,88px);background:#1b1011;color:rgba(255,255,255,.62);font-size:10px;}
+    footer a{color:#fff;text-decoration:none;}
+
+    dialog{width:min(430px,calc(100% - 28px));padding:0;border:0;background:var(--paper);color:var(--ink);box-shadow:0 24px 80px rgba(0,0,0,.35);}
+    dialog::backdrop{background:rgba(20,8,9,.74);backdrop-filter:blur(3px);}
+    .dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:25px 26px 18px;border-bottom:1px solid var(--line);}
+    .dialog-head h2{margin:0;font:700 34px/.95 var(--serif);text-transform:uppercase;}
+    .dialog-close{width:34px;height:34px;border:1px solid var(--line);background:transparent;font-size:20px;cursor:pointer;}
+    .dialog-body{display:grid;gap:10px;padding:22px 26px 28px;}
+    .dialog-body a{display:flex;align-items:center;justify-content:space-between;min-height:54px;padding:0 15px;border:1px solid var(--line);text-decoration:none;font-size:12px;font-weight:700;}
+    .dialog-body a:hover{border-color:var(--red);color:var(--red);}
+    .dialog-body small{display:block;margin-top:4px;color:var(--muted);font-size:10px;font-weight:500;}
+    .scroll-reveal{transition:opacity .72s ease,filter .72s ease,transform .72s ease;}
+    .motion-ready .scroll-reveal{opacity:0;filter:blur(10px);transform:translateY(22px);will-change:opacity,filter,transform;}
+    .motion-ready .scroll-reveal.is-visible,.motion-ready .scroll-reveal:focus-within{opacity:1;filter:blur(0);transform:translateY(0);}
+    .operation-item:nth-child(2){transition-delay:.08s;}
+    .operation-item:nth-child(3){transition-delay:.16s;}
+    .operation-item:nth-child(4){transition-delay:.24s;}
+    @media (max-width:800px){
+      .site-header{height:72px;padding:0 22px;}
+      .menu-toggle{display:block;order:3;}
+      .nav-signin{margin-left:auto;}
+      .nav-links{position:absolute;top:72px;left:0;right:0;display:none;align-items:stretch;gap:0;padding:8px 22px 18px;background:#261012;border-bottom:1px solid rgba(255,255,255,.16);}
+      .nav-links.open{display:flex;flex-direction:column;}
+      .nav-links a{padding:13px 0;border-bottom:1px solid rgba(255,255,255,.12);}
+      .hero{min-height:670px;height:90svh;max-height:840px;}
+      .hero-content{padding:130px 26px 74px;}
+      .hero-shade{background:linear-gradient(90deg,rgba(23,11,12,.88),rgba(35,12,12,.50)),linear-gradient(0deg,rgba(20,10,10,.54),transparent 60%);}
+      .hero-index{display:none;}
+      .intro-strip{grid-template-columns:1fr 1fr;padding:0 26px;}
+      .intro-stat{min-height:88px;padding:16px;border-left:1px solid var(--line);}
+      .intro-stat:first-child{grid-column:1/-1;padding-left:16px;border-bottom:1px solid var(--line);}
+      .about-grid,.faq-grid{grid-template-columns:1fr;gap:40px;}
+      .about-photo-wrap{min-height:360px;}
+      .operation-head{display:block;}
+      .operation-head .section-lead{margin-top:18px;}
+      .access-grid{grid-template-columns:1fr;gap:28px;}
+      .access-actions{flex-direction:row;flex-wrap:wrap;}
+      .contact-panel{grid-template-columns:1fr;padding:38px 30px;}
+      .contact-links{justify-content:flex-start;}
+    }
+    @media (max-width:520px){
+      .brand img{width:39px;height:39px;}
+      .brand-word{font-size:15px;}
+      .nav-signin{min-height:38px;padding:0 12px;font-size:11px;}
+      body.signed-in-user .brand-word{display:none;}
+      .employee-header-user{gap:7px;}
+      .employee-identity-value{max-width:100px;font-size:10px;}
+      .employee-identity-name{display:none;}
+      .employee-portal-button{max-width:none;min-height:36px;padding:0 10px;font-size:9px;white-space:nowrap;}
+      .hero{min-height:620px;height:85svh;}
+      .hero-content{padding:122px 22px 56px;}
+      h1{font-size:64px;}
+      .brand-tagline{font-size:11px;letter-spacing:1px;}
+      .hero-copy{max-width:360px;font-size:13px;}
+      .hero-actions{align-items:stretch;flex-direction:column;max-width:260px;}
+      .button{min-height:46px;}
+      .intro-strip{padding:0 20px;}
+      .intro-stat{gap:11px;padding:14px 10px;}
+      .stat-number{font-size:28px;}
+      .stat-label{font-size:10px;}
+      .section{padding:76px 22px;}
+      .section-title{font-size:46px;}
+      .about-photo-wrap{min-height:300px;}
+      .operation-item{grid-template-columns:35px 1fr 22px;gap:11px;min-height:94px;}
+      .operation-desc{grid-column:2;grid-row:2;margin-top:-18px;padding-bottom:14px;}
+      .operation-arrow{grid-column:3;grid-row:1;}
+      .operation-no{grid-row:1;}
+      .operation-name{font-size:23px;}
+      .contact-section{padding:0 14px 56px;}
+      .contact-panel{gap:28px;padding:32px 24px;}
+      .contact-panel h2{font-size:37px;}
+      .contact-links{flex-direction:column;}
+      footer{align-items:flex-start;flex-direction:column;padding:24px;}
+    }
+    @media (prefers-reduced-motion:reduce){
+      .motion-ready .scroll-reveal{opacity:1;filter:none;transform:none;transition:none;}
+      *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;}
+    }
+  </style>
+</head>
+<body class="auth-checking">
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Planet Drugstore home">
+      <img src="/assets/images/logo-transparent-pds.png" alt="">
+      <span class="brand-word">PLANETDRUGSTORE<span>OPERATIONS PORTAL</span></span>
+    </a>
+    <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open navigation" aria-expanded="false"><span></span></button>
+    <nav class="nav-links" id="siteNav" aria-label="Main navigation">
+      <a href="#about">About</a>
+      <a href="#operations">Operations</a>
+      <a href="/departments">Departments</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <button class="nav-signin" type="button" data-open-access data-login-link>Sign in</button>
+    <div class="employee-header-user" id="employeeHeaderUser" hidden>
+      <div class="employee-identity">
+        <span class="employee-identity-label">Welcome back</span>
+        <span class="employee-identity-value" id="employeeDepartment">Employee</span>
+        <span class="employee-identity-name" id="employeeName"></span>
+      </div>
+      <a class="button employee-portal-button" data-employee-portal href="/ed3od6ldsq">Go to Employee Portal</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="heroTitle">
+      <img class="hero-photo" src="/assets/images/planetdrugstore-head-office.jpg" alt="Planet Drugstore head office" onerror="this.remove()">
+      <div class="hero-shade" aria-hidden="true"></div>
+      <div class="hero-content scroll-reveal">
+        <p class="eyebrow">People. Service. Operations.</p>
+        <h1 id="heroTitle">Planet<span>Drugstore</span></h1>
+        <p class="brand-tagline">Caring Beyond Dispensing</p>
+        <p class="hero-copy">One place for the teams, schedules, and everyday operations that keep Planet Drugstore moving.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" data-login-link href="/fu3hriaj0m">Employee sign in <span aria-hidden="true">&#8594;</span></a>
+          <a class="button button-outline" data-login-link href="/839jgl8ang">Admin sign in</a>
+          <a class="button button-primary" data-employee-portal hidden href="/ed3od6ldsq">Go to Employee Portal <span aria-hidden="true">&#8594;</span></a>
+        </div>
+      </div>
+      <div class="hero-index" aria-hidden="true">Planet Drugstore · Operations</div>
+    </section>
+
+    <div class="intro-strip" aria-label="Portal overview">
+      <div class="intro-stat scroll-reveal"><span class="stat-number">01</span><span class="stat-label"><strong>Connected workflows</strong>One operations portal</span></div>
+      <div class="intro-stat scroll-reveal"><span class="stat-number">03</span><span class="stat-label"><strong>Core workflows</strong>Schedules, stock, receiving</span></div>
+      <div class="intro-stat scroll-reveal"><span class="stat-number">24/7</span><span class="stat-label"><strong>Access when needed</strong>Web and mobile support</span></div>
+    </div>
+
+    <section class="section" id="about">
+      <div class="section-inner about-grid">
+        <div class="scroll-reveal">
+          <p class="section-kicker">About the portal</p>
+          <h2 class="section-title">Daily work, brought into focus.</h2>
+          <p class="section-lead">PLANETDRUGSTORE brings event staffing, employee schedules, stock requests, and peripherals receiving records into a shared operations experience. Teams can find the right workflow, act on current information, and keep important updates visible.</p>
+          <p class="section-lead">Employees and administrators have separate sign-in routes, with access directed to the pages used for their role.</p>
+        </div>
+        <div class="about-photo-wrap scroll-reveal">
+          <img class="about-photo" src="/assets/images/planetdrugstore-signage.jpg" alt="Planet Drugstore storefront sign" onerror="this.remove()">
+          <img class="about-mark" src="/assets/images/logo-transparent-pds.png" alt="Planet Drugstore logo">
+        </div>
+      </div>
+    </section>
+
+    <section class="section operation-section" id="operations">
+      <div class="section-inner">
+        <div class="operation-head scroll-reveal">
+          <div>
+            <p class="section-kicker">What you can do</p>
+            <h2 class="section-title">The work behind the work.</h2>
+          </div>
+          <p class="section-lead">Sign in to access the tools available to your team and account.</p>
+        </div>
+        <div class="operation-list">
+          <a class="operation-item scroll-reveal" href="/fu3hriaj0m">
+            <span class="operation-no">01</span><span class="operation-name">Event schedules</span>
+            <span class="operation-desc">View published events, staffing needs, assignments, and schedule updates.</span><span class="operation-arrow" aria-hidden="true">&#8594;</span>
+          </a>
+          <a class="operation-item scroll-reveal" href="/fu3hriaj0m">
+            <span class="operation-no">02</span><span class="operation-name">Stock requests</span>
+            <span class="operation-desc">Submit and follow SR# requests during your assigned request window.</span><span class="operation-arrow" aria-hidden="true">&#8594;</span>
+          </a>
+          <a class="operation-item scroll-reveal" href="/fu3hriaj0m">
+            <span class="operation-no">03</span><span class="operation-name">Peripheral receiving</span>
+            <span class="operation-desc">Record issued and returned items, conditions, signatures, and attachments.</span><span class="operation-arrow" aria-hidden="true">&#8594;</span>
+          </a>
+          <a class="operation-item scroll-reveal" data-login-link href="/839jgl8ang">
+            <span class="operation-no">04</span><span class="operation-name">Admin console</span>
+            <span class="operation-desc">Manage employee access, operational records, and administrative workflows.</span><span class="operation-arrow" aria-hidden="true">&#8594;</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section access-band" id="access">
+      <div class="section-inner access-grid">
+        <div class="scroll-reveal">
+          <p class="section-kicker">Your work starts here</p>
+          <h2 class="section-title" id="accessTitle">Choose your sign-in.</h2>
+          <p class="section-lead" id="accessLead">Use your employee account for schedules and receiving workflows, or your admin account for department and system tools.</p>
+        </div>
+        <div class="access-actions scroll-reveal">
+          <a class="button button-primary" data-login-link href="/fu3hriaj0m">Employee sign in <span aria-hidden="true">&#8594;</span></a>
+          <a class="button button-outline" data-login-link href="/839jgl8ang">Admin sign in</a>
+          <a class="button button-primary" data-employee-portal hidden href="/ed3od6ldsq">Go to Employee Portal <span aria-hidden="true">&#8594;</span></a>
+          <p class="section-lead" data-login-link>New employee? Contact IT Admin to set up your account.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="section-inner faq-grid">
+        <div class="scroll-reveal">
+          <p class="section-kicker">Frequently asked</p>
+          <h2 class="section-title">A few quick answers.</h2>
+          <p class="section-lead">Need more help? Contact your department head or IT/Admin through your usual Planet Drugstore channel.</p>
+        </div>
+        <div class="faq-list scroll-reveal">
+          <details>
+            <summary>Which sign-in should I use?</summary>
+            <p>Employees should use Employee Sign In with their Staff ID. Department heads and administrators should use Admin Sign In with their authorized email account.</p>
+          </details>
+          <details>
+            <summary>Where can I find schedules and event assignments?</summary>
+            <p>Sign in as an employee to open your schedule and review published event assignments, open roles, and schedule updates.</p>
+          </details>
+          <details>
+            <summary>How do I submit a stock request?</summary>
+            <p>Sign in with your employee account. Stock Request access depends on your department, assigned request days, and whether the request window is open.</p>
+          </details>
+          <details>
+            <summary>Can I access the portal on mobile?</summary>
+            <p>Yes. The web portal supports mobile browsers, and schedule notifications may also be available through the Android companion app.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact-section" id="contact">
+      <div class="section-inner contact-panel scroll-reveal">
+        <div>
+          <p class="section-kicker">Contact & access</p>
+          <h2>Need help getting started?</h2>
+          <p>For account access, schedule questions, or workflow support, contact your department head or IT/Admin using your usual internal channel.</p>
+        </div>
+        <div class="contact-links">
+          <a class="button button-outline" data-login-link href="/fu3hriaj0m">Employee access</a>
+          <a class="button button-outline" data-login-link href="/839jgl8ang">Admin access</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a class="brand" href="/">
+      <img src="/assets/images/logo-transparent-pds.png" alt="" width="34" height="34">
+      <span class="brand-word">PLANETDRUGSTORE<span>OPERATIONS PORTAL</span></span>
+    </a>
+    <span>Planet Drugstore · Operations Portal</span>
+  </footer>
+
+  <dialog id="accessDialog" aria-labelledby="dialogTitle">
+    <div class="dialog-head">
+      <h2 id="dialogTitle">Choose access</h2>
+      <button class="dialog-close" type="button" id="dialogClose" aria-label="Close sign-in choices">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <a data-login-link href="/fu3hriaj0m"><span>Employee sign in<small>Schedules, requests, and receiving</small></span><span aria-hidden="true">&#8594;</span></a>
+      <a data-login-link href="/839jgl8ang"><span>Admin sign in<small>Department and system tools</small></span><span aria-hidden="true">&#8594;</span></a>
+      <a data-employee-portal hidden href="/ed3od6ldsq"><span>Go to Employee Portal<small>Open your schedules and work tools</small></span><span aria-hidden="true">&#8594;</span></a>
+      <p>New employee? Contact IT Admin to set up your account.</p>
+    </div>
+  </dialog>
+
+  <script>
+    const accessDialog = document.getElementById('accessDialog');
+    document.querySelectorAll('[data-open-access]').forEach(button => button.addEventListener('click', () => accessDialog.showModal()));
+    document.getElementById('dialogClose').addEventListener('click', () => accessDialog.close());
+    accessDialog.addEventListener('click', event => { if(event.target === accessDialog) accessDialog.close(); });
+
+    const scrollRevealItems = document.querySelectorAll('.scroll-reveal');
+    if('IntersectionObserver' in window){
+      document.documentElement.classList.add('motion-ready');
+      const revealObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => entry.target.classList.toggle('is-visible', entry.isIntersecting));
+      }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+      scrollRevealItems.forEach(item => revealObserver.observe(item));
+    }else{
+      scrollRevealItems.forEach(item => item.classList.add('is-visible'));
+    }
+
+    const menuToggle = document.getElementById('menuToggle');
+    const siteNav = document.getElementById('siteNav');
+    menuToggle.addEventListener('click', () => {
+      const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+      menuToggle.setAttribute('aria-expanded', String(!isOpen));
+      menuToggle.setAttribute('aria-label', isOpen ? 'Open navigation' : 'Close navigation');
+      siteNav.classList.toggle('open', !isOpen);
+    });
+    siteNav.addEventListener('click', event => {
+      if(event.target.closest('a')){
+        siteNav.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.setAttribute('aria-label', 'Open navigation');
+      }
+    });
+
+    function showSignedInUser(role, name, destination, portalLabel, lead){
+      document.getElementById('employeeDepartment').textContent = role;
+      document.getElementById('employeeName').textContent = name;
+      document.getElementById('accessTitle').textContent = 'Your workspace.';
+      document.getElementById('accessLead').textContent = lead;
+      document.body.classList.add('signed-in-user');
+      document.getElementById('employeeHeaderUser').hidden = false;
+      document.querySelectorAll('[data-login-link]').forEach(link => { link.hidden = true; });
+      document.querySelectorAll('[data-employee-portal]').forEach(link => {
+        link.href = destination;
+        link.textContent = portalLabel;
+        link.hidden = false;
+      });
+      document.body.classList.remove('auth-checking');
+    }
+
+    (async function resolveSignedInUser(){
+      const fromNotificationsApp = new URLSearchParams(location.search).get('source') === 'notifications-app';
+
+      try{
+        const rawSession = localStorage.getItem('pdEmployeeSession') || sessionStorage.getItem('pdEmployeeSession');
+        const employeeSession = rawSession ? JSON.parse(rawSession) : null;
+        if(employeeSession && employeeSession.staffId){
+          showSignedInUser(
+            employeeSession.department || 'EMPLOYEE',
+            employeeSession.name || employeeSession.staffId,
+            '/ed3od6ldsq',
+            'Go to Employee Portal',
+            'Open your employee portal to access schedules and work tools.'
+          );
+          return;
+        }
+      }catch(error){}
+
+      try{
+        const [{ initializeApp }, { getAuth, signOut }, { getFirestore, doc, getDoc }, { consumeNativeAuthHandoff }] = await Promise.all([
+          import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js'),
+          import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js'),
+          import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js'),
+          import('/assets/js/native-auth-handoff.js')
+        ]);
+        const app = initializeApp({
+          apiKey: 'AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ',
+          authDomain: 'planetdrugstore-peripher-d24c0.firebaseapp.com',
+          projectId: 'planetdrugstore-peripher-d24c0',
+          storageBucket: 'planetdrugstore-peripher-d24c0.firebasestorage.app',
+          messagingSenderId: '115454971026',
+          appId: '1:115454971026:web:0357eaa6bfb171e86cea4b'
+        });
+        const auth = getAuth(app);
+        await auth.authStateReady();
+        if(fromNotificationsApp){
+          const handedOff = await consumeNativeAuthHandoff(auth);
+          await auth.authStateReady();
+          if(!handedOff || !auth.currentUser){
+            throw new Error('Reopen the console from the PDS Notifications app to continue your signed-in session.');
+          }
+          const tokenResult = await auth.currentUser.getIdTokenResult();
+          const claims = tokenResult.claims || {};
+          const email = String(auth.currentUser.email || '').trim().toLowerCase();
+          if(claims.employee === true && claims.staffId){
+            const department = String(claims.employeeDepartment || 'EMPLOYEE').toUpperCase();
+            showSignedInUser(
+              department,
+              claims.staffId,
+              '/ed3od6ldsq',
+              'Open Employee Portal',
+              'You are signed in. Open the employee portal when you are ready.'
+            );
+            return;
+          }
+          const stockCategory = email === 'adminstockreqsup@planetdrugstore.ph' ? 'Supplies' : 'Medicine';
+          const isStockAdmin = [
+            'adminstockreqmeds@planetdrugstore.ph',
+            'adminstockreqsup@planetdrugstore.ph'
+          ].includes(email);
+          const role = email === 'pharmacistdepart@planetdrugstore.ph'
+            ? 'OPERATIONS HEAD'
+            : email === 'billingdepart@planetdrugstore.ph'
+            ? 'BILLING HEAD'
+            : email === 'informationdepart@planetdrugstore.ph'
+            ? 'INFORMATION HEAD'
+            : isStockAdmin
+            ? stockCategory.toUpperCase() + ' STOCK ADMIN'
+            : 'ADMIN ACCESS';
+          showSignedInUser(
+            role,
+            auth.currentUser.displayName || email || 'Admin',
+            isStockAdmin ? '/r5c8j2ndxa' : '/8niuis7jih',
+            isStockAdmin ? 'Open ' + stockCategory + ' Stock Requests' : 'Open Admin Portal',
+            'You are signed in. Choose a workspace when you are ready.'
+          );
+          return;
+        }
+        if(!auth.currentUser){
+          document.body.classList.remove('auth-checking');
+          return;
+        }
+
+        const email = String(auth.currentUser.email || '').trim().toLowerCase();
+        let pharmacistProfile = null;
+        try{
+          const profileSnapshot = await getDoc(doc(getFirestore(app), 'eventScheduleAdmins', auth.currentUser.uid));
+          const profile = profileSnapshot.exists() ? profileSnapshot.data() : null;
+          if(profile?.role === 'pharmacist'
+              && String(profile.email || '').trim().toLowerCase() === email){
+            if(profile.active === true && profile.deleted !== true){
+              pharmacistProfile = profile;
+            }else{
+              await signOut(auth);
+              window.location.replace('/839jgl8ang?access=revoked');
+              return;
+            }
+          }
+        }catch(error){
+          console.error('Could not verify pharmacist admin profile on dashboard:', error);
+        }
+        const scheduleUsers = [
+          'pharmacistdepart@planetdrugstore.ph',
+          'billingdepart@planetdrugstore.ph',
+          'informationdepart@planetdrugstore.ph'
+        ];
+        const stockRequestUsers = [
+          'adminstockreqmeds@planetdrugstore.ph',
+          'adminstockreqsup@planetdrugstore.ph'
+        ];
+        const isStockRequestAdmin = stockRequestUsers.includes(email);
+        const stockCategory = email === 'adminstockreqsup@planetdrugstore.ph' ? 'Supplies' : 'Medicine';
+        const destination = pharmacistProfile
+          ? '/dkjyg56lvm'
+          : isStockRequestAdmin
+          ? '/r5c8j2ndxa'
+          : scheduleUsers.includes(email) ? '/dkjyg56lvm' : '/8niuis7jih';
+        showSignedInUser(
+          pharmacistProfile ? 'OPERATIONS' : isStockRequestAdmin ? stockCategory.toUpperCase() + ' STOCK ADMIN' : 'ADMIN ACCESS',
+          pharmacistProfile?.name || auth.currentUser.displayName || auth.currentUser.email || 'Admin',
+          destination,
+          pharmacistProfile ? 'Go to Event Schedule' : isStockRequestAdmin ? 'Go to ' + stockCategory + ' Stock Request Admin' : 'Go to Admin Portal',
+          pharmacistProfile ? 'Open the Pharmacy Event Schedule.' : isStockRequestAdmin ? 'Open your ' + stockCategory + ' Stock Request dashboard.' : 'Open your admin portal to manage your department and system tools.'
+        );
+      }catch(error){
+        console.info('Signed-in state check unavailable; showing public dashboard.', error);
+        document.body.classList.remove('auth-checking');
+      }
+    })();
+  </script>
+</body>
+</html>

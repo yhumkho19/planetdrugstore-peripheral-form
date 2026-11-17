@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fbf5f4">
+  <meta name="description" content="Authorized editor for Planet Drugstore department directory information.">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Edit Departments | PLANETDRUGSTORE</title>
+  <link rel="icon" href="/assets/images/logo-transparent.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --ink:#2a1416;
+      --muted:#8c6b6e;
+      --red:#b8221c;
+      --red-dark:#741913;
+      --soft-red:#fbe7e9;
+      --paper:#fbf5f4;
+      --line:#eadedf;
+      --white:#fff;
+      --sans:'DM Sans',Arial,sans-serif;
+      --display:'Manrope',Arial,sans-serif;
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+    button,input,select,textarea{font:inherit;}
+    .site-header{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 max(24px,calc((100vw - 1120px)/2));background:#fff;border-bottom:1px solid var(--line);}
+    .brand{display:flex;align-items:center;gap:10px;color:var(--ink);font-size:11px;font-weight:700;letter-spacing:.03em;text-decoration:none;}
+    .brand img{width:36px;height:36px;object-fit:contain;border-radius:50%;}
+    .header-actions{display:flex;align-items:center;gap:10px;}
+    .header-actions a,.header-actions button{padding:9px 12px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--red);font-size:10px;font-weight:700;text-decoration:none;cursor:pointer;}
+    .header-actions button:hover,.header-actions a:hover{border-color:var(--red);background:var(--red);color:#fff;}
+    main{width:min(900px,calc(100% - 40px));margin:0 auto;padding:36px 0 52px;}
+    .eyebrow{margin:0 0 8px;color:var(--red);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;}
+    h1{margin:0;font:800 clamp(30px,5vw,42px)/1.08 var(--display);letter-spacing:-.045em;}
+    .intro{max-width:620px;margin:10px 0 26px;color:var(--muted);font-size:12px;line-height:1.7;}
+    .team-editor-link{margin:-12px 0 22px;font-size:10px;font-weight:700;}
+    .team-editor-link a{color:var(--red);text-decoration:none;}
+    .team-editor-link a:hover{text-decoration:underline;}
+    .editor-card,.gate-card{padding:24px;border:1px solid var(--line);border-radius:12px;background:var(--white);box-shadow:0 5px 18px rgba(42,20,22,.04);}
+    .team-profile-card{margin-top:22px;scroll-margin-top:20px;}
+    .team-profile-heading{margin-bottom:18px;}
+    .team-profile-heading h2{margin:0;font:700 19px var(--display);}
+    .team-profile-heading p{margin:6px 0 0;color:var(--muted);font-size:11px;line-height:1.55;}
+    .team-position-form{margin:0 0 24px;padding:16px;border:1px solid var(--line);border-radius:8px;background:#fffafa;}
+    .team-position-form h3{margin:0 0 12px;font:700 14px var(--display);}
+    .gate-card{margin-top:24px;}
+    .gate-card h2{margin:0 0 8px;font:700 19px var(--display);}
+    .gate-card p{margin:0 0 16px;color:var(--muted);font-size:12px;line-height:1.6;}
+    .gate-card a{color:var(--red);font-size:11px;font-weight:700;}
+    [hidden]{display:none!important;}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .field{display:grid;gap:6px;}
+    .field-wide{grid-column:1/-1;}
+    label{color:#4d3435;font-size:10px;font-weight:700;}
+    input,select,textarea{width:100%;min-height:40px;padding:10px 11px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);font-size:12px;}
+    textarea{min-height:92px;resize:vertical;line-height:1.55;}
+    input:focus,select:focus,textarea:focus{outline:2px solid rgba(184,34,28,.16);border-color:var(--red);}
+    .field-hint{margin:0;color:var(--muted);font-size:9px;line-height:1.5;}
+    .team-profile-photo-row{display:flex;align-items:center;gap:14px;margin:16px 0;}
+    .team-profile-avatar{display:grid;width:72px;height:72px;flex:none;place-items:center;overflow:hidden;border:2px solid var(--line);border-radius:50%;background:var(--soft-red);color:var(--red);font:800 20px var(--display);}
+    .team-profile-avatar img{width:100%;height:100%;object-fit:cover;}
+    .team-profile-photo-actions{display:flex;flex-wrap:wrap;gap:8px;}
+    .team-profile-photo-actions button{min-height:36px;padding:0 12px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--red);font-size:10px;font-weight:700;cursor:pointer;}
+    .team-profile-photo-actions button:hover{border-color:var(--red);}
+    .editor-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px;padding-top:18px;border-top:1px solid var(--line);}
+    .status{min-height:17px;margin:0;color:var(--red-dark);font-size:10px;line-height:1.5;}
+    .status.error{color:var(--red-dark);}
+    .save-button{min-height:40px;padding:0 18px;border:0;border-radius:6px;background:var(--red);color:#fff;font-size:11px;font-weight:700;cursor:pointer;}
+    .save-button:hover{background:var(--red-dark);}
+    .save-button:disabled{opacity:.55;cursor:wait;}
+    footer{padding:14px max(24px,calc((100vw - 900px)/2));background:#fff;color:var(--muted);font-size:8px;}
+    @media(max-width:600px){
+      .site-header{height:62px;padding:0 16px;}
+      .brand{gap:7px;font-size:9px;}
+      .brand img{width:32px;height:32px;}
+      .header-actions{gap:5px;}
+      .header-actions a,.header-actions button{padding:8px;font-size:9px;}
+      main{width:calc(100% - 32px);padding-top:27px;}
+      .editor-card,.gate-card{padding:18px;}
+      .team-profile-photo-row{align-items:flex-start;flex-direction:column;}
+      .team-position-form{padding:13px;}
+      .form-grid{grid-template-columns:1fr;gap:13px;}
+      .field-wide{grid-column:auto;}
+      .editor-footer{align-items:flex-start;flex-direction:column;}
+      .save-button{width:100%;}
+      footer{padding:14px 16px;}
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/departments" aria-label="Planet Drugstore department directory">
+      <img src="/assets/images/logo-transparent.png" alt="">
+      <span>PLANETDRUGSTORE | DIRECTORY EDITOR</span>
+    </a>
+    <div class="header-actions">
+      <a href="/departments">View directory</a>
+      <button id="signOutButton" type="button" hidden>Sign out</button>
+    </div>
+  </header>
+
+  <main>
+    <p class="eyebrow">Authorized editor access</p>
+    <h1>Edit contact details</h1>
+    <p class="intro">Choose a department and update the contact details shown in its directory panel: department head, email, local number, location, and office hours.</p>
+    <p class="team-editor-link"><a href="#team-profiles">Edit IT team profiles →</a></p>
+
+    <section class="gate-card" id="accessGate" aria-live="polite">
+      <h2 id="gateTitle">Checking editor access…</h2>
+      <p id="gateMessage">Please wait while your editor account is checked.</p>
+      <a id="loginLink" href="/839jgl8ang" hidden>Go to Department Login</a>
+    </section>
+
+    <form class="editor-card" id="editorForm" hidden>
+      <div class="form-grid">
+        <div class="field field-wide">
+          <label for="departmentSelect">Department</label>
+          <select id="departmentSelect" required>
+            <option value="it">Information Technology</option>
+            <option value="purchasing">Purchasing</option>
+            <option value="hr">HR</option>
+            <option value="warehouse">Warehouse</option>
+            <option value="billing">Billing</option>
+            <option value="accounting">Accounting</option>
+            <option value="operation">Operation</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="headInput">Department head</label>
+          <input id="headInput" maxlength="120">
+        </div>
+        <div class="field">
+          <label for="emailInput">Email</label>
+          <input id="emailInput" type="email" maxlength="254">
+        </div>
+        <div class="field">
+          <label for="phoneInput">Local number</label>
+          <input id="phoneInput" maxlength="60">
+        </div>
+        <div class="field">
+          <label for="locationInput">Location</label>
+          <input id="locationInput" maxlength="160">
+        </div>
+        <div class="field field-wide">
+          <label for="hoursInput">Office hours</label>
+          <input id="hoursInput" maxlength="120">
+        </div>
+      </div>
+      <div class="editor-footer">
+        <p class="status" id="saveStatus" role="status" aria-live="polite"></p>
+        <button class="save-button" id="saveButton" type="submit">Save department details</button>
+      </div>
+    </form>
+
+    <section class="editor-card team-profile-card" id="team-profiles" hidden aria-labelledby="teamProfileHeading">
+      <header class="team-profile-heading">
+        <h2 id="teamProfileHeading">IT team profile cards</h2>
+        <p>Add role brackets to an IT team, then choose a position and add the person’s name, photo, and bio or motto. These details appear on the IT subordinate tree for the Department Viewing account.</p>
+      </header>
+      <form class="team-position-form" id="teamPositionForm">
+        <h3>Add a bracket / card</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label for="teamPositionTeam">IT team</label>
+            <select id="teamPositionTeam" required>
+              <option value="System Administration">System Administration</option>
+              <option value="Infrastructure">Infrastructure</option>
+              <option value="User Support &amp; Service">User Support &amp; Service</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="teamPositionLevel">Level</label>
+            <select id="teamPositionLevel" required>
+              <option value="Manager">Manager</option>
+              <option value="Team Leader">Team Leader</option>
+              <option value="Senior">Senior</option>
+              <option value="Junior">Junior</option>
+            </select>
+          </div>
+          <div class="field field-wide">
+            <label for="teamPositionTitle">Position title</label>
+            <input id="teamPositionTitle" maxlength="80" placeholder="e.g. Junior Systems Analyst" required>
+          </div>
+        </div>
+        <div class="editor-footer">
+          <p class="status" id="teamPositionAddStatus" role="status" aria-live="polite"></p>
+          <button class="save-button" id="teamPositionAddButton" type="submit">Add role card</button>
+        </div>
+      </form>
+      <form id="teamProfileForm">
+        <div class="field field-wide">
+          <label for="teamPositionSelect">Position</label>
+          <select id="teamPositionSelect" required></select>
+        </div>
+        <div class="team-profile-photo-row">
+          <div class="team-profile-avatar" id="teamAvatarPreview" aria-label="Profile photo preview">
+            <span id="teamAvatarInitials">?</span>
+            <img id="teamPhotoPreview" alt="" hidden>
+          </div>
+          <div>
+            <div class="team-profile-photo-actions">
+              <button id="teamChoosePhoto" type="button">Attach photo</button>
+              <button id="teamRemovePhoto" type="button" hidden>Remove photo</button>
+            </div>
+            <p class="field-hint">JPG, PNG, or WebP. The image is resized before saving.</p>
+            <input id="teamPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field field-wide">
+            <label for="teamNameInput">Name</label>
+            <input id="teamNameInput" maxlength="120" autocomplete="name" required>
+          </div>
+          <div class="field field-wide">
+            <label for="teamBioInput">Bio / motto</label>
+            <textarea id="teamBioInput" maxlength="240" placeholder="Write a short bio or motto for this team member."></textarea>
+            <p class="field-hint" id="teamBioCount">0 / 240 characters</p>
+          </div>
+        </div>
+        <div class="editor-footer">
+          <p class="status" id="teamProfileSaveStatus" role="status" aria-live="polite"></p>
+          <button class="save-button" id="teamProfileSaveButton" type="submit">Save team profile</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer>PLANETDRUGSTORE · Department directory editor</footer>
+
+  <script type="module">
+    import { IT_PROFILE_LEVELS, IT_PROFILE_ROLES, IT_PROFILE_TEAMS } from '/assets/js/department-team-roles.js?v=2';
+
+    const EDITOR_EMAIL = 'departments.editor@planetdrugstore.ph';
+    const MAX_SOURCE_PHOTO_SIZE = 15 * 1024 * 1024;
+    const MAX_PHOTO_DATA_LENGTH = 180000;
+    const DEPARTMENTS = {
+      it: {
+        head: 'Contact IT/Admin',
+        email: 'informationdepart@planetdrugstore.ph',
+        phone: 'Contact IT/Admin',
+        location: 'Contact IT/Admin',
+        hours: 'Contact IT/Admin'
+      },
+      purchasing: {
+        head: 'Contact IT/Admin',
+        email: '',
+        phone: 'Contact IT/Admin',
+        location: 'Contact IT/Admin',
+        hours: 'Contact IT/Admin'
+      },
+      hr: {
+        head: 'Contact IT/Admin',
+        email: '',
+        phone: 'Contact IT/Admin',
+        location: 'Contact IT/Admin',
+        hours: 'Contact IT/Admin'
+      },
+      warehouse: {
+        head: 'Contact IT/Admin',
+        email: '',
+        phone: 'Contact IT/Admin',
+        location: 'Contact IT/Admin',
+        hours: 'Contact IT/Admin'
+      },
+      billing: {
+        head: 'Contact IT/Admin',
+        email: 'billingdepart@planetdrugstore.ph',
+        phone: 'Contact IT/Admin',
+        location: 'Contact IT/Admin',
+        hours: 'Contact IT/Admin'
+      },
+      accounting: {
+        head: 'Contact IT/Admin',
+        email: '',
+        phone: 'Contact IT/Admin',
+        location: 'Contact IT/Admin',
+        hours: 'Contact IT/Admin'
+      },
+      operation: {
+        head: 'Contact IT/Admin',
+        email: '',
+        phone: 'Contact IT/Admin',
+        location: 'Contact IT/Admin',
+        hours: 'Contact IT/Admin'
+      }
+    };
+
+    const firebaseConfig = {
+      apiKey: 'AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ',
+      authDomain: 'planetdrugstore-peripher-d24c0.firebaseapp.com',
+      projectId: 'planetdrugstore-peripher-d24c0',
+      storageBucket: 'planetdrugstore-peripher-d24c0.firebasestorage.app',
+      messagingSenderId: '115454971026',
+      appId: '1:115454971026:web:0357eaa6bfb171e86cea4'
+    };
+
+    const accessGate = document.getElementById('accessGate');
+    const gateTitle = document.getElementById('gateTitle');
+    const gateMessage = document.getElementById('gateMessage');
+    const loginLink = document.getElementById('loginLink');
+    const editorForm = document.getElementById('editorForm');
+    const teamProfileEditor = document.getElementById('team-profiles');
+    const teamProfileForm = document.getElementById('teamProfileForm');
+    const saveStatus = document.getElementById('saveStatus');
+    const saveButton = document.getElementById('saveButton');
+    const teamProfileSaveStatus = document.getElementById('teamProfileSaveStatus');
+    const teamProfileSaveButton = document.getElementById('teamProfileSaveButton');
+    const teamPositionForm = document.getElementById('teamPositionForm');
+    const teamPositionTeam = document.getElementById('teamPositionTeam');
+    const teamPositionLevel = document.getElementById('teamPositionLevel');
+    const teamPositionTitle = document.getElementById('teamPositionTitle');
+    const teamPositionAddStatus = document.getElementById('teamPositionAddStatus');
+    const teamPositionAddButton = document.getElementById('teamPositionAddButton');
+    const signOutButton = document.getElementById('signOutButton');
+    const departmentSelect = document.getElementById('departmentSelect');
+    const teamPositionSelect = document.getElementById('teamPositionSelect');
+    const teamNameInput = document.getElementById('teamNameInput');
+    const teamBioInput = document.getElementById('teamBioInput');
+    const teamPhotoInput = document.getElementById('teamPhotoInput');
+    const teamPhotoPreview = document.getElementById('teamPhotoPreview');
+    const teamAvatarInitials = document.getElementById('teamAvatarInitials');
+    const teamRemovePhotoButton = document.getElementById('teamRemovePhoto');
+    const fields = {
+      head: document.getElementById('headInput'),
+      email: document.getElementById('emailInput'),
+      phone: document.getElementById('phoneInput'),
+      location: document.getElementById('locationInput'),
+      hours: document.getElementById('hoursInput')
+    };
+
+    let auth;
+    let db;
+    let firestoreApi;
+    let editorUser;
+    let teamPhotoData = null;
+    let teamProfileRoles = [...IT_PROFILE_ROLES];
+    let teamProfileLoadGeneration = 0;
+    let directory = Object.fromEntries(Object.entries(DEPARTMENTS).map(([id, details]) => [id, { ...details }]));
+
+    function showGate(title, message, showLogin = false){
+      gateTitle.textContent = title;
+      gateMessage.textContent = message;
+      accessGate.hidden = false;
+      loginLink.hidden = !showLogin;
+      editorForm.hidden = true;
+      teamProfileEditor.hidden = true;
+    }
+
+    function loadForm(departmentId){
+      const department = directory[departmentId];
+      if(!department) return;
+      fields.head.value = department.head || '';
+      fields.email.value = department.email || '';
+      fields.phone.value = department.phone || '';
+      fields.location.value = department.location || '';
+      fields.hours.value = department.hours || '';
+    }
+
+    function populateTeamPositions(){
+      teamPositionSelect.replaceChildren();
+      const teams = ['Department Head', ...IT_PROFILE_TEAMS];
+      teams.forEach(team => {
+        const roles = teamProfileRoles.filter(role => role.team === team);
+        if(!roles.length) return;
+        const group = document.createElement('optgroup');
+        group.label = team;
+        roles.forEach(role => {
+          const option = document.createElement('option');
+          option.value = role.id;
+          option.textContent = role.label;
+          group.append(option);
+        });
+        teamPositionSelect.append(group);
+      });
+    }
+
+    function initialsFor(name){
+      return String(name || '').trim().split(/\s+/).slice(0, 2)
+        .map(part => part[0] || '').join('').toUpperCase() || '?';
+    }
+
+    function showTeamPhoto(data){
+      const valid = typeof data === 'string'
+        && data.length <= MAX_PHOTO_DATA_LENGTH
+        && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(data);
+      teamAvatarInitials.textContent = initialsFor(teamNameInput.value);
+      teamAvatarInitials.hidden = valid;
+      teamPhotoPreview.hidden = !valid;
+      teamRemovePhotoButton.hidden = !valid;
+      if(valid) teamPhotoPreview.src = data;
+      else teamPhotoPreview.removeAttribute('src');
+    }
+
+    async function compressTeamPhoto(file){
+      if(!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)){
+        throw new Error('Choose a JPG, PNG, or WebP image.');
+      }
+      if(!file.size || file.size > MAX_SOURCE_PHOTO_SIZE){
+        throw new Error('Choose an image smaller than 15 MB.');
+      }
+      const bitmap = await createImageBitmap(file);
+      try{
+        let scale = Math.min(1, 512 / Math.max(bitmap.width, bitmap.height));
+        for(let attempt = 0; attempt < 14; attempt += 1){
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+          canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+          const context = canvas.getContext('2d');
+          if(!context) throw new Error('Photo resizing is unavailable in this browser.');
+          context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+          const compressed = canvas.toDataURL('image/jpeg', Math.max(0.42, 0.82 - attempt * 0.035));
+          if(compressed.length <= MAX_PHOTO_DATA_LENGTH) return compressed;
+          scale *= 0.82;
+        }
+      }finally{
+        bitmap.close();
+      }
+      throw new Error('Could not resize this image enough. Try a smaller picture.');
+    }
+
+    async function loadTeamProfile(){
+      const generation = ++teamProfileLoadGeneration;
+      const role = teamProfileRoles.find(item => item.id === teamPositionSelect.value);
+      if(!role || !firestoreApi) return;
+      teamProfileSaveStatus.textContent = 'Loading profile…';
+      teamProfileSaveStatus.classList.remove('error');
+      teamProfileSaveButton.disabled = true;
+      try{
+        const snapshot = await firestoreApi.getDoc(firestoreApi.doc(db, 'departmentTeamProfiles', role.id));
+        if(generation !== teamProfileLoadGeneration) return;
+        const data = snapshot.exists() ? snapshot.data() : {};
+        teamNameInput.value = typeof data.name === 'string' ? data.name : '';
+        teamBioInput.value = typeof data.bio === 'string' ? data.bio : '';
+        teamPhotoData = typeof data.photoData === 'string'
+          && data.photoData.length <= MAX_PHOTO_DATA_LENGTH
+          && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(data.photoData)
+          ? data.photoData
+          : null;
+        document.getElementById('teamBioCount').textContent = `${teamBioInput.value.length} / 240 characters`;
+        showTeamPhoto(teamPhotoData);
+        teamProfileSaveStatus.textContent = snapshot.exists() ? 'Profile loaded.' : 'No profile saved for this position yet.';
+      }catch(error){
+        console.error('Unable to load team profile:', error);
+        if(generation === teamProfileLoadGeneration){
+          teamProfileSaveStatus.textContent = 'Could not load this profile. Check your connection and editor permission.';
+          teamProfileSaveStatus.classList.add('error');
+        }
+      }finally{
+        if(generation === teamProfileLoadGeneration) teamProfileSaveButton.disabled = false;
+      }
+    }
+
+    async function initializeEditor(){
+      populateTeamPositions();
+      const [{ initializeApp }, { getAuth }, firestore] = await Promise.all([
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js'),
+        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js')
+      ]);
+      firestoreApi = firestore;
+      const { getFirestore, doc, getDoc, setDoc, serverTimestamp } = firestoreApi;
+      const app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      await auth.authStateReady();
+
+      editorUser = auth.currentUser;
+      if(!editorUser){
+        showGate('Sign in required', 'Sign in with the Department Editor account (departments.editor@planetdrugstore.ph). The profile fields appear only after this account is signed in.', true);
+        return;
+      }
+      if(String(editorUser.email || '').trim().toLowerCase() !== EDITOR_EMAIL){
+        showGate('Editor access only', 'This account does not have permission to edit department information.');
+        return;
+      }
+      signOutButton.hidden = false;
+
+      const loaded = await Promise.all(Object.keys(DEPARTMENTS).map(async departmentId => {
+        const snapshot = await getDoc(doc(db, 'departmentDirectory', departmentId));
+        return snapshot.exists() ? [departmentId, snapshot.data()] : null;
+      }));
+      loaded.filter(Boolean).forEach(([departmentId, data]) => {
+        directory[departmentId] = {
+          ...directory[departmentId],
+          head: data.head || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          location: data.location || '',
+          hours: data.hours || ''
+        };
+      });
+
+      const positionSnapshot = await firestoreApi.getDocs(
+        firestoreApi.collection(db, 'departmentTeamPositions')
+      );
+      const customRoles = positionSnapshot.docs.map(positionDocument => {
+        const data = positionDocument.data();
+        const label = typeof data.label === 'string' ? data.label.trim() : '';
+        if(!/^it-custom-[a-f0-9]{32}$/.test(positionDocument.id)
+          || data.department !== 'it'
+          || !IT_PROFILE_TEAMS.includes(data.team)
+          || !IT_PROFILE_LEVELS.includes(data.level)
+          || !label
+          || label.length > 80){
+          throw new Error(`Invalid custom IT position metadata: ${positionDocument.id}`);
+        }
+        return {
+          id: positionDocument.id,
+          label,
+          team: data.team,
+          level: data.level
+        };
+      });
+      customRoles.sort((first, second) => first.team.localeCompare(second.team)
+        || IT_PROFILE_LEVELS.indexOf(first.level) - IT_PROFILE_LEVELS.indexOf(second.level)
+        || first.label.localeCompare(second.label));
+      teamProfileRoles = [...IT_PROFILE_ROLES, ...customRoles];
+      populateTeamPositions();
+
+      accessGate.hidden = true;
+      editorForm.hidden = false;
+      teamProfileEditor.hidden = false;
+      loadForm(departmentSelect.value);
+      teamPositionSelect.addEventListener('change', () => {
+        teamProfileSaveStatus.textContent = '';
+        teamProfileSaveStatus.classList.remove('error');
+        loadTeamProfile();
+      });
+      teamPositionForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        const team = teamPositionTeam.value;
+        const level = teamPositionLevel.value;
+        const label = teamPositionTitle.value.trim();
+        if(!editorUser
+          || !IT_PROFILE_TEAMS.includes(team)
+          || !IT_PROFILE_LEVELS.includes(level)
+          || !label
+          || label.length > 80){
+          teamPositionAddStatus.textContent = 'Choose a team and level, and enter a title up to 80 characters.';
+          teamPositionAddStatus.classList.add('error');
+          return;
+        }
+        if(teamProfileRoles.some(role => role.team === team
+          && role.level === level
+          && role.label.toLowerCase() === label.toLowerCase())){
+          teamPositionAddStatus.textContent = 'A position with this title already exists in that team and level.';
+          teamPositionAddStatus.classList.add('error');
+          return;
+        }
+
+        teamPositionAddButton.disabled = true;
+        teamPositionAddStatus.classList.remove('error');
+        teamPositionAddStatus.textContent = 'Adding role card…';
+        const positionId = `it-custom-${crypto.randomUUID().replace(/-/g, '')}`;
+        try{
+          await firestoreApi.setDoc(firestoreApi.doc(db, 'departmentTeamPositions', positionId), {
+            department: 'it',
+            team,
+            level,
+            label,
+            createdAt: firestoreApi.serverTimestamp(),
+            createdBy: editorUser.email
+          });
+          teamProfileRoles.push({ id: positionId, label, team, level });
+          populateTeamPositions();
+          teamPositionSelect.value = positionId;
+          teamPositionTitle.value = '';
+          teamPositionAddStatus.textContent = 'Bracket and card added. Add its profile details below and save.';
+          await loadTeamProfile();
+        }catch(error){
+          console.error('Unable to add IT role card:', error);
+          teamPositionAddStatus.textContent = 'Could not add this role card. Check your connection and editor permission, then try again.';
+          teamPositionAddStatus.classList.add('error');
+        }finally{
+          teamPositionAddButton.disabled = false;
+        }
+      });
+      await loadTeamProfile();
+      if(window.location.hash === '#team-profiles') teamProfileEditor.scrollIntoView();
+
+      departmentSelect.addEventListener('change', () => {
+        saveStatus.textContent = '';
+        saveStatus.classList.remove('error');
+        loadForm(departmentSelect.value);
+      });
+      editorForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        saveButton.disabled = true;
+        saveStatus.classList.remove('error');
+        saveStatus.textContent = 'Saving…';
+        const departmentId = departmentSelect.value;
+        const data = Object.fromEntries(Object.entries(fields).map(([key, field]) => [key, field.value.trim()]));
+        data.updatedAt = serverTimestamp();
+        data.updatedBy = editorUser.email;
+        try{
+          await setDoc(doc(db, 'departmentDirectory', departmentId), data);
+          directory[departmentId] = { ...data };
+          saveStatus.textContent = 'Contact details saved. The public directory has been updated.';
+        }catch(error){
+          console.error('Unable to save department details:', error);
+          saveStatus.textContent = 'Could not save changes. Check your connection and editor permission, then try again.';
+          saveStatus.classList.add('error');
+        }finally{
+          saveButton.disabled = false;
+        }
+      });
+    }
+
+    document.getElementById('teamChoosePhoto').addEventListener('click', () => teamPhotoInput.click());
+    teamPhotoInput.addEventListener('change', async () => {
+      const file = teamPhotoInput.files?.[0];
+      teamPhotoInput.value = '';
+      if(!file) return;
+      teamProfileSaveStatus.textContent = '';
+      teamProfileSaveStatus.classList.remove('error');
+      try{
+        teamPhotoData = await compressTeamPhoto(file);
+        showTeamPhoto(teamPhotoData);
+      }catch(error){
+        console.error('Unable to prepare team profile photo:', error);
+        teamProfileSaveStatus.textContent = error instanceof Error ? error.message : 'Unable to prepare this photo.';
+        teamProfileSaveStatus.classList.add('error');
+      }
+    });
+    teamRemovePhotoButton.addEventListener('click', () => {
+      teamPhotoData = null;
+      showTeamPhoto(null);
+    });
+    teamNameInput.addEventListener('input', () => showTeamPhoto(teamPhotoData));
+    teamBioInput.addEventListener('input', () => {
+      document.getElementById('teamBioCount').textContent = `${teamBioInput.value.length} / 240 characters`;
+    });
+    teamProfileForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const role = teamProfileRoles.find(item => item.id === teamPositionSelect.value);
+      const name = teamNameInput.value.trim();
+      const bio = teamBioInput.value.trim();
+      if(!role || !editorUser || !name || name.length > 120 || bio.length > 240){
+        teamProfileSaveStatus.textContent = 'Enter a name up to 120 characters and a bio/motto up to 240 characters.';
+        teamProfileSaveStatus.classList.add('error');
+        return;
+      }
+
+      teamProfileSaveButton.disabled = true;
+      teamProfileSaveStatus.classList.remove('error');
+      teamProfileSaveStatus.textContent = 'Saving profile…';
+      try{
+        await firestoreApi.setDoc(firestoreApi.doc(db, 'departmentTeamProfiles', role.id), {
+          department: 'it',
+          name,
+          bio,
+          photoData: teamPhotoData,
+          updatedAt: firestoreApi.serverTimestamp(),
+          updatedBy: editorUser.email
+        });
+        teamProfileSaveStatus.textContent = 'Profile saved. It will appear on the IT subordinate tree for the Department Viewing account.';
+      }catch(error){
+        console.error('Unable to save team profile:', error);
+        teamProfileSaveStatus.textContent = 'Could not save this profile. Check your connection and editor permission, then try again.';
+        teamProfileSaveStatus.classList.add('error');
+      }finally{
+        teamProfileSaveButton.disabled = false;
+      }
+    });
+
+    signOutButton.addEventListener('click', async () => {
+      signOutButton.disabled = true;
+      try{
+        const { signOut } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+        await signOut(auth);
+        window.location.replace('/839jgl8ang');
+      }catch(error){
+        console.error('Unable to sign out the directory editor:', error);
+        signOutButton.disabled = false;
+        showGate('Sign out failed', 'Could not sign out. Please try again or close the browser session.');
+      }
+    });
+
+    initializeEditor().catch(error => {
+      console.error('Unable to initialize the department directory editor:', error);
+      showGate('Editor unavailable', 'Could not load the editor. Please try again later or contact IT/Admin.');
+    });
+  </script>
+</body>
+</html>

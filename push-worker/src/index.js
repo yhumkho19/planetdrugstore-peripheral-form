@@ -1,5 +1,8 @@
 const personalTypes = new Set([
   "removed",
+  "stockRequestRemoved",
+  "stockRequestCompleted",
+  "stockRequestUnblocked",
   "branchChanged",
   "dateChanged",
   "eventUpdated",
@@ -15,8 +18,11 @@ const personalTypes = new Set([
   "siteMoved"
 ]);
 const headRoles = new Set(["pharmacist", "billing", "information", "stock"]);
+const stockRequestAdminTeamsUrl = "https://teams.microsoft.com/l/channel/19%3Ad306729cf93a4d0bb3970490db04752e%40thread.tacv2/CALOOCAN?groupId=64a1d61d-5681-4a79-ae96-a838a1a32560&tenantId=a5906354-ebe5-419d-b024-6c7db90917b0&ngc=true";
+const eventScheduleAdminTeamsUrl = "https://teams.microsoft.com/l/channel/19%3A8c33af8e2f4c4d8dabb99a5a5337287f%40thread.tacv2/PEOPLES%20DAY%20x%20MEDICAL%20MISSION?groupId=64a1d61d-5681-4a79-ae96-a838a1a32560&tenantId=a5906354-ebe5-419d-b024-6c7db90917b0&ngc=true";
 const headRolesByEmail = {
-  "adminstockreq@planetdrugstore.ph": "stock",
+  "adminstockreqmeds@planetdrugstore.ph": "stock",
+  "adminstockreqsup@planetdrugstore.ph": "stock",
   "pharmacistdepart@planetdrugstore.ph": "pharmacist",
   "billingdepart@planetdrugstore.ph": "billing",
   "informationdepart@planetdrugstore.ph": "information"
@@ -26,9 +32,74 @@ let cachedAccessToken;
 let cachedFirebaseJwks;
 let cachedFirebaseJwksExpiresAt = 0;
 const SCHEDULED_JOB_MIGRATION_KEY = "scheduled-jobs-migrated-v1";
+const SCHEDULED_ALARM_MIGRATION_KEY = "scheduled-jobs-alarm-migrated-v1";
+
+async function updateScheduledAlarm(env, operation, name, task) {
+  if (!env.SCHEDULED_JOBS) return;
+  const id = env.SCHEDULED_JOBS.idFromName("scheduled-jobs");
+  const stub = env.SCHEDULED_JOBS.get(id);
+  await stub.fetch("https://scheduled-jobs.internal/task", {
+    method: "POST",
+    body: JSON.stringify({ operation, name, task })
+  });
+}
+
+async function deleteScheduledTask(env, name) {
+  await env.PUSH_SUBSCRIPTIONS.delete(name);
+  await updateScheduledAlarm(env, "delete", name);
+}
+
+async function migrateScheduledJobsToAlarms(env) {
+  if (!env.SCHEDULED_JOBS || await env.PUSH_SUBSCRIPTIONS.get(SCHEDULED_ALARM_MIGRATION_KEY)) return;
+  await migrateLegacyScheduledJobs(env);
+  let cursor;
+  do {
+    const page = await env.PUSH_SUBSCRIPTIONS.list({ prefix: "scheduled:", cursor });
+    for (const item of page.keys) {
+      const task = await env.PUSH_SUBSCRIPTIONS.get(item.name, "json");
+      if (task && Number.isFinite(Number(task.dueAt))) {
+        await updateScheduledAlarm(env, "upsert", item.name, task);
+      }
+    }
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
+  await env.PUSH_SUBSCRIPTIONS.put(SCHEDULED_ALARM_MIGRATION_KEY, "1");
+}
 
 export function shouldNotify(subscription, notification) {
   const staffId = String(subscription.staffId || "").trim().toLowerCase();
+  if (notification.type === "stockRequestSubmitted") {
+    const headRole = String(subscription.headRole || "").trim().toLowerCase();
+    const stockType = String(subscription.stockType || "").trim().toLowerCase();
+    return headRole === "stock"
+      && stockType === notification.requestType
+      && ["medicine", "supplies"].includes(String(notification.requestType || "").trim().toLowerCase());
+  }
+  if (["siteInactive", "siteReactivated"].includes(notification.type)) {
+    return !subscription.headRole
+      && notification.visibleToEmployees !== false
+      && Array.isArray(notification.targetStaffIds)
+      && notification.targetStaffIds.map(id => String(id || "").trim().toLowerCase()).includes(staffId);
+  }
+  if (notification.type === "crossBranchSignup") {
+    const headRole = String(subscription.headRole || "").trim().toLowerCase();
+    if (headRole) {
+      return Array.isArray(notification.targetRoles)
+        && notification.targetRoles.includes(headRole)
+        && notification.employeeOnly !== true;
+    }
+    const department = String(subscription.department || "").trim().toLowerCase().replace(/\s+(north|south)$/i, "");
+    return notification.visibleToEmployees !== false
+      && Array.isArray(notification.targetDepartments)
+      && notification.targetDepartments.includes(department);
+  }
+  if (["eventCutoffChanged", "eventCutoffReached"].includes(notification.type)) {
+    const headRole = String(subscription.headRole || "").trim().toLowerCase();
+    if (headRole) return notification.employeeOnly !== true
+      && Array.isArray(notification.targetRoles)
+      && notification.targetRoles.includes(headRole);
+    return notification.visibleToEmployees !== false && notification.broadcastToEmployees === true;
+  }
   if (notification.type === "stockDayActivated") {
     return !subscription.headRole
       && Array.isArray(notification.targetStaffIds)
@@ -40,7 +111,10 @@ export function shouldNotify(subscription, notification) {
       && notification.targetStaffIds.map(id => String(id || "").trim().toLowerCase()).includes(staffId);
   }
   if (["stockDayClosed", "stockDayClosedEarly"].includes(notification.type)) {
-    if (subscription.headRole) return String(subscription.headRole).trim().toLowerCase() === "stock";
+    if (subscription.headRole) {
+      return String(subscription.headRole).trim().toLowerCase() === "stock"
+        && (!notification.requestType || String(subscription.stockType || "").trim().toLowerCase() === notification.requestType);
+    }
     return Array.isArray(notification.targetStaffIds)
       && notification.targetStaffIds.map(id => String(id || "").trim().toLowerCase()).includes(staffId);
   }
@@ -177,9 +251,32 @@ async function verifyFirebaseIdToken(token, projectId) {
   return claims;
 }
 
-async function verifyFirebaseHeadToken(token, projectId) {
-  const claims = await verifyFirebaseIdToken(token, projectId);
-  return claims ? headRolesByEmail[String(claims.email || "").trim().toLowerCase()] || "" : "";
+export function registeredPharmacistAdminRole(profile, email) {
+  return profile?.active === true
+    && profile?.role === "pharmacist"
+    && String(profile.email || "").trim().toLowerCase() === String(email || "").trim().toLowerCase()
+    ? "pharmacist"
+    : "";
+}
+
+async function headRoleForClaims(env, claims) {
+  const email = String(claims?.email || "").trim().toLowerCase();
+  const existingRole = headRolesByEmail[email];
+  if (existingRole) return existingRole;
+  if (email.endsWith("@staff.planetdrugstore.local")) return "";
+  if (!claims?.sub) return "";
+
+  const response = await fetch(firestoreDocumentsUrl(env, `/eventScheduleAdmins/${encodeURIComponent(claims.sub)}`), {
+    headers: { authorization: `Bearer ${await getAccessToken(env)}` }
+  });
+  if (response.status === 404) return "";
+  if (!response.ok) throw new Error(`Pharmacy admin profile lookup failed (${response.status})`);
+  return registeredPharmacistAdminRole(decodeDocument(await response.json()), email);
+}
+
+async function verifyFirebaseHeadToken(token, env) {
+  const claims = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID);
+  return claims ? headRoleForClaims(env, claims) : "";
 }
 
 function encodeJson(value) {
@@ -228,7 +325,19 @@ async function getAccessToken(env) {
   return cachedAccessToken.value;
 }
 
-async function createFirebaseCustomToken(env, uid) {
+function firestoreDocumentsUrl(env, path) {
+  const projectId = String(env.FIREBASE_PROJECT_ID || "").trim();
+  const apiKey = String(env.FIREBASE_API_KEY || "").trim();
+  const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents${path}`;
+  return apiKey ? `${baseUrl}?key=${encodeURIComponent(apiKey)}` : baseUrl;
+}
+
+async function firestoreReadHeaders(env) {
+  const apiKey = String(env.FIREBASE_API_KEY || "").trim();
+  return apiKey ? {} : { authorization: `Bearer ${await getAccessToken(env)}` };
+}
+
+async function createFirebaseCustomToken(env, uid, claims = undefined) {
   const now = Math.floor(Date.now() / 1000);
   const unsigned = `${encodeJson({ alg: "RS256", typ: "JWT" })}.${encodeJson({
     iss: env.FIREBASE_CLIENT_EMAIL,
@@ -236,7 +345,8 @@ async function createFirebaseCustomToken(env, uid) {
     aud: "https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit",
     iat: now,
     exp: now + 3600,
-    uid
+    uid,
+    ...(claims ? { claims } : {})
   })}`;
   const key = await crypto.subtle.importKey(
     "pkcs8",
@@ -247,6 +357,33 @@ async function createFirebaseCustomToken(env, uid) {
   );
   const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(unsigned));
   return `${unsigned}.${base64Url(new Uint8Array(signature))}`;
+}
+
+async function employeeLoginRateLimit(env, request) {
+  const ipAddress = request.headers.get("cf-connecting-ip") || "unknown";
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ipAddress));
+  const limiterId = env.EMPLOYEE_LOGIN_LIMITER.idFromName(base64Url(new Uint8Array(digest)));
+  const response = await env.EMPLOYEE_LOGIN_LIMITER.get(limiterId)
+    .fetch("https://employee-login-limiter.internal/check", { method: "POST" });
+  if (response.status === 429) return false;
+  if (!response.ok) throw new Error(`Employee login rate limit check failed (${response.status})`);
+  return true;
+}
+
+function constantTimeStringEqual(left, right) {
+  const a = new TextEncoder().encode(left);
+  const b = new TextEncoder().encode(right);
+  let difference = a.length ^ b.length;
+  const length = Math.max(a.length, b.length);
+  for (let index = 0; index < length; index++) {
+    difference |= (a[index] || 0) ^ (b[index] || 0);
+  }
+  return difference === 0;
+}
+
+async function sha256Hex(value) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, "0")).join("");
 }
 
 function baseNotificationText(notification) {
@@ -272,21 +409,92 @@ function baseNotificationText(notification) {
     : "the updated time";
 
   switch (notification.type) {
-    case "stockDayActivated":
+    case "siteInactive":
       return {
-        title: "Stock request is open",
-        body: `You need to enter your SR#! You are scheduled for ${notification.day || "this day"}${notification.date ? ` (${notification.date})` : ""}. Open Stock Request to submit it.`
+        title: "Your assigned site is inactive",
+        body: `The site ${location || "you were assigned to"} is temporarily inactive. Operations will notify you when it becomes active again.`
+      };
+    case "siteReactivated":
+      return {
+        title: "Your assigned site is active again",
+        body: `Operations reactivated ${location || "your assigned site"}. Your assignment is still in place.`
+      };
+    case "crossBranchSignup":
+      return {
+        title: "Cross-branch signup",
+        body: `${notification.employeeName || "An employee"} from ${String(notification.employeeBranch || "").toUpperCase()} signed up in ${String(notification.eventBranch || "").toUpperCase()}${locationText}${whenText ? ` on ${whenText}` : ""}.`
+      };
+    case "eventCutoffChanged":
+      return {
+        title: "Event cutoff changed",
+        body: `Operations changed the cutoff time to ${formatCutoffTime(notification.cutoffTime)}.`
+      };
+    case "eventCutoffReached":
+      return {
+        title: "Event cutoff reached",
+        body: `Here's the final lineup for ${notification.location || "this event site"}. The cutoff time (${formatCutoffTime(notification.cutoffTime)}) has been reached.`
+      };
+    case "stockDayActivated":
+      {
+      const requestType = notification.requestType === "supplies" ? "Supplies" : "Medicine";
+      return {
+        title: `${requestType} stock requests are open`,
+        body: `${requestType} SR# entry is now open! You are scheduled for ${notification.day || "this day"}${notification.date ? ` (${notification.date})` : ""}. Open Stock Request to submit it.`
+      };
+      }
+    case "stockRequestRemoved":
+      return {
+        title: "SR# removed",
+        body: "Your SR# has been removed. Please contact your Stock Request Admin for more details."
+      };
+    case "stockRequestCompleted": {
+      const requestType = notification.requestType === "supplies" ? "Supplies" : "Medicine";
+      const sr = String(notification.sr || "").trim();
+      return {
+        title: `${requestType} SR# completed`,
+        body: `Your ${requestType.toLowerCase()} SR#${sr ? ` ${sr}` : ""} has been marked completed by the admin. You can no longer edit this request.`
+      };
+    }
+    case "stockRequestSubmitted": {
+      const requestType = notification.requestType === "supplies" ? "Supplies" : "Medicine";
+      const details = [
+        notification.employeeName || "An employee",
+        notification.location,
+        notification.branch ? String(notification.branch).toUpperCase() : "",
+        notification.date
+      ].filter(Boolean);
+      if (notification.updated === true) {
+        return {
+          title: `Updated ${requestType} stock request`,
+          body: `${details.join(" • ")} updated SR# ${notification.previousSr || ""} → ${notification.sr || ""}.`
+        };
+      }
+      return {
+        title: `New ${requestType} stock request`,
+        body: `${details.join(" • ")} submitted SR# ${notification.sr || ""}.`
+      };
+    }
+    case "stockRequestUnblocked":
+      return {
+        title: "You were unblocked",
+        body: "You were unblocked by the Stock Request Admin. You can now edit your SR# or keep your current SR#."
       };
     case "stockDayClosed":
+      {
+      const requestType = notification.requestType === "supplies" ? "Supplies" : "Medicine";
       return {
-        title: "Stock request closed",
-        body: `The stock request for today is now closed!${notification.day ? ` (${notification.day})` : ""}`
+        title: `${requestType} stock requests closed`,
+        body: `${requestType} stock requests for today are now closed!${notification.day ? ` (${notification.day})` : ""}`
       };
+      }
     case "stockDayClosedEarly":
+      {
+      const requestType = notification.requestType === "supplies" ? "Supplies" : "Medicine";
       return {
-        title: "Stock request closed early",
-        body: `The stock request${notification.day ? ` for ${notification.day}` : ""} was closed early by the admin. You can no longer submit, edit, or remove your SR# for this day.`
+        title: `${requestType} stock requests closed early`,
+        body: `${requestType} stock requests${notification.day ? ` for ${notification.day}` : ""} were closed early by the admin. You can no longer submit, edit, or remove your SR# for this day.`
       };
+      }
     case "stockDayScheduleChanged": {
       const assignedDays = formatStockDays(notification.requestDays);
       if (notification.wasUnscheduled && assignedDays) {
@@ -314,13 +522,14 @@ function baseNotificationText(notification) {
     case "stockDayCutoffUpdated": {
       const oldCutoff = formatStockCutoff(notification.previousCutoffMin);
       const newCutoff = formatStockCutoff(notification.cutoffMin);
+      const requestType = notification.requestType === "supplies" ? "Supplies" : "Medicine";
       return {
-        title: "Stock request cutoff changed",
+        title: `${requestType} stock request cutoff changed`,
         body: notification.unclosed === true
-          ? `The admin reopened stock requests. You can now enter or edit your SR# until ${newCutoff}.`
+          ? `The admin reopened ${requestType.toLowerCase()} stock requests. You can now enter or edit your SR# until ${newCutoff}.`
           : notification.reopened === true
-          ? `The cutoff passed, but the admin moved it from ${oldCutoff} to ${newCutoff}. You can edit or remove your SR# until ${newCutoff}.`
-          : `The admin changed the stock request cutoff from ${oldCutoff} to ${newCutoff}. Submit, edit, or remove your SR# before ${newCutoff}.`
+          ? `The ${requestType.toLowerCase()} cutoff passed, but the admin moved it from ${oldCutoff} to ${newCutoff}. You can edit or remove your SR# until ${newCutoff}.`
+          : `The admin changed the ${requestType.toLowerCase()} stock request cutoff from ${oldCutoff} to ${newCutoff}. Submit, edit, or remove your SR# before ${newCutoff}.`
       };
     }
     case "eventReminder": {
@@ -340,7 +549,7 @@ function baseNotificationText(notification) {
       }
       return {
         title: "Event alarm from Pharmacy",
-        body: `The pharmacist sent an event reminder for ${assignedLocation}${assignmentWhen ? ` on ${assignmentWhen}` : ""}.`
+        body: `Operations sent an event reminder for ${assignedLocation}${assignmentWhen ? ` on ${assignmentWhen}` : ""}.`
       };
     }
     case "eventsDeployed":
@@ -401,6 +610,12 @@ function baseNotificationText(notification) {
         body: `Your new assignment${roleText}${locationText}${whenText ? ` is on ${whenText}` : ""}.`
       };
     case "removed":
+      if (notification.scheduleReset) {
+        return {
+          title: "Event schedule reset",
+          body: `Operations reset the event schedule. Your previous assignment${roleText}${locationText}${whenText ? ` on ${whenText}` : ""} was cleared. You can sign up again if a slot is available.`
+        };
+      }
       if (notification.list === "relievers") {
         const replacedByName = String(notification.replacedByName || "").trim();
         return {
@@ -423,7 +638,7 @@ function baseNotificationText(notification) {
     case "slotRoleRemoved":
       return {
         title: "Your slot role was removed",
-        body: `Your ${role || "schedule"} slot has been removed by the ${notification.removedByDepartment || "department"}. You can choose another slot.`
+        body: `Your ${role || "schedule"} slot has been removed by ${notification.removedByDepartment || "the department"}. You can choose another slot.`
       };
     case "branchChanged": {
       const oldBranch = String(notification.oldRegionCustom || notification.oldRegion || "").trim();
@@ -507,6 +722,14 @@ function notificationBranch(notification) {
   );
 }
 
+function formatCutoffTime(value) {
+  const match = /^(\d{2}):(\d{2})$/.exec(String(value || ""));
+  if (!match) return "the updated time";
+  return new Date(Date.UTC(2000, 0, 1, Number(match[1]), Number(match[2]))).toLocaleTimeString("en-US", {
+    timeZone: "UTC", hour: "numeric", minute: "2-digit"
+  });
+}
+
 function notificationEventType(notification) {
   const direct = String(notification.newMissionLabel || notification.missionLabel || notification.eventType || "").trim();
   if (direct) return direct;
@@ -518,10 +741,10 @@ function notificationEventType(notification) {
 
 function headNotificationText(notification) {
   const context = [];
-  if (notification.location && notification.type !== "siteAutoDeleted") context.push(`Site: ${notification.location}`);
+  if (notification.location && !["siteAutoDeleted", "eventCutoffReached", "siteInactive", "siteReactivated"].includes(notification.type)) context.push(`Site: ${notification.location}`);
   if (notification.type === "dateChanged" && notification.oldDate && notification.newDate) {
     context.push(`Date: ${notification.oldDate} → ${notification.newDate}`);
-  } else if (notification.date) {
+  } else if (notification.date && !["eventCutoffChanged", "eventCutoffReached"].includes(notification.type)) {
     context.push(`Date: ${notification.date}`);
   }
   if (notification.time) context.push(`Time: ${notification.time}`);
@@ -541,7 +764,12 @@ function headNotificationText(notification) {
   if (notification.role && notification.list !== "schedule") context.push(`Role: ${notification.role}`);
   if (notification.employeeName && notification.type !== "removed") context.push(`Employee: ${notification.employeeName}`);
   const titles = {
+    siteInactive: "Site marked inactive",
+    siteReactivated: "Site reactivated",
+    crossBranchSignup: "Cross-branch signup",
     siteFilled: "Event site is full",
+    eventCutoffChanged: "Event cutoff changed",
+    eventCutoffReached: "Event cutoff reached",
     eventCreated: "New site deployed",
     deploymentConfirmed: "Site deployment confirmed",
     eventCancelled: "Event cancelled",
@@ -554,6 +782,9 @@ function headNotificationText(notification) {
     removed: "Employee removed from slot"
   };
   const summaries = {
+    siteInactive: `Operations marked ${notification.location || "a site"} inactive. Assigned employees were notified and will be notified again when it is active`,
+    siteReactivated: `Operations reactivated ${notification.location || "a site"}. Its existing assignments remain in place`,
+    crossBranchSignup: `${notification.employeeName || "An employee"} from ${String(notification.employeeBranch || "").toUpperCase()} signed up in ${String(notification.eventBranch || "").toUpperCase()}`,
     eventCreated: "A new site was added to the schedule",
     deploymentConfirmed: "The site is now published to employees",
     eventCancelled: "An event was cancelled",
@@ -564,7 +795,9 @@ function headNotificationText(notification) {
     eventUpdated: "An event schedule was updated",
     missionChanged: "An event type was changed",
     removed: `${notification.employeeName || "An employee"} was removed from ${notification.role || "a slot"}`,
-    siteFilled: `The site ${notification.location || "this event site"} is full now${notification.filledCount ? ` (${notification.filledCount} Event Team slots filled)` : ""}`
+    siteFilled: `The site ${notification.location || "this event site"} is full now${notification.filledCount ? ` (${notification.filledCount} Event Team slots filled)` : ""}`,
+    eventCutoffChanged: `Operations changed the cutoff time to ${formatCutoffTime(notification.cutoffTime)}`,
+    eventCutoffReached: `Here's the final lineup for ${notification.location || "this event site"}. The cutoff time (${formatCutoffTime(notification.cutoffTime)}) has been reached`
   };
   return {
     title: titles[notification.type] || "Schedule update",
@@ -574,15 +807,17 @@ function headNotificationText(notification) {
 
 export function notificationText(notification, subscription = {}) {
   if (notification?.type === "stockDayClosedEarly") {
+    const requestType = notification.requestType === "supplies" ? "Supplies" : "Medicine";
     return {
-      title: "Stock request closed early",
-      body: `The stock request${notification.day ? ` for ${notification.day}` : ""} was closed early by the admin. You can no longer submit, edit, or remove your SR# for this day.`
+      title: `${requestType} stock requests closed early`,
+      body: `${requestType} stock requests${notification.day ? ` for ${notification.day}` : ""} were closed early by the admin. You can no longer submit, edit, or remove your SR# for this day.`
     };
   }
   if (notification?.type === "stockDayClosed") {
+    const requestType = notification.requestType === "supplies" ? "Supplies" : "Medicine";
     return {
-      title: "Stock request closed",
-      body: `The stock request for today is now closed!${notification.day ? ` (${notification.day})` : ""}`
+      title: `${requestType} stock requests closed`,
+      body: `${requestType} stock requests for today are now closed!${notification.day ? ` (${notification.day})` : ""}`
     };
   }
   if (headRoles.has(String(subscription.headRole || "").trim().toLowerCase())) {
@@ -617,10 +852,13 @@ export function notificationUrl(appUrl, notification, headRole = "") {
     information: "/51qx617jve"
   };
   const target = new URL(headPaths[headRole] || appUrl, appUrl);
-  if (["stockDayActivated", "stockDayClosed", "stockDayClosedEarly", "stockDayScheduleChanged", "stockDayCutoffUpdated"].includes(notification?.type)) {
+  if (["stockDayActivated", "stockDayClosed", "stockDayClosedEarly", "stockDayScheduleChanged", "stockDayCutoffUpdated", "stockRequestRemoved", "stockRequestCompleted", "stockRequestUnblocked", "stockRequestSubmitted"].includes(notification?.type)) {
     const path = headRole === "stock" ? "/h9b4t2zvfe" : "/w6n3d8ycrq";
     const stockTarget = new URL(path, appUrl);
     if (notification.day) stockTarget.searchParams.set("day", String(notification.day));
+    if (headRole !== "stock" && ["medicine", "supplies"].includes(notification.requestType)) {
+      stockTarget.searchParams.set("requestType", notification.requestType);
+    }
     return stockTarget.toString();
   }
   if (notification?.cardId) target.searchParams.set("viewSite", String(notification.cardId));
@@ -631,6 +869,13 @@ export function notificationUrl(appUrl, notification, headRole = "") {
   const region = notification?.region || notification?.newRegion;
   if (region) target.searchParams.set("region", String(region));
   return target.toString();
+}
+
+export function notificationContactUrl(notification) {
+  const type = String(notification?.type || "");
+  if (!type) return "";
+  if (type.startsWith("stockDay") || type.startsWith("stockRequest")) return stockRequestAdminTeamsUrl;
+  return eventScheduleAdminTeamsUrl;
 }
 
 export function pushPlatformOptions(notification = {}) {
@@ -652,6 +897,8 @@ async function sendPush(env, subscription, notification) {
 
   const accessToken = await getAccessToken(env);
   const text = notificationText(notification, subscription);
+  const type = String(notification.type || "");
+  const contactAdminUrl = notificationContactUrl(notification);
   const response = await fetch(
     `https://fcm.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/messages:send`,
     {
@@ -668,8 +915,11 @@ async function sendPush(env, subscription, notification) {
             title: text.title,
             body: text.body,
             url: notificationUrl(env.APP_URL, notification, subscription.headRole),
+            ...(contactAdminUrl ? { contactAdminUrl } : {}),
             notificationId: notification.id,
             notificationType: String(notification.type || ""),
+            scheduleReset: notification.scheduleReset === true ? "1" : "0",
+            scheduleLocation: String(notification.location || ""),
             cardId: String(notification.cardId || ""),
             date: String(notification.date || ""),
             region: String(notification.region || ""),
@@ -693,6 +943,11 @@ async function sendPush(env, subscription, notification) {
     await env.PUSH_SUBSCRIPTIONS.delete(subscription.key);
     await env.PUSH_SUBSCRIPTIONS.put(sentKey, "1", { expirationTtl: 604800 });
     return true;
+  }
+  if (error.includes("SENDER_ID_MISMATCH")) {
+    await env.PUSH_SUBSCRIPTIONS.delete(subscription.key);
+    console.error("FCM subscription belongs to a different sender; removed stale subscription.");
+    return false;
   }
   console.error("FCM send failed", response.status, error);
   return false;
@@ -744,12 +999,12 @@ async function readNewNotifications(env, storedCursor) {
   let cursor = storedCursor;
   if (!cursor) cursor = new Date(Date.now() - 120000).toISOString();
   const overlap = new Date(Date.parse(cursor) - 1000).toISOString();
-  const url = `https://firestore.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/databases/(default)/documents:runQuery`;
-  const accessToken = await getAccessToken(env);
+  const url = firestoreDocumentsUrl(env, ":runQuery");
+  const authHeaders = await firestoreReadHeaders(env);
   const response = await fetch(url, {
     method: "POST",
     headers: {
-      authorization: `Bearer ${accessToken}`,
+      ...authHeaders,
       "content-type": "application/json"
     },
     body: JSON.stringify({
@@ -783,6 +1038,7 @@ async function deliverNewNotifications(env, loadedSubscriptions) {
   const storedCursor = await env.PUSH_SUBSCRIPTIONS.get("scan-cursor");
   const notifications = await readNewNotifications(env, storedCursor);
   if (!notifications.length) return;
+  await syncEventCutoffSchedules(env, notifications);
   const subscriptions = loadedSubscriptions || await loadSubscriptions(env);
   let newestTimestamp = storedCursor;
   let allComplete = true;
@@ -851,13 +1107,105 @@ export function stockCutoffAt(date, cutoffMin) {
   return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])) - 8 * 60 * 60 * 1000 + cutoffMin * 60 * 1000;
 }
 
+export function eventCutoffAt(date, cutoffTime) {
+  const match = /^(\d{2}):(\d{2})$/.exec(String(cutoffTime || ""));
+  if (!match) return null;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (hour > 23 || minute > 59) return null;
+  return stockCutoffAt(date, hour * 60 + minute);
+}
+
+export async function scheduleEventCutoff(env, event) {
+  const cardId = String(event.cardId || event.id || "").trim();
+  if (!cardId) return;
+  const key = `scheduled:event-cutoff:${cardId}`;
+  if (event.cancelled === true) {
+    await deleteScheduledTask(env, key);
+    return;
+  }
+  const date = String(event.date || "");
+  const cutoffTime = String(event.cutoffTime || "");
+  const dueAt = eventCutoffAt(date, cutoffTime);
+  if (dueAt === null) {
+    await deleteScheduledTask(env, key);
+    return;
+  }
+  const notificationId = `event-cutoff-reached:${cardId}:${date}:${cutoffTime}`;
+  if (dueAt <= Date.now() && await env.PUSH_SUBSCRIPTIONS.get(`sent:${notificationId}`)) {
+    await deleteScheduledTask(env, key);
+    return;
+  }
+  const task = {
+    jobType: "eventCutoff",
+    cardId,
+    date,
+    cutoffTime,
+    location: String(event.location || "Unnamed site"),
+    dueAt,
+    id: notificationId
+  };
+  const existingTask = await env.PUSH_SUBSCRIPTIONS.get(key, "json");
+  if (existingTask &&
+      existingTask.jobType === task.jobType &&
+      existingTask.cardId === task.cardId &&
+      existingTask.date === task.date &&
+      existingTask.cutoffTime === task.cutoffTime &&
+      existingTask.location === task.location &&
+      existingTask.dueAt === task.dueAt &&
+      existingTask.id === task.id) {
+    await updateScheduledAlarm(env, "upsert", key, task);
+    return;
+  }
+  const secondsUntilDue = Math.max(0, Math.ceil((dueAt - Date.now()) / 1000));
+  const expirationTtl = secondsUntilDue + 7 * 86400;
+  await env.PUSH_SUBSCRIPTIONS.put(key, JSON.stringify(task), { expirationTtl });
+  await updateScheduledAlarm(env, "upsert", key, task);
+}
+
+async function syncPublishedEventCutoffJobs(env) {
+  const syncKey = "event-cutoff-schedule-sync-at";
+  const lastSyncAt = Number(await env.PUSH_SUBSCRIPTIONS.get(syncKey) || 0);
+  if (Date.now() - lastSyncAt < 5 * 60 * 1000) return;
+
+  const response = await fetch(firestoreDocumentsUrl(env, "/eventSchedule/current"), {
+    headers: await firestoreReadHeaders(env)
+  });
+  if (!response.ok && response.status !== 404) {
+    const detail = (await response.text()).slice(0, 500);
+    throw new Error(`Event schedule sync failed (${response.status}): ${detail}`);
+  }
+  const schedule = response.status === 404 ? {} : decodeDocument(await response.json());
+  const cards = Array.isArray(schedule.employeeCards) ? schedule.employeeCards : [];
+  const activeIds = new Set();
+  for (const card of cards) {
+    const cardId = String(card.id || "").trim();
+    if (!cardId) continue;
+    if (!card.cancelled && card.date && card.cutoffTime) activeIds.add(cardId);
+    await scheduleEventCutoff(env, { ...card, cardId });
+  }
+
+  let cursor;
+  do {
+    const page = await env.PUSH_SUBSCRIPTIONS.list({ prefix: "scheduled:event-cutoff:", cursor });
+    for (const item of page.keys) {
+      const cardId = item.name.slice("scheduled:event-cutoff:".length);
+        if (!activeIds.has(cardId)) await deleteScheduledTask(env, item.name);
+    }
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
+
+  await env.PUSH_SUBSCRIPTIONS.put(syncKey, String(Date.now()), { expirationTtl: 600 });
+}
+
 export async function scheduleStockCutoff(env, notification) {
   await migrateLegacyScheduledJobs(env);
   const date = String(notification.date || "");
+  const requestType = notification.requestType === "supplies" ? "supplies" : "medicine";
   const cutoffMin = Number(notification.cutoffMin);
   const dueAt = stockCutoffAt(date, cutoffMin);
   if (dueAt === null) throw new Error("Invalid stock cutoff schedule.");
-  const key = `scheduled:stock-cutoff:${date}`;
+  const key = `scheduled:stock-cutoff:${requestType}:${date}`;
   const previous = notification.type === "stockDayCutoffUpdated"
     ? await env.PUSH_SUBSCRIPTIONS.get(key, "json")
     : null;
@@ -867,6 +1215,7 @@ export async function scheduleStockCutoff(env, notification) {
   const task = {
     jobType: "stockCutoff",
     date,
+    requestType,
     day: String(notification.day || previous?.day || ""),
     cutoffMin,
     targetStaffIds,
@@ -875,6 +1224,7 @@ export async function scheduleStockCutoff(env, notification) {
   };
   const expirationTtl = Math.max(60, Math.ceil((dueAt - Date.now()) / 1000) + 86400);
   await env.PUSH_SUBSCRIPTIONS.put(key, JSON.stringify(task), { expirationTtl });
+  await updateScheduledAlarm(env, "upsert", key, task);
 }
 
 async function deliverStockCutoffNotifications(env, subscriptions, dueJobs) {
@@ -883,11 +1233,61 @@ async function deliverStockCutoffNotifications(env, subscriptions, dueJobs) {
       id: task.id,
       type: "stockDayClosed",
       date: task.date,
+      requestType: task.requestType || "medicine",
       day: task.day,
       targetStaffIds: task.targetStaffIds || [],
       targetRoles: ["stock"],
       employeeOnly: false,
       createdAt: new Date(Number(task.dueAt)).toISOString()
+    };
+    let complete = true;
+    let matchedSubscriptions = 0;
+    for (const subscription of subscriptions) {
+      if (!shouldNotify(subscription, notification)) continue;
+      matchedSubscriptions++;
+      if (!(await sendPush(env, subscription, notification))) complete = false;
+    }
+    if (complete && matchedSubscriptions > 0) await env.PUSH_SUBSCRIPTIONS.delete(name);
+  }
+}
+
+async function deliverEventCutoffNotifications(env, subscriptions, dueJobs) {
+  const eventJobs = dueJobs.filter(job => job.task.jobType === "eventCutoff");
+  if (!eventJobs.length) return;
+  const response = await fetch(firestoreDocumentsUrl(env, "/eventSchedule/current"), {
+    headers: await firestoreReadHeaders(env)
+  });
+  if (response.status === 404) {
+    await Promise.all(eventJobs.map(({ name }) => env.PUSH_SUBSCRIPTIONS.delete(name)));
+    return;
+  }
+  if (!response.ok) {
+    const detail = (await response.text()).slice(0, 500);
+    throw new Error(`Event schedule lookup failed (${response.status}): ${detail}`);
+  }
+  const schedule = decodeDocument(await response.json());
+  const publishedCards = Array.isArray(schedule.employeeCards) ? schedule.employeeCards : [];
+  const publishedById = new Map(publishedCards.map(card => [String(card.id || ""), card]));
+  for (const { name, task } of eventJobs) {
+    const card = publishedById.get(String(task.cardId || ""));
+    if (!card || card.cancelled === true) {
+      await env.PUSH_SUBSCRIPTIONS.delete(name);
+      continue;
+    }
+    if (card.date !== task.date || card.cutoffTime !== task.cutoffTime) {
+      await scheduleEventCutoff(env, { ...card, cardId: task.cardId });
+      continue;
+    }
+    const notification = {
+      id: task.id,
+      type: "eventCutoffReached",
+      cardId: task.cardId,
+      date: task.date,
+      cutoffTime: task.cutoffTime,
+      location: task.location,
+      targetRoles: ["pharmacist", "information", "billing"],
+      broadcastToEmployees: true,
+      visibleToEmployees: true
     };
     let complete = true;
     let matchedSubscriptions = 0;
@@ -938,29 +1338,114 @@ async function deliverSnoozedReminders(env, subscriptions, dueJobs) {
   }
 }
 
-async function loadDueScheduledJobs(env) {
-  await migrateLegacyScheduledJobs(env);
-  const dueJobs = [];
-  let cursor;
-  do {
-    const page = await env.PUSH_SUBSCRIPTIONS.list({ prefix: "scheduled:", cursor });
-    for (const item of page.keys) {
-      const task = await env.PUSH_SUBSCRIPTIONS.get(item.name, "json");
-      if (task && Number(task.dueAt) <= Date.now()) dueJobs.push({ name: item.name, task });
-    }
-    cursor = page.list_complete ? undefined : page.cursor;
-  } while (cursor);
-  return dueJobs;
-}
-
-async function deliverScheduledJobs(env) {
-  const dueJobs = await loadDueScheduledJobs(env);
+async function deliverScheduledJobs(env, dueJobs) {
   if (!dueJobs.length) return;
   const subscriptions = await loadSubscriptions(env);
   await Promise.all([
     deliverSnoozedReminders(env, subscriptions, dueJobs).catch(error => console.error("Snoozed reminder delivery failed:", error)),
-    deliverStockCutoffNotifications(env, subscriptions, dueJobs).catch(error => console.error("Stock cutoff notification failed:", error))
+    deliverStockCutoffNotifications(env, subscriptions, dueJobs).catch(error => console.error("Stock cutoff notification failed:", error)),
+    deliverEventCutoffNotifications(env, subscriptions, dueJobs).catch(error => console.error("Event cutoff notification failed:", error))
   ]);
+}
+
+export class ScheduledJobs {
+  constructor(ctx, env) {
+    this.ctx = ctx;
+    this.env = env;
+  }
+
+  async fetch(request) {
+    if (request.method !== "POST") return new Response("Method not allowed", { status: 405 });
+    let body;
+    try { body = await request.json(); } catch { return new Response("Invalid JSON", { status: 400 }); }
+    const name = String(body.name || "");
+    if (!name.startsWith("scheduled:")) return new Response("Invalid scheduled job", { status: 400 });
+
+    const storageKey = `job:${name}`;
+    if (body.operation === "delete") {
+      await this.ctx.storage.delete(storageKey);
+    } else if (body.operation === "upsert" && body.task && Number.isFinite(Number(body.task.dueAt))) {
+      await this.ctx.storage.put(storageKey, {
+        name,
+        task: body.task,
+        nextAttemptAt: Number(body.task.dueAt)
+      });
+    } else {
+      return new Response("Invalid scheduled job operation", { status: 400 });
+    }
+
+    await this.armNextJob();
+    return new Response("OK");
+  }
+
+  async armNextJob() {
+    const jobs = await this.ctx.storage.list({ prefix: "job:" });
+    const nextAttemptAt = [...jobs.values()]
+      .map(job => Number(job.nextAttemptAt || job.task?.dueAt))
+      .filter(Number.isFinite)
+      .reduce((next, value) => Math.min(next, value), Infinity);
+    if (nextAttemptAt === Infinity) await this.ctx.storage.deleteAlarm();
+    else await this.ctx.storage.setAlarm(Math.max(Date.now() + 1, nextAttemptAt));
+  }
+
+  async alarm() {
+    const now = Date.now();
+    const jobs = [...(await this.ctx.storage.list({ prefix: "job:" })).values()];
+    const dueJobs = jobs
+      .filter(job => Number(job.nextAttemptAt || job.task?.dueAt) <= now)
+      .map(({ name, task }) => ({ name, task }));
+
+    if (dueJobs.length) {
+      const deliveryEnv = { ...this.env, SCHEDULED_JOBS: undefined };
+      await deliverScheduledJobs(deliveryEnv, dueJobs);
+      for (const job of dueJobs) {
+        const currentTask = await this.env.PUSH_SUBSCRIPTIONS.get(job.name, "json");
+        const storageKey = `job:${job.name}`;
+        if (!currentTask) {
+          await this.ctx.storage.delete(storageKey);
+          continue;
+        }
+        const changed = JSON.stringify(currentTask) !== JSON.stringify(job.task);
+        const dueAt = Number(currentTask.dueAt);
+        const nextAttemptAt = changed && dueAt > Date.now()
+          ? dueAt
+          : Date.now() + 5 * 60 * 1000;
+        await this.ctx.storage.put(storageKey, { name: job.name, task: currentTask, nextAttemptAt });
+      }
+    }
+
+    await this.armNextJob();
+  }
+}
+
+export class EmployeeLoginRateLimiter {
+  constructor(ctx) {
+    this.ctx = ctx;
+  }
+
+  async fetch(request) {
+    if (request.method !== "POST") return new Response("Method not allowed", { status: 405 });
+    const now = Date.now();
+    let resetAt = 0;
+    const allowed = await this.ctx.storage.transaction(async transaction => {
+      const current = await transaction.get("rateLimit");
+      if (!current || now >= current.resetAt) {
+        resetAt = now + 15 * 60 * 1000;
+        await transaction.put("rateLimit", { attempts: 1, resetAt });
+        return true;
+      }
+      resetAt = current.resetAt;
+      if (current.attempts >= 30) return false;
+      await transaction.put("rateLimit", { attempts: current.attempts + 1, resetAt });
+      return true;
+    });
+    await this.ctx.storage.setAlarm(resetAt);
+    return new Response(allowed ? "Allowed" : "Rate limit exceeded", { status: allowed ? 200 : 429 });
+  }
+
+  async alarm() {
+    await this.ctx.storage.deleteAll();
+  }
 }
 
 function isAllowedOrigin(env, origin) {
@@ -983,6 +1468,78 @@ function corsHeaders(env, origin) {
   };
 }
 
+async function handleEmployeeAuthentication(request, env) {
+  const origin = request.headers.get("Origin") || "";
+  const headers = corsHeaders(env, origin);
+  if (!isAllowedOrigin(env, origin)) return new Response("Forbidden", { status: 403, headers });
+  if (request.method === "OPTIONS") return new Response(null, { headers });
+  if (request.method !== "POST") return new Response("Method not allowed", { status: 405, headers });
+
+  let body;
+  try { body = await request.json(); } catch { return new Response("Invalid JSON", { status: 400, headers }); }
+  const staffIdInput = typeof body?.staffId === "string" ? body.staffId.trim() : "";
+  const password = typeof body?.password === "string" ? body.password : "";
+  if (!staffIdInput || staffIdInput.length > 120 || !password || password.length > 256) {
+    return new Response("Invalid credentials", { status: 400, headers });
+  }
+
+  try {
+    if (!await employeeLoginRateLimit(env, request)) {
+      return new Response("Too many sign-in attempts. Please try again later.", { status: 429, headers });
+    }
+
+    const staffId = staffIdInput.toLowerCase();
+    const employeeResponse = await fetch(
+      firestoreDocumentsUrl(env, `/employees/${encodeURIComponent(staffId)}`),
+      { headers: await firestoreReadHeaders(env) }
+    );
+    if (employeeResponse.status === 404) {
+      return new Response("Incorrect Staff ID or password.", { status: 401, headers });
+    }
+    if (!employeeResponse.ok) {
+      throw new Error(`Employee account lookup failed (${employeeResponse.status})`);
+    }
+
+    const employee = decodeDocument(await employeeResponse.json());
+    const storedPasswordHash = typeof employee.passwordHash === "string"
+      && /^[a-f0-9]{64}$/i.test(employee.passwordHash)
+      ? employee.passwordHash.toLowerCase()
+      : "0".repeat(64);
+    const suppliedPasswordHash = await sha256Hex(password);
+    const passwordMatches = constantTimeStringEqual(suppliedPasswordHash, storedPasswordHash);
+    if (!passwordMatches
+        || typeof employee.staffId !== "string"
+        || employee.staffId.trim().toLowerCase() !== staffId) {
+      return new Response("Incorrect Staff ID or password.", { status: 401, headers });
+    }
+
+    const tokenStaffId = employee.staffId.trim().toLowerCase();
+    const uid = `employee-${(await sha256Hex(tokenStaffId)).slice(0, 40)}`;
+    const customToken = await createFirebaseCustomToken(env, uid, {
+      employee: true,
+      staffId: tokenStaffId,
+      employeeDepartment: typeof employee.department === "string"
+        ? employee.department.trim().toLowerCase()
+        : ""
+    });
+    return new Response(JSON.stringify({
+      customToken,
+      employee: {
+        staffId: employee.staffId,
+        name: typeof employee.name === "string" ? employee.name : "",
+        email: typeof employee.email === "string" ? employee.email : "",
+        department: typeof employee.department === "string" ? employee.department : "",
+        branch: typeof employee.branch === "string" ? employee.branch : ""
+      }
+    }), {
+      headers: { ...headers, "content-type": "application/json", "cache-control": "no-store" }
+    });
+  } catch (error) {
+    console.error("Employee authentication failed:", error);
+    return new Response("Employee sign-in is temporarily unavailable.", { status: 503, headers });
+  }
+}
+
 async function handleAuthHandoff(request, env) {
   const origin = request.headers.get("Origin") || "";
   const headers = corsHeaders(env, origin);
@@ -993,6 +1550,8 @@ async function handleAuthHandoff(request, env) {
   const authorization = request.headers.get("authorization") || "";
   const idToken = authorization.match(/^Bearer\s+(.+)$/i)?.[1] || "";
   if (!idToken) return new Response("Firebase ID token required", { status: 401, headers });
+  let body;
+  try { body = await request.json(); } catch { return new Response("Invalid JSON", { status: 400, headers }); }
 
   let claims;
   try {
@@ -1001,11 +1560,31 @@ async function handleAuthHandoff(request, env) {
     console.error("Firebase ID token verification failed for auth handoff:", error);
     return new Response("Could not verify Firebase ID token", { status: 503, headers });
   }
-  const headRole = claims && headRolesByEmail[String(claims.email || "").trim().toLowerCase()];
-  if (!headRole) return new Response("Authorized department-head account required", { status: 403, headers });
+  let customClaims;
+  if (claims?.employee === true && typeof claims.staffId === "string") {
+    const staffId = claims.staffId.trim().toLowerCase();
+    const expectedUid = `employee-${(await sha256Hex(staffId)).slice(0, 40)}`;
+    const requestedStaffId = String(body?.staffId || "").trim().toLowerCase();
+    if (!staffId || !constantTimeStringEqual(claims.sub, expectedUid)
+        || (requestedStaffId && requestedStaffId !== staffId)
+        || body?.headRole) {
+      return new Response("Authorized employee account required", { status: 403, headers });
+    }
+    customClaims = {
+      employee: true,
+      staffId,
+      employeeDepartment: typeof claims.employeeDepartment === "string" ? claims.employeeDepartment : ""
+    };
+  } else {
+    const headRole = claims ? await headRoleForClaims(env, claims) : "";
+    const requestedHeadRole = String(body?.headRole || "");
+    if (!headRole || (requestedHeadRole && requestedHeadRole !== headRole) || body?.staffId) {
+      return new Response("Authorized department-head account required", { status: 403, headers });
+    }
+  }
 
   try {
-    const customToken = await createFirebaseCustomToken(env, claims.sub);
+    const customToken = await createFirebaseCustomToken(env, claims.sub, customClaims);
     const handoffCode = crypto.randomUUID().replace(/-/g, "");
     await env.PUSH_SUBSCRIPTIONS.put(`auth-handoff:${handoffCode}`, customToken, { expirationTtl: 60 });
     return new Response(JSON.stringify({ handoffCode }), {
@@ -1057,14 +1636,53 @@ async function handleSubscription(request, env) {
   try { body = await request.json(); } catch { return new Response("Invalid JSON", { status: 400, headers }); }
   const staffId = String(body.staffId || "").trim().toLowerCase();
   const headRole = String(body.headRole || "").trim().toLowerCase();
+    const rawDepartment = String(body.department || "").trim().toLowerCase().replace(/\s+(north|south)$/i, "");
+    const department = rawDepartment === "pharmacy assistant" ? rawDepartment : "";
   const token = String(body.token || "").trim();
+    let stockType = "";
   if (Boolean(staffId) === Boolean(headRole) ||
       (headRole && !headRoles.has(headRole)) ||
+      (headRole && body.department) ||
       staffId.length > 100 || token.length < 20 || token.length > 8192) {
     return new Response("Invalid subscription", { status: 400, headers });
   }
 
-  const key = await subscriptionKey(token, headRole ? `head:${headRole}` : "");
+  if (headRole) {
+    const authorization = request.headers.get("authorization") || "";
+    const idToken = authorization.match(/^Bearer\s+(.+)$/i)?.[1] || "";
+    if (!idToken) return new Response("Firebase ID token required", { status: 401, headers });
+    let verifiedRole;
+    try {
+      verifiedRole = await verifyFirebaseHeadToken(idToken, env);
+      if (verifiedRole === "stock") {
+        const claims = await verifyFirebaseIdToken(idToken, env.FIREBASE_PROJECT_ID);
+        const email = String(claims?.email || "").trim().toLowerCase();
+        stockType = email === "adminstockreqsup@planetdrugstore.ph" ? "supplies" : "medicine";
+      }
+    } catch (error) {
+      console.error("Firebase ID token verification failed for push subscription:", error);
+      return new Response("Could not verify Firebase ID token", { status: 503, headers });
+    }
+    if (verifiedRole !== headRole) return new Response("Authorized department-head account required", { status: 403, headers });
+  }
+
+  const keyRecipient = headRole
+    ? `head:${headRole}${stockType ? `:${stockType}` : ""}`
+    : "";
+  const key = await subscriptionKey(token, keyRecipient);
+  if (headRole === "stock") {
+    const legacyKey = await subscriptionKey(token, "head:stock");
+    const legacy = await env.PUSH_SUBSCRIPTIONS.get(legacyKey, "json");
+    if (legacy && legacyKey !== key) {
+      if (["medicine", "supplies"].includes(String(legacy.stockType || ""))) {
+        const migratedKey = await subscriptionKey(token, `head:stock:${legacy.stockType}`);
+        if (!(await env.PUSH_SUBSCRIPTIONS.get(migratedKey))) {
+          await env.PUSH_SUBSCRIPTIONS.put(migratedKey, JSON.stringify(legacy));
+        }
+      }
+      await env.PUSH_SUBSCRIPTIONS.delete(legacyKey);
+    }
+  }
   if (request.method === "DELETE") {
     const existing = await env.PUSH_SUBSCRIPTIONS.get(key, "json");
     if (existing && existing.staffId === staffId && String(existing.headRole || "") === headRole) {
@@ -1072,8 +1690,9 @@ async function handleSubscription(request, env) {
     }
   } else {
     const existing = await env.PUSH_SUBSCRIPTIONS.get(key, "json");
-    if (!existing || existing.staffId !== staffId || String(existing.headRole || "") !== headRole || existing.token !== token) {
-      await env.PUSH_SUBSCRIPTIONS.put(key, JSON.stringify({ staffId, ...(headRole ? { headRole } : {}), token }));
+    if (!existing || existing.staffId !== staffId || String(existing.headRole || "") !== headRole ||
+        String(existing.department || "") !== department || String(existing.stockType || "") !== stockType || existing.token !== token) {
+      await env.PUSH_SUBSCRIPTIONS.put(key, JSON.stringify({ staffId, ...(headRole ? { headRole } : {}), ...(department ? { department } : {}), ...(stockType ? { stockType } : {}), token }));
     }
   }
   return new Response(JSON.stringify({ ok: true }), {
@@ -1130,8 +1749,8 @@ async function handleWake(request, env, context) {
     }
   }
 
-  context.waitUntil(deliverNewNotifications(env).catch(error => {
-    console.error("Immediate push delivery failed", error);
+  context.waitUntil(deliverPendingPushes(env).catch(error => {
+    console.error("Immediate push wake failed", error);
   }));
   return new Response(JSON.stringify({ ok: true }), {
     status: 202,
@@ -1163,6 +1782,20 @@ async function deliverDirectNotifications(env, notifications) {
   }
 }
 
+async function syncEventCutoffSchedules(env, notifications) {
+  const cancelTypes = new Set(["eventCancelled", "eventDeleted", "siteRemoved"]);
+  const updateTypes = new Set(["eventCutoffChanged", "dateChanged", "eventUpdated", "eventReinstated"]);
+  for (const notification of notifications) {
+    for (const event of Array.isArray(notification.cutoffSchedules) ? notification.cutoffSchedules : []) {
+      await scheduleEventCutoff(env, event);
+    }
+    if (updateTypes.has(notification.type)) await scheduleEventCutoff(env, notification);
+    if (cancelTypes.has(notification.type) && notification.cardId) {
+      await deleteScheduledTask(env, `scheduled:event-cutoff:${notification.cardId}`);
+    }
+  }
+}
+
 async function handleDispatch(request, env, context) {
   const origin = request.headers.get("Origin") || "";
   const headers = corsHeaders(env, origin);
@@ -1178,7 +1811,7 @@ async function handleDispatch(request, env, context) {
 
   let headRole;
   try {
-    headRole = await verifyFirebaseHeadToken(token, env.FIREBASE_PROJECT_ID);
+    headRole = await verifyFirebaseHeadToken(token, env);
   } catch (error) {
     console.error("Firebase ID token verification failed", error);
     return new Response("Could not verify Firebase ID token", { status: 503, headers });
@@ -1190,8 +1823,14 @@ async function handleDispatch(request, env, context) {
       notifications.some(notification => !notification || !notification.id || !notification.type)) {
     return new Response("Invalid notification batch", { status: 400, headers });
   }
+  try {
+    await migrateScheduledJobsToAlarms(env);
+  } catch (error) {
+    console.error("Could not migrate scheduled notifications to alarms", error);
+    return new Response("Could not initialize scheduled notifications", { status: 500, headers });
+  }
   const stockScheduleTypes = new Set(["stockDayActivated", "stockDayCutoffUpdated", "stockDayDeactivated"]);
-  const stockNoticeTypes = new Set(["stockDayScheduleChanged", "stockDayClosedEarly"]);
+  const stockNoticeTypes = new Set(["stockDayScheduleChanged", "stockDayClosedEarly", "stockRequestRemoved", "stockRequestCompleted", "stockRequestUnblocked"]);
   const authorizedStockTypes = new Set([...stockScheduleTypes, ...stockNoticeTypes]);
   const hasStockScheduleChange = notifications.some(notification => authorizedStockTypes.has(notification.type));
   const stockScheduleOnly = notifications.every(notification => authorizedStockTypes.has(notification.type));
@@ -1201,13 +1840,33 @@ async function handleDispatch(request, env, context) {
 
   if (headRole === "stock") {
     try {
+      const claims = await verifyFirebaseIdToken(token, env.FIREBASE_PROJECT_ID);
+      const email = String(claims?.email || "").trim().toLowerCase();
+      const stockType = email === "adminstockreqsup@planetdrugstore.ph" ? "supplies" : "medicine";
+      const typeSpecificNotifications = new Set([
+        "stockDayActivated", "stockDayCutoffUpdated", "stockDayDeactivated", "stockDayClosedEarly", "stockRequestCompleted"
+      ]);
+      if (notifications.some(notification => typeSpecificNotifications.has(notification.type)
+          && notification.requestType !== stockType)) {
+        return new Response("Stock request category does not match the signed-in account", { status: 403, headers });
+      }
       for (const notification of notifications) {
         if (!stockScheduleTypes.has(notification.type)) continue;
         const date = String(notification.date || "");
+        const requestType = notification.requestType === "supplies" ? "supplies" : "medicine";
+        const cutoffKey = `scheduled:stock-cutoff:${requestType}:${date}`;
         if (notification.type === "stockDayDeactivated") {
           await Promise.all([
-            env.PUSH_SUBSCRIPTIONS.delete(`scheduled:stock-cutoff:${date}`),
-            env.PUSH_SUBSCRIPTIONS.delete(`stock-cutoff:${date}`)
+            deleteScheduledTask(env, cutoffKey),
+            env.PUSH_SUBSCRIPTIONS.delete(cutoffKey),
+            ...(requestType === "medicine"
+              ? [
+                  deleteScheduledTask(env, `scheduled:stock-cutoff:${date}`),
+                  env.PUSH_SUBSCRIPTIONS.delete(`scheduled:stock-cutoff:${date}`),
+                  deleteScheduledTask(env, `stock-cutoff:${date}`),
+                  env.PUSH_SUBSCRIPTIONS.delete(`stock-cutoff:${date}`)
+                ]
+              : [])
           ]);
         } else {
           await scheduleStockCutoff(env, notification);
@@ -1219,8 +1878,17 @@ async function handleDispatch(request, env, context) {
     }
   }
 
+  if (headRole !== "stock") {
+    try {
+      await syncEventCutoffSchedules(env, notifications);
+    } catch (error) {
+      console.error("Could not schedule event cutoff notification", error);
+      return new Response("Could not schedule event cutoff notification", { status: 500, headers });
+    }
+  }
+
   const immediateNotifications = notifications.filter(notification =>
-    ["stockDayActivated", "stockDayScheduleChanged", "stockDayCutoffUpdated", "stockDayClosedEarly"].includes(notification.type)
+    ["stockDayActivated", "stockDayScheduleChanged", "stockDayCutoffUpdated", "stockDayClosedEarly", "stockRequestRemoved", "stockRequestCompleted", "stockRequestUnblocked"].includes(notification.type)
   );
   if (headRole !== "stock" || immediateNotifications.length) {
     const dispatchBatch = headRole === "stock" ? immediateNotifications : notifications;
@@ -1253,13 +1921,17 @@ async function handleReminderAction(request, env) {
   const actionKey = `event-reminder-action:${reminderKey}`;
   const actionContext = await env.PUSH_SUBSCRIPTIONS.get(actionKey, "json");
   if (!actionContext || actionContext.actionToken !== actionToken) return new Response("Reminder action expired", { status: 403, headers });
+  await migrateScheduledJobsToAlarms(env);
   if (action === "snooze") {
-    await env.PUSH_SUBSCRIPTIONS.put(`scheduled:event-reminder-snoozed:${reminderKey}`, JSON.stringify({
+    const name = `scheduled:event-reminder-snoozed:${reminderKey}`;
+    const task = {
       jobType: "snoozedReminder",
       actionContext,
       sequence: Number(actionContext.sequence || 0) + 1,
       dueAt: Date.now() + 10 * 60 * 1000
-    }), { expirationTtl: 259200 });
+    };
+    await env.PUSH_SUBSCRIPTIONS.put(name, JSON.stringify(task), { expirationTtl: 259200 });
+    await updateScheduledAlarm(env, "upsert", name, task);
   }
   await env.PUSH_SUBSCRIPTIONS.delete(actionKey);
   return new Response(JSON.stringify({ ok: true }), {
@@ -1268,15 +1940,17 @@ async function handleReminderAction(request, env) {
 }
 
 async function deliverPendingPushes(env) {
-  await Promise.all([
-    deliverNewNotifications(env).catch(error => console.error("Schedule push delivery failed:", error)),
-    deliverScheduledJobs(env).catch(error => console.error("Scheduled notification delivery failed:", error))
-  ]);
+  await migrateScheduledJobsToAlarms(env);
+  await syncPublishedEventCutoffJobs(env).catch(error => {
+    console.error("Published event cutoff sync failed:", error);
+  });
+  await deliverNewNotifications(env).catch(error => console.error("Schedule push delivery failed:", error));
 }
 
 export default {
   async fetch(request, env, context) {
     const url = new URL(request.url);
+    if (url.pathname === "/employee-authenticate") return handleEmployeeAuthentication(request, env);
     if (url.pathname === "/subscribe") return handleSubscription(request, env);
     if (url.pathname === "/dispatch") return handleDispatch(request, env, context);
     if (url.pathname === "/wake") return handleWake(request, env, context);
@@ -1284,8 +1958,5 @@ export default {
     if (url.pathname === "/auth-handoff/exchange") return handleAuthHandoffExchange(request, env);
     if (url.pathname === "/reminder-action") return handleReminderAction(request, env);
     return new Response("Not found", { status: 404 });
-  },
-  async scheduled(_event, env, context) {
-    context.waitUntil(deliverPendingPushes(env));
   }
 };

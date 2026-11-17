@@ -360,7 +360,7 @@
     letter-spacing:.6px;
   }
   .pw-toggle:hover{background:#f7f1ef;color:var(--maroon);}
-  .pw-toggle:focus-visible,.login-btn:focus-visible,.form-foot a:focus-visible{outline:3px solid rgba(189,39,52,.3);outline-offset:3px;}
+  .pw-toggle:focus-visible,.login-btn:focus-visible,.form-foot a:focus-visible,.dashboard-btn:focus-visible{outline:3px solid rgba(189,39,52,.3);outline-offset:3px;}
   .remember-row{gap:9px;margin:1px 0 22px;}
   .remember-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--maroon);}
   .remember-row label{color:#65595b;font-size:12px;}
@@ -379,6 +379,8 @@
   .form-foot{margin-top:24px;padding-top:19px;border-top:1px solid #eee8e5;color:var(--muted);font-size:12px;text-align:center;}
   .form-foot a{color:var(--maroon);}
   .form-foot + .form-foot{margin-top:0;padding-top:10px;border:0;}
+  .dashboard-btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;border:1px solid #d8ccca;border-radius:8px;background:#fff;color:var(--maroon);font-weight:700;text-decoration:none;}
+  .dashboard-btn:hover{background:#f8f1ef;border-color:#b9a6a5;}
   @media (max-width:900px){
     body{padding:20px;}
     .stage{height:auto;min-height:620px;grid-template-columns:.9fr 1.1fr;}
@@ -409,6 +411,10 @@
     .stage{min-height:100dvh;border:0;border-radius:0;}
     .panel-brand{min-height:210px;padding-right:20px;padding-left:20px;}
     .panel-form{padding-right:20px;padding-left:20px;}
+  }
+  @media (max-height:760px){
+    body{display:block;overflow-y:auto;}
+    .stage{margin:0 auto;}
   }
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important;}
@@ -463,7 +469,7 @@
     <div class="form-card">
       <div class="access-pill">Authorized employee access</div>
       <h2>Welcome back</h2>
-      <p class="sub">Sign in with the Staff ID issued by your department to continue.</p>
+      <p class="sub">Sign in with the Staff ID issued by your department to continue. Department accounts, including view-only access, should use Department Login below.</p>
 
       <form id="loginForm" autocomplete="on">
         <div class="lfield">
@@ -487,8 +493,9 @@
         <div class="login-error" id="loginError" role="alert" aria-live="polite"></div>
       </form>
 
-      <div class="form-foot">Need an account? Ask your department to register your Staff ID.</div>
+      <div class="form-foot">New employee? <a href="/register">Create your account</a>.</div>
       <div class="form-foot"><a href="/839jgl8ang">Department Login &rarr;</a></div>
+      <div class="form-foot"><a class="dashboard-btn" href="/dashboard.html">&larr; Dashboard</a></div>
     </div>
   </div>
 </div>
@@ -505,7 +512,7 @@
 // bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
 // doesn't match what this tab is currently running — shows a small banner
 // instead of silently staying on stale code.
-const APP_VERSION = "2026-10-13.1";
+const APP_VERSION = "2026-10-28.5";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -550,9 +557,8 @@ function startVersionWatch() {
 startVersionWatch();
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import {
-    initializeFirestore, doc, getDoc
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
+  import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence, browserSessionPersistence, signInWithCustomToken, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   // Same Firebase project as the rest of the system.
   const firebaseConfig = {
     apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
@@ -563,21 +569,91 @@ startVersionWatch();
     appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const db = initializeFirestore(app, {
-    experimentalForceLongPolling: true,
-    useFetchStreams: false
-  });
-  // Employees are no longer real Firebase Auth users — each Staff ID is a
-  // document in the "employees" collection (doc ID = lowercased Staff ID)
-  // holding a SHA-256 password hash. "Signed in" is just a small session
-  // record kept in localStorage/sessionStorage (see SESSION_KEY below).
+  const app = initializeApp(getFirebaseConfigForHost(firebaseConfig));
+  const auth = getAuth(app);
+  connectLocalFirebaseEmulators({ auth });
   const SESSION_KEY = 'pdEmployeeSession';
+  const VIEWER_EMAIL = 'pdsviewing@planetdrugstore.ph';
 
-  async function hashPassword(pw){
-    const enc = new TextEncoder().encode(pw);
-    const buf = await crypto.subtle.digest('SHA-256', enc);
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  function saveViewerSession(){
+    const viewerSession = {
+      staffId: 'PDSVIEWING',
+      name: 'PDS Viewing',
+      email: VIEWER_EMAIL,
+      department: 'Viewer',
+      branch: 'All Departments',
+      role: 'viewer',
+      signedInAt: Date.now()
+    };
+    const serialized = JSON.stringify(viewerSession);
+    try {
+      localStorage.setItem(SESSION_KEY, serialized);
+      sessionStorage.removeItem(SESSION_KEY);
+    } catch (error) {
+      try {
+        sessionStorage.setItem(SESSION_KEY, serialized);
+      } catch (storageError) {
+        console.error('Unable to prepare the viewer session from Employee Login:', storageError);
+        throw storageError;
+      }
+    }
+  }
+
+  async function authenticateEmployee(credentials) {
+    if (["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname)) {
+      try {
+        const response = await fetch("http://127.0.0.1:5002/employee-authenticate", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(credentials)
+        });
+        if (!response.ok) {
+          const error = new Error(response.status === 401
+            ? "Incorrect Staff ID or password."
+            : response.status === 429
+              ? "Too many sign-in attempts. Please wait and try again."
+              : "Local employee sign-in is unavailable. Restart the local test environment and try again.");
+          error.code = response.status === 401
+            ? "functions/unauthenticated"
+            : response.status === 429
+              ? "functions/resource-exhausted"
+              : "functions/unavailable";
+          throw error;
+        }
+        return { data: await response.json() };
+      } catch (error) {
+        if (error.code) throw error;
+        const unavailable = new Error("Local employee sign-in is unavailable. Restart the local test environment and try again.");
+        unavailable.code = "functions/unavailable";
+        throw unavailable;
+      }
+    }
+
+    const configResponse = await fetch("/push-config.json", { cache: "no-store" });
+    if (!configResponse.ok) throw new Error("Employee sign-in is not configured.");
+    const config = await configResponse.json();
+    if (!config.enabled || !config.workerUrl) throw new Error("Employee sign-in is not configured.");
+    const response = await fetch(`${config.workerUrl.replace(/\/$/, "")}/employee-authenticate`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(credentials)
+    });
+    if (!response.ok) {
+      const error = new Error(response.status === 401
+        ? "Incorrect Staff ID or password."
+        : response.status === 429
+          ? "Too many sign-in attempts. Please wait and try again."
+          : "Employee sign-in is temporarily unavailable.");
+      error.code = response.status === 401
+        ? "functions/unauthenticated"
+        : response.status === 429
+          ? "functions/resource-exhausted"
+          : response.status >= 500
+            ? "functions/unavailable"
+            : "functions/invalid-argument";
+      throw error;
+    }
+    return { data: await response.json() };
   }
 
   function readSession(){
@@ -620,6 +696,52 @@ startVersionWatch();
   const staffIdInput = document.getElementById('staffId');
   const rememberMe = document.getElementById('rememberMe');
   const REMEMBER_KEY = 'pd_remembered_staffId';
+  const LOGIN_LOCK_KEY = 'pd_employee_login_lock';
+  const MAX_LOGIN_FAILURES = 5;
+  const LOGIN_LOCK_MS = 3 * 60 * 1000;
+
+  function getLoginLock(){
+    try{
+      const state = JSON.parse(localStorage.getItem(LOGIN_LOCK_KEY) || '{"failures":0,"lockedUntil":0}');
+      if(state.lockedUntil && state.lockedUntil <= Date.now()){
+        const reset = { failures: 0, lockedUntil: 0 };
+        localStorage.setItem(LOGIN_LOCK_KEY, JSON.stringify(reset));
+        return reset;
+      }
+      return state;
+    }catch(err){ return { failures: 0, lockedUntil: 0 }; }
+  }
+
+  function showLoginLock(){
+    const remaining = getLoginLock().lockedUntil - Date.now();
+    if(remaining <= 0){
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Sign In';
+      if(loginError.textContent.startsWith('Too many failed attempts.')) loginError.style.display = 'none';
+      return false;
+    }
+    const seconds = Math.ceil(remaining / 1000);
+    loginBtn.disabled = true;
+    loginBtn.textContent = `Try again in ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+    loginError.textContent = 'Too many failed attempts. Sign-in is blocked for 3 minutes.';
+    loginError.style.display = 'block';
+    return true;
+  }
+
+  function recordLoginFailure(){
+    const state = getLoginLock();
+    state.failures += 1;
+    if(state.failures >= MAX_LOGIN_FAILURES) state.lockedUntil = Date.now() + LOGIN_LOCK_MS;
+    try{ localStorage.setItem(LOGIN_LOCK_KEY, JSON.stringify(state)); }catch(err){}
+    return state.failures >= MAX_LOGIN_FAILURES;
+  }
+
+  function clearLoginFailures(){
+    try{ localStorage.removeItem(LOGIN_LOCK_KEY); }catch(err){}
+  }
+
+  showLoginLock();
+  setInterval(showLoginLock, 1000);
 
   // Show/Hide password
   const pwInput = document.getElementById('loginPassword');
@@ -641,10 +763,39 @@ startVersionWatch();
     rememberMe.checked = true;
   }
 
-  // Already signed in as an employee? Skip straight to the form.
-  if(readSession()){
-    window.location.replace('/ed3od6ldsq');
-  }
+  const authStateReady = new Promise(resolve => {
+    let resolved = false;
+    onAuthStateChanged(auth, async user => {
+      try {
+        if (user) {
+          if (String(user.email || '').trim().toLowerCase() === VIEWER_EMAIL) {
+            saveViewerSession();
+            window.location.replace('/ed3od6ldsq');
+            return;
+          }
+          const token = await user.getIdTokenResult();
+          const session = readSession();
+          const tokenStaffId = String(token.claims.staffId || "").toLowerCase();
+          if (token.claims.employee === true && session?.staffId
+              && tokenStaffId === String(session.staffId).toLowerCase()) {
+            window.location.replace('/ed3od6ldsq');
+          } else {
+            await signOut(auth);
+          }
+        }
+      } catch (error) {
+        console.error("Unable to validate employee authentication:", error);
+        await signOut(auth).catch(signOutError => {
+          console.error("Unable to clear invalid employee authentication:", signOutError);
+        });
+      } finally {
+        if (!resolved) {
+          resolved = true;
+          resolve();
+        }
+      }
+    });
+  });
 
   // Bounced back here because an Admin deleted this account.
   if(new URLSearchParams(window.location.search).get('deleted') === '1'){
@@ -654,24 +805,21 @@ startVersionWatch();
 
   loginForm.addEventListener('submit', async (e)=>{
     e.preventDefault();
+    await authStateReady;
+    if(showLoginLock()) return;
     loginError.style.display = 'none';
     loginBtn.disabled = true;
     loginBtn.textContent = 'Signing in…';
     PDLoader.show();
     const staffId = document.getElementById('staffId').value.trim();
     const password = document.getElementById('loginPassword').value;
-    const staffDocId = staffId.toLowerCase();
+    if (staffId.toLowerCase() === VIEWER_EMAIL) {
+      window.location.replace('/839jgl8ang');
+      return;
+    }
     try{
-      const snap = await getDoc(doc(db, 'employees', staffDocId));
-      if(!snap.exists()){
-        throw { code: 'not-found' };
-      }
-      const profile = snap.data();
-      const passwordHash = await hashPassword(password);
-      if(passwordHash !== profile.passwordHash){
-        throw { code: 'wrong-password' };
-      }
-
+      const result = await authenticateEmployee({ staffId, password });
+      const profile = result.data.employee;
       const session = {
         staffId: profile.staffId || staffId,
         name: profile.name || '',
@@ -680,26 +828,42 @@ startVersionWatch();
         branch: profile.branch || '',
         signedInAt: Date.now()
       };
-
-      // Fall back to session storage if persistent browser storage is full or blocked.
+      await setPersistence(auth, rememberMe.checked ? browserLocalPersistence : browserSessionPersistence);
       saveSession(session, rememberMe.checked, staffId);
+
+      try {
+        await signInWithCustomToken(auth, result.data.customToken);
+      } catch (error) {
+        localStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem(SESSION_KEY);
+        throw error;
+      }
+      clearLoginFailures();
       window.location.href = '/ed3od6ldsq';
     }catch(err){
       PDLoader.hide();
-      loginError.textContent = friendlyAuthError(err);
+      const errorCode = String(err?.code || '');
+      const credentialFailure = errorCode === 'functions/unauthenticated';
+      const locked = credentialFailure && recordLoginFailure();
+      loginError.textContent = locked ? 'Too many failed attempts. Sign-in is blocked for 3 minutes.' : friendlyAuthError(err);
       loginError.style.display = 'block';
-      loginBtn.disabled = false;
-      loginBtn.textContent = 'Sign In';
+      if(locked) showLoginLock();
+      else{
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign In';
+      }
     }
   });
 
   function friendlyAuthError(err){
     const code = err && err.code || '';
+    if(code === 'functions/unauthenticated') return 'Incorrect Staff ID or password.';
+    if(code === 'functions/resource-exhausted') return 'Too many sign-in attempts. Please wait and try again.';
+    if(code === 'functions/unavailable' || code === 'functions/deadline-exceeded'){
+      return 'Network error — check your connection and try again.';
+    }
     if(err && (err.name === 'QuotaExceededError' || code.toLowerCase().includes('quota'))){
       return 'Browser storage is full. Clear some site data, then sign in again.';
-    }
-    if(code.includes('not-found') || code.includes('wrong-password')){
-      return 'Incorrect Staff ID or password.';
     }
     if(code.includes('network-request-failed') || code.includes('unavailable')){
       return 'Network error — check your connection and try again.';

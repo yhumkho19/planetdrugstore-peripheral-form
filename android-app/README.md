@@ -1,12 +1,16 @@
 # PDS Schedule Alarm
 
-Native Android companion for background Pharmacy schedule notifications and event alarms.
+Native Android app for Planet Drugstore notifications, including schedule updates and event alarms.
 
 ## Build
 
 Open this `android-app` folder in Android Studio and let Gradle sync. Build a debug APK with **Build > Build Bundle(s) / APK(s) > Build APK(s)**. Employees connect with their Staff ID and employee password. Department heads select their role and sign in with the matching Firebase Auth email/password for Pharmacist, Billing, or Information. Allow notifications after connecting.
 
-The **Open** button follows the connected account: employees open the employee schedule, department heads open their own schedule, and the Stock Request admin opens Ordering. Head pages open inside the APK and use a short-lived, one-use Firebase sign-in handoff, so the browser does not need a separate login. The handoff requires the push Worker to have the existing Firebase service-account secrets configured.
+The disconnected screen shows an X status circle; refreshing the connection shows a rotating broken-ring indicator. The connected screen shows the notification permission state and includes a **Test** action for event alarms. Test alarms return to the notification center after 60 seconds or when **Stop alarm** is tapped.
+
+For Stock Request admin notifications, choose **Stock Request Meds Admin** or **Stock Request Supplies Admin** and use its matching Firebase Auth email. The selected role is checked against the verified email, which determines which category's alerts the device receives. Passwords are entered at sign-in and are not stored in the APK.
+
+The **Open console** button securely hands the connected Firebase session to the common Planet Drugstore console landing page for every connected account, so the browser does not ask the user to sign in again. The one-time handoff expires quickly and cannot be reused.
 
 ## Company distribution
 

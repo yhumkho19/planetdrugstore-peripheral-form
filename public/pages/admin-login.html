@@ -235,6 +235,10 @@
     .panel-brand{min-height:210px;padding-right:20px;padding-left:20px;}
     .panel-form{padding-right:20px;padding-left:20px;}
   }
+  @media (max-height:760px){
+    body{display:block;overflow-y:auto;}
+    .stage{margin:0 auto;}
+  }
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;}
   }
@@ -301,6 +305,7 @@
       </form>
 
       <div class="form-foot"><a href="/fu3hriaj0m">Employee Login &rarr;</a></div>
+      <div class="form-foot" style="margin-top: 10px; padding-top: 0; border-top: 0;">New employee? <a href="/register">Create an account</a>.</div>
     </div>
   </div>
 </div>
@@ -317,7 +322,7 @@
 // bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
 // doesn't match what this tab is currently running — shows a small banner
 // instead of silently staying on stale code.
-const APP_VERSION = "2026-10-13.1";
+const APP_VERSION = "2026-10-28.6";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -362,8 +367,10 @@ function startVersionWatch() {
 startVersionWatch();
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { doc, getDoc, getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
   import {
-    getAuth, onAuthStateChanged, signInWithEmailAndPassword, setPersistence,
+    getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence,
     browserLocalPersistence, browserSessionPersistence
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -377,8 +384,10 @@ startVersionWatch();
     appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
   };
 
-  const app = initializeApp(firebaseConfig);
+  const app = initializeApp(getFirebaseConfigForHost(firebaseConfig));
   const auth = getAuth(app);
+  const db = getFirestore(app);
+  connectLocalFirebaseEmulators({ auth, db });
 
   // Event Schedule has its own fixed account — this login page is shared
   // by IT Admin and the Event Schedule team; we branch on the signed-in
@@ -388,22 +397,113 @@ startVersionWatch();
     'billingdepart@planetdrugstore.ph',
     'informationdepart@planetdrugstore.ph'
   ];
-  function isEventScheduleUser(user){
-    return EVENT_SCHEDULE_EMAILS.includes((user && user.email || '').toLowerCase());
-  }
-  const STOCK_REQ_EMAIL = 'adminstockreq@planetdrugstore.ph';
-  function landingFor(user){
-    const email = (user && user.email || '').toLowerCase();
-    if(email === STOCK_REQ_EMAIL) return '/r5c8j2ndxa';
-    return isEventScheduleUser(user) ? '/dkjyg56lvm' : '/8niuis7jih';
+  const STOCK_REQ_EMAILS = [
+    'adminstockreqmeds@planetdrugstore.ph',
+    'adminstockreqsup@planetdrugstore.ph'
+  ];
+  const VIEWER_EMAIL = 'pdsviewing@planetdrugstore.ph';
+  const DEPARTMENT_EDITOR_EMAIL = 'departments.editor@planetdrugstore.ph';
+  async function landingFor(user){
+    const email = String(user && user.email || '').trim().toLowerCase();
+    if(email === DEPARTMENT_EDITOR_EMAIL) return '/department-editor';
+    if(email === VIEWER_EMAIL){
+      const viewerSession = {
+        staffId: 'PDSVIEWING',
+        name: 'PDS Viewing',
+        email: VIEWER_EMAIL,
+        department: 'Viewer',
+        branch: 'All Departments',
+        role: 'viewer',
+        signedInAt: Date.now()
+      };
+      try{
+        localStorage.setItem('pdEmployeeSession', JSON.stringify(viewerSession));
+        sessionStorage.removeItem('pdEmployeeSession');
+      }catch(error){
+        try{
+          sessionStorage.setItem('pdEmployeeSession', JSON.stringify(viewerSession));
+        }catch(storageError){
+          console.error('Unable to prepare the viewer session:', storageError);
+          throw storageError;
+        }
+      }
+      return '/ed3od6ldsq';
+    }
+    if(STOCK_REQ_EMAILS.includes(email)) return '/r5c8j2ndxa';
+    if(EVENT_SCHEDULE_EMAILS.includes(email)) return '/dkjyg56lvm';
+    if(user?.uid){
+      try{
+        const profile = await getDoc(doc(db, 'eventScheduleAdmins', user.uid));
+        if(profile.exists() && profile.data().role === 'pharmacist'){
+          if(profile.data().active === true && profile.data().deleted !== true){
+            return '/dkjyg56lvm';
+          }
+          await signOut(auth);
+          return '/839jgl8ang?access=revoked';
+        }
+      }catch(error){
+        console.error('Could not verify Pharmacy schedule admin profile:', error);
+      }
+    }
+    return '/8niuis7jih';
   }
 
   const loginForm = document.getElementById('loginForm');
   const loginBtn = document.getElementById('loginBtn');
   const loginError = document.getElementById('loginError');
   const emailInput = document.getElementById('loginEmail');
+  if(new URLSearchParams(location.search).get('access') === 'revoked'){
+    loginError.textContent = 'This Operations account is disabled and cannot access the Event Schedule.';
+    loginError.style.display = 'block';
+  }
   const rememberMe = document.getElementById('rememberMe');
   const REMEMBER_KEY = 'pd_remembered_adminEmail';
+  const LOGIN_LOCK_KEY = 'pd_admin_login_lock';
+  const MAX_LOGIN_FAILURES = 5;
+  const LOGIN_LOCK_MS = 3 * 60 * 1000;
+
+  function getLoginLock(){
+    try{
+      const state = JSON.parse(localStorage.getItem(LOGIN_LOCK_KEY) || '{"failures":0,"lockedUntil":0}');
+      if(state.lockedUntil && state.lockedUntil <= Date.now()){
+        const reset = { failures: 0, lockedUntil: 0 };
+        localStorage.setItem(LOGIN_LOCK_KEY, JSON.stringify(reset));
+        return reset;
+      }
+      return state;
+    }catch(err){ return { failures: 0, lockedUntil: 0 }; }
+  }
+
+  function showLoginLock(){
+    const remaining = getLoginLock().lockedUntil - Date.now();
+    if(remaining <= 0){
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Sign In';
+      if(loginError.textContent.startsWith('Too many failed attempts.')) loginError.style.display = 'none';
+      return false;
+    }
+    const seconds = Math.ceil(remaining / 1000);
+    loginBtn.disabled = true;
+    loginBtn.textContent = `Try again in ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+    loginError.textContent = 'Too many failed attempts. Sign-in is blocked for 3 minutes.';
+    loginError.style.display = 'block';
+    return true;
+  }
+
+  function recordLoginFailure(){
+    const state = getLoginLock();
+    state.failures += 1;
+    if(state.failures >= MAX_LOGIN_FAILURES) state.lockedUntil = Date.now() + LOGIN_LOCK_MS;
+    try{ localStorage.setItem(LOGIN_LOCK_KEY, JSON.stringify(state)); }catch(err){}
+    return state.failures >= MAX_LOGIN_FAILURES;
+  }
+
+  function clearLoginFailures(){
+    try{ localStorage.removeItem(LOGIN_LOCK_KEY); }catch(err){}
+  }
+
+  showLoginLock();
+  setInterval(showLoginLock, 1000);
 
   // Show/Hide password
   const pwInput = document.getElementById('loginPassword');
@@ -435,11 +535,12 @@ startVersionWatch();
   // between this page and the landing page in a loop.
   await auth.authStateReady();
   if(auth.currentUser){
-    window.location.replace(landingFor(auth.currentUser));
+    window.location.replace(await landingFor(auth.currentUser));
   }
 
   loginForm.addEventListener('submit', async (e)=>{
     e.preventDefault();
+    if(showLoginLock()) return;
     loginError.style.display = 'none';
     loginBtn.disabled = true;
     loginBtn.textContent = 'Signing in…';
@@ -456,13 +557,20 @@ startVersionWatch();
       }else{
         localStorage.removeItem(REMEMBER_KEY);
       }
-      window.location.href = landingFor(auth.currentUser);
+      clearLoginFailures();
+      window.location.href = await landingFor(auth.currentUser);
     }catch(err){
       PDLoader.hide();
-      loginError.textContent = friendlyAuthError(err);
+      const code = err && err.code || '';
+      const credentialFailure = code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found');
+      const locked = credentialFailure && recordLoginFailure();
+      loginError.textContent = locked ? 'Too many failed attempts. Sign-in is blocked for 3 minutes.' : friendlyAuthError(err);
       loginError.style.display = 'block';
-      loginBtn.disabled = false;
-      loginBtn.textContent = 'Sign In';
+      if(locked) showLoginLock();
+      else{
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign In';
+      }
     }
   });
 

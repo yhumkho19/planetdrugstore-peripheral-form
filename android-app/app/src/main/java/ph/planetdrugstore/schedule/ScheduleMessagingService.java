@@ -32,14 +32,24 @@ public class ScheduleMessagingService extends FirebaseMessagingService {
         NotificationChannels.create(this);
         boolean eventAlarm = "1".equals(data.get("eventReminder"));
         String notificationType = value(data, "notificationType", "");
+        boolean scheduleReset = "1".equals(data.get("scheduleReset"));
         boolean pharmacistNote = "pharmacistNote".equals(notificationType);
-        boolean stockDayNotification = notificationType.startsWith("stockDay");
-        boolean priorityUpdate = pharmacistNote || "removed".equals(notificationType);
+        boolean stockDayNotification = notificationType.startsWith("stockDay") || notificationType.startsWith("stockRequest");
+        boolean stockRequestRemoved = "stockRequestRemoved".equals(notificationType);
+        boolean priorityUpdate = pharmacistNote || "removed".equals(notificationType) || stockRequestRemoved
+                || "stockRequestSubmitted".equals(notificationType);
         String channel = eventAlarm ? NotificationChannels.EVENT_ALARMS
             : priorityUpdate ? NotificationChannels.PRIORITY_UPDATES : NotificationChannels.UPDATES;
-        String title = value(data, "title", eventAlarm ? "Event alarm from Pharmacy" : "Pharmacy schedule update");
+        String title = value(data, "title", eventAlarm ? "Event alarm from Operations" : "Operations schedule update");
         String body = value(data, "body", "Open the schedule to review the update.");
+        if (scheduleReset) {
+            title = "Event schedule reset";
+            body = "Operations reset the event schedule. Your previous assignment at "
+                    + value(data, "scheduleLocation", "this event site")
+                    + " was cleared. You can sign up again if a slot is available.";
+        }
         String url = value(data, "url", "https://planetdrugstoreconsole.web.app/47fto0gim6");
+        String contactAdminUrl = value(data, "contactAdminUrl", "");
         String id = value(data, "notificationId", String.valueOf(System.currentTimeMillis()));
         int notificationId = id.hashCode() & 0x7fffffff;
 
@@ -65,6 +75,14 @@ public class ScheduleMessagingService extends FirebaseMessagingService {
 
             notification.addAction(R.drawable.ic_notification, pharmacistNote ? "View notes" : stockDayNotification ? "View page" : "View site", contentIntent)
                 .addAction(R.drawable.ic_notification, "Close", closeIntent);
+        if (!contactAdminUrl.isEmpty()) {
+            Intent contactAdmin = new Intent(Intent.ACTION_VIEW, Uri.parse(contactAdminUrl));
+            PendingIntent contactAdminIntent = PendingIntent.getActivity(this,
+                    ("contact-admin:" + id).hashCode() & 0x7fffffff,
+                    contactAdmin,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            notification.addAction(R.drawable.ic_notification, "Contact Admin", contactAdminIntent);
+        }
 
             NotificationManagerCompat.from(this).notify(notificationId, notification.build());
 

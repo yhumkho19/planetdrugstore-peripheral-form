@@ -141,6 +141,7 @@
     transition:background .15s ease;
   }
   .badge-dropdown-item:hover{ background:rgba(255,255,255,0.1); }
+  a.badge-dropdown-item{text-decoration:none;}
   .welcome-avatar{
     width:30px;height:30px;border-radius:50%;
     background:linear-gradient(145deg, var(--red), var(--red-dark));
@@ -295,6 +296,7 @@
       <span class="welcome-dot"></span>
       <span class="badge-chevron"></span>
       <div class="badge-dropdown" id="badgeDropdown">
+        <a class="badge-dropdown-item" href="/dashboard.html">Go to Dashboard</a>
         <button type="button" class="badge-dropdown-item" id="OnLogout">🚪 Log Out</button>
       </div>
     </div>
@@ -302,13 +304,13 @@
 
   <div class="hero">
     <div class="hero-text">
-      <div class="kicker">Introducing <b>Planet Drugstore Stock Request Admin</b></div>
-      <h1 class="headline">Welcome back,<span class="accent">Stock Req</span></h1>
-      <p class="subtext">
-        One log-in for all stock requests from every branch — see who submitted, from which site, and their SR#, day by day, updated live as employees submit
+      <div class="kicker">Introducing <b id="stockAdminType">Planet Drugstore Stock Request Admin</b></div>
+      <h1 class="headline">Welcome back,<span class="accent" id="stockAdminHeadline">Stock Req</span></h1>
+      <p class="subtext" id="stockAdminDescription">
+        Review medicine stock requests from every branch, including who submitted, their site, and SR#.
       </p>
       <div class="hero-ctas">
-        <a href="/h9b4t2zvfe" class="btn-primary">📦 Open Ordering System</a>
+        <a href="/h9b4t2zvfe" class="btn-primary" id="stockAdminOpenLink">📦 Open Medicine Requests</a>
       </div>
       <div class="trust-row">
         <div><strong>2</strong>Branches Covered</div>
@@ -357,7 +359,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-09-29.1";
+const APP_VERSION = "2026-11-10.2";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -403,6 +405,7 @@ startVersionWatch();
 
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
   import { initializeFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import {
     getAuth, onAuthStateChanged, signOut, setPersistence,
@@ -421,12 +424,13 @@ startVersionWatch();
     appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
   };
 
-  const app = initializeApp(firebaseConfig);
+  const app = initializeApp(getFirebaseConfigForHost(firebaseConfig));
   const db = initializeFirestore(app, {
     experimentalForceLongPolling: true,
     useFetchStreams: false
   });
   const auth = getAuth(app);
+  connectLocalFirebaseEmulators({ db, auth });
 
   // Admin guard: only real admin accounts from the admin login are allowed.
   // Signed-out visitors and employee (staff) accounts return to admin login.
@@ -436,8 +440,20 @@ startVersionWatch();
       window.location.replace('/839jgl8ang');
       return;
     }
-    const email = user.email || '';
-    document.getElementById('welcomeName').textContent = 'STOCK REQ ADMIN';
+    const email = String(user.email || '').trim().toLowerCase();
+    const suppliesAdmin = email === 'adminstockreqsup@planetdrugstore.ph';
+    const authorizedStockAdmin = suppliesAdmin || email === 'adminstockreqmeds@planetdrugstore.ph';
+    if(!authorizedStockAdmin){
+      window.location.replace('/8niuis7jih');
+      return;
+    }
+    const category = suppliesAdmin ? 'Supplies' : 'Medicine';
+    document.getElementById('welcomeName').textContent = category.toUpperCase() + ' STOCK ADMIN';
+    document.getElementById('stockAdminType').textContent = 'Planet Drugstore ' + category + ' Stock Request Admin';
+    document.getElementById('stockAdminHeadline').textContent = category + ' Requests';
+    document.getElementById('stockAdminDescription').textContent =
+      'Review ' + category.toLowerCase() + ' stock requests from every branch, including who submitted, their site, and SR#.';
+    document.getElementById('stockAdminOpenLink').textContent = '📦 Open ' + category + ' Requests';
     document.getElementById('welcomeAvatar').textContent =
       (email.split('@')[0].replace(/[^a-zA-Z]/g,'').slice(0,2) || 'SR').toUpperCase();
     document.body.style.visibility = 'visible';

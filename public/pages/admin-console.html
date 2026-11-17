@@ -500,6 +500,17 @@
 
   /* Register Employee section */
   .reg-row{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
+  .registration-control{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    margin-bottom:18px;padding:16px 18px;background:#fff;border:1px solid var(--line);border-radius:10px;
+  }
+  .registration-control h2{margin:0;color:var(--maroon);font-size:15px;}
+  .registration-control p{margin:4px 0 0;color:var(--muted);font-size:12px;}
+  .registration-control-status{font-weight:800;}
+  .registration-control-status.is-open{color:var(--good);}
+  .registration-control-status.is-closed{color:var(--red-dark);}
+  .registration-control-btn{flex:none;min-width:100px;}
+  @media(max-width:600px){.registration-control{align-items:flex-start;flex-direction:column;}}
   .reg-logo-panel{
     flex:1;min-width:220px;display:flex;align-items:center;justify-content:center;
     padding:40px 20px;
@@ -1209,6 +1220,13 @@
   </div>
 
   <div id="registerSection" style="display:none;">
+    <div class="registration-control">
+      <div>
+        <h2>Employee self-registration</h2>
+        <p id="registrationControlStatus" class="registration-control-status">Checking current status…</p>
+      </div>
+      <button type="button" class="btn primary registration-control-btn" id="registrationControlToggle" disabled>Loading…</button>
+    </div>
     <div class="reg-row">
     <div class="reg-card">
       <div class="reg-card-head">
@@ -1233,6 +1251,7 @@
               <option value="IT SOUTH">IT SOUTH</option>
               <option value="BILLING NORTH">BILLING NORTH</option>
               <option value="BILLING SOUTH">BILLING SOUTH</option>
+              <option value="BILLING MANILA">BILLING MANILA</option>
               <option value="PHARMACIST NORTH">PHARMACIST NORTH</option>
               <option value="PHARMACIST SOUTH">PHARMACIST SOUTH</option>
               <option value="Pharmacy Assistant NORTH">Pharmacy Assistant NORTH</option>
@@ -1292,6 +1311,7 @@
         <button type="button" class="branch-filter-btn active" data-branch-filter="ALL">All</button>
         <button type="button" class="branch-filter-btn" data-branch-filter="NORTH">North</button>
         <button type="button" class="branch-filter-btn" data-branch-filter="SOUTH">South</button>
+        <button type="button" class="branch-filter-btn" data-branch-filter="MANILA">Manila</button>
       </div>
     </div>
     <div id="empGroups"></div>
@@ -1749,7 +1769,7 @@
 // bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
 // doesn't match what this tab is currently running — shows a small banner
 // instead of silently staying on stale code.
-const APP_VERSION = "2026-10-13.1";
+const APP_VERSION = "2026-10-28.8";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -1794,6 +1814,7 @@ function startVersionWatch() {
 startVersionWatch();
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
   import {
     initializeFirestore, collection, getDocs, doc, getDoc, setDoc, deleteDoc, writeBatch,
     query, orderBy, onSnapshot, serverTimestamp, runTransaction, deleteField,
@@ -1816,12 +1837,13 @@ startVersionWatch();
     appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
   };
 
-  const app = initializeApp(firebaseConfig);
+  const app = initializeApp(getFirebaseConfigForHost(firebaseConfig));
   const db = initializeFirestore(app, {
     experimentalForceLongPolling: true,
     useFetchStreams: false
   });
   const auth = getAuth(app);
+  connectLocalFirebaseEmulators({ db, auth });
 
   // Persistence fallback chain — this is the #1 cause of admin-login <->
   // admin-console loops on mobile. Some mobile browsers (in-app browsers
@@ -1858,15 +1880,6 @@ startVersionWatch();
   }
   window.__pdAuthPersistenceMode = persistenceMode; // for debugging from the console
 
-  // Employee accounts are no longer real Firebase Auth users — they're just
-  // documents in the "employees" collection (Staff ID as the doc ID, plus a
-  // hashed password). This lets Admin set passwords of any length, since
-  // Firebase Auth itself enforces a hard 6-character minimum that can't be
-  // turned off. SHA-256 (built into the browser, no library needed) is used
-  // so plaintext passwords are never stored in Firestore. Note this is a
-  // simple hash, not a salted/slow hash like bcrypt — reasonable for an
-  // internal tool, but keep Firestore rules locked down since anyone who
-  // could read the "employees" collection could attempt to crack the hashes.
   async function hashPassword(pw){
     const enc = new TextEncoder().encode(pw);
     const buf = await crypto.subtle.digest('SHA-256', enc);
@@ -2131,12 +2144,13 @@ startVersionWatch();
       window.location.replace('/839jgl8ang');
       return;
     }
-    if((user.email || '').toLowerCase() === 'adminstockreq@planetdrugstore.ph'){
+    if(['adminstockreqmeds@planetdrugstore.ph','adminstockreqsup@planetdrugstore.ph'].includes((user.email || '').trim().toLowerCase())){
       window.location.replace('/r5c8j2ndxa');
       return;
     }
     document.getElementById('whoEmail').textContent = user.email;
     window.currentAdminEmail = user.email;
+    startRegistrationControlListener();
     loadEntries();
     startControlNosListener(); // start early too, so pfVenue/pfPreparedBy suggestions
                                 // are ready as soon as the Generate form is used —
@@ -4716,6 +4730,67 @@ startVersionWatch();
   const registerBtn = document.getElementById('registerBtn');
   const errMsg = document.getElementById('errMsg');
   const okMsg = document.getElementById('okMsg');
+  const registrationControlToggle = document.getElementById('registrationControlToggle');
+  const registrationControlStatus = document.getElementById('registrationControlStatus');
+  const registrationControlRef = doc(db, 'config', 'employeeRegistration');
+  let registrationControlEnabled = false;
+  let registrationControlReady = false;
+  let registrationControlBusy = false;
+  let registrationControlUnsubscribe = null;
+  let registrationControlError = '';
+
+  function renderRegistrationControl(){
+    registrationControlStatus.textContent = registrationControlError
+      || (registrationControlReady
+        ? `Self-registration is ${registrationControlEnabled ? 'ON' : 'OFF'}.`
+        : 'Checking current status…');
+    registrationControlStatus.classList.toggle('is-open', registrationControlReady && registrationControlEnabled && !registrationControlError);
+    registrationControlStatus.classList.toggle('is-closed', (registrationControlReady && !registrationControlEnabled) || Boolean(registrationControlError));
+    registrationControlToggle.textContent = registrationControlEnabled ? 'Turn OFF' : 'Turn ON';
+    registrationControlToggle.disabled = !registrationControlReady || registrationControlBusy;
+  }
+
+  function startRegistrationControlListener(){
+    if(registrationControlUnsubscribe) return;
+    registrationControlUnsubscribe = onSnapshot(registrationControlRef, snapshot=>{
+      registrationControlError = '';
+      registrationControlEnabled = snapshot.exists()
+        && snapshot.data().registrationEnabled === true;
+      registrationControlReady = true;
+      renderRegistrationControl();
+    }, error=>{
+      console.error('Could not load employee registration status:', error);
+      registrationControlError = 'Could not load registration status. Refresh and try again.';
+      registrationControlReady = false;
+      renderRegistrationControl();
+    });
+  }
+
+  registrationControlToggle.addEventListener('click', async ()=>{
+    if(!registrationControlReady || registrationControlBusy) return;
+    const user = auth.currentUser;
+    if(!user?.email){
+      registrationControlError = 'Your admin session expired. Sign in again to change this setting.';
+      renderRegistrationControl();
+      return;
+    }
+    registrationControlError = '';
+    registrationControlBusy = true;
+    renderRegistrationControl();
+    try{
+      await setDoc(registrationControlRef, {
+        registrationEnabled: !registrationControlEnabled,
+        updatedAt: serverTimestamp(),
+        updatedBy: user.email
+      });
+    }catch(error){
+      console.error('Could not update employee registration status:', error);
+      registrationControlError = 'Could not update the setting. Check your access and try again.';
+    }finally{
+      registrationControlBusy = false;
+      renderRegistrationControl();
+    }
+  });
 
   // Auto-fill Branch from Department, same logic as employee-signup.html
   // so accounts created here match the shape self-signup produces.
@@ -4723,6 +4798,7 @@ startVersionWatch();
     const d = (dept || '').toUpperCase();
     if(d.includes('NORTH')) return 'north';
     if(d.includes('SOUTH')) return 'south';
+    if(d.includes('MANILA')) return 'manila';
     return '';
   }
   const empDepartmentReg = document.getElementById('empDepartment');
@@ -4806,12 +4882,12 @@ startVersionWatch();
     return 'Could not create the account (' + (code || 'unknown error') + ').';
   }
 
-  // Splits a department string like "IT NORTH" or "Pharmacy Assistant SOUTH"
+  // Splits a department string like "IT NORTH" or "Billing Manila"
   // into { team: "IT", branch: "NORTH" } so the Recently Registered table can
   // show them as two separate columns instead of one long combined string.
   function splitDepartment(dep){
     const raw = String(dep || '').trim();
-    const m = raw.match(/^(.*?)\s+(NORTH|SOUTH)$/i);
+    const m = raw.match(/^(.*?)\s+(NORTH|SOUTH|MANILA)$/i);
     if(m){
       return { team: m[1].trim(), branch: m[2].toUpperCase() };
     }
@@ -4824,7 +4900,7 @@ startVersionWatch();
   // gets its own card, just appended after the known teams.
   const TEAM_ORDER = ['IT', 'BILLING', 'PHARMACIST', 'Pharmacy Assistant'];
 
-  // Search (by name) and branch filter (All / North / South) apply across
+  // Search (by name) and branch filter apply across
   // every team card at once — one toolbar controls IT, BILLING, and
   // Pharmacy Assistant together, instead of needing a separate search box
   // per container.
@@ -4879,7 +4955,7 @@ startVersionWatch();
       ...[...groups.keys()].filter(t => !TEAM_ORDER.includes(t))
     ];
 
-    const showBranches = empBranchFilter === 'ALL' ? ['NORTH', 'SOUTH'] : [empBranchFilter];
+    const showBranches = empBranchFilter === 'ALL' ? ['NORTH', 'SOUTH', 'MANILA'] : [empBranchFilter];
 
     const cardsHtml = orderedTeams.map(team=>{
       const rows = groups.get(team);
@@ -5030,8 +5106,7 @@ startVersionWatch();
 
   // ---- Change Password modal ----
   // Admin-only: employees have no self-service way to change their own
-  // password. Only this console (behind the Admin auth guard above) can
-  // write a new passwordHash for an employee's Firestore doc.
+  // password. Password credentials are stored separately from employee profiles.
   const pwModalOverlay = document.getElementById('pwModalOverlay');
   const pwModalInput = document.getElementById('pwModalInput');
   const pwModalError = document.getElementById('pwModalError');

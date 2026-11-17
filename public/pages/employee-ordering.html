@@ -55,17 +55,22 @@ form.locked.noreq .field-sr{display:none}
 .lock-state{flex:none;width:9px;height:9px;border-radius:50%;background:currentColor}
 .lock-clock{width:21px;height:21px;margin-left:auto;fill:none;stroke:var(--red);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .lockbar.closed{background:#fdecec;border-color:#f3c2c6;color:var(--red-dark)}
+.contact-admin-link{display:inline-flex;align-items:center;margin:-4px 0 14px;padding:8px 11px;border:1px solid var(--maroon);border-radius:7px;color:var(--maroon);font-size:13px;font-weight:700;text-decoration:none}
+.contact-admin-link:hover{background:#fff4f3}
+.contact-admin-link[hidden]{display:none}
 .field{margin-bottom:15px;padding:0;border:0;border-radius:0;background:transparent}
 label{display:block;font-size:14px;font-weight:700;color:var(--maroon);margin-bottom:7px}
-input,textarea{width:100%;padding:12px 14px;font-size:16px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-family:inherit}
+input,textarea,select{width:100%;padding:12px 14px;font-size:16px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-family:inherit}
 input:focus,textarea:focus{outline:2px solid #bdcceb;outline-offset:0;background:#fff}
 input[readonly]{background:#f3ecea;color:#5a4547}
+.request-type-field{margin-bottom:15px}
 #fSr{font-size:20px;font-weight:700;padding:12px 14px}
 .sr-input-row{display:flex;align-items:center;gap:8px}
 .sr-field-control{position:relative;flex:1;min-width:0}
 .sr-input-row #fSr{width:100%;min-width:0;padding-right:112px}
 .request-status-badge{position:absolute;top:50%;right:12px;transform:translateY(-50%);padding:5px 9px;border:1px solid #f0d7d8;border-radius:999px;background:#f8eceb;color:var(--maroon);font-size:11px;font-weight:700;line-height:1;pointer-events:none}
 .request-status-badge.completed{border-color:#bfe6cb;background:#e6f5ea;color:#1f7040}
+.request-status-badge.no-status{border-color:#d8dde5;background:#f1f3f6;color:#5c6675}
 .request-status-badge[hidden]{display:none}
 .edit-sr-btn{display:inline-flex;flex:none;width:46px;height:46px;align-items:center;justify-content:center;padding:0;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--maroon);cursor:pointer}
 .edit-sr-btn:hover{border-color:var(--maroon);background:#fffafa}
@@ -80,8 +85,6 @@ input[readonly]{background:#f3ecea;color:#5a4547}
 .btn:disabled{opacity:.5;cursor:default}
 .btn.ghost{background:#fff;color:var(--red-dark);border:1px solid #f3c2c6;margin-top:8px}
 .btn.ghost:hover{background:#fdecec}
-.hist{margin-top:10px;font-size:13px;color:var(--amber)}
-.hist div{background:var(--amber-bg);border:1px solid var(--amber-line);border-left:4px solid #E0A030;border-radius:7px;padding:8px 10px;margin-top:6px;line-height:1.4;color:#684600}
 .modal{position:fixed;inset:0;background:rgba(42,20,22,.58);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
 .modal.show{display:flex}
 .mbox{background:#fff;border:1px solid var(--line);border-radius:12px;max-width:440px;width:100%;padding:22px;color:var(--ink);box-shadow:0 20px 50px rgba(0,0,0,.25)}
@@ -93,22 +96,6 @@ textarea{min-height:90px;resize:vertical}
 .mact .btn{width:auto;padding:12px 18px;font-size:15px}
 .mact .btn.ghost{margin-top:0}
 .merr{color:var(--red-dark);font-size:13px;margin-top:6px;min-height:16px}
-.history-filters{display:grid;grid-template-columns:1fr 1fr auto;align-items:end;gap:10px;margin-bottom:14px}
-.history-filters label{font-size:12px}
-.history-filters input{font-size:14px;padding:10px}
-.history-filters .btn{width:auto;white-space:nowrap;padding:10px 18px}
-.history-status-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:0 0 8px;padding:4px;border:1px solid var(--line);border-radius:9px;background:#faf6f5}
-.history-status-tab{min-width:0;padding:8px 6px;border:0;border-radius:6px;background:transparent;color:var(--maroon);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
-.history-status-tab[aria-pressed="true"]{background:var(--maroon);color:#fff}
-.history-status-count{margin-left:3px;opacity:.75;font-variant-numeric:tabular-nums}
-.history-results{overflow:auto;max-height:55vh;border:1px solid var(--line);border-radius:8px;background:#fff}
-.history-row{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
-.history-row:last-child{border-bottom:0}
-.history-row strong{display:block;overflow-wrap:anywhere;font-size:14px}
-.history-row small{display:block;margin-bottom:3px;color:var(--muted);font-size:11px}
-.history-row .removed-reason{grid-column:1/-1;padding:9px 11px;border-left:3px solid var(--amber);background:var(--amber-bg);color:#684600;font-size:13px;overflow-wrap:anywhere}
-.history-empty{padding:24px 14px;text-align:center;color:var(--muted);font-size:14px}
-.history-note{margin:9px 0 0;color:var(--muted);font-size:12px;line-height:1.4}
 .msg{margin-top:14px;font-size:14px;font-weight:600;padding:11px 14px;border-radius:10px;display:none}
 .msg.err{background:#fdecec;border:1px solid #f3c2c6;color:var(--red-dark)}
 .msg.ok{background:#e6f5ea;border:1px solid #bfe6cb;color:var(--good)}
@@ -135,23 +122,20 @@ textarea{min-height:90px;resize:vertical}
   .date{font-size:19px}
   .who{padding:11px 12px}
   .field{padding:12px}
-  .history-filters{grid-template-columns:1fr 1fr}
-  .history-filters .btn{grid-column:1/-1;width:100%}
-  .history-row{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
 <body>
 <div class="appbar">
   <div class="brand"><img src="logo.png" alt="" onerror="this.style.display='none'"><div>PLANET<span> DRUGSTORE</span></div></div>
-  <div class="appbar-actions"><button class="push-toggle-button" id="pushToggleButton" type="button" aria-live="polite">Enable phone notifications</button><button class="out out-btn" id="historyBtn" type="button">History</button><a class="out" href="/ed3od6ldsq">&larr; Back to Home</a></div>
+  <div class="appbar-actions"><button class="push-toggle-button" id="pushToggleButton" type="button" aria-live="polite">Enable phone notifications</button><a class="out" href="/ed3od6ldsq">&larr; Back to Home</a></div>
 </div>
 
 <div class="wrap">
   <div class="request-shell" id="formView" style="display:none">
     <header class="request-heading">
       <span class="heading-mark" aria-hidden="true">SR</span>
-      <div><p class="heading-kicker">Employee Supply Request</p><h1>Stock Request</h1><p class="heading-subtitle">Request supplies. Keep your work moving.</p></div>
+      <div><p class="heading-kicker">Employee Stock Request</p><h1>Stock Request</h1><p class="heading-subtitle">Submit a medicine or supplies SR#.</p></div>
     </header>
     <div class="body">
       <aside class="day-rail" aria-label="Request day">
@@ -161,8 +145,16 @@ textarea{min-height:90px;resize:vertical}
       <main class="request-main">
         <div class="date" id="dateLbl"></div>
         <div class="lockbar" id="lockbar"><span class="lock-state" aria-hidden="true"></span><span id="lockText"></span><svg class="lock-clock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <a class="contact-admin-link" id="contactAdminLink" href="#" target="_blank" rel="noopener noreferrer" hidden>Contact Stock Request Admin</a>
         <form id="reqForm">
           <div class="who"><div class="av" id="fAv"></div><div><div class="wn" id="fName"></div><div class="ws" id="fSite"></div></div></div>
+          <div class="request-type-field">
+            <label for="requestType">Request type</label>
+            <select id="requestType" name="requestType">
+              <option value="medicine">Medicine</option>
+              <option value="supplies">Supplies</option>
+            </select>
+          </div>
           <div class="field field-sr">
             <label for="fSr">SR#</label>
             <div class="sr-input-row">
@@ -175,8 +167,7 @@ textarea{min-height:90px;resize:vertical}
                 <svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"/></svg>
               </button>
             </div>
-            <div class="hint">Multiple SR#s? Separate with commas. Edits allowed until the cutoff; changes after submitting need a reason.</div>
-            <div class="hist" id="hist"></div>
+            <div class="hint">Multiple SR#s? Separate with commas. You can edit an existing SR# until the daily cutoff.</div>
           </div>
           <button class="btn" id="saveBtn">Submit request</button>
           <button class="btn ghost" id="delBtn" type="button" style="display:none">Remove</button>
@@ -187,72 +178,67 @@ textarea{min-height:90px;resize:vertical}
   </div>
 </div>
 
-<div class="modal" id="employeeHistoryModal" role="dialog" aria-modal="true" aria-labelledby="employeeHistoryTitle">
-  <div class="mbox history-modal">
-    <h2 id="employeeHistoryTitle">My SR# History</h2>
-    <p>Choose a date range to find your requests and removals.</p>
-    <div class="history-filters">
-      <label for="historyFrom">From<input id="historyFrom" type="date"></label>
-      <label for="historyTo">To<input id="historyTo" type="date"></label>
-      <button class="btn" id="historySearchBtn" type="button">Search</button>
-    </div>
-    <div class="history-status-tabs" role="group" aria-label="Filter my history by status">
-      <button type="button" class="history-status-tab" data-employee-history-status="all" aria-pressed="true">All <span class="history-status-count" data-employee-status-count="all">0</span></button>
-      <button type="button" class="history-status-tab" data-employee-history-status="pending" aria-pressed="false">Pending <span class="history-status-count" data-employee-status-count="pending">0</span></button>
-      <button type="button" class="history-status-tab" data-employee-history-status="completed" aria-pressed="false">Completed <span class="history-status-count" data-employee-status-count="completed">0</span></button>
-      <button type="button" class="history-status-tab" data-employee-history-status="removed" aria-pressed="false">Removed <span class="history-status-count" data-employee-status-count="removed">0</span></button>
-    </div>
-    <div class="history-results" id="employeeHistoryResults"><div class="history-empty">Choose dates to search your history.</div></div>
-    <p class="history-note">Archived requests are included here so your SR# history stays visible.</p>
-    <div class="mact"><button type="button" class="btn ghost" id="historyClose">Close</button></div>
-  </div>
-</div>
-
-<div class="modal" id="reasonModal" role="dialog" aria-modal="true" aria-labelledby="rmTitle">
+<div class="modal" id="removeConfirmModal" role="dialog" aria-modal="true" aria-labelledby="removeConfirmTitle">
   <div class="mbox">
-    <h2 id="rmTitle">Why are you changing the SR#?</h2>
-    <p>This request has already been submitted and the admin can see it. Enter the reason for the change so they understand.</p>
-    <div class="chgline" id="rmChange"></div>
-    <label for="rmReason">Reason</label>
-    <textarea id="rmReason" maxlength="200" placeholder="e.g. I typed the wrong SR#"></textarea>
-    <div class="merr" id="rmErr"></div>
+    <h2 id="removeConfirmTitle">Remove SR#?</h2>
+    <p id="removeConfirmText"></p>
     <div class="mact">
-      <button type="button" class="btn ghost" id="rmCancel">Cancel</button>
-      <button type="button" class="btn" id="rmOk">Confirm update</button>
+      <button type="button" class="btn ghost" id="removeConfirmCancel">Cancel</button>
+      <button type="button" class="btn" id="removeConfirmOk">Confirm removal</button>
     </div>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { initializeFirestore, collection, query, where, limit, getDocs, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
+import { initializeFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const app = initializeApp({
+const app = initializeApp(getFirebaseConfigForHost({
   apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
   authDomain: "planetdrugstore-peripher-d24c0.firebaseapp.com",
   projectId: "planetdrugstore-peripher-d24c0",
   storageBucket: "planetdrugstore-peripher-d24c0.firebasestorage.app",
   messagingSenderId: "115454971026",
   appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
-});
+}));
 const db = initializeFirestore(app, { experimentalForceLongPolling: true, useFetchStreams: false });
+connectLocalFirebaseEmulators({ db });
 
+const STOCK_REQUEST_ADMIN_TEAMS_URL = 'https://teams.microsoft.com/l/channel/19%3Ad306729cf93a4d0bb3970490db04752e%40thread.tacv2/CALOOCAN?groupId=64a1d61d-5681-4a79-ae96-a838a1a32560&tenantId=a5906354-ebe5-419d-b024-6c7db90917b0&ngc=true';
 const DAYS = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY'];
 let cutoffMin = 840; // Default cutoff is 2 PM; the admin sets the actual cutoff for each day.
 function canRequestStock(department){
-  const team = String(department || '').trim().toLowerCase().replace(/\s+(north|south)$/i, '').trim();
+  if(/^billing\s+manila$/i.test(String(department || '').trim())) return false;
+  const team = String(department || '').trim().toLowerCase().replace(/\s+(north|south|manila)$/i, '').trim();
   return ['billing', 'pharmacist', 'pharmacy assistant'].includes(team);
 }
 const fmtCut = () => new Date(2000,0,1,Math.floor(cutoffMin/60),cutoffMin%60).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+function manilaDateAndMinutes(now = new Date()){
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone:'Asia/Manila', year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', hourCycle:'h23'
+  }).formatToParts(now).map(part=>[part.type, part.value]));
+  return {
+    date:parts.year + '-' + parts.month + '-' + parts.day,
+    minutes:Number(parts.hour) * 60 + Number(parts.minute)
+  };
+}
 function dateForDay(i){
-  const t = new Date(); t.setHours(0,0,0,0);
-  t.setDate(t.getDate() + ((i + 1 - t.getDay() + 7) % 7));
-  return t;
+  const now = manilaDateAndMinutes();
+  const [year, month, day] = now.date.split('-').map(Number);
+  const target = new Date(Date.UTC(year, month - 1, day));
+  target.setUTCDate(target.getUTCDate() + ((i + 1 - target.getUTCDay() + 7) % 7));
+  return new Date(target.getUTCFullYear(), target.getUTCMonth(), target.getUTCDate(), 12);
 }
 const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const dayAllowed = i => !emp || !Array.isArray(emp.requestDays) || emp.requestDays.includes(DAYS[i]);
-const blocked = d => isLocked(d) || !!existing?.adminCompleted || !dayActive || !dayAllowed(current);
-const isLocked = d => { const c = new Date(d); c.setHours(Math.floor(cutoffMin/60), cutoffMin%60, 0, 0); return new Date() >= c; };
+const blocked = d => isLocked(d) || !!existing?.adminCompleted || adminRemoved || !dayAllowed(current) || (dayRecordExists && !dayActive) || (!existing && !dayActive);
+const isLocked = d => {
+  const now = manilaDateAndMinutes();
+  const date = iso(d);
+  return date < now.date || (date === now.date && now.minutes >= cutoffMin);
+};
 const $ = id => document.getElementById(id);
 
 function readSession(){
@@ -280,19 +266,20 @@ function kickToLogin(deleted){
   location.replace('/fu3hriaj0m' + (deleted ? '?deleted=1' : ''));
 }
 
-let emp = null, current = -1, unsub = null, unsubDay = null, selectedDateKey = '', dayActive = false, dayClosedEarly = false, existing = null, editingRequest = false;
+let emp = null, current = -1, unsub = null, unsubDay = null, selectedDateKey = '', dayActive = false, dayRecordExists = false, dayClosedEarly = false, adminRemoved = false, existing = null, editingRequest = false;
+let requestType = 'medicine';
 let lastAdminRemovalNotice = '';
 const esc = s => String(s ?? '').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-const MIN_REASON = 5;
 const SR_NUMBER_PATTERN = /^\d+(?:\s*,\s*\d+)*$/;
 const srInput = $('fSr');
 function validSrNumbers(value){ return SR_NUMBER_PATTERN.test(String(value || '').trim()); }
-function buildSrSearchTerms(sr, history=[]){
+function buildSrSearchTerms(sr, history=[], previousTerms=[]){
   const terms = new Set();
   const add = value=>String(value || '').split(',').map(term=>term.trim()).filter(Boolean).forEach(term=>terms.add(term));
-  add(sr);
+  previousTerms.forEach(add);
   history.forEach(change=>{ add(change.oldSr); add(change.newSr); });
-  return [...terms];
+  add(sr);
+  return [...terms].slice(-30);
 }
 function showSrNumberError(){
   showMsg('SR# must contain numbers only. Separate multiple SR#s with commas.', false);
@@ -330,144 +317,21 @@ async function loadEmployee(id){
   return snap.exists() ? snap.data() : null;
 }
 
-function manilaDateAndMinutes(now = new Date()){
-  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
-    timeZone:'Asia/Manila', year:'numeric', month:'2-digit', day:'2-digit',
-    hour:'2-digit', minute:'2-digit', hourCycle:'h23'
-  }).formatToParts(now).map(part=>[part.type, part.value]));
-  return {
-    date: parts.year + '-' + parts.month + '-' + parts.day,
-    minutes: Number(parts.hour) * 60 + Number(parts.minute)
-  };
-}
-
-async function loadCutoffsForRecords(records){
-  const dates = [...new Set(records.map(request=>String(request.date || '')).filter(date=>/^\d{4}-\d{2}-\d{2}$/.test(date)))];
-  const entries = await Promise.all(dates.map(async date=>{
-    const snapshot = await getDoc(doc(db,'stockDays',date));
-    const day = snapshot.exists() ? snapshot.data() : {};
-    return [date, {
-      cutoffMin: Number.isInteger(day.cutoffMin) ? day.cutoffMin : null,
-      closedEarly: day.closedEarly === true
-    }];
-  }));
-  return Object.fromEntries(entries);
-}
-
-function requestStatusLabel(request, dayCutoffMin, closedEarly=false){
+function requestStatusLabel(request, closedEarly=false){
   if(request.adminCompleted === true) return 'Completed';
-  if(closedEarly) return 'Completed';
-  if(!request.date) return 'Pending';
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone:'Asia/Manila', year:'numeric', month:'2-digit', day:'2-digit',
-    hour:'2-digit', minute:'2-digit', hourCycle:'h23'
-  }).formatToParts(new Date()).reduce((values, part)=>{ values[part.type] = part.value; return values; }, {});
-  const today = parts.year + '-' + parts.month + '-' + parts.day;
-  const nowMinutes = Number(parts.hour) * 60 + Number(parts.minute);
-  const cutoffMin = Number.isInteger(dayCutoffMin) ? dayCutoffMin : Number.isInteger(request.cutoffMin) ? request.cutoffMin : 840;
-  if(request.date < today || (request.date === today && nowMinutes >= cutoffMin)) return 'Completed';
   if(request.status === 'removed') return 'Removed by ' + (request.removedBy === 'admin' ? 'admin' : 'employee');
+  if(closedEarly) return 'No Status';
   return 'Pending';
 }
-
-let employeeHistoryStatusFilter = 'all';
-let cachedEmployeeHistoryRecords = [];
-let cachedEmployeeHistoryCutoffs = {};
-
-function employeeHistoryStatusKey(status){
-  if(status === 'Completed') return 'completed';
-  if(status.startsWith('Removed by')) return 'removed';
-  return 'pending';
-}
-
-function renderEmployeeHistory(records, cutoffs){
-  const results = $('employeeHistoryResults');
-  cachedEmployeeHistoryRecords = records;
-  cachedEmployeeHistoryCutoffs = cutoffs;
-  const matchingRecords = records.map(request=>({
-    request,
-    status: requestStatusLabel(request, cutoffs[request.date]?.cutoffMin, cutoffs[request.date]?.closedEarly)
-  }));
-  const counts = { all:matchingRecords.length, pending:0, completed:0, removed:0 };
-  matchingRecords.forEach(item=>counts[employeeHistoryStatusKey(item.status)]++);
-  Object.entries(counts).forEach(([key,count])=>{
-    const countEl = document.querySelector('[data-employee-status-count="' + key + '"]');
-    if(countEl) countEl.textContent = count;
-  });
-  const filteredRecords = employeeHistoryStatusFilter === 'all'
-    ? matchingRecords
-    : matchingRecords.filter(item=>employeeHistoryStatusKey(item.status) === employeeHistoryStatusFilter);
-  if(!filteredRecords.length){
-    const label = employeeHistoryStatusFilter === 'all' ? 'requests' : employeeHistoryStatusFilter + ' requests';
-    results.innerHTML = '<div class="history-empty">No '+esc(label)+' found in this date range.</div>';
-    return;
-  }
-  results.innerHTML = filteredRecords.map(({request,status})=>{
-    const removed = request.status === 'removed';
-    const sr = removed ? (request.removedSr || 'Removed') : (request.sr || '—');
-    const reason = removed && request.removalReason
-      ? '<div class="removed-reason">Reason: '+esc(request.removalReason)+'</div>'
-      : '';
-    return '<article class="history-row"><div><small>Date</small><strong>'+esc(request.date)+'</strong></div>' +
-      '<div><small>SR#</small><strong>'+esc(sr)+'</strong></div><div><small>Status</small><strong>'+esc(status)+'</strong></div>' + reason + '</article>';
-  }).join('');
-}
-
-async function searchEmployeeHistory(){
-  const from = $('historyFrom').value;
-  const to = $('historyTo').value;
-  const results = $('employeeHistoryResults');
-  if(!from || !to){ results.innerHTML = '<div class="history-empty">Select both start and end dates.</div>'; return; }
-  if(from > to){ results.innerHTML = '<div class="history-empty">The start date must be on or before the end date.</div>'; return; }
-  results.innerHTML = '<div class="history-empty">Searching…</div>';
-  try{
-    const staffId = String(emp.staffId || emp.id);
-    const [activeSnapshot, archivedSnapshot] = await Promise.all([
-      getDocs(query(collection(db,'stockRequests'), where('staffId','==',staffId), limit(500))),
-      getDocs(query(collection(db,'stockRequestHistory'), where('staffId','==',staffId), limit(500)))
-    ]);
-    const recordsByKey = new Map();
-    [...activeSnapshot.docs, ...archivedSnapshot.docs].forEach(docSnap => {
-      const record = docSnap.data();
-      const key = String(record.date || '') + '|' + String(record.sr || record.removedSr || docSnap.id);
-      if(!recordsByKey.has(key)) recordsByKey.set(key, record);
-    });
-    const records = [...recordsByKey.values()]
-      .filter(request => String(request.date || '') >= from && String(request.date || '') <= to)
-      .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-    const cutoffs = await loadCutoffsForRecords(records);
-    renderEmployeeHistory(records, cutoffs);
-  }catch(error){
-    results.innerHTML = '<div class="history-empty">History search failed ('+esc(error.code || error.message)+').</div>';
-  }
-}
-
-function openEmployeeHistory(){
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  $('historyFrom').value = iso(monthStart);
-  $('historyTo').value = iso(now);
-  $('employeeHistoryModal').classList.add('show');
-  searchEmployeeHistory();
-}
-function closeEmployeeHistory(){ $('employeeHistoryModal').classList.remove('show'); }
-$('historyBtn').addEventListener('click', openEmployeeHistory);
-$('historySearchBtn').addEventListener('click', searchEmployeeHistory);
-document.querySelectorAll('[data-employee-history-status]').forEach(button=>button.addEventListener('click', ()=>{
-  employeeHistoryStatusFilter = button.dataset.employeeHistoryStatus;
-  document.querySelectorAll('[data-employee-history-status]').forEach(tab=>tab.setAttribute('aria-pressed', String(tab === button)));
-  renderEmployeeHistory(cachedEmployeeHistoryRecords, cachedEmployeeHistoryCutoffs);
-}));
-$('historyClose').addEventListener('click', closeEmployeeHistory);
-$('employeeHistoryModal').addEventListener('click', event=>{
-  if(event.target === $('employeeHistoryModal')) closeEmployeeHistory();
-});
-$('historyFrom').addEventListener('keydown', event=>{ if(event.key === 'Enter') searchEmployeeHistory(); });
-$('historyTo').addEventListener('keydown', event=>{ if(event.key === 'Enter') searchEmployeeHistory(); });
 
 async function init(){
   const sess = readSession();
   if(!sess) return kickToLogin(false);
+  const requestedType = new URLSearchParams(location.search).get('requestType');
+  if(requestedType === 'medicine' || requestedType === 'supplies'){
+    requestType = requestedType;
+    $('requestType').value = requestType;
+  }
   const id = String(sess.staffId).toLowerCase();
   let data;
   try{ data = await loadEmployee(id); }
@@ -495,6 +359,19 @@ async function init(){
 }
 
 const daysEl = $('days');
+function stockRequestDocumentId(date, staffId, type){
+  return date + '_' + String(staffId).toLowerCase() + (type === 'supplies' ? '_supplies' : '');
+}
+function stockRequestsCollection(type){
+  return collection(db, type === 'supplies' ? 'suppliesStockRequests' : 'stockRequests');
+}
+function stockDayDocument(date, type){
+  return doc(db, 'stockDays', String(date) + (type === 'supplies' ? '_supplies' : ''));
+}
+$('requestType').addEventListener('change', event=>{
+  requestType = event.currentTarget.value === 'supplies' ? 'supplies' : 'medicine';
+  if(current >= 0) select(current);
+});
 const DAY_CALENDAR_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>';
 DAYS.forEach((n,i)=>{
   const b = document.createElement('button');
@@ -511,24 +388,29 @@ function paintDays(){
   });
 }
 function paintLock(){
-  const d = dateForDay(current), adminCompleted = !!existing?.adminCompleted, timeUp = isLocked(d) || adminCompleted || dayClosedEarly, notMine = !dayAllowed(current), locked = timeUp || !dayActive || notMine;
+  const d = dateForDay(current), hasRequest = !!existing, adminCompleted = !!existing?.adminCompleted;
+  const dayDeactivated = dayRecordExists && !dayActive;
+  const timeUp = isLocked(d) || adminCompleted || adminRemoved || dayDeactivated;
+  const notMine = !dayAllowed(current), locked = timeUp || notMine || (!dayActive && !hasRequest);
   $('dateLbl').textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
   const lb = $('lockbar');
-  $('lockText').textContent = dayClosedEarly ? 'The admin closed this stock request day early. Your order is completed and can no longer be changed.' : notMine ? 'You are not scheduled to send a stock request on this day.' : adminCompleted ? 'The admin marked this SR# as Completed — it can no longer be edited.' : timeUp ? 'This order is locked — you can no longer submit or edit.' : (!dayActive ? 'This day is not open yet — waiting for the admin to activate it.' : 'This order locks at ' + fmtCut() + '.');
-  lb.className = 'lockbar' + (timeUp ? ' closed' : notMine ? ' off' : !dayActive ? ' wait' : '');
+  $('lockText').textContent = adminRemoved ? 'The admin removed your SR#. You can no longer submit another request for this day. Contact the Stock Request Admin for more details.' : adminCompleted ? 'The admin marked this SR# as Completed — it can no longer be edited.' : dayDeactivated ? 'The admin deactivated ' + requestType + ' stock requests for this day. You can no longer submit or edit an SR#.' : notMine ? 'You are not scheduled to send a stock request on this day.' : timeUp ? 'This order is locked — you can no longer submit or edit.' : (!dayActive && !hasRequest ? requestType.charAt(0).toUpperCase() + requestType.slice(1) + ' stock requests are not open yet — waiting for the admin to activate them.' : 'You can edit this request until ' + fmtCut() + '.');
+  lb.className = 'lockbar' + (timeUp ? ' closed' : notMine ? ' off' : !dayActive && !hasRequest ? ' wait' : '');
   $('reqForm').classList.toggle('locked', locked);
   $('reqForm').classList.toggle('noreq', !existing);
-  const hasRequest = !!existing;
   const statusBadge = $('requestStatus');
-  const status = hasRequest ? requestStatusLabel(existing, cutoffMin, dayClosedEarly) : '';
+  const status = hasRequest ? requestStatusLabel(existing, dayClosedEarly) : '';
   statusBadge.textContent = status;
   statusBadge.classList.toggle('completed', status === 'Completed');
+  statusBadge.classList.toggle('no-status', status === 'No Status');
   statusBadge.hidden = !hasRequest;
   $('fSr').disabled = locked || (hasRequest && !editingRequest);
-  $('editSrBtn').style.display = hasRequest && !locked ? 'inline-flex' : 'none';
+  $('editSrBtn').style.display = hasRequest ? 'inline-flex' : 'none';
   $('editSrBtn').disabled = locked || !hasRequest;
   $('editSrBtn').classList.toggle('is-editing', editingRequest);
-  $('editSrBtn').title = editingRequest ? 'Cancel editing' : 'Edit SR#';
+  $('editSrBtn').title = editingRequest
+    ? 'Cancel editing'
+    : locked ? 'Editing unavailable: ' + $('lockText').textContent : 'Edit SR#';
   $('editSrBtn').setAttribute('aria-label', $('editSrBtn').title);
   $('saveBtn').style.display = hasRequest && !editingRequest ? 'none' : '';
   $('saveBtn').disabled = locked || (hasRequest && !editingRequest);
@@ -540,30 +422,34 @@ function select(i){
   const selectedDate = iso(dateForDay(i));
   selectedDateKey = selectedDate;
   existing = null;
+  adminRemoved = false;
   editingRequest = false;
-  dayActive = false; dayClosedEarly = false; cutoffMin = 840;
+  dayActive = false; dayRecordExists = false; dayClosedEarly = false; cutoffMin = 840;
   daysEl.querySelectorAll('button').forEach(b=>b.classList.toggle('on', +b.dataset.i===i));
   $('msg').style.display = 'none';
   paintLock();
   if(unsub) unsub();
   if(unsubDay) unsubDay();
-  unsubDay = onSnapshot(doc(db,'stockDays', selectedDate), snap=>{
+  unsubDay = onSnapshot(stockDayDocument(selectedDate, requestType), snap=>{
     const dd = snap.exists() ? snap.data() : null;
+    dayRecordExists = !!dd;
     dayActive = !!dd && dd.active === true;
     dayClosedEarly = !!dd?.closedEarly;
     cutoffMin = dd && Number.isInteger(dd.cutoffMin) ? dd.cutoffMin : 840;
     paintLock();
   }, ()=>{});
-  $('hist').innerHTML = '';
-  unsub = onSnapshot(doc(db,'stockRequests', selectedDate + '_' + emp.id), snap=>{
+  unsub = onSnapshot(doc(stockRequestsCollection(requestType), stockRequestDocumentId(selectedDate, emp.id, requestType)), snap=>{
     const request = snap.exists() ? snap.data() : null;
     const removed = request && request.status === 'removed';
+    const removedByAdmin = removed && request.removedBy === 'admin';
+    adminRemoved = !!removedByAdmin;
+    const contactAdminLink = $('contactAdminLink');
+    contactAdminLink.href = STOCK_REQUEST_ADMIN_TEAMS_URL;
+    contactAdminLink.hidden = !removedByAdmin;
     const has = !!request && !removed;
     existing = has ? request : null;
     editingRequest = false;
     if(document.activeElement !== $('fSr')) $('fSr').value = has ? (request.sr || '') : '';
-    const h = has && Array.isArray(existing.history) ? existing.history : [];
-    $('hist').innerHTML = h.map(c=>'<div>Changed: '+esc(c.oldSr)+' → '+esc(c.newSr)+' — '+esc(c.reason)+'</div>').join('');
     $('delBtn').style.display = has ? 'inline-block' : 'none';
     $('saveBtn').textContent = has ? 'Update request' : 'Submit request';
     paintLock();
@@ -593,64 +479,96 @@ $('editSrBtn').addEventListener('click', ()=>{
   if(editingRequest) $('fSr').focus();
 });
 
-function askReason(oldSr, newSr, removal=false){
+function confirmRemoveRequest(sr){
   return new Promise(resolve=>{
-    const m = $('reasonModal'), ta = $('rmReason'), err = $('rmErr');
-    $('rmTitle').textContent = removal ? 'Why are you removing this SR#?' : 'Why are you changing the SR#?';
-    m.querySelector('p').textContent = removal
-      ? 'The admin will be notified that you removed this request. Enter a reason.'
-      : 'This request has already been submitted and the admin can see it. Enter the reason for the change so they understand.';
-    $('rmChange').textContent = removal ? oldSr + '  →  Removed' : oldSr + '  →  ' + newSr;
-    $('rmOk').textContent = removal ? 'Confirm removal' : 'Confirm update';
-    ta.value = ''; err.textContent = '';
-    m.classList.add('show'); ta.focus();
+    const modal = $('removeConfirmModal');
+    $('removeConfirmText').textContent = 'Remove SR# ' + sr + '? The admin will be notified.';
+    modal.classList.add('show');
+    $('removeConfirmCancel').focus();
     function done(v){
-      m.classList.remove('show');
-      $('rmOk').onclick = $('rmCancel').onclick = m.onclick = null;
+      modal.classList.remove('show');
+      $('removeConfirmOk').onclick = $('removeConfirmCancel').onclick = modal.onclick = null;
       document.removeEventListener('keydown', onKey);
       resolve(v);
     }
     function onKey(e){ if(e.key === 'Escape') done(null); }
     document.addEventListener('keydown', onKey);
-    $('rmCancel').onclick = ()=>done(null);
-    m.onclick = e=>{ if(e.target === m) done(null); };
-    $('rmOk').onclick = ()=>{
-      const r = ta.value.trim().replace(/\s+/g,' ');
-      if(r.length < MIN_REASON){ err.textContent = 'Please enter a reason (at least ' + MIN_REASON + ' characters).'; ta.focus(); return; }
-      done(r);
-    };
+    $('removeConfirmCancel').onclick = ()=>done(false);
+    modal.onclick = e=>{ if(e.target === modal) done(false); };
+    $('removeConfirmOk').onclick = ()=>done(true);
   });
 }
 
-async function saveRequest(sr, reason){
+async function saveRequest(sr){
   const d = dateForDay(current);
   $('saveBtn').disabled = true;
   try{
     const fresh = await loadEmployee(emp.id); if(fresh) emp = { ...fresh, id: emp.id };
+    const requestRef = doc(stockRequestsCollection(requestType), stockRequestDocumentId(iso(d), emp.id, requestType));
+    const latestRequest = await getDoc(requestRef);
+    if(latestRequest.exists() && latestRequest.data().status === 'removed' && latestRequest.data().removedBy === 'admin'){
+      adminRemoved = true;
+      existing = null;
+      paintLock();
+      return showMsg('The admin removed your SR#. Contact the Stock Request Admin for more details.', false);
+    }
     if(!dayAllowed(current)) return showMsg('You are not scheduled to send a stock request on this day.', false);
     const data = {
       staffId: emp.staffId || emp.id, name: emp.name || '', siteName: emp.siteName || '',
-      sr, date: iso(d), day: DAYS[current], updatedAt: serverTimestamp()
+      sr, date: iso(d), day: DAYS[current], requestType, updatedAt: serverTimestamp()
     };
     const branch = String(emp.branch || '').trim().toLowerCase();
-    const departmentBranch = String(emp.department || '').trim().match(/\s+(north|south)$/i);
+    const departmentBranch = String(emp.department || '').trim().match(/\s+(north|south|manila)$/i);
     if(branch.includes('north')) data.branch = 'north';
     else if(branch.includes('south')) data.branch = 'south';
+    else if(branch.includes('manila')) data.branch = 'manila';
     else if(departmentBranch) data.branch = departmentBranch[1].toLowerCase();
-    const history = existing && Array.isArray(existing.history) ? existing.history.slice() : [];
-    if(reason){
-      if(history.length >= 10) return showMsg('This request has reached the limit of 10 changes. Please contact the admin.', false);
-      history.push({ oldSr: existing.sr, newSr: sr, reason, at: Date.now() });
+    const latestData = latestRequest.exists() ? latestRequest.data() : null;
+    const isUpdate = !!existing;
+    if(isUpdate && (!latestData || latestData.sr !== existing.sr)){
+      return showMsg('This SR# changed in another session. Refresh the page and review the latest request before editing.', false);
     }
+    const history = latestData && Array.isArray(latestData.history) ? latestData.history.slice() : [];
     if(history.length) data.history = history;
-    data.srSearchTerms = buildSrSearchTerms(sr, history);
-    await setDoc(doc(db,'stockRequests', iso(d) + '_' + emp.id), data);
-    if(reason){
+    data.srSearchTerms = buildSrSearchTerms(
+      sr,
+      [...history, ...(isUpdate ? [{ oldSr:latestData.sr }] : [])],
+      latestData?.srSearchTerms || []
+    );
+    if(isUpdate && latestRequest.exists()) await updateDoc(requestRef, data);
+    else await setDoc(requestRef, data);
+    try{
+      await addDoc(collection(db,'emergencyNotifications'), {
+        type:'stockRequestSubmitted',
+        requestType,
+        updated:isUpdate,
+        ...(isUpdate ? { previousSr:latestData.sr } : {}),
+        targetRoles:['stock'],
+        employeeOnly:false,
+        visibleToEmployees:false,
+        employeeName:emp.name || 'Employee',
+        staffId:emp.staffId || emp.id,
+        location:emp.siteName || '',
+        branch:data.branch || '',
+        sr,
+        date:iso(d),
+        day:DAYS[current],
+        createdAt:serverTimestamp()
+      });
+      void window.pdWakePushDelivery?.();
+    }catch(notificationError){
+      console.error('Stock request was saved, but its admin push notification failed:', notificationError);
+      showMsg(isUpdate
+        ? 'Updated. The admin can see the new SR#, but their phone notification could not be sent.'
+        : 'Submitted. The admin can see it, but their phone notification could not be sent.', false);
+      return;
+    }
+    if(isUpdate){
       editingRequest = false;
       $('fSr').value = sr;
       paintLock();
     }
-    showMsg(reason ? 'Updated. The admin can see the reason for the change.' : 'Submitted. The admin can now see it.', true);
+    showMsg(isUpdate ? 'Updated. The admin has been notified and can see the new SR#.' : 'Submitted. The admin can now see it.', true);
   }catch(ex){
     showMsg('Could not save (' + (ex.code || ex.message) + ').', false);
   }finally{ paintLock(); }
@@ -659,7 +577,7 @@ async function saveRequest(sr, reason){
 $('reqForm').addEventListener('submit', async e=>{
   e.preventDefault();
   const d = dateForDay(current);
-  if(blocked(d)){ paintLock(); return showMsg(isLocked(d) ? 'The order for this day is already locked.' : 'This day has not been activated by the admin yet.', false); }
+  if(blocked(d)){ paintLock(); return showMsg(adminRemoved ? 'The admin removed your SR#. Contact the Stock Request Admin for more details.' : isLocked(d) ? 'The order for this day is already locked.' : 'This day has not been activated by the admin yet.', false); }
   const sr = $('fSr').value.trim();
   if(!sr) return showMsg('Please enter the SR#.', false);
   if(!validSrNumbers(sr)){ $('fSr').focus(); return showSrNumberError(); }
@@ -667,36 +585,31 @@ $('reqForm').addEventListener('submit', async e=>{
     if(!editingRequest) return;
     if(sr === existing.sr) return showMsg('The SR# has not changed.', false);
     $('saveBtn').disabled = true;
-    const reason = await askReason(existing.sr, sr);
-    if(reason === null){
-      editingRequest = false;
-      $('fSr').value = existing.sr;
-      paintLock();
-      return;
-    }
     if(blocked(d)){
       editingRequest = false;
       paintLock();
       return showMsg(isLocked(d) ? 'The order for this day is already locked.' : 'This day is no longer active.', false);
     }
-    return saveRequest(sr, reason);
+    return saveRequest(sr);
   }
-  saveRequest(sr, null);
+  saveRequest(sr);
 });
 
 $('delBtn').addEventListener('click', async ()=>{
   const d = dateForDay(current);
   if(!existing || blocked(d)) return;
-  const reason = await askReason(existing.sr, '', true);
-  if(reason === null) return;
+  if(!await confirmRemoveRequest(existing.sr)) return;
   if(blocked(d)) return showMsg(isLocked(d) ? 'The order for this day is already locked.' : 'This day is no longer active.', false);
   try{
-    await updateDoc(doc(db,'stockRequests', iso(d) + '_' + emp.id), {
+    await updateDoc(doc(stockRequestsCollection(requestType), stockRequestDocumentId(iso(d), emp.id, requestType)), {
       sr: '',
       removedSr: existing.sr,
-      srSearchTerms: buildSrSearchTerms(existing.sr, Array.isArray(existing.history) ? existing.history : []),
+      srSearchTerms: buildSrSearchTerms(
+        existing.sr,
+        Array.isArray(existing.history) ? existing.history : [],
+        existing.srSearchTerms || []
+      ),
       status: 'removed',
-      removalReason: reason,
       removedAt: serverTimestamp(),
       removedBy: 'employee',
       updatedAt: serverTimestamp()
@@ -705,7 +618,7 @@ $('delBtn').addEventListener('click', async ()=>{
     existing = null;
     $('fSr').value='';
     paintLock();
-    showMsg('Request removed. The admin can see your reason.', true);
+    showMsg('Request removed. The admin has been notified.', true);
   }
   catch(ex){ showMsg('Could not remove (' + (ex.code || ex.message) + ').', false); }
 });

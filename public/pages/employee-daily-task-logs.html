@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Daily Task Logs — Planet Drugstore</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--maroon:#6E1620;--dark:#3D0A10;--red:#d61f2c;--paper:#FBF5F4;--line:#E8D7D8;--ink:#2A1416;--muted:#8C6B6E;--green:#1f7040;--green-bg:#eaf7ef;--amber:#9a5b00;--amber-bg:#fff7e8}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font-family:'Figtree','Segoe UI',Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+:is(a,button,input,textarea,select):focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.appbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px max(24px,calc((100vw - 1120px)/2));background:var(--maroon);border-bottom:3px solid var(--red);color:#fff}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;font-size:14px;font-weight:800;letter-spacing:.4px}
+.brand img{width:38px;height:38px;border-radius:9px;object-fit:cover}
+.brand span{display:block;color:#ffb3b8}
+.back{flex:none;padding:8px 15px;border:1px solid rgba(255,255,255,.45);border-radius:999px;color:#fff;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
+.back:hover{background:rgba(255,255,255,.14)}
+.wrap{width:100%;max-width:1120px;margin:28px auto;padding:0 24px 44px}
+.heading{margin-bottom:18px}
+.eyebrow{margin:0 0 4px;color:var(--red);font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+h1{margin:0;color:var(--maroon);font-size:28px;line-height:1.2}
+.subtitle{margin:5px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
+.count{display:inline-flex;margin:0 0 14px;padding:7px 10px;border-radius:999px;background:#f8e8e8;color:var(--maroon);font-size:12px;font-weight:800}
+.message{display:none;margin:12px 0;padding:12px 14px;border:1px solid;border-radius:8px;font-size:13px;line-height:1.45}
+.message.visible{display:block}
+.message.error{border-color:#f0b9bd;background:#fff0f0;color:#9d1b25}
+.message.success{border-color:#b9dfc6;background:var(--green-bg);color:var(--green)}
+.message.info{border-color:var(--line);background:#fff;color:var(--muted)}
+.task-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.task{min-width:0;padding:17px;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:0 6px 18px rgba(61,10,16,.045)}
+.task-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid #f1e7e7}
+.person{min-width:0}
+.name{color:var(--maroon);font-size:16px;font-weight:800;overflow-wrap:anywhere}
+.department{margin-top:3px;color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.time{flex:none;color:var(--muted);font-size:12px;font-weight:700}
+.status{display:inline-flex;align-items:center;min-height:25px;margin-top:10px;padding:4px 9px;border-radius:999px;background:var(--amber-bg);color:var(--amber);font-size:11px;font-weight:800}
+.status.for-compliance{background:#fff0f0;color:#9d1b25}
+.task-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;padding-top:13px}
+.detail{min-width:0}
+.detail.full{grid-column:1/-1}
+.detail-label{display:block;margin-bottom:4px;color:var(--muted);font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase}
+.detail-value{display:block;color:var(--ink);font-size:13px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
+.task-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-top:15px;padding-top:13px;border-top:1px solid #f1e7e7}
+input,textarea,select{display:block;width:100%;min-width:0;min-height:40px;margin-top:5px;padding:8px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-size:14px}
+textarea{min-height:76px;resize:vertical;line-height:1.5}
+.edit-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;margin-top:14px;padding:13px;border:1px solid var(--line);border-radius:9px;background:#fffafa}
+.edit-form[hidden]{display:none}
+.edit-field{min-width:0;color:var(--maroon);font-size:11px;font-weight:700}
+.edit-field.full{grid-column:1/-1}
+.edit-attachments{display:flex;flex-wrap:wrap;gap:9px}
+.edit-attachment-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--maroon);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.edit-attachment-button:hover{background:#fff7f6;border-color:var(--maroon)}
+.edit-attachment-button:disabled,.edit-attachment-remove:disabled{opacity:.55;cursor:wait}
+.edit-attachment-hint{margin:8px 0 0;color:var(--muted);font-size:11px;line-height:1.45}
+.edit-attachment-list{display:grid;gap:8px;margin-top:10px}
+.edit-attachment{display:flex;align-items:center;gap:10px;min-width:0;padding:8px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.edit-attachment-preview{width:48px;height:48px;flex:none;object-fit:cover;border-radius:6px;background:#f1e7e7}
+.edit-attachment-name{flex:1;min-width:0;color:var(--ink);font-size:12px;overflow-wrap:anywhere}
+.edit-attachment-remove{flex:none;width:30px;height:30px;border:0;border-radius:6px;background:transparent;color:var(--red);font-size:19px;cursor:pointer}
+.edit-attachment-remove:hover{background:#FCE8E9}
+.edit-actions{display:flex;justify-content:flex-end;gap:8px;grid-column:1/-1}
+.button.secondary{border-color:var(--line);background:#fff;color:var(--maroon)}
+.button.secondary:hover{background:var(--paper)}
+.button{display:inline-flex;min-height:40px;align-items:center;justify-content:center;padding:8px 14px;border:1px solid var(--maroon);border-radius:8px;background:var(--maroon);color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.button:hover{background:var(--dark)}
+.button:disabled{opacity:.55;cursor:wait}
+.empty{padding:34px 18px;border:1px dashed #d9c7c8;border-radius:12px;background:rgba(255,255,255,.65);color:var(--muted);font-size:14px;text-align:center}
+.empty[hidden],.task-list[hidden]{display:none}
+@media(max-width:760px){.task-list{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:520px){.appbar{padding:9px 14px}.brand{gap:8px;font-size:11px;letter-spacing:.25px}.brand img{width:34px;height:34px}.back{padding:7px 10px;font-size:11px}.wrap{margin:20px auto;padding:0 12px 28px}h1{font-size:25px}.task{padding:14px}.task-actions{align-items:stretch;flex-direction:column}.edit-form{grid-template-columns:minmax(0,1fr)}.edit-field.full,.edit-actions{grid-column:1}.edit-actions .button{flex:1}.button{width:100%}}
+</style>
+</head>
+<body>
+<header class="appbar">
+  <div class="brand"><img src="/logo.png" alt=""><div>PLANET<span>DRUGSTORE SYSTEMS</span></div></div>
+  <a class="back" href="/daily-task">← Daily Task</a>
+</header>
+<main class="wrap">
+  <header class="heading">
+    <p class="eyebrow">Billing Employee</p>
+    <h1>Daily Task Logs</h1>
+    <p class="subtitle">Your Pending, For Compliance, and incomplete tasks. Update them when work is done.</p>
+  </header>
+  <span class="count" id="taskCount">Loading logs...</span>
+  <div class="message" id="pageMessage" role="status" aria-live="polite"></div>
+  <section class="task-list" id="taskList" aria-label="Your pending daily tasks" hidden></section>
+  <div class="empty" id="emptyState" hidden>No Pending, For Compliance, or incomplete daily tasks.</div>
+</main>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  initializeFirestore, collection, doc, getDoc, onSnapshot, query,
+  serverTimestamp, writeBatch, where
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp(getFirebaseConfigForHost({
+  apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
+  authDomain: "planetdrugstore-peripher-d24c0.firebaseapp.com",
+  projectId: "planetdrugstore-peripher-d24c0",
+  storageBucket: "planetdrugstore-peripher-d24c0.firebasestorage.app",
+  messagingSenderId: "115454971026",
+  appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
+}));
+const auth = getAuth(app);
+const db = initializeFirestore(app, { experimentalForceLongPolling: true, useFetchStreams: false });
+connectLocalFirebaseEmulators({ db, auth });
+
+const $ = id => document.getElementById(id);
+const taskList = $("taskList");
+const emptyState = $("emptyState");
+const pageMessage = $("pageMessage");
+const taskCount = $("taskCount");
+let employeeStaffId = "";
+let stopTaskListener = null;
+
+function readEmployeeSession() {
+  try {
+    const raw = localStorage.getItem("pdEmployeeSession") || sessionStorage.getItem("pdEmployeeSession");
+    return raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    console.error("Unable to read employee session:", error);
+    return null;
+  }
+}
+
+function isBilling(department) {
+  return String(department || "").trim().toLowerCase().replace(/\s+(north|south|manila)$/i, "").trim() === "billing";
+}
+
+function setMessage(text, type = "info") {
+  pageMessage.textContent = text;
+  pageMessage.className = `message visible ${type}`;
+}
+
+function formatDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ""));
+  if (!match) return String(value || "—");
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" })
+    .format(new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+}
+
+function formatTime(value) {
+  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(String(value || ""));
+  if (!match) return String(value || "—");
+  return new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" })
+    .format(new Date(2000, 0, 1, Number(match[1]), Number(match[2])));
+}
+
+function addDetail(container, label, value, full = false) {
+  const detail = document.createElement("div");
+  detail.className = full ? "detail full" : "detail";
+  const detailLabel = document.createElement("span");
+  detailLabel.className = "detail-label";
+  detailLabel.textContent = label;
+  const detailValue = document.createElement("span");
+  detailValue.className = "detail-value";
+  detailValue.textContent = value || "—";
+  detail.append(detailLabel, detailValue);
+  container.append(detail);
+}
+
+function appendEditField(form, labelText, name, type, value, options = {}) {
+  const label = document.createElement("label");
+  label.className = options.full ? "edit-field full" : "edit-field";
+  label.textContent = labelText;
+  let input;
+  if (type === "select") {
+    input = document.createElement("select");
+    options.values.forEach(optionValue => {
+      const option = document.createElement("option");
+      option.value = optionValue;
+      option.textContent = optionValue;
+      input.append(option);
+    });
+    input.value = value;
+  } else {
+    input = document.createElement(type === "textarea" ? "textarea" : "input");
+    if (type !== "textarea") input.type = type;
+    input.value = value || "";
+    if (options.maxLength) input.maxLength = options.maxLength;
+  }
+  input.name = name;
+  input.required = options.required !== false;
+  label.append(input);
+  form.append(label);
+  return input;
+}
+
+const MAX_COMPRESSED_ATTACHMENT_LENGTH = 140000;
+const MAX_ATTACHMENT_SOURCE_SIZE = 20 * 1024 * 1024;
+
+function editableTaskValues(task) {
+  return {
+    date: task.date || "",
+    time: task.time || "",
+    description: task.description || "Regular Stock",
+    descriptionOther: task.descriptionOther || "",
+    location: task.location || "",
+    status: task.status || "Pending",
+    remarks: task.remarks || "",
+    attachments: compressedAttachments(task)
+  };
+}
+
+function compressedAttachments(task) {
+  return Array.isArray(task.attachments)
+    ? task.attachments.filter(attachment =>
+      typeof attachment?.name === "string"
+      && typeof attachment?.data === "string"
+      && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(attachment.data)
+      && attachment.data.length <= MAX_COMPRESSED_ATTACHMENT_LENGTH
+    )
+    : [];
+}
+
+function compressImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Could not open the selected photo."));
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => reject(new Error("This photo format is not supported by your browser."));
+      image.onload = () => {
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        if (!context) {
+          reject(new Error("Photo compression is unavailable in this browser."));
+          return;
+        }
+        let scale = Math.min(1, 900 / Math.max(image.width, image.height));
+        for (let attempt = 0; attempt < 12; attempt++) {
+          canvas.width = Math.max(1, Math.round(image.width * scale));
+          canvas.height = Math.max(1, Math.round(image.height * scale));
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          const quality = Math.max(0.35, 0.76 - Math.floor(attempt / 3) * 0.12);
+          const data = canvas.toDataURL("image/jpeg", quality);
+          if (data.length <= MAX_COMPRESSED_ATTACHMENT_LENGTH) {
+            resolve({ name: file.name, data });
+            return;
+          }
+          scale *= 0.82;
+        }
+        reject(new Error("Could not compress this photo enough. Try a smaller photo."));
+      };
+      image.src = String(reader.result || "");
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderEditAttachments(list, attachments, removeAttachment) {
+  list.replaceChildren(...attachments.map((attachment, index) => {
+    const item = document.createElement("div");
+    item.className = "edit-attachment";
+    const preview = document.createElement("img");
+    preview.className = "edit-attachment-preview";
+    preview.src = attachment.data;
+    preview.alt = "";
+    const name = document.createElement("span");
+    name.className = "edit-attachment-name";
+    name.textContent = attachment.name;
+    const remove = document.createElement("button");
+    remove.className = "edit-attachment-remove";
+    remove.type = "button";
+    remove.setAttribute("aria-label", `Remove ${attachment.name}`);
+    remove.textContent = "×";
+    remove.addEventListener("click", () => removeAttachment(index));
+    item.append(preview, name, remove);
+    return item;
+  }));
+}
+
+function setupEditAttachments(form, task) {
+  const currentAttachments = [...compressedAttachments(task)];
+  const editAttachments = [...currentAttachments];
+  const cameraInput = document.createElement("input");
+  cameraInput.type = "file";
+  cameraInput.accept = "image/*";
+  cameraInput.capture = "environment";
+  cameraInput.hidden = true;
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = "image/*";
+  fileInput.multiple = true;
+  fileInput.hidden = true;
+  const controls = document.createElement("div");
+  controls.className = "edit-attachments";
+  const cameraButton = document.createElement("button");
+  cameraButton.className = "edit-attachment-button";
+  cameraButton.type = "button";
+  cameraButton.textContent = "📷 Take photo";
+  cameraButton.addEventListener("click", () => cameraInput.click());
+  const attachButton = document.createElement("button");
+  attachButton.className = "edit-attachment-button";
+  attachButton.type = "button";
+  attachButton.textContent = "📎 Attach photo";
+  attachButton.addEventListener("click", () => fileInput.click());
+  controls.append(cameraButton, attachButton, cameraInput, fileInput);
+  const hint = document.createElement("p");
+  hint.className = "edit-attachment-hint";
+  hint.textContent = "Up to 5 photos total. New photos are compressed before saving.";
+  const list = document.createElement("div");
+  list.className = "edit-attachment-list";
+  const field = document.createElement("div");
+  field.className = "edit-field full";
+  const label = document.createElement("span");
+  label.textContent = "Photos";
+  field.append(label, controls, hint, list);
+  form.append(field);
+
+  function render() {
+    renderEditAttachments(list, editAttachments, index => {
+      editAttachments.splice(index, 1);
+      render();
+    });
+  }
+
+  async function addFiles(files) {
+    const additions = Array.from(files);
+    if (!additions.length) return;
+    if (editAttachments.length + additions.length > 5) {
+      setMessage("You can attach up to 5 photos per task.", "error");
+      return;
+    }
+    const invalid = additions.find(file =>
+      !file.type.startsWith("image/")
+      || file.size === 0
+      || file.size > MAX_ATTACHMENT_SOURCE_SIZE
+      || file.name.length > 200
+    );
+    if (invalid) {
+      setMessage(`${invalid.name} is not a supported photo or is larger than 20 MB.`, "error");
+      return;
+    }
+    cameraButton.disabled = true;
+    attachButton.disabled = true;
+    hint.textContent = "Compressing photo...";
+    try {
+      for (const file of additions) editAttachments.push(await compressImageFile(file));
+      render();
+      hint.textContent = "Up to 5 photos total. New photos are compressed before saving.";
+    } catch (error) {
+      console.error("Unable to prepare daily task edit attachment:", error);
+      setMessage("Could not prepare this photo. Please try another one.", "error");
+      hint.textContent = "Up to 5 photos total. New photos are compressed before saving.";
+    } finally {
+      cameraButton.disabled = false;
+      attachButton.disabled = false;
+      cameraInput.value = "";
+      fileInput.value = "";
+    }
+  }
+
+  cameraInput.addEventListener("change", () => { void addFiles(cameraInput.files); });
+  fileInput.addEventListener("change", () => { void addFiles(fileInput.files); });
+  render();
+  return {
+    attachments: editAttachments,
+    controls: [cameraButton, attachButton, cameraInput, fileInput],
+    render
+  };
+}
+
+function createTaskCard(task) {
+  const card = document.createElement("article");
+  card.className = "task";
+  const top = document.createElement("div");
+  top.className = "task-top";
+  const person = document.createElement("div");
+  person.className = "person";
+  const name = document.createElement("div");
+  name.className = "name";
+  name.textContent = task.name || task.staffId || "Billing employee";
+  const department = document.createElement("div");
+  department.className = "department";
+  department.textContent = task.department || "Billing";
+  person.append(name, department);
+  const time = document.createElement("time");
+  time.className = "time";
+  time.textContent = `${formatDate(task.date)} · ${formatTime(task.time)}`;
+  top.append(person, time);
+
+  const status = document.createElement("span");
+  status.className = `status ${String(task.status || "").toLowerCase().replace(/\s+/g, "-")}`;
+  status.textContent = task.status || "No status";
+  const details = document.createElement("div");
+  details.className = "task-details";
+  const item = task.description === "Others" && task.descriptionOther
+    ? `Others: ${task.descriptionOther}`
+    : task.description || "";
+  addDetail(details, "Transaction type", item, true);
+  addDetail(details, "Location", task.location || "");
+  addDetail(details, "Remarks/updates", task.remarks || "No remarks", true);
+
+  const editForm = document.createElement("form");
+  editForm.className = "edit-form";
+  editForm.hidden = true;
+  const values = editableTaskValues(task);
+  appendEditField(editForm, "Date", "date", "date", values.date);
+  appendEditField(editForm, "Time", "time", "time", values.time);
+  const description = appendEditField(editForm, "Transaction type", "description", "select", values.description, {
+    values: ["Medical Mission", "People's Day", "Regular Stock", "Rolling Stocks", "Others"]
+  });
+  const descriptionOther = appendEditField(editForm, "Other transaction type", "descriptionOther", "text", values.descriptionOther, {
+    maxLength: 300,
+    full: true,
+    required: values.description === "Others"
+  });
+  descriptionOther.disabled = values.description !== "Others";
+  description.addEventListener("change", () => {
+    descriptionOther.disabled = description.value !== "Others";
+    descriptionOther.required = description.value === "Others";
+    if (descriptionOther.disabled) descriptionOther.value = "";
+  });
+  appendEditField(editForm, "Location", "location", "text", values.location, { maxLength: 200, full: true });
+  appendEditField(editForm, "Status", "status", "select", values.status, {
+    values: ["Collected", "Pending", "Completed", "For Compliance"]
+  });
+  appendEditField(editForm, "Remarks/updates", "remarks", "textarea", values.remarks, {
+    maxLength: 2000,
+    full: true,
+    required: false
+  });
+  const editAttachments = setupEditAttachments(editForm, task);
+  const editActions = document.createElement("div");
+  editActions.className = "edit-actions";
+  const cancelButton = document.createElement("button");
+  cancelButton.type = "button";
+  cancelButton.className = "button secondary";
+  cancelButton.textContent = "Cancel";
+  const saveButton = document.createElement("button");
+  saveButton.type = "submit";
+  saveButton.className = "button";
+  saveButton.textContent = "Save changes";
+  editActions.append(cancelButton, saveButton);
+  editForm.append(editActions);
+
+  const actions = document.createElement("div");
+  actions.className = "task-actions";
+  const editButton = document.createElement("button");
+  editButton.type = "button";
+  editButton.className = "button";
+  editButton.textContent = "Edit task";
+  editButton.addEventListener("click", () => {
+    editForm.hidden = false;
+    editButton.hidden = true;
+  });
+  cancelButton.addEventListener("click", () => {
+    const original = editableTaskValues(task);
+    Object.entries(original).forEach(([name, value]) => {
+      if (name !== "attachments") editForm.elements.namedItem(name).value = value;
+    });
+    descriptionOther.disabled = original.description !== "Others";
+    descriptionOther.required = original.description === "Others";
+    editAttachments.attachments.splice(
+      0,
+      editAttachments.attachments.length,
+      ...original.attachments
+    );
+    editAttachments.render();
+    editForm.hidden = true;
+    editButton.hidden = false;
+  });
+  editForm.addEventListener("submit", event =>
+    saveTaskChanges(event, task, editForm, editButton, saveButton, editAttachments)
+  );
+  actions.append(editButton);
+  card.append(top, status, details, editForm, actions);
+  return card;
+}
+
+function renderTasks(tasks) {
+  const activeTasks = tasks.filter(task => ["", "Pending", "For Compliance"].includes(task.status || ""));
+  activeTasks.sort((a, b) => `${b.date || ""} ${b.time || ""}`.localeCompare(`${a.date || ""} ${a.time || ""}`));
+  taskList.replaceChildren(...activeTasks.map(createTaskCard));
+  taskCount.textContent = `${activeTasks.length} ${activeTasks.length === 1 ? "task" : "tasks"}`;
+  taskList.hidden = activeTasks.length === 0;
+  emptyState.hidden = activeTasks.length !== 0;
+}
+
+function editableValuesFromForm(form) {
+  const formData = new FormData(form);
+  return {
+    date: String(formData.get("date") || ""),
+    time: String(formData.get("time") || ""),
+    description: String(formData.get("description") || ""),
+    descriptionOther: String(formData.get("description") || "") === "Others"
+      ? String(formData.get("descriptionOther") || "").trim()
+      : "",
+    location: String(formData.get("location") || "").trim(),
+    status: String(formData.get("status") || ""),
+    remarks: String(formData.get("remarks") || "").trim()
+  };
+}
+
+async function saveTaskChanges(event, task, form, editButton, saveButton, editAttachments) {
+  event.preventDefault();
+  if (!form.reportValidity()) return;
+  const before = editableTaskValues(task);
+  const after = editableValuesFromForm(form);
+  const beforeAttachments = compressedAttachments(task);
+  const attachmentChanged = JSON.stringify(editAttachments.attachments) !== JSON.stringify(beforeAttachments);
+  if (Object.keys(after).every(key => after[key] === before[key]) && !attachmentChanged) {
+    form.hidden = true;
+    editButton.hidden = false;
+    return;
+  }
+
+  saveButton.disabled = true;
+  saveButton.textContent = "Saving...";
+  for (const control of form.elements) control.disabled = true;
+  editAttachments.controls.forEach(control => { control.disabled = true; });
+  pageMessage.className = "message";
+  const taskReference = doc(db, "dailyTasks", task.id);
+  const historyReference = doc(collection(taskReference, "history"));
+  const batch = writeBatch(db);
+  try {
+    batch.set(historyReference, {
+      before,
+      after,
+      editedBy: employeeStaffId.toLowerCase(),
+      editedAt: serverTimestamp()
+    });
+    batch.update(taskReference, {
+      ...after,
+      attachments: editAttachments.attachments,
+      lastEditId: historyReference.id,
+      updatedAt: serverTimestamp()
+    });
+    await batch.commit();
+    setMessage(
+      ["Completed", "Collected"].includes(after.status)
+        ? "Changes saved. This task is now with the Billing Head and has left your logs."
+        : "Task changes saved. The previous version is available to the Billing Head.",
+      "success"
+    );
+  } catch (error) {
+    console.error("Unable to save daily task edits:", error);
+    setMessage("Could not save these changes. Please try again or contact your Billing Head.", "error");
+    for (const control of form.elements) control.disabled = false;
+    editAttachments.controls.forEach(control => { control.disabled = false; });
+    saveButton.disabled = false;
+    saveButton.textContent = "Save changes";
+  }
+}
+
+function listenForTasks(staffId) {
+  stopTaskListener?.();
+  stopTaskListener = onSnapshot(
+    query(
+      collection(db, "dailyTasks"),
+      where("staffId", "==", staffId),
+      where("status", "in", ["Pending", "For Compliance", ""])
+    ),
+    snapshot => {
+      const tasks = snapshot.docs.map(taskDoc => ({ id: taskDoc.id, ...taskDoc.data() }));
+      renderTasks(tasks);
+      if (!pageMessage.classList.contains("success")
+          && !pageMessage.classList.contains("error")) {
+        pageMessage.className = "message";
+      }
+    },
+    error => {
+      console.error("Unable to listen for employee daily task logs:", error);
+      taskList.hidden = true;
+      emptyState.hidden = true;
+      taskCount.textContent = "Unavailable";
+      setMessage("Unable to load your logs. Please refresh or contact IT/Admin.", "error");
+    }
+  );
+}
+
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    location.replace("/fu3hriaj0m");
+    return;
+  }
+  try {
+    const token = await user.getIdTokenResult();
+    const session = readEmployeeSession();
+    const tokenStaffId = String(token.claims.staffId || "").toLowerCase();
+    if (token.claims.employee !== true || !session?.staffId
+        || tokenStaffId !== String(session.staffId).toLowerCase()) {
+      location.replace("/fu3hriaj0m");
+      return;
+    }
+    const employeeSnapshot = await getDoc(doc(db, "employees", tokenStaffId));
+    if (!employeeSnapshot.exists()) {
+      localStorage.removeItem("pdEmployeeSession");
+      sessionStorage.removeItem("pdEmployeeSession");
+      location.replace("/fu3hriaj0m?deleted=1");
+      return;
+    }
+    const employee = employeeSnapshot.data();
+    if (!isBilling(employee.department)) {
+      location.replace("/ed3od6ldsq");
+      return;
+    }
+    employeeStaffId = String(employee.staffId || session.staffId).trim();
+    taskCount.textContent = "Listening for task updates...";
+    listenForTasks(employeeStaffId);
+  } catch (error) {
+    console.error("Unable to verify employee logs access:", error);
+    setMessage("Unable to verify your employee account. Please sign in again.", "error");
+  }
+});
+
+window.addEventListener("beforeunload", () => stopTaskListener?.());
+</script>
+</body>
+</html>

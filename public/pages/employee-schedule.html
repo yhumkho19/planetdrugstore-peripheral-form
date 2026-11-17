@@ -113,7 +113,7 @@
     gap: 3px;
     flex: 1;
   }
-  .sidebar-nav a {
+  .sidebar-nav a, .sidebar-nav button {
     display: flex;
     align-items: center;
     gap: 11px;
@@ -125,8 +125,10 @@
     font-weight: 500;
     transition: background-color .15s ease, color .15s ease;
   }
+  .sidebar-nav button { width: 100%; border: 0; background: transparent; text-align: left; font-family: inherit; cursor: pointer; }
   .sidebar-nav a .ic { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
-  .sidebar-nav a:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .sidebar-nav button .ic { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+  .sidebar-nav a:hover, .sidebar-nav button:hover { background: rgba(255,255,255,0.06); color: #fff; }
   .sidebar-nav a.active { color: #fff; }
   .sidebar-foot {
     display: flex;
@@ -171,11 +173,13 @@
     cursor: pointer;
   }
   .admin-chip .avatar {
+    position: relative; overflow: hidden;
     width: 26px; height: 26px; border-radius: 50%;
     background: linear-gradient(145deg, var(--signal), #6D4AC7);
     color: #fff; display: flex; align-items: center; justify-content: center;
     font-size: 11px; font-weight: 700; flex-shrink: 0;
   }
+  .admin-chip .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .admin-chip-wrap { position: relative; display: inline-block; }
   .push-toggle-button {
     display: inline-flex;
@@ -229,6 +233,7 @@
     cursor: pointer;
     text-align: left;
   }
+  .admin-dropdown-item[href] { text-decoration: none; }
   .admin-dropdown-item:hover { background: var(--danger-soft); }
 
   /* ---------- Mobile nav (hamburger + off-canvas sidebar) ---------- */
@@ -502,7 +507,202 @@
     grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
     gap: 22px 18px;
   }
-
+  .employee-view .bracket-grid {
+    padding: 12px;
+    justify-items: center;
+    background-image: radial-gradient(#D7DDEB 1.2px, transparent 1.2px);
+    background-size: 14px 14px;
+  }
+  .employee-view .bracket-grid.employee-compact-site-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-items: initial;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+  .employee-site-summary {
+    position: relative;
+    display: flex;
+    flex: 0 1 320px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 10px;
+    width: min(100%, 320px);
+    max-width: 100%;
+    min-width: 0;
+    min-height: 168px;
+    padding: 15px 16px;
+    border: 1px solid #dce3ee;
+    border-radius: 19px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 5px 16px rgba(30, 45, 80, .07);
+    transition: box-shadow .16s ease, transform .16s ease, border-color .16s ease;
+  }
+  .employee-site-summary:hover,
+  .employee-site-summary:focus-visible {
+    border-color: #b9c9e2;
+    box-shadow: 0 8px 20px rgba(30, 45, 80, .12);
+    outline: 2px solid rgba(30, 99, 180, .2);
+    outline-offset: 2px;
+    transform: translateY(-1px);
+  }
+  .employee-site-summary-label {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    font-size: 12px;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+  .employee-site-summary-row {
+    display: grid;
+    grid-template-columns: minmax(88px, 0.82fr) minmax(0, 1.35fr);
+    align-items: start;
+    gap: 12px;
+    min-width: 0;
+  }
+  .employee-site-summary-label strong {
+    color: #704448;
+    font-weight: 800;
+    letter-spacing: .015em;
+  }
+  .employee-site-summary-value {
+    min-width: 0;
+    color: #171717;
+    overflow-wrap: anywhere;
+  }
+  .employee-site-summary-statuses {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 24px;
+    margin-bottom: 2px;
+  }
+  .employee-site-summary-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 3px 10px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+  }
+  .employee-site-summary-status.publish { border-color: #b6e6c6; background: #edf9f1; color: #087a35; }
+  .employee-site-summary-status.publish.inactive { border-color: #f0d7a8; background: #fff8e9; color: #a8660a; }
+  .employee-site-summary-status.terminal { border-color: #c6d6ff; background: #f0f5ff; color: #1648b5; }
+  .employee-site-summary-status.terminal.cancelled { border-color: #d7dbe0; background: #f2f3f5; color: #737980; }
+  .employee-site-summary.is-cancelled {
+    border-color: #bfc3c8;
+    background: #e9eaec;
+    color: #777d84;
+  }
+  .employee-site-summary.is-cancelled .employee-site-summary-label strong,
+  .employee-site-summary.is-cancelled .employee-site-summary-value { color: #747a81; }
+  .employee-site-card-home {
+    position: fixed;
+    inset: 0;
+    z-index: 1450;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(10,16,40,.58);
+    backdrop-filter: blur(3px);
+    overscroll-behavior: contain;
+  }
+  .employee-site-card-home[hidden] { display: none; }
+  .employee-site-dialog {
+    display: flex;
+    flex-direction: column;
+    width: min(980px, 100%);
+    min-height: 0;
+    max-height: min(88vh, 850px);
+    max-height: min(88dvh, 850px);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: 0 26px 60px -18px rgba(12,20,55,.45);
+  }
+  .employee-site-dialog-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .employee-site-dialog-head h2 {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: var(--ink);
+    font-size: 15px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .employee-site-dialog-close {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface-dim);
+    color: var(--ink-muted);
+    font: inherit;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .employee-site-dialog-close:hover { border-color: var(--danger); background: var(--danger-soft); color: var(--danger); }
+  .employee-site-dialog .employee-ticket-card {
+    flex: 0 1 auto;
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .employee-site-dialog .employee-ticket-card:hover,
+  .employee-site-dialog .employee-ticket-card:focus-within { box-shadow: none; transform: none; }
+  @media (max-width: 620px) {
+    .employee-view .bracket-grid.employee-compact-site-list { padding: 8px; }
+    .employee-site-summary { flex-basis: 100%; min-height: 0; padding: 14px 15px; border-radius: 17px; }
+    .employee-site-summary-label { font-size: 11px; }
+    .employee-site-summary-row { grid-template-columns: minmax(82px, .82fr) minmax(0, 1.35fr); gap: 10px; }
+    .employee-site-card-home { align-items: stretch; padding: 10px; }
+    .employee-site-dialog {
+      width: 100%;
+      height: auto;
+      max-height: calc(100vh - 20px);
+      max-height: calc(100dvh - 20px);
+      min-height: 0;
+      border-radius: 13px;
+    }
+    .employee-site-dialog .employee-ticket-card { flex: 1 1 0; }
+    .employee-site-dialog-head { padding: 10px 12px; }
+    .employee-site-dialog .employee-ticket-card .staff-row { gap: 4px 10px; padding: 5px 0; }
+  }
   /* ---------- Date bracket (admin) ---------- */
   .bracket-head {
     display: flex;
@@ -570,42 +770,7 @@
   .date-tab:hover { border-color: var(--ink-faint); color: var(--ink); box-shadow: var(--shadow-sm); }
   .date-tab.active { background: var(--ink); border-color: var(--ink); color: #fff; box-shadow: var(--shadow-sm); }
   .date-tab { display: inline-flex; align-items: center; gap: 7px; }
-  .date-tab.has-open:not(.active) { border-color: var(--danger); color: var(--danger); }
-  .tab-badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 10px;
-    background: var(--danger-soft);
-    color: var(--danger);
-  }
-  .date-tab.active .tab-badge { background: rgba(255,255,255,0.18); color: #fff; }
-  .tab-badge.ok { background: var(--ok-soft); color: var(--ok); }
-  .date-tab.active .tab-badge.ok { background: rgba(255,255,255,0.18); color: #fff; }
 
-  .site-sort-row {
-    display: flex;
-    justify-content: flex-end;
-    margin: -8px 0 12px;
-  }
-  .site-sort-control {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--ink-muted);
-    font-size: 12px;
-    font-weight: 600;
-  }
-  .site-sort-control select {
-    min-height: 36px;
-    padding: 6px 30px 6px 10px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--surface);
-    color: var(--ink);
-    font: inherit;
-  }
   .branch-marker {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
@@ -653,6 +818,13 @@
   }
   .card-status-group { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin-left: auto; }
   .card-status-group .card-status { margin-left: 0; }
+  .card-status.pharmacist-note-count {
+    display: inline-flex; align-items: center; gap: 4px;
+    border: 1px solid var(--north); background: var(--north-soft); color: var(--north);
+    cursor: pointer; font: 700 10px/1.2 'IBM Plex Mono', monospace;
+  }
+  .card-status.pharmacist-note-count:hover { filter: brightness(.97); }
+  .pharmacist-note-count-number { font-variant-numeric: tabular-nums; }
   .card-status.warn { background: var(--danger-soft); color: var(--danger); }
   .card-status.ok { background: var(--ok-soft); color: var(--ok); }
   .card-status.active { background: var(--ok-soft); color: var(--ok); }
@@ -706,6 +878,116 @@
   .site-card.is-cancelled:hover { box-shadow: var(--shadow-sm); transform: none; }
   .site-card:focus-within { box-shadow: var(--shadow-md); }
   .accent-bar { display: none; }
+  .employee-ticket-card {
+    width: 100%;
+    max-width: 980px;
+    border: 2px solid #cfc0c2;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.9);
+    box-shadow: 0 8px 18px rgba(50, 21, 24, 0.06);
+  }
+  @supports (corner-shape: scoop) {
+    .employee-ticket-card { corner-shape: scoop; }
+  }
+  .employee-ticket-card:hover,
+  .employee-ticket-card:focus-within {
+    box-shadow: 0 4px 14px rgba(22, 32, 74, .12);
+    transform: translateY(-1px);
+  }
+  .employee-ticket-card .ticket-number { display: none; }
+  .employee-ticket-card .card-inner {
+    padding: 22px 26px 18px;
+    grid-template-columns: 1fr;
+    grid-template-areas: "title" "badge" "sched" "perf" "staff" "reliever";
+    row-gap: 16px;
+  }
+  .employee-ticket-card .region-line {
+    grid-area: badge;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    padding-right: 0;
+    padding-bottom: 12px;
+    border-bottom: 1.5px dashed #d8cfd0;
+    margin-bottom: 0;
+  }
+  .event-ticket-fields { display: grid; gap: 16px; }
+  .event-ticket-field {
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+  .event-ticket-field strong,
+  .event-ticket-label {
+    color: #761722;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+  .employee-ticket-card .locationInput {
+    grid-area: title;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 5px;
+    align-self: start;
+    font-size: 28px;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+    margin: 0;
+    padding: 0 0 2px;
+    letter-spacing: -0.04em;
+  }
+  .employee-ticket-card .event-ticket-label { flex: 0 0 auto; white-space: nowrap; }
+  .employee-ticket-card .locationInput > span:last-child { min-width: 0; }
+  .employee-ticket-card .schedule-row .field {
+    border-color: #d8cfd0;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: inset 0 0 0 1px rgba(110,22,32,0.02);
+  }
+  .employee-ticket-card .schedule-row { grid-area: sched; }
+  .employee-ticket-card .perforation { border-top-color: #d5c8ca; }
+  @media (max-width: 620px) {
+    .employee-view .bracket-grid { padding: 8px; }
+    .employee-ticket-card { border-radius: 34px; }
+    .employee-ticket-card .card-inner { padding: 20px 14px 16px; }
+    .employee-ticket-card .region-line { flex-direction: column; }
+    .employee-ticket-card .card-status-group { margin-left: 0; justify-content: flex-start; }
+    .employee-ticket-card .schedule-row { gap: 8px; }
+    .employee-ticket-card .schedule-row .field {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr);
+      grid-template-rows: auto auto;
+      grid-template-areas: "icon label" "icon value";
+      align-items: center;
+      column-gap: 7px;
+      min-width: 0;
+      padding: 8px;
+    }
+    .employee-ticket-card .schedule-row .field::before {
+      grid-area: icon;
+      width: 24px;
+      height: 24px;
+      font-size: 13px;
+    }
+    .employee-ticket-card .schedule-row label {
+      grid-area: label;
+      min-width: 0;
+      font-size: 8px;
+      line-height: 1.2;
+    }
+    .employee-ticket-card .schedule-row .field > div:last-child {
+      grid-area: value;
+      width: auto;
+      min-width: 0;
+      font-size: 11px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+  }
 
   .ticket-number {
     position: absolute;
@@ -814,12 +1096,37 @@
     pointer-events: none;
   }
   .card-status.cancelled { background: var(--danger); color: #fff; }
-
   .region-line {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
+  }
+  .employee-ticket-card .region-line {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+    align-items: start;
+    gap: 8px 16px;
+    min-height: 28px;
+  }
+  .employee-ticket-card .event-ticket-fields {
+    min-width: 0;
+    gap: 8px;
+  }
+  .employee-ticket-card .card-status-group {
+    width: 100%;
+    margin-left: 0;
+    align-content: start;
+    justify-content: flex-end;
+    gap: 5px;
+  }
+  @media (max-width: 620px) {
+    .employee-ticket-card .region-line {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .employee-ticket-card .card-status-group {
+      justify-content: flex-start;
+    }
   }
   .region-line .sep {
     font-family: 'Inter', sans-serif;
@@ -857,6 +1164,13 @@
     margin-bottom: 0;
     color: var(--ink);
   }
+  .employee-ticket-card .locationInput {
+    font-size: clamp(23px, 2vw, 32px);
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+    color: #2a1416;
+  }
 
   .schedule-row {
     display: flex;
@@ -893,6 +1207,41 @@
     color: var(--ink-faint);
     margin-bottom: 1px;
   }
+  .employee-ticket-card .schedule-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .employee-ticket-card .schedule-row .field {
+    flex: none;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #d8cfd0;
+    border-radius: 12px;
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  .employee-ticket-card .schedule-row .field::before {
+    content: "";
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(110,22,32,0.08);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .employee-ticket-card .schedule-row .field:first-child::before { content: "📅"; }
+  .employee-ticket-card .schedule-row .field:last-child::before { content: "🕐"; background: rgba(110,22,32,0.08); }
+  .employee-ticket-card .schedule-row .field > div:last-child,
+  .employee-ticket-card .schedule-row input {
+    font-size: 15px;
+    font-weight: 700;
+    color: #2a1416;
+  }
   .schedule-row .field > div:last-child,
   .schedule-row input {
     width: 100%;
@@ -905,6 +1254,40 @@
     padding: 0;
   }
   .schedule-row input:focus { outline: none; }
+  @media (max-width: 620px) {
+    .employee-ticket-card .schedule-row {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+    }
+    .employee-ticket-card .schedule-row .field {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      grid-template-rows: auto auto;
+      grid-template-areas: "icon label" "icon value";
+      align-items: center;
+      column-gap: 9px;
+      min-width: 0;
+      padding: 9px 12px;
+    }
+    .employee-ticket-card .schedule-row .field::before {
+      grid-area: icon;
+      width: 30px;
+      height: 30px;
+      font-size: 15px;
+    }
+    .employee-ticket-card .schedule-row label {
+      grid-area: label;
+      min-width: 0;
+      white-space: nowrap;
+    }
+    .employee-ticket-card .schedule-row .field > div:last-child {
+      grid-area: value;
+      width: auto;
+      min-width: 0;
+      overflow-wrap: normal;
+      word-break: normal;
+    }
+  }
 
   /* Flags exactly which field(s) an event-team edit changed on a card the
      employee is booked on — see applyScheduleChangeHighlights(). Clears
@@ -1002,6 +1385,28 @@
     align-items: baseline;
     gap: 8px;
   }
+  .employee-ticket-card .staff-section {
+    border-top: 1.5px dashed #ddd1d2;
+    padding-top: 10px;
+  }
+  .employee-ticket-card .staff-section-title {
+    font-size: 14px;
+    color: #6e1620;
+    margin-bottom: 10px;
+  }
+  .employee-ticket-card .staff-row {
+    padding: 4px 0;
+    border-bottom: none;
+    gap: 10px;
+  }
+  .employee-ticket-card .role-label {
+    width: auto;
+    min-width: 0;
+    font-size: 12px;
+    color: #6e1620;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
   .staff-section-hint {
     font-family: 'Inter', sans-serif;
     font-size: 10.5px;
@@ -1021,6 +1426,34 @@
     border-bottom: 1px solid var(--border);
     flex-wrap: wrap;
   }
+  .roster-profile-avatar {
+    position: relative;
+    display: inline-grid;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--signal-soft);
+    color: var(--signal-dark);
+    font-size: 10px;
+    font-weight: 800;
+  }
+  .roster-profile-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .roster-profile-person { display: flex; grid-column: 3; align-items: center; gap: 8px; min-width: 0; }
+  .roster-profile-person .employee-slot-name { min-width: 0; overflow-wrap: anywhere; }
+  .roster-profile-person .employee-slot-name.is-mine {
+    padding: 3px 8px;
+    border: 1px solid rgba(47,111,237,.22);
+    border-radius: 7px;
+    background: var(--signal-soft);
+    color: var(--signal-dark);
+  }
+  .roster-profile-admin-field { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+  .roster-profile-admin-field .nameInput { flex: 1; min-width: 0; }
+  .roster-profile-admin-field .siteInput { flex: 1 0 100%; }
   .staff-row:last-child { border-bottom: none; }
   .staff-row .role-label {
     width: 122px;
@@ -1319,7 +1752,73 @@
   .modal-actions button.primary:hover { opacity: 0.92; transform: translateY(-1px); }
 
   /* ---------- Leaderboard (employee side) ---------- */
-  #leaderboardSection { display: none; }
+  .leaderboard-overlay {
+    position: fixed; inset: 0; z-index: 1450; display: none;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(10, 16, 40, .58); backdrop-filter: blur(3px);
+  }
+  .leaderboard-overlay.open { display: flex; }
+  .leaderboard-dialog {
+    width: min(900px, 100%); max-height: min(88vh, 900px); overflow: hidden;
+    display: flex; flex-direction: column; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: 0 26px 60px -18px rgba(12, 20, 55, .45);
+  }
+  .leaderboard-modal-head {
+    display: flex; align-items: center; gap: 12px; padding: 15px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .leaderboard-modal-head h2 { margin: 0; color: var(--ink); font-size: 17px; }
+  .leaderboard-modal-head .notifcenter-close { margin-left: auto; }
+  .leaderboard-modal-body { min-height: 0; overflow-y: auto; padding: 16px; }
+  #leaderboardSection .leaderboard-wrap { margin: 0; }
+  .event-sites-overlay {
+    position: fixed; inset: 0; z-index: 1450; display: none;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(10, 16, 40, .58); backdrop-filter: blur(3px);
+  }
+  .event-sites-overlay.open { display: flex; }
+  .event-sites-dialog {
+    width: min(680px, 100%); max-height: min(88vh, 850px); overflow: hidden;
+    display: flex; flex-direction: column; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: 0 26px 60px -18px rgba(12, 20, 55, .45);
+  }
+  .event-sites-head {
+    display: flex; align-items: center; gap: 12px; padding: 15px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .event-sites-head h2 { margin: 0; color: var(--ink); font-size: 17px; }
+  .event-sites-head .notifcenter-close { margin-left: auto; }
+  .event-sites-list { min-height: 0; overflow-y: auto; padding: 12px; }
+  .event-site-option {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 13px 14px; border: 1px solid var(--border); border-radius: 11px;
+    margin-bottom: 8px; background: var(--surface); color: var(--ink);
+    text-align: left; font: inherit; cursor: pointer; transition: border-color .15s, box-shadow .15s;
+  }
+  .event-site-option:hover { border-color: var(--signal); box-shadow: var(--shadow-sm); }
+  .event-site-option:last-child { margin-bottom: 0; }
+  .event-site-option-copy { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+  .event-site-option-name { font-weight: 750; overflow-wrap: anywhere; }
+  .event-site-option-meta { color: var(--ink-muted); font-size: 11px; line-height: 1.45; }
+  .event-site-option-status {
+    flex: 0 0 auto; border-radius: 999px; padding: 4px 8px;
+    background: var(--ok-soft); color: var(--south);
+    font-size: 10px; font-weight: 750; text-transform: uppercase;
+  }
+  .event-site-option-status.inactive { background: var(--north-soft); color: var(--north); }
+  .event-site-option-status.cancelled { background: var(--danger-soft); color: var(--danger); }
+  .event-sites-empty { padding: 30px 16px; color: var(--ink-muted); text-align: center; }
+  @media (max-width: 620px) {
+    .leaderboard-overlay { padding: 0; }
+    .leaderboard-dialog { width: 100%; height: 100%; max-height: none; border: 0; border-radius: 0; }
+    .leaderboard-modal-body { padding: 12px; }
+    .event-sites-overlay { padding: 0; }
+    .event-sites-dialog { width: 100%; height: 100%; max-height: none; border: 0; border-radius: 0; }
+    .event-sites-list { padding: 10px; }
+    .event-site-option { padding: 12px 10px; gap: 8px; }
+  }
   .leaderboard-wrap {
     margin-bottom: 22px;
     border: 1px solid var(--border);
@@ -1477,8 +1976,9 @@
   }
   body {
     background:
+      radial-gradient(circle, rgba(112, 118, 134, 0.12) 1px, transparent 1px) 0 0 / 14px 14px,
       radial-gradient(900px 420px at 100% -10%, rgba(214,31,44,.10), transparent 60%),
-      var(--bg);
+      #f3f2ee;
     font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
     color: var(--ink);
   }
@@ -1490,9 +1990,6 @@
       radial-gradient(300px 240px at 100% 100%, rgba(214,31,44,.35), transparent 70%),
       linear-gradient(165deg, #6E1620, var(--sidebar-bg));
     box-shadow: 8px 0 28px rgba(61,10,16,.12);
-  }
-  .sidebar-nav a.active {
-    /* no persistent background — highlight now shows on hover only */
   }
   .topbar { background: rgba(250,246,245,.92); backdrop-filter: blur(12px); }
   .content-scroll { max-width: 1480px; }
@@ -1727,21 +2224,28 @@
   .nc-empty .stub { display: block; font-size: 30px; margin-bottom: 8px; opacity: .6; }
   .notifcenter-focus { animation: notifCenterFocus 2.2s ease; }
   @keyframes notifCenterFocus { 20%, 70% { box-shadow: 0 0 0 4px rgba(47,111,237,.38), 0 12px 28px rgba(47,111,237,.22); } }
+  .site-card.notifcenter-focus { overflow: visible; }
+  .site-card.notifcenter-focus::after {
+    content: "👇";
+    position: absolute;
+    top: -34px;
+    left: 50%;
+    z-index: 8;
+    font-size: 26px;
+    line-height: 1;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 3px rgba(30, 15, 18, .22));
+    animation: employeeSitePointer 2.2s ease-in-out;
+  }
+  @keyframes employeeSitePointer {
+    0%, 100% { opacity: 0; transform: translate(-50%, 7px); }
+    20%, 70% { opacity: 1; transform: translate(-50%, 0); }
+  }
   @media (max-width: 640px) {
     .notifcenter-overlay { padding: 0; }
     .notifcenter-box { width: 100%; min-height: 100vh; border-radius: 0; border: none; }
     .notifcenter-body { max-height: none; }
   }
-
-  /* ---- Site auto-delete countdown (12:00 AM the day after the site's date) ---- */
-  .site-expiry { display:inline-flex; align-items:center; gap:6px; font: 600 11px/1.2 'IBM Plex Mono', ui-monospace, monospace; padding:4px 9px; border-radius:999px; background: var(--signal-soft); color: var(--signal-dark); white-space:nowrap; max-width:100%; }
-  .site-expiry .se-t { font-variant-numeric: tabular-nums; }
-  .site-expiry.is-soon { background: var(--north-soft); color: var(--north); }
-  .site-expiry.is-urgent { background: var(--danger-soft); color: var(--danger); animation: seBlink 1.2s ease-in-out infinite; }
-  .site-expiry.is-gone { background: var(--danger-soft); color: var(--danger); animation: none; }
-  .card-expiry-row { margin: 0 0 8px; }
-  .bracket-expiry { margin-left: 8px; }
-  @keyframes seBlink { 50% { opacity: .55; } }
 
   /* Roster refresh: keep employee and head screens on one warm visual system. */
   .sidebar { width: 210px; padding: 22px 14px; }
@@ -1755,6 +2259,7 @@
   .page-head h1 { font-size: clamp(27px, 3vw, 36px); }
   .page-head p { font-size: 13px; }
   .page-head > div:first-child { flex: 1 1 350px; min-width: 280px; }
+  .employee-view .page-head .stats { display: none; }
   .stats { flex: 0 1 420px; justify-content: flex-end; gap: 8px; margin-left: auto; }
   .stats .stat {
     min-width: 0; flex: 1 1 120px; gap: 7px; padding: 8px 10px;
@@ -1781,7 +2286,6 @@
     color: var(--ink); border-color: var(--border);
   }
   .date-tab.active { background: #6E1620; border-color: #6E1620; }
-  .date-tab.has-open:not(.active) { border-color: #D61F2C; color: #A5151F; }
   .grid { gap: 18px; margin-top: 4px; }
   .bracket-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .site-card {
@@ -1803,7 +2307,6 @@
     grid-template-columns: minmax(0, 1fr) 245px;
     grid-template-areas: "badge sched" "title sched" "perf perf" "staff staff" "reliever reliever" "attach attach" "cardfoot cardfoot";
   }
-  .card-expiry-row { display: none; }
   .locationInput { color: #6E1620; font-size: clamp(19px, 2vw, 25px); }
   .region-line select, .region-line input.customText { border-radius: 8px; }
   .schedule-row { gap: 6px; }
@@ -1824,6 +2327,7 @@
     display: grid; grid-template-columns: 20px minmax(140px, 200px) minmax(0, 1fr) auto;
     align-items: center; gap: 10px; padding: 3px 0; border-color: #F0E7E6;
   }
+  .staff-row.employee-roster-row { grid-template-columns: 30px minmax(140px, 200px) minmax(0, 1fr) auto; }
   .emp-role-label { font-size: 11px; }
   .emp-name { font-size: 12px; }
   .staff-row input.nameInput {
@@ -1864,7 +2368,9 @@
     .card-inner { grid-template-columns: minmax(0, 1fr); grid-template-areas: "badge" "title" "sched" "perf" "staff" "reliever" "attach" "cardfoot"; }
     .schedule-row { flex-direction: row; }
     .staff-row { grid-template-columns: 18px minmax(0, 1fr); gap: 6px 9px; }
+    .staff-row.employee-roster-row { grid-template-columns: 30px minmax(0, 1fr); }
     .emp-name, .claim-btn { grid-column: 2; justify-self: start; }
+    .roster-profile-person { grid-column: 2 / -1; }
   }
   @media (max-width: 620px) {
     .topbar { gap: 10px; padding: 8px 14px; }
@@ -1905,7 +2411,6 @@
     .grid { gap: 10px; margin-top: 0; }
     .date-tabs { gap: 6px; margin-bottom: 10px; }
     .date-tab { gap: 5px; padding: 8px 9px; font-size: 10px; }
-    .tab-badge { padding: 2px 5px; font-size: 9px; }
     .bracket-grid { gap: 10px; }
     .site-card { border-radius: 13px; }
     .site-card::before { height: 100px; }
@@ -1966,6 +2471,26 @@
   </div>
 </div>
 
+<div class="leaderboard-overlay" id="leaderboardOverlay" aria-hidden="true">
+  <section class="leaderboard-dialog" role="dialog" aria-modal="true" aria-labelledby="leaderboardModalTitle">
+    <div class="leaderboard-modal-head">
+      <h2 id="leaderboardModalTitle">🏆 Employee Leaderboard</h2>
+      <button type="button" class="notifcenter-close" id="leaderboardCloseBtn" aria-label="Close leaderboard">&#10005;</button>
+    </div>
+    <div class="leaderboard-modal-body" id="leaderboardSection"></div>
+  </section>
+</div>
+
+<div class="event-sites-overlay" id="eventSitesOverlay" aria-hidden="true">
+  <section class="event-sites-dialog" role="dialog" aria-modal="true" aria-labelledby="eventSitesTitle">
+    <div class="event-sites-head">
+      <h2 id="eventSitesTitle">📍 Event Sites</h2>
+      <button type="button" class="notifcenter-close" id="eventSitesCloseBtn" aria-label="Close event sites">&#10005;</button>
+    </div>
+    <div class="event-sites-list" id="eventSitesList"></div>
+  </section>
+</div>
+
 <div class="notifcenter-overlay" id="notifCenterOverlay" role="dialog" aria-modal="true" aria-labelledby="notifCenterTitle">
   <div class="notifcenter-box">
     <div class="notifcenter-head">
@@ -1998,7 +2523,8 @@
     <nav class="sidebar-nav">
       <a href="/ed3od6ldsq"><span class="ic">🏠</span>Home</a>
       <a href="#" data-current="true"><span class="ic">🗓️</span>My Schedule</a>
-      <a href="/30k1jkejh3?from=%2F47fto0gim6"><span class="ic">🏆</span>Leaderboard</a>
+      <button type="button" id="eventSitesOpenBtn" aria-haspopup="dialog" aria-controls="eventSitesOverlay"><span class="ic">📍</span>Event Sites</button>
+      <button type="button" id="leaderboardOpenBtn" aria-haspopup="dialog" aria-controls="leaderboardOverlay"><span class="ic">🏆</span>Leaderboard</button>
       <a href="#" id="notifNavBtn"><span class="ic">🔔</span>Notifications<span class="nav-badge" id="notifNavBadge">0</span></a>
     </nav>
     <div class="sidebar-foot">✚ One ticket per site,<br>Staff assignment tracker</div>
@@ -2010,8 +2536,9 @@
       <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">☰</button>
       <div class="topbar-right">
         <div class="admin-chip-wrap" id="empChipWrap">
-          <button type="button" class="admin-chip" id="empChipBtn" aria-haspopup="true"><span class="avatar" id="empChipAvatar">—</span><span id="empChipLabel">—</span>▾</button>
+          <button type="button" class="admin-chip" id="empChipBtn" aria-haspopup="true"><span class="avatar" id="empChipAvatar"><span id="empChipInitials">—</span><img id="empChipProfilePhoto" alt="" hidden></span><span id="empChipLabel">—</span>▾</button>
           <div class="admin-dropdown" id="empDropdown">
+            <a class="admin-dropdown-item" href="/pages/profile.html">My Profile</a>
             <button type="button" class="push-toggle-button" id="pushToggleButton" aria-live="polite">Enable phone notifications</button>
             <button type="button" class="admin-dropdown-item" id="eventReminderSoundBtn" title="Enables audio for this page and plays a 10-second test">🔊 Test alarm sound</button>
             <button type="button" class="admin-dropdown-item" id="empLogoutBtn">🚪 Logout</button>
@@ -2047,8 +2574,6 @@
       </div>
 
 
-      <div id="leaderboardSection"></div>
-
       <div class="region-accordions" id="regionAccordions">
         <button type="button" class="region-acc-head region-acc-head--north" data-filter="north">
           <span>NORTH CALOOCAN</span>
@@ -2067,8 +2592,6 @@
         <button class="btn ghost" id="printBtn">🖨️ Print / Export PDF</button>
         <button class="btn danger-outline" id="resetBtn">Reset all</button>
       </div>
-      <a class="btn" id="leaderboardBtn" href="/30k1jkejh3?from=%2F47fto0gim6" style="display:none;">🏆 Leaderboard</a>
-
       <div id="datalistContainer" style="display:none" aria-hidden="true"></div>
 
       <div class="grid" id="grid">
@@ -2102,7 +2625,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-10-13.4";
+const APP_VERSION = "2026-11-09.10";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -2364,6 +2887,9 @@ function showAddDateEventPrompt() {
 }
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
+import { attachRosterProfilePhotos } from "../assets/js/roster-profile-photos.js?v=3";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   initializeFirestore, doc, collection, setDoc, getDoc, onSnapshot, serverTimestamp, runTransaction,
   addDoc, deleteDoc, updateDoc, query, orderBy, arrayUnion, arrayRemove, limit, where, Timestamp
@@ -2379,11 +2905,14 @@ const firebaseConfig = {
   messagingSenderId: "115454971026",
   appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
 };
-const fbApp = initializeApp(firebaseConfig);
+const fbApp = initializeApp(getFirebaseConfigForHost(firebaseConfig));
 const db = initializeFirestore(fbApp, {
   experimentalForceLongPolling: true,
   useFetchStreams: false
 });
+const auth = getAuth(fbApp);
+connectLocalFirebaseEmulators({ db, auth });
+await auth.authStateReady();
 // Single shared doc that "Send" overwrites and employees read live.
 const scheduleDocRef = doc(db, "eventSchedule", "current");
 
@@ -2413,61 +2942,6 @@ const employeesCollRef = collection(db, "employees");
 const notificationsCollRef = collection(db, "emergencyNotifications");
 
 // ==========================================================================
-// SITE AUTO-DELETE (countdown + midnight expiry)
-// --------------------------------------------------------------------------
-// A site dated Sep 29 is deleted at 12:00 AM Sep 30 (Philippine time, fixed
-// UTC+8 so every device agrees no matter its own clock/timezone setting).
-// Every site card and date bracket shows a live countdown to that moment.
-// ==========================================================================
-const SITE_EXPIRY_TZ_OFFSET_MS = 8 * 60 * 60 * 1000;
-function siteExpiryMs(card) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String((card && card.date) || ""));
-  if (!m) return null; // no date yet -> never expires
-  return Date.UTC(+m[1], +m[2] - 1, +m[3] + 1, 0, 0, 0) - SITE_EXPIRY_TZ_OFFSET_MS;
-}
-function siteIsExpired(card) {
-  const t = siteExpiryMs(card);
-  return t !== null && Date.now() >= t;
-}
-function siteExpiryLabel(card) {
-  const t = siteExpiryMs(card);
-  if (t === null) return "";
-  const d = new Date(t + SITE_EXPIRY_TZ_OFFSET_MS); // shift so UTC getters read Manila wall-clock
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  return `${months[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()} 12:00 AM`;
-}
-function formatSiteExpiryCountdown(ms) {
-  if (ms <= 0) return "Deleting…";
-  const s = Math.floor(ms / 1000);
-  const days = Math.floor(s / 86400);
-  const hh = String(Math.floor((s % 86400) / 3600)).padStart(2, "0");
-  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
-  const ss = String(s % 60).padStart(2, "0");
-  return (days > 0 ? days + "d " : "") + hh + ":" + mm + ":" + ss;
-}
-function siteExpiryBadgeHtml(card, extraClass) {
-  const t = siteExpiryMs(card);
-  if (t === null) return "";
-  const label = siteExpiryLabel(card);
-  return `<span class="site-expiry ${extraClass || ""}" data-expire-at="${t}" title="This site is automatically deleted on ${escapeAttr(label)}">` +
-    `🗑️ <span class="se-lbl">Deletes in</span> <span class="se-t">${formatSiteExpiryCountdown(t - Date.now())}</span></span>`;
-}
-function tickSiteExpiryBadges() {
-  const now = Date.now();
-  document.querySelectorAll(".site-expiry[data-expire-at]").forEach(el => {
-    const left = Number(el.dataset.expireAt) - now;
-    const t = el.querySelector(".se-t");
-    const lbl = el.querySelector(".se-lbl");
-    if (t) t.textContent = formatSiteExpiryCountdown(left);
-    if (lbl) lbl.style.display = left <= 0 ? "none" : "";
-    el.classList.toggle("is-gone", left <= 0);
-    el.classList.toggle("is-urgent", left > 0 && left <= 60 * 60 * 1000);
-    el.classList.toggle("is-soon", left > 60 * 60 * 1000 && left <= 6 * 60 * 60 * 1000);
-  });
-}
-setInterval(tickSiteExpiryBadges, 1000);
-
-
 // The logged-in employee's session, expected to be set by employee-login.html
 // after a successful sign-in, shaped like:
 //   { staffId, name, department, branch }  where branch is "south" or "north"
@@ -2489,6 +2963,7 @@ function getEmployeeSession() {
     // also the account-deletion listener below (it only runs when
     // employeeSession is truthy).
     const normalizedBranch = String(s.branch || "").trim().toLowerCase();
+    if (normalizedBranch === "manila") return { ...s, branch: normalizedBranch };
     if (normalizedBranch !== "south" && normalizedBranch !== "north") return null;
     s.branch = normalizedBranch;
     return s;
@@ -2519,7 +2994,7 @@ function getEmployeeSession() {
   openBtn.addEventListener("click", openSidebar);
   if (closeBtn) closeBtn.addEventListener("click", closeSidebar);
   backdropEl.addEventListener("click", closeSidebar);
-  sidebarEl.querySelectorAll(".sidebar-nav a").forEach(a => a.addEventListener("click", closeSidebar));
+  sidebarEl.querySelectorAll(".sidebar-nav a, .sidebar-nav button").forEach(item => item.addEventListener("click", closeSidebar));
 
   // Highlight the nav link that matches the current page instead of a
   // hardcoded "active" class in the markup. A link with a real href is
@@ -2553,6 +3028,10 @@ const employeeSession = getEmployeeSession();
 if (!employeeSession) {
   window.location.href = "/fu3hriaj0m";
   throw new Error("No employee session — redirecting to employee-login.html.");
+}
+if (/^billing\s+manila$/i.test(String(employeeSession.department || "").trim())) {
+  window.location.replace("/ed3od6ldsq");
+  throw new Error("Billing Manila employees can access Daily Task only.");
 }
 
 let eventReminderAudioContext = null;
@@ -2637,11 +3116,40 @@ if ("serviceWorker" in navigator) {
     ? (words[0][0] + words[1][0]).toUpperCase()
     : String(team || "—").slice(0, 2).toUpperCase();
   const label = branch && branch !== "—" ? `${team.toUpperCase()} ${branch}` : team.toUpperCase();
-  const avatarEl = document.getElementById("empChipAvatar");
+  const avatarEl = document.getElementById("empChipInitials");
   const labelEl = document.getElementById("empChipLabel");
   if (avatarEl) avatarEl.textContent = avatar;
   if (labelEl) labelEl.textContent = label;
 })();
+async function loadEmployeeChipProfilePhoto() {
+  const user = auth.currentUser;
+  const photoImage = document.getElementById("empChipProfilePhoto");
+  const initials = document.getElementById("empChipInitials");
+  if (!user || !photoImage || !initials) return;
+
+  const token = await user.getIdTokenResult();
+  const staffId = String(employeeSession.staffId || "").trim().toLowerCase();
+  if (token.claims.employee !== true
+      || String(token.claims.staffId || "").trim().toLowerCase() !== staffId) {
+    throw new Error("The signed-in account does not match the employee schedule session.");
+  }
+
+  const profileSnapshot = await getDoc(doc(db, "userProfiles", user.uid));
+  let photoData = profileSnapshot.exists() ? profileSnapshot.data().photoData : null;
+  if (!photoData && /^billing(?: north| south| manila)?$/i.test(employeeSession.department || "")) {
+    const sharedPhotoSnapshot = await getDoc(doc(db, "dailyTaskProfilePhotos", staffId));
+    if (sharedPhotoSnapshot.exists()) photoData = sharedPhotoSnapshot.data().photoData;
+  }
+  if (typeof photoData !== "string" || photoData.length > 180000
+      || !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(photoData)) return;
+
+  photoImage.src = photoData;
+  photoImage.hidden = false;
+  initials.hidden = true;
+}
+void loadEmployeeChipProfilePhoto().catch(error => {
+  console.error("Unable to load employee schedule profile photo:", error);
+});
 
 // Employee chip dropdown (Logout) — same open/close-on-outside-click
 // pattern as the admin chip on the department-head pages.
@@ -2718,8 +3226,11 @@ function adminStaffRowHtml(s, sIdx, listKey, card) {
       <select class="roleSelect" data-list="${listKey}" data-sidx="${sIdx}">
         ${roleOptionsHtml(s.label, listKey)}
       </select>
-      <div style="flex:1;min-width:0;">
-        <input type="text" class="nameInput" style="width:100%;" list="roleNameList-${slug(s.label)}" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" placeholder="${listKey === "relievers" ? "NO RELIEVER YET" : "Assign staff name"}" value="${escapeAttr(s.name)}">
+      <div class="roster-profile-admin-field" style="flex:1;min-width:0;">
+        ${s.filledByStaffId
+          ? `<span class="roster-profile-avatar" data-profile-key="${escapeAttr(String(s.filledByStaffId).trim().toLowerCase())}" aria-hidden="true">${escapeHtml(String(s.name || "").trim().split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase())}</span>`
+          : ""}
+        <input type="text" class="nameInput" list="roleNameList-${slug(s.label)}" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" placeholder="${listKey === "relievers" ? "NO RELIEVER YET" : "Assign staff name"}" value="${escapeAttr(s.name)}">
         ${listKey === "relievers" ? `<input type="text" class="siteInput" list="siteNameList" data-card-id="${escapeAttr(card.id)}" data-list="${listKey}" data-sidx="${sIdx}" placeholder="Store to relieve — e.g. Branch X" value="${escapeAttr(s.site || "")}">` : ""}
       </div>
       <span class="status-dot ${s.name.trim() ? "filled" : ""}"></span>
@@ -2787,7 +3298,8 @@ let pendingLocalCardIds = new Set();
 let currentFilter = "all";
 // Which date bracket the logged-in employee currently has selected.
 let employeeSelectedDate = null;
-let employeeSiteSort = "default";
+let employeeSelectedSiteId = null;
+let employeeExpandedSiteId = null;
 // Which region (north/south) the employee currently has the accordion
 // open on. Defaults to their own signup branch once employeeSession loads.
 let employeeRegionFilter = null;
@@ -3056,6 +3568,11 @@ function regionLabel(card) {
   if (card.region === "north") return "North Caloocan";
   return card.regionCustom || "Custom area";
 }
+
+function branchFromSiteName(siteName) {
+  const match = String(siteName || "").match(/\b(north|south)\b/i);
+  return match ? match[1].toLowerCase() : "";
+}
 function missionLabel(card) {
   if (card.mission === "peoples_day") return "People's Day";
   if (card.mission === "other") return (card.missionCustom || "").trim() || "Other event";
@@ -3077,6 +3594,11 @@ function notifEventTypeLabel(n) {
   return c ? missionLabel(c) : "";
 }
 
+function employeeNotificationActorLabel(notification) {
+  const label = String(notification && (notification.actorLabel || notification.assignedBy) || "").trim();
+  return /^pharmacist(?:\s+department)?$/i.test(label) ? "Operations" : label;
+}
+
 // ---- Shared layout for every event notice (popup, bell panel) ----
 // Reason first, then the same labelled lines every time:
 //   Role / Event Site / Event Date / Time / Event Type
@@ -3096,12 +3618,14 @@ function notifDetailRows(n, opts) {
     if (n.siteCount) rows.push(["Sites deployed", String(n.siteCount)]);
     const ds = (Array.isArray(n.dates) ? n.dates : []).map(d => formatDateDisplay(d));
     if (ds.length) rows.push([ds.length > 1 ? "Event Dates" : "Event Date", ds.join(", ")]);
-    if (n.actorLabel) rows.push(["Action by", n.actorLabel]);
+    const actorLabel = employeeNotificationActorLabel(n);
+    if (actorLabel) rows.push(["Action by", actorLabel]);
     return rows;
   }
   if (n.type === "pharmacistNote") {
     if (n.noteText) rows.push(["Note", n.noteText]);
-    if (n.actorLabel) rows.push(["From", n.actorLabel]);
+    const actorLabel = employeeNotificationActorLabel(n);
+    if (actorLabel) rows.push(["From", actorLabel]);
     if (n.location) rows.push(["Event Site", n.location]);
     if (n.date) rows.push(["Event Date", formatDateDisplay(n.date)]);
     return rows;
@@ -3120,7 +3644,8 @@ function notifDetailRows(n, opts) {
     const t = notifEventTypeLabel(n);
     if (t) rows.push(["Event Type", t]);
   }
-  if (n.actorLabel) rows.push(["Action by", n.actorLabel]);
+  const actorLabel = employeeNotificationActorLabel(n);
+  if (actorLabel) rows.push(["Action by", actorLabel]);
   return rows;
 }
 function notifDetailText(n, opts) {
@@ -3207,15 +3732,9 @@ function branchMarkersForGroup(group) {
   ).join("");
 }
 
-// Counts how many staff slots are still unfilled across a date bracket's
-// items. Works for both {card, idx} (admin) and {card} (employee) entries.
-function bracketOpenCount(items) {
-  let unfilled = 0;
-  items.forEach(({ card }) => {
-    unfilled += (card.staff || []).filter(s => !(s.name || "").trim()).length;
-    unfilled += (card.relievers || []).filter(s => !(s.name || "").trim()).length;
-  });
-  return unfilled;
+function isCardFullyStaffed(card) {
+  const slots = [...(card.staff || []), ...(card.relievers || [])];
+  return slots.length > 0 && slots.every(slot => String(slot.name || "").trim());
 }
 
 function assignedEmployeeCount(card) {
@@ -3223,25 +3742,55 @@ function assignedEmployeeCount(card) {
     .filter(slot => (slot.name || "").trim()).length;
 }
 
-// Recomputes one date tab's "X open"/"✓ full" badge in place, right after
-// a staff name is typed — so the count goes down the moment the field is
-// filled instead of waiting for the tab to be clicked again.
-function updateTabBadge(dateKey) {
-  const tab = document.querySelector(`.date-tabs .date-tab[data-datekey="${escapeAttr(dateKey || "")}"]`);
-  if (!tab) return;
-  const matching = cards.filter(c => (c.date || "") === (dateKey || ""));
-  const openCount = bracketOpenCount(matching.map(card => ({ card })));
-  tab.classList.toggle("has-open", openCount > 0);
-  const badge = tab.querySelector(".tab-badge");
-  if (badge) {
-    if (openCount > 0) {
-      badge.className = "tab-badge";
-      badge.textContent = `${openCount} open`;
-    } else {
-      badge.className = "tab-badge ok";
-      badge.textContent = "✓ full";
-    }
+function pharmacistNotesForCard(cardId) {
+  const staffId = String(employeeSession && employeeSession.staffId || "").trim().toLowerCase();
+  if (!staffId) return [];
+  return latestNotifications
+    .filter(notification => notification.type === "pharmacistNote" &&
+      notification.cardId === cardId &&
+      notification.visibleToEmployees !== false &&
+      isPharmacistNoteForEmployeeDepartment(notification) &&
+      Array.isArray(notification.recipientStaffIds) &&
+      notification.recipientStaffIds.some(id => String(id || "").trim().toLowerCase() === staffId))
+    .sort((a, b) => notifCenterMillis(b.createdAt) - notifCenterMillis(a.createdAt));
+}
+
+function isPharmacistNoteForEmployeeDepartment(notification) {
+  const explicitDepartment = String(notification.targetDepartment || "").trim();
+  const actorLabel = String(notification.actorLabel || notification.assignedBy || "").trim();
+  const legacyDepartment = /^IT Head$/i.test(actorLabel) ? "IT" :
+    /^Billing Head$/i.test(actorLabel) ? "BILLING" : "";
+  const targetDepartment = explicitDepartment || legacyDepartment;
+  if (!targetDepartment) return true;
+  const employeeTeam = roleToTeam(splitDepartmentClient(employeeSession.department).team);
+  return employeeTeam.toLowerCase() === targetDepartment.toLowerCase();
+}
+
+function renderPharmacistNoteBadge(cardEl) {
+  const statusGroup = cardEl.querySelector(".card-status-group");
+  if (!statusGroup) return;
+  const notes = pharmacistNotesForCard(cardEl.dataset.cardId);
+  let button = statusGroup.querySelector(".pharmacist-note-count");
+  if (!notes.length) {
+    button?.remove();
+    return;
   }
+  if (!button) {
+    button = document.createElement("button");
+    button.type = "button";
+    button.className = "card-status pharmacist-note-count";
+    button.innerHTML = '<span aria-hidden="true">📝</span><span class="pharmacist-note-count-number"></span>';
+    button.addEventListener("click", () => showPharmacistNotesModal(pharmacistNotesForCard(cardEl.dataset.cardId)));
+    statusGroup.appendChild(button);
+  }
+  const count = notes.length;
+  button.title = `${count} pharmacist note${count === 1 ? "" : "s"}`;
+  button.setAttribute("aria-label", `View ${count} pharmacist note${count === 1 ? "" : "s"}`);
+  button.querySelector(".pharmacist-note-count-number").textContent = String(count);
+}
+
+function refreshPharmacistNoteBadges() {
+  document.querySelectorAll(".site-card[data-card-id]").forEach(renderPharmacistNoteBadge);
 }
 
 function render() {
@@ -3273,7 +3822,6 @@ function render() {
     updateStats();
     return;
   }
-
   const groups = groupCardsByDate(visible);
 
   // Keep the previously-selected date bracket open if it still exists;
@@ -3289,14 +3837,10 @@ function render() {
   groups.forEach(group => {
     const tab = document.createElement("button");
     tab.type = "button";
-    const openCount = bracketOpenCount(group.items);
-    tab.className = "date-tab" + (group.date === adminSelectedDate ? " active" : "") + (openCount > 0 ? " has-open" : "");
+    tab.className = "date-tab" + (group.date === adminSelectedDate ? " active" : "");
     tab.dataset.datekey = group.date || "";
     const label = group.date ? formatDateDisplay(group.date) : "Unscheduled";
-    tab.innerHTML = `${escapeHtml(label)} (${group.items.length}) ${branchMarkersForGroup(group)}` +
-      (openCount > 0
-        ? `<span class="tab-badge">${openCount} open</span>`
-        : `<span class="tab-badge ok">✓ full</span>`);
+    tab.innerHTML = `${escapeHtml(label)} (${group.items.length}) ${branchMarkersForGroup(group)}`;
     tab.addEventListener("click", () => {
       adminSelectedDate = group.date;
       render();
@@ -3307,7 +3851,6 @@ function render() {
 
   const activeGroup = groups.find(g => g.date === adminSelectedDate) || groups[0];
   let ticketCounter = 0;
-
   {
     const group = activeGroup;
     const bracket = document.createElement("div");
@@ -3366,7 +3909,6 @@ function render() {
 
     group.items.forEach(({ card, idx }) => {
       ticketCounter++;
-
       const cardEl = document.createElement("div");
       cardEl.className = "site-card" + (card.cancelled ? " is-cancelled" : "");
       cardEl.dataset.cardId = card.id;
@@ -3458,6 +4000,7 @@ function render() {
         </div>
       </div>
     `;
+    attachRosterProfilePhotos(cardEl, db);
 
     // ---- Events ----
     cardEl.querySelector(".cancel-event-btn").addEventListener("click", async function () {
@@ -3648,7 +4191,6 @@ function render() {
         dot.classList.toggle("filled", e.target.value.trim().length > 0);
         saveCards();
         updateStats();
-        updateTabBadge(group.date);
       });
       inp.addEventListener("change", e => {
         const listKey = e.target.dataset.list || "staff";
@@ -3804,9 +4346,6 @@ function render() {
 // Read-only view shown to a logged-in employee. Employees can review every
 // published branch because department heads may deploy them to another site.
 function renderEmployeeSchedule(scheduleCards, branch) {
-  // Sites past their 12:00 AM auto-delete moment disappear immediately, even if
-  // no department page has run the actual deletion yet.
-  scheduleCards = (scheduleCards || []).filter(c => !siteIsExpired(c));
   const headSub = document.querySelector(".page-head p");
   if (headSub) headSub.textContent = "Pick a branch below to see its events.";
 
@@ -3833,9 +4372,13 @@ function renderEmployeeSchedule(scheduleCards, branch) {
     return false;
   });
 
-  // Global stats stay unfiltered — they reflect the whole roster, not just
-  // whichever branch's accordion happens to be open right now.
-  applyStats(scheduleCards || []);
+  const visibleScheduleCards = (scheduleCards || []).filter(card =>
+    card.id === employeeSelectedSiteId ||
+    !isCardFullyStaffed(card) || ["staff", "relievers"].some(listKey =>
+      (card[listKey] || []).some(slot => slotBelongsToEmployee(slot))
+    )
+  );
+  applyStats(visibleScheduleCards);
 
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
@@ -3849,7 +4392,7 @@ function renderEmployeeSchedule(scheduleCards, branch) {
     return;
   }
 
-  const filtered = (scheduleCards || []).filter(c => c.region === employeeRegionFilter);
+  const filtered = visibleScheduleCards.filter(c => c.region === employeeRegionFilter);
 
   if (!filtered.length) {
     grid.innerHTML = `<div class="empty-state">
@@ -3875,14 +4418,10 @@ function renderEmployeeSchedule(scheduleCards, branch) {
   groups.forEach(group => {
     const tab = document.createElement("button");
     tab.type = "button";
-    const openCount = bracketOpenCount(group.items);
-    tab.className = "date-tab" + (group.date === employeeSelectedDate ? " active" : "") + (openCount > 0 ? " has-open" : "");
+    tab.className = "date-tab" + (group.date === employeeSelectedDate ? " active" : "");
     tab.dataset.datekey = group.date || "";
     const label = group.date ? formatDateDisplay(group.date) : "Unscheduled";
-    tab.innerHTML = `${escapeHtml(label)} (${group.items.length})` +
-      (openCount > 0
-        ? `<span class="tab-badge">${openCount} open</span>`
-        : `<span class="tab-badge ok">✓ full</span>`);
+    tab.innerHTML = `${escapeHtml(label)} (${group.items.length})`;
     tab.addEventListener("click", () => {
       employeeSelectedDate = group.date;
       renderEmployeeSchedule(scheduleCards, branch);
@@ -3892,42 +4431,20 @@ function renderEmployeeSchedule(scheduleCards, branch) {
   grid.appendChild(tabs);
 
   const activeGroup = groups.find(g => g.date === employeeSelectedDate) || groups[0];
-  const sortRow = document.createElement("div");
-  sortRow.className = "site-sort-row";
-  sortRow.innerHTML = `
-    <label class="site-sort-control" for="employeeSiteSort">
-      Sort by employees
-      <select id="employeeSiteSort">
-        <option value="default">Default order</option>
-        <option value="desc">Most to fewest</option>
-        <option value="asc">Fewest to most</option>
-      </select>
-    </label>
-  `;
-  const siteSortSelect = sortRow.querySelector("select");
-  siteSortSelect.value = employeeSiteSort;
-  siteSortSelect.addEventListener("change", () => {
-    employeeSiteSort = siteSortSelect.value;
-    renderEmployeeSchedule(scheduleCards, branch);
-  });
-  grid.appendChild(sortRow);
-
-  const sortedSiteItems = [...activeGroup.items].sort((a, b) => {
-    if (employeeSiteSort === "desc") return assignedEmployeeCount(b.card) - assignedEmployeeCount(a.card);
-    if (employeeSiteSort === "asc") return assignedEmployeeCount(a.card) - assignedEmployeeCount(b.card);
-    return 0;
-  });
   const bracketGrid = document.createElement("div");
   bracketGrid.className = "bracket-grid";
+  const { team } = splitDepartmentClient(employeeSession && employeeSession.department);
+  const useCompactSiteCards = ["BILLING", "IT"].includes(roleToTeam(team).toUpperCase());
+  if (useCompactSiteCards) bracketGrid.classList.add("employee-compact-site-list");
   grid.appendChild(bracketGrid);
 
-  sortedSiteItems.forEach(({ card }, idx) => {
+  activeGroup.items.forEach(({ card }, idx) => {
     const myRelieverSlot = (card.relievers || []).find(slot => slotBelongsToEmployee(slot));
     const employeeDisplayTime = myRelieverSlot
       ? `${formatRelieverTime(myRelieverSlot.relieverTime)} onwards`
       : (card.time || "—");
     const cardEl = document.createElement("div");
-    cardEl.className = "site-card" + (card.cancelled ? " is-cancelled" : "");
+    cardEl.className = "site-card employee-ticket-card" + (card.cancelled ? " is-cancelled" : "") + (card.inactive ? " is-inactive" : "");
     cardEl.dataset.region = card.region;
     cardEl.dataset.cardId = card.id;
     cardEl.innerHTML = `
@@ -3935,11 +4452,13 @@ function renderEmployeeSchedule(scheduleCards, branch) {
       <div class="accent-bar"></div>
       <div class="card-inner">
         ${card.cancelled ? `<div class="cancelled-stamp">CANCELLED</div>` : ""}
-        <div class="card-expiry-row">${siteExpiryBadgeHtml(card)}</div>
         <div class="region-line">
-          <span class="sep">${escapeHtml(regionLabel(card))} · ${escapeHtml(missionLabel(card))}</span>
+          <div class="event-ticket-fields">
+            <div class="event-ticket-field"><strong>Branch:</strong> ${escapeHtml(regionLabel(card))}</div>
+            <div class="event-ticket-field"><strong>Event Type:</strong> ${escapeHtml(missionLabel(card))}</div>
+          </div>
           <div class="card-status-group">
-            ${card.cancelled ? `<span class="card-status cancelled">Cancelled</span>` : `<span class="card-status active">Active</span>`}
+            ${card.cancelled ? `<span class="card-status cancelled">Cancelled</span>` : card.inactive ? `<span class="card-status inactive">Temporarily inactive</span>` : `<span class="card-status active">Active</span>`}
             <span class="card-status">${assignedEmployeeCount(card)} employees</span>
             ${(() => {
             const openHere = (card.staff || []).filter(s => !(s.name || "").trim()).length +
@@ -3950,10 +4469,13 @@ function renderEmployeeSchedule(scheduleCards, branch) {
             })()}
           </div>
         </div>
-        <div class="locationInput" style="border:none;padding:0;">${escapeHtml(card.location || "Unnamed site")}</div>
+        <div class="locationInput">
+          <span class="event-ticket-label">Event Name:</span>
+          <span>${escapeHtml(card.location || "Unnamed site")}</span>
+        </div>
         <div class="schedule-row">
           <div class="field field-date">
-            <label>Date</label>
+            <label>Event Date</label>
             <div>${escapeHtml(formatDateDisplay(card.date) || "—")}</div>
           </div>
           <div class="field field-time">
@@ -3965,19 +4487,20 @@ function renderEmployeeSchedule(scheduleCards, branch) {
         <div class="staff-section">
           <div class="staff-section-title">🩺 Event Team</div>
           <div class="staff-grid">
-            ${(card.staff || []).map((s, sIdx) => employeeStaffRowHtml(s, sIdx, "staff", card, myActiveSlot, card.cancelled)).join("")}
+            ${(card.staff || []).map((s, sIdx) => employeeStaffRowHtml(s, sIdx, "staff", card, myActiveSlot, card.cancelled, card.inactive)).join("")}
           </div>
         </div>
         ${(card.relievers || []).length ? `
           <div class="staff-section reliever-section">
             <div class="staff-section-title">🏬 Store Reliever <span class="staff-section-hint">covers the store while Event Team is out</span></div>
             <div class="staff-grid">
-              ${card.relievers.map((s, sIdx) => employeeStaffRowHtml(s, sIdx, "relievers", card, myActiveSlot, card.cancelled)).join("")}
+              ${card.relievers.map((s, sIdx) => employeeStaffRowHtml(s, sIdx, "relievers", card, myActiveSlot, card.cancelled, card.inactive)).join("")}
             </div>
           </div>
         ` : ""}
       </div>
     `;
+    attachRosterProfilePhotos(cardEl, db);
     cardEl.querySelectorAll(".claim-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const roleLabel = btn.dataset.roleLabel;
@@ -3991,7 +4514,26 @@ function renderEmployeeSchedule(scheduleCards, branch) {
           }
           return;
         }
-        claimSlot(btn.dataset.cardId, btn.dataset.list || "staff", parseInt(btn.dataset.sidx, 10), btn);
+        const employeeBranch = String(employeeSession && employeeSession.branch || "").trim().toLowerCase();
+        const eventBranch = String(card.region || "").trim().toLowerCase();
+        const slotIndex = parseInt(btn.dataset.sidx, 10);
+        const relieverSlot = btnListKey === "relievers" ? (card.relievers || [])[slotIndex] : null;
+        const relieverSite = String(relieverSlot && relieverSlot.site || "").trim();
+        const relieverSiteBranch = branchFromSiteName(relieverSite);
+        const signupBranch = btnListKey === "relievers" ? (relieverSiteBranch || eventBranch) : eventBranch;
+        let confirmedSignupBranch = "";
+        if (["north", "south"].includes(employeeBranch) &&
+            ["north", "south"].includes(signupBranch) && employeeBranch !== signupBranch) {
+          const branchName = branch => branch === "north" ? "North" : "South";
+          const message = btnListKey === "relievers"
+            ? `Are you sure you want to relieve ${relieverSite || "this store"}? It is in ${branchName(signupBranch)} Caloocan, which is far from your assigned ${branchName(employeeBranch)} Caloocan branch. Do you want to continue?`
+            : `Are you sure you want to sign up for the ${signupBranch.toUpperCase()} branch? ` +
+              `Your assigned branch is ${employeeBranch.toUpperCase()}. Confirm to proceed; cancel to stop.`;
+          const confirmed = await showConfirm(message);
+          if (!confirmed) return;
+          confirmedSignupBranch = signupBranch;
+        }
+        claimSlot(btn.dataset.cardId, btnListKey, slotIndex, btn, confirmedSignupBranch);
       });
     });
     cardEl.querySelectorAll(".unclaim-btn").forEach(btn => {
@@ -4001,36 +4543,116 @@ function renderEmployeeSchedule(scheduleCards, branch) {
         unclaimSlot(btn.dataset.cardId, btn.dataset.list || "staff", parseInt(btn.dataset.sidx, 10), btn);
       });
     });
-    bracketGrid.appendChild(cardEl);
+    renderPharmacistNoteBadge(cardEl);
+    if (useCompactSiteCards) {
+      const outcomeStatus = card.cancelled ? "Cancelled" : isCardFullyStaffed(card) ? "Completed" : "";
+      const summaryStatus = card.inactive ? "TEMPORARILY INACTIVE" : "ACTIVE";
+      const summary = document.createElement("button");
+      summary.type = "button";
+      summary.className = "employee-site-summary" +
+        (card.cancelled ? " is-cancelled" : "");
+      summary.dataset.cardId = card.id;
+      summary.setAttribute("aria-expanded", String(employeeExpandedSiteId === card.id));
+      summary.title = `View ${card.location || "event site"}`;
+      summary.innerHTML =
+        `<span class="employee-site-summary-statuses">` +
+        `<span class="employee-site-summary-status publish${card.inactive ? " inactive" : ""}">${summaryStatus}</span>` +
+        (outcomeStatus
+          ? `<span class="employee-site-summary-status terminal${card.cancelled ? " cancelled" : ""}">${outcomeStatus}</span>`
+          : `<span aria-hidden="true"></span>`) +
+        `</span>` +
+        `<span class="employee-site-summary-label">` +
+        `<span class="employee-site-summary-row"><strong>EVENT NAME</strong><span class="employee-site-summary-value">${escapeHtml(card.location || "Unnamed event site")}</span></span>` +
+        `<span class="employee-site-summary-row"><strong>DATE</strong><span class="employee-site-summary-value">${escapeHtml(formatDateDisplay(card.date) || "Date to be set")}</span></span>` +
+        `<span class="employee-site-summary-row"><strong>BRANCH</strong><span class="employee-site-summary-value">${escapeHtml(regionLabel(card))}</span></span>` +
+        `<span class="employee-site-summary-row"><strong>EVENT TYPE</strong><span class="employee-site-summary-value">${escapeHtml(missionLabel(card))}</span></span></span>`;
+      const cardHome = document.createElement("div");
+      cardHome.className = "employee-site-card-home";
+      const expanded = employeeExpandedSiteId === card.id;
+      cardHome.hidden = !expanded;
+      cardHome.setAttribute("role", "dialog");
+      cardHome.setAttribute("aria-modal", "true");
+      cardHome.setAttribute("aria-hidden", String(!expanded));
+      cardHome.setAttribute("aria-label", `Event schedule: ${card.location || "Unnamed site"}`);
+      const dialog = document.createElement("section");
+      dialog.className = "employee-site-dialog";
+      const dialogHead = document.createElement("div");
+      dialogHead.className = "employee-site-dialog-head";
+      const dialogTitle = document.createElement("h2");
+      dialogTitle.textContent = card.location || "Event schedule";
+      const closeButton = document.createElement("button");
+      closeButton.type = "button";
+      closeButton.className = "employee-site-dialog-close";
+      closeButton.setAttribute("aria-label", "Close event schedule");
+      closeButton.textContent = "×";
+      dialogHead.append(dialogTitle, closeButton);
+      dialog.append(dialogHead, cardEl);
+      cardHome.appendChild(dialog);
+      const closeSchedule = () => {
+        employeeExpandedSiteId = null;
+        summary.setAttribute("aria-expanded", "false");
+        cardHome.setAttribute("aria-hidden", "true");
+        cardHome.hidden = true;
+        summary.focus();
+      };
+      closeButton.addEventListener("click", closeSchedule);
+      cardHome.addEventListener("click", event => {
+        if (event.target === cardHome) closeSchedule();
+      });
+      cardHome.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeSchedule();
+        }
+      });
+      summary.addEventListener("click", () => {
+        employeeExpandedSiteId = employeeExpandedSiteId === card.id ? null : card.id;
+        const expanded = employeeExpandedSiteId === card.id;
+        summary.setAttribute("aria-expanded", String(expanded));
+        cardHome.setAttribute("aria-hidden", String(!expanded));
+        cardHome.hidden = !expanded;
+        if (expanded) closeButton.focus();
+      });
+      bracketGrid.append(summary, cardHome);
+    } else {
+      bracketGrid.appendChild(cardEl);
+    }
   });
   applyScheduleChangeHighlights();
 }
 
 // Renders one slot row (employee view) for either the "staff" (Event Team)
 // or "relievers" (Store Reliever) list.
-function employeeStaffRowHtml(s, sIdx, listKey, card, myActiveSlot, cancelled) {
+function employeeStaffRowHtml(s, sIdx, listKey, card, myActiveSlot, cancelled, inactive) {
   const filled = (s.name || "").trim().length > 0;
   const isMine = filled && slotBelongsToEmployee(s);
   const blockedByOtherSlot = !filled && !!myActiveSlot &&
     !(myActiveSlot.cardId === card.id && myActiveSlot.list === listKey && myActiveSlot.sIdx === sIdx);
   const displayLabel = listKey === "relievers" ? relieverDisplayLabel(s) : s.label;
   const allowed = isRoleAllowedForEmployee(s.label, listKey);
+  const profileKey = String(s.filledByStaffId || "").trim().toLowerCase();
+  const profileInitials = String(s.name || "").trim().split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
+  const profileAvatar = `<span class="roster-profile-avatar"${profileKey ? ` data-profile-key="${escapeAttr(profileKey)}"` : ""} aria-hidden="true">${escapeHtml(profileInitials)}</span>`;
   return `
-    <div class="staff-row">
-      <span class="status-dot ${filled ? "filled" : ""}"></span>
+    <div class="staff-row employee-roster-row">
+      ${filled ? profileAvatar : `<span class="status-dot"></span>`}
       <span class="employee-slot-label" style="min-width:120px;color:var(--ink-muted);font-size:12px;">
         ${escapeHtml(displayLabel)}
         ${listKey === "relievers" && (s.site || "").trim() ? `<span class="reliever-site-tag">📍 ${escapeHtml(s.site)}</span>` : ""}
         ${listKey === "relievers" ? `<span class="reliever-site-tag">Time onwards: ${escapeHtml(formatRelieverTime(s.relieverTime))}</span>` : ""}
       </span>
       ${filled
-        ? `<strong class="employee-slot-name" style="flex:1;">${escapeHtml(s.name)}</strong>` +
+        ? `<span class="roster-profile-person">` +
+          `<strong class="employee-slot-name${isMine ? " is-mine" : ""}" style="flex:${isMine ? "0 1 auto" : "1"};">${escapeHtml(s.name)}</strong></span>` +
           (isMine && cancelled
             ? `<span class="employee-cancelled-label" style="flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);">Event cancelled</span>`
             : "")
         : (() => {
             if (cancelled) {
               return `<button type="button" class="claim-btn blocked" disabled title="This event has been cancelled">Cancelled</button>`;
+            }
+            if (inactive) {
+              return `<button type="button" class="claim-btn blocked" disabled title="This site is temporarily inactive">Temporarily inactive</button>`;
             }
             const blockedByOtherSlot = !!myActiveSlot && !(myActiveSlot.cardId === card.id && myActiveSlot.list === listKey && myActiveSlot.sIdx === sIdx);
             const label = listKey === "relievers" ? "+ Sign up as reliever" : "+ Sign me up";
@@ -4216,7 +4838,12 @@ function startEmployeesListener() {
         window.location.href = "/fu3hriaj0m?deleted=1";
         return;
       }
-      employeesMap = new Map([[staffId, snap.data() || {}]]);
+      const employee = snap.data() || {};
+      if (/^billing\s+manila$/i.test(String(employee.department || "").trim())) {
+        window.location.replace("/ed3od6ldsq");
+        return;
+      }
+      employeesMap = new Map([[staffId, employee]]);
       renderLeaderboard(lastScheduleCardsForLeaderboard);
     }, error => {
       console.error("Could not verify employee account:", error);
@@ -4641,10 +5268,12 @@ async function wakeSchedulePushDelivery(notificationId) {
   }
 }
 
-async function claimSlot(cardId, listKey, staffIdx, btn) {
+async function claimSlot(cardId, listKey, staffIdx, btn, confirmedSignupBranch) {
   const originalLabel = btn.textContent;
   let siteBecameFull = false;
+  let crossBranchSignup = false;
   const siteFilledNotificationRef = doc(notificationsCollRef);
+  const crossBranchNotificationRef = doc(notificationsCollRef);
   // Picker / Encoder-Picker / Pharmacy Assistant Event Team slots pull the
   // employee away from their own store. Ask whether that store should get a
   // Store Reliever slot — nothing is added unless they say yes.
@@ -4679,6 +5308,18 @@ async function claimSlot(cardId, listKey, staffIdx, btn) {
       const cIdx = remoteCards.findIndex(c => c.id === cardId);
       if (cIdx === -1) throw new Error("Site not found — try refreshing.");
       if (remoteCards[cIdx].cancelled) throw new Error("This event has been cancelled.");
+      if (remoteCards[cIdx].inactive) throw new Error("This site is temporarily inactive. Please wait until Operations reactivates it.");
+      const employeeBranch = String(employeeSession.branch || "").trim().toLowerCase();
+      const eventBranch = String(remoteCards[cIdx].region || "").trim().toLowerCase();
+      const slotPreview = (remoteCards[cIdx][listKey] || [])[staffIdx];
+      const signupBranch = listKey === "relievers"
+        ? (branchFromSiteName(slotPreview && slotPreview.site) || eventBranch)
+        : eventBranch;
+      crossBranchSignup = ["north", "south"].includes(employeeBranch) &&
+        ["north", "south"].includes(signupBranch) && employeeBranch !== signupBranch;
+      if (crossBranchSignup && confirmedSignupBranch !== signupBranch) {
+        throw new Error("The event branch changed. Please review the updated event and confirm again.");
+      }
       const siteWasFull = eventTeamRosterIsFull(remoteCards[cIdx]);
       const staffArr = (remoteCards[cIdx][listKey] || []).slice();
       const slot = staffArr[staffIdx];
@@ -4742,6 +5383,24 @@ async function claimSlot(cardId, listKey, staffIdx, btn) {
         sentAt: serverTimestamp(),
         sentBy: data.sentBy || "admin"
       });
+      if (crossBranchSignup) {
+        tx.set(crossBranchNotificationRef, {
+          type: "crossBranchSignup",
+          targetRoles: ["pharmacist", "billing", "information"],
+          targetDepartments: ["pharmacy assistant"],
+          employeeName: employeeSession.name || "Employee",
+          employeeBranch,
+          eventBranch: signupBranch,
+          region: signupBranch,
+          role: listKey === "relievers" ? relieverDisplayLabel(slot) : slot.label,
+          location: remoteCards[cIdx].location || "Unnamed site",
+          date: remoteCards[cIdx].date || "",
+          time: remoteCards[cIdx].time || "",
+          cardId: remoteCards[cIdx].id,
+          createdAt: serverTimestamp(),
+          visibleToEmployees: true
+        });
+      }
       if (siteBecameFull) {
         const fullSite = remoteCards[cIdx];
         tx.set(siteFilledNotificationRef, {
@@ -4762,6 +5421,7 @@ async function claimSlot(cardId, listKey, staffIdx, btn) {
       }
     }, { maxAttempts: 3 });
     if (siteBecameFull) await wakeSchedulePushDelivery(siteFilledNotificationRef.id);
+    if (crossBranchSignup) await wakeSchedulePushDelivery();
     // The slot may have been an emergency vacancy — clear any matching
     // open notification now that someone has covered it.
   } catch (err) {
@@ -5410,12 +6070,9 @@ function applyScheduleChangeHighlights() {
   });
 }
 
-// The "events deployed" broadcast is ONE Firestore doc shared by every
-// employee, so dismissing it must never delete the doc (that would wipe it
-// for everyone). It is cleared per-viewer through the same synced
-// notifCenterCleared list the Notification Center already uses.
+// Shared notices must be cleared per viewer, never resolved globally.
 function isBroadcastCleared(n) {
-  try { return n.type === "eventsDeployed" && notifCenterCleared.has(n.id); }
+  try { return ["eventsDeployed", "crossBranchSignup", "siteInactive", "siteReactivated"].includes(n.type) && notifCenterCleared.has(n.id); }
   catch (e) { return false; } // notifCenterCleared not initialised yet
 }
 function refreshBellPanel() {
@@ -5440,6 +6097,7 @@ function renderNotifPanel(items) {
     return;
   }
   panel.innerHTML = items.map(n => {
+    const actorLabel = employeeNotificationActorLabel(n);
     const isResolved = !!n.resolved;
     const isRemoved = n.type === "removed";
     const isSlotRoleRemoved = n.type === "slotRoleRemoved";
@@ -5456,19 +6114,38 @@ function renderNotifPanel(items) {
     const isSiteMoved = n.type === "siteMoved";
     const isPharmacistNote = n.type === "pharmacistNote";
     const isEventsDeployed = n.type === "eventsDeployed";
-    const isPersonalNotice = isRemoved || isSlotRoleRemoved || isBranchChanged || isDateChanged || isEventUpdated || isMissionChanged || isEventDeleted || isSiteRemoved || isSiteAutoDeleted || isEventCancelled || isEventReinstated || isSlotAssigned || isSiteMoved || isPharmacistNote || isEventsDeployed;
+    const isCrossBranchSignup = n.type === "crossBranchSignup";
+    const isSiteInactive = n.type === "siteInactive";
+    const isSiteReactivated = n.type === "siteReactivated";
+    const isPersonalNotice = isRemoved || isSlotRoleRemoved || isBranchChanged || isDateChanged || isEventUpdated || isMissionChanged || isEventDeleted || isSiteRemoved || isSiteAutoDeleted || isEventCancelled || isEventReinstated || isSiteInactive || isSiteReactivated || isSlotAssigned || isSiteMoved || isPharmacistNote || isEventsDeployed;
     let title, statusLine, btnLabel;
     if (isEventsDeployed) {
       title = `📅 New events deployed`;
-      statusLine = `The pharmacy department deployed the events. Check the schedule for the available slots.`;
+      statusLine = `Operations deployed the events. Check the schedule for the available slots.`;
+      btnLabel = "Got it";
+    } else if (isCrossBranchSignup) {
+      title = `🔔 Cross-branch signup`;
+      statusLine = `${escapeHtml(n.employeeName || "An employee")} from ${escapeHtml(String(n.employeeBranch || "").toUpperCase())} signed up in ${escapeHtml(String(n.eventBranch || "").toUpperCase())}.`;
+      btnLabel = "Got it";
+    } else if (isSiteInactive) {
+      title = `🔕 Your assigned site is inactive`;
+      statusLine = `The site ${escapeHtml(n.location || "you were assigned to")} is temporarily inactive. Operations will notify you when it becomes active again.`;
+      btnLabel = "Got it";
+    } else if (isSiteReactivated) {
+      title = `✅ Your assigned site is active again`;
+      statusLine = `Operations reactivated ${escapeHtml(n.location || "your assigned site")}. Your assignment is still in place.`;
       btnLabel = "Got it";
     } else if (isSlotRoleRemoved) {
       title = `🔔 Your slot role was removed`;
       statusLine = `Your ${escapeHtml(n.role || "schedule")} slot has been removed by the ${escapeHtml(n.removedByDepartment || "department")}. You're free to sign up for another slot now.`;
       btnLabel = "Got it";
     } else if (isRemoved) {
-      title = n.replacedByName ? `🔔 You were removed from the event slot` : `🔔 You've been removed from this slot`;
-      statusLine = n.replacedByName
+      title = n.scheduleReset
+        ? `🔔 Your schedule was reset`
+        : n.replacedByName ? `🔔 You were removed from the event slot` : `🔔 You've been removed from this slot`;
+      statusLine = n.scheduleReset
+        ? `Operations reset the event schedule. Your previous assignment at ${escapeHtml(n.location || "this event site")} was cleared. You may sign up again for this site if a slot is available.`
+        : n.replacedByName
         ? `${escapeHtml(n.replacedByName)} replaced you.`
         : `You're free to sign up for another slot now.`;
       btnLabel = "Got it";
@@ -5492,7 +6169,7 @@ function renderNotifPanel(items) {
       btnLabel = "Got it";
     } else if (isMissionChanged) {
       title = `🔔 The event type was changed`;
-      statusLine = `The event type is changed by the pharmacy department. ${escapeHtml(n.oldMissionLabel || "")} => ${escapeHtml(n.newMissionLabel || "")}. But you're still on a bracket/event.`;
+      statusLine = `Operations changed the event type. ${escapeHtml(n.oldMissionLabel || "")} => ${escapeHtml(n.newMissionLabel || "")}. But you're still on a bracket/event.`;
       btnLabel = "Got it";
     } else if (isEventDeleted) {
       title = `🔔 This event was deleted`;
@@ -5517,18 +6194,18 @@ function renderNotifPanel(items) {
     } else if (isSiteMoved) {
       title = n.list === "relievers" ? `\u{1F3EC} You were assigned as Store Reliever` : `\u{1F4CD} You were moved to a new site`;
       statusLine = n.list === "relievers"
-        ? `You'll be covering ${escapeHtml(n.location || "the store")}. Your previous assignment was cleared and this is now your active deployment. Assigned by ${escapeHtml(n.actorLabel || n.assignedBy || "your department head")}.`
-        : `Your previous assignment was cleared and this is now your active deployment. Moved by ${escapeHtml(n.actorLabel || n.assignedBy || "your department head")}.`;
+        ? `You'll be covering ${escapeHtml(n.location || "the store")}. Your previous assignment was cleared and this is now your active deployment. Assigned by ${escapeHtml(actorLabel || "your department head")}.`
+        : `Your previous assignment was cleared and this is now your active deployment. Moved by ${escapeHtml(actorLabel || "your department head")}.`;
       btnLabel = "Got it";
     } else if (isSlotAssigned) {
       title = n.list === "relievers" ? `\u{1F3EC} You were assigned as Store Reliever` : `\u{1F4CC} You were assigned to this event slot`;
       statusLine = n.list === "relievers"
-        ? `You'll be covering ${escapeHtml(n.location || "the store")}. Assigned by ${escapeHtml(n.actorLabel || n.assignedBy || "your department head")}.`
-        : `${escapeHtml(n.actorLabel || n.assignedBy || "Your department head")} added your name to this role.`;
+        ? `You'll be covering ${escapeHtml(n.location || "the store")}. Assigned by ${escapeHtml(actorLabel || "your department head")}.`
+        : `${escapeHtml(actorLabel || "Your department head")} added your name to this role.`;
       btnLabel = "Got it";
     } else if (isPharmacistNote) {
-      title = `📝 Note from ${escapeHtml(n.actorLabel || "your department head")}`;
-      statusLine = `${escapeHtml(n.actorLabel || "Your department head")} left a note for ${escapeHtml(n.location || "your event")}.`;
+      title = `📝 Note from ${escapeHtml(actorLabel || "your department head")}`;
+      statusLine = `${escapeHtml(actorLabel || "Your department head")} left a note for ${escapeHtml(n.location || "your event")}.`;
       btnLabel = "View notes";
     } else if (isResolved) {
       title = `✅ ${escapeHtml(n.backupName || "A teammate")} — FOR BACKUP`;
@@ -5539,10 +6216,10 @@ function renderNotifPanel(items) {
       statusLine = `Needs a replacement.`;
       btnLabel = "Resolved";
     }
-    const btnClass = isPharmacistNote ? "notif-note-view-btn" : (isPersonalNotice || isResolved) ? "notif-clear-btn" : "notif-resolve-btn";
+    const btnClass = isPharmacistNote ? "notif-note-view-btn" : (isPersonalNotice || isResolved || isCrossBranchSignup) ? "notif-clear-btn" : "notif-resolve-btn";
     const actionMarkup = `<button type="button" class="${btnClass}" data-id="${escapeAttr(n.id)}">${btnLabel}</button>`;
     return `
-    <div class="notif-item ${(isResolved || isPersonalNotice) ? "is-resolved" : ""}">
+    <div class="notif-item ${(isResolved || isPersonalNotice || isCrossBranchSignup) ? "is-resolved" : ""}">
       <div class="notif-item-title">${title}</div>
       <div class="notif-item-body">
         ${statusLine}<br><br>
@@ -5555,7 +6232,7 @@ function renderNotifPanel(items) {
     btn.addEventListener("click", () => {
       const target = items.find(x => x.id === btn.dataset.id);
       if (target && target.type === "pharmacistNote") showPharmacistNoteModal(target);
-      else if (target && target.type === "eventsDeployed") notifCenterClear([target.id]); // per-viewer only
+      else if (target && ["eventsDeployed", "crossBranchSignup", "siteInactive", "siteReactivated"].includes(target.type)) notifCenterClear([target.id]); // per-viewer only
       else resolveNotification(btn.dataset.id);
     });
   });
@@ -5563,15 +6240,25 @@ function renderNotifPanel(items) {
 
 // Admins and employees see only notifications for supported schedule changes.
 function getRelevantNotifications(items) {
-  const personalTypes = ["removed", "slotRoleRemoved", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "slotAssigned", "siteMoved", "pharmacistNote"];
+  const personalTypes = ["removed", "slotRoleRemoved", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "siteInactive", "siteReactivated", "slotAssigned", "siteMoved", "pharmacistNote"];
   if (!employeeSession) {
     return items.filter(n => personalTypes.includes(n.type) && n.type !== "slotAssigned" && n.type !== "pharmacistNote");
   }
   const myTeam = splitDepartmentClient(employeeSession.department).team;
   const myStaffId = String(employeeSession.staffId || "").trim().toLowerCase();
   return items.filter(n => {
+    if (["siteInactive", "siteReactivated"].includes(n.type)) {
+      return n.visibleToEmployees !== false && Array.isArray(n.targetStaffIds) &&
+        n.targetStaffIds.some(id => String(id || "").trim().toLowerCase() === myStaffId);
+    }
+    if (n.type === "crossBranchSignup") {
+      return n.visibleToEmployees !== false &&
+        Array.isArray(n.targetDepartments) &&
+        n.targetDepartments.includes(String(myTeam || "").trim().toLowerCase());
+    }
     if (n.type === "pharmacistNote") {
       return n.visibleToEmployees !== false && Array.isArray(n.recipientStaffIds) &&
+        isPharmacistNoteForEmployeeDepartment(n) &&
         n.recipientStaffIds.some(id => String(id || "").trim().toLowerCase() === myStaffId);
     }
     // Broadcast: every employee gets it EXCEPT the ones the pharmacy
@@ -5620,24 +6307,67 @@ function latestPersonalNotifications(items) {
   });
 }
 
-function showEmployeeNotificationBanner(notification, message) {
-  return window.showScheduleTopBanner(notification, message, () => {
+async function showEmployeeNotificationBanner(notification, message) {
+  const result = await window.showScheduleTopBanner(notification, message, () => {
     if (notification.cardId) notifCenterJump(notification.cardId, notification.date || "");
     else document.querySelector(".content-scroll")?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
+  if (["open", "dismiss"].includes(result) &&
+      notification.broadcastToEmployees === true &&
+      ["eventCancelled", "eventReinstated"].includes(notification.type)) {
+    notifCenterClear([notification.id]);
+  }
 }
 
 function showPharmacistNoteModal(notification) {
   setModalIcon("note");
+  const actorLabel = employeeNotificationActorLabel(notification);
   const noteText = String(notification && notification.noteText || "").trim();
   const noteMarkup = escapeHtml(noteText).replace(/\r?\n/g, "<br>");
   const eventLabel = [notification && notification.location, notification && notification.date
     ? formatDateDisplay(notification.date)
     : ""].filter(Boolean).join(" · ");
   appModalMessage.innerHTML = `
-    <h2 class="bf-title">Note from ${escapeHtml(notification && notification.actorLabel || "your department head")}</h2>
+    <h2 class="bf-title">Note from ${escapeHtml(actorLabel || "your department head")}</h2>
     ${eventLabel ? `<div class="bf-sub">${escapeHtml(eventLabel)}</div>` : ""}
     <div style="margin-top:14px;white-space:normal;overflow-wrap:anywhere;line-height:1.55;">${noteMarkup}</div>
+  `;
+  appModalActions.innerHTML = "";
+  const closeButton = document.createElement("button");
+  closeButton.className = "primary";
+  closeButton.textContent = "Close";
+  closeButton.addEventListener("click", closeModal);
+  appModalActions.appendChild(closeButton);
+  appModal.setAttribute("role", "dialog");
+  appModal.setAttribute("aria-modal", "true");
+  appModal.classList.add("open");
+  setTimeout(() => closeButton.focus(), 30);
+}
+
+function showPharmacistNotesModal(notes) {
+  if (!notes || !notes.length) return;
+  setModalIcon("note");
+  const notesMarkup = notes.map(notification => {
+    const actorLabel = employeeNotificationActorLabel(notification);
+    const eventLabel = [notification.location, notification.date ? formatDateDisplay(notification.date) : ""]
+      .filter(Boolean).join(" · ");
+    const timestamp = notifCenterClockTime(notifCenterMillis(notification.createdAt));
+    const noteText = escapeHtml(String(notification.noteText || "").trim()).replace(/\r?\n/g, "<br>");
+    return `<article style="padding:12px 0;border-top:1px solid var(--border);">
+      <div style="font-size:12px;font-weight:700;color:var(--ink-muted);">${escapeHtml(actorLabel || "Operations")}${timestamp ? ` · ${escapeHtml(timestamp)}` : ""}</div>
+      ${eventLabel ? `<div style="margin-top:3px;font-size:12px;color:var(--ink-muted);">${escapeHtml(eventLabel)}</div>` : ""}
+      <div style="margin-top:7px;white-space:normal;overflow-wrap:anywhere;line-height:1.55;">${noteText}</div>
+    </article>`;
+  }).join("");
+  const noteAuthors = [...new Set(notes
+    .map(notification => employeeNotificationActorLabel(notification))
+    .filter(Boolean))];
+  const notesTitle = noteAuthors.length === 1
+    ? `${noteAuthors[0]} notes`
+    : noteAuthors.length > 1 ? "Department head notes" : "Operations notes";
+  appModalMessage.innerHTML = `
+    <h2 class="bf-title">${escapeHtml(notesTitle)} (${notes.length})</h2>
+    <div style="max-height:48vh;overflow-y:auto;margin-top:12px;">${notesMarkup}</div>
   `;
   appModalActions.innerHTML = "";
   const closeButton = document.createElement("button");
@@ -5670,7 +6400,7 @@ function showPharmacistNoteModal(notification) {
 // Only notifications that genuinely arrive while the page is open pop up.
 // Past notices are still reachable any time via the bell panel.
 let seenNotificationIds = null;
-const personalNotifTypes = ["removed", "slotRoleRemoved", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "slotAssigned", "siteMoved"];
+const personalNotifTypes = ["removed", "slotRoleRemoved", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "siteInactive", "siteReactivated", "slotAssigned", "siteMoved"];
 personalNotifTypes.push("pharmacistNote");
 const initialNotificationParams = new URLSearchParams(window.location.search);
 let pendingPushNoteId = initialNotificationParams.get("viewNotes") || "";
@@ -5697,6 +6427,7 @@ onSnapshot(
     // the panel can still show the green "FOR BACKUP" state.
     latestNotifications = all;
     notificationsFirstSnapshotLoaded = true;
+    refreshPharmacistNoteBadges();
     const relevant = latestPersonalNotifications(getRelevantNotifications(latestNotifications))
       .filter(n => !isBroadcastCleared(n));
     renderNotifPanel(relevant);
@@ -5733,15 +6464,17 @@ onSnapshot(
         const personal = unseen.filter(n => personalNotifTypes.includes(n.type)).slice().reverse();
         const broadcast = unseen.filter(n => !personalNotifTypes.includes(n.type));
         freshOnes = [...personal, ...broadcast];
-      } else {
-        const recentStatusCutoff = Date.now() - 24 * 60 * 60 * 1000;
+      } else if (notifCenterClearedSynced && hasEmployeePublishedCardsSnapshot) {
         freshOnes = openRelevant.filter(n =>
           n.broadcastToEmployees === true &&
           ["eventCancelled", "eventReinstated"].includes(n.type) &&
-          notifCenterMillis(n.createdAt) >= recentStatusCutoff
+          !notifCenterCleared.has(n.id) &&
+          notifCenterMillis(n.createdAt) > notifCenterLastSeen &&
+          employeePublishedCardIds.has(n.cardId)
         ).slice(0, 1);
       }
       for (const n of freshOnes) {
+        const actorLabel = employeeNotificationActorLabel(n);
         const isRemoved = n.type === "removed";
           const isSlotRoleRemoved = n.type === "slotRoleRemoved";
         const isBranchChanged = n.type === "branchChanged";
@@ -5753,6 +6486,8 @@ onSnapshot(
         const isSiteAutoDeleted = n.type === "siteAutoDeleted";
         const isEventCancelled = n.type === "eventCancelled";
         const isEventReinstated = n.type === "eventReinstated";
+          const isSiteInactive = n.type === "siteInactive";
+          const isSiteReactivated = n.type === "siteReactivated";
         const isSlotAssigned = n.type === "slotAssigned";
         const isSiteMoved = n.type === "siteMoved";
         const isPharmacistNote = n.type === "pharmacistNote";
@@ -5760,19 +6495,25 @@ onSnapshot(
         let message;
         let showBranchRow = false;
         if (isEventsDeployed) {
-          message = `📅 The pharmacy department deployed the events.\n\nCheck the schedule for the available sites and slots.`;
+          message = `📅 Operations deployed the events.\n\nCheck the schedule for the available sites and slots.`;
+        } else if (isSiteInactive) {
+          message = `Your assigned site ${n.location || "site"} is temporarily inactive.\n\nOperations will notify you when it becomes active again.`;
+        } else if (isSiteReactivated) {
+          message = `Your assigned site ${n.location || "site"} is active again.\n\nYour assignment is still in place.`;
         } else if (isSiteMoved) {
           message = n.list === "relievers"
-              ? `\u{1F3EC} You were assigned as Store Reliever.\n\nYou'll be covering ${n.location || "the store"}.\n\nYour previous assignment was cleared and this is now your active deployment. Assigned by ${n.actorLabel || n.assignedBy || "your department head"}.`
-              : `\u{1F4CD} You were moved to a new event site.\n\nYour previous assignment was cleared and this is now your active deployment. Moved by ${n.actorLabel || n.assignedBy || "your department head"}.`;
+              ? `\u{1F3EC} You were assigned as Store Reliever.\n\nYou'll be covering ${n.location || "the store"}.\n\nYour previous assignment was cleared and this is now your active deployment. Assigned by ${actorLabel || "your department head"}.`
+              : `\u{1F4CD} You were moved to a new event site.\n\nYour previous assignment was cleared and this is now your active deployment. Moved by ${actorLabel || "your department head"}.`;
         } else if (isPharmacistNote) {
-          message = `${n.actorLabel || "Your department head"} left a note for ${n.location || "your event"}:\n\n${n.noteText || "Open to read the note."}`;
+          message = `${actorLabel || "Your department head"} left a note for ${n.location || "your event"}:\n\n${n.noteText || "Open to read the note."}`;
           } else if (isSlotRoleRemoved) {
             message = `Your ${n.role || "schedule"} slot has been removed by the ${n.removedByDepartment || "department"}.\n\nYou're free to sign up for another slot now.`;
           } else if (isRemoved) {
-          message = n.replacedByName
-            ? `${n.replacedByName} replaced you.`
-            : `You've been removed from your slot.\n\nYou're free to sign up for another slot now.`;
+          message = n.scheduleReset
+            ? `Operations reset the event schedule.\n\nYour previous assignment at ${n.location || "this event site"} was cleared. You may sign up again for this site if a slot is available.`
+            : n.replacedByName
+              ? `${n.replacedByName} replaced you.`
+              : `You've been removed from your slot.\n\nYou're free to sign up for another slot now.`;
         } else if (isBranchChanged) {
           message = `The event team changed the branch for this event.\n\nYour slot was cleared — you're free to sign up for another slot now.`;
         } else if (isDateChanged) {
@@ -5785,7 +6526,7 @@ onSnapshot(
         } else if (isEventUpdated) {
           message = `The event team updated your slot.\n\nThe ${changedFieldsPhrase(n, { includeDate: false })} changed. You're still booked.`;
         } else if (isMissionChanged) {
-          message = `The event type was changed by the pharmacy department.\n\nBut you're still on a bracket/event.`;
+          message = `Operations changed the event type.\n\nBut you're still on a bracket/event.`;
         } else if (isEventDeleted) {
           message = `The event team deleted this event.\n\nYou're free to sign up for another slot now.`;
         } else if (isSiteRemoved) {
@@ -5798,14 +6539,14 @@ onSnapshot(
           message = `Good news — this event is back on.\n\nYou're good to go as scheduled.`;
         } else if (isSlotAssigned) {
           message = n.list === "relievers"
-                ? `\u{1F3EC} You were assigned as Store Reliever.\n\nYou'll be covering ${n.location || "the store"}.\n\nAssigned by ${n.actorLabel || n.assignedBy || "your department head"}.`
-                : `\u{1F4CC} You were assigned to an event slot.\n\n${n.actorLabel || n.assignedBy || "Your department head"} added your name to this role.`;
+                ? `\u{1F3EC} You were assigned as Store Reliever.\n\nYou'll be covering ${n.location || "the store"}.\n\nAssigned by ${actorLabel || "your department head"}.`
+                : `\u{1F4CC} You were assigned to an event slot.\n\n${actorLabel || "Your department head"} added your name to this role.`;
         } else {
           showBranchRow = true;
           message = `🚨 Emergency vacancy just opened for your team.\n\n${n.employeeName || "A teammate"} became unavailable — sign up below if you can cover.`;
         }
-        if (n.actorLabel && n.type !== "slotAssigned" && n.type !== "siteMoved") {
-          message += `\n\nAction by: ${n.actorLabel}.`;
+        if (actorLabel && n.type !== "slotAssigned" && n.type !== "siteMoved") {
+          message += `\n\nAction by: ${actorLabel}.`;
         }
         const detailText = isPharmacistNote ? "" : notifDetailText(n, { includeBranch: showBranchRow });
         if (detailText) message += `\n\n${detailText}`;
@@ -5899,6 +6640,7 @@ document.getElementById("resetBtn").addEventListener("click", async () => {
 startEmployeesListener();
 
 if (employeeSession) {
+  document.body.classList.add("employee-view");
   // Employee mode: hide the admin editing toolbar, but keep the region
   // accordions — employees pick North/South Caloocan the same way the
   // pharmacy admin dashboard does, defaulting to their own branch.
@@ -5906,6 +6648,83 @@ if (employeeSession) {
   if (employeeSession.branch === "north" || employeeSession.branch === "south") {
     employeeRegionFilter = employeeSession.branch;
   }
+  let lastEmployeeAllCards = [];
+  const eventSitesOverlay = document.getElementById("eventSitesOverlay");
+  const eventSitesList = document.getElementById("eventSitesList");
+  const closeEmployeeEventSites = () => {
+    eventSitesOverlay.classList.remove("open");
+    eventSitesOverlay.setAttribute("aria-hidden", "true");
+  };
+  const openEmployeeEventSites = () => {
+    const sites = lastEmployeeAllCards
+      .filter(card => card && card.region === employeeRegionFilter)
+      .slice()
+      .sort((a, b) =>
+        String(a.date || "9999-99-99").localeCompare(String(b.date || "9999-99-99")) ||
+        String(a.region || "").localeCompare(String(b.region || "")) ||
+        String(a.location || "").localeCompare(String(b.location || ""))
+      );
+    if (!sites.length) {
+      eventSitesList.innerHTML = `<div class="event-sites-empty">${employeeRegionFilter
+        ? "No published event sites for this branch yet."
+        : "Choose North or South Caloocan to see its event sites."}</div>`;
+    } else {
+      eventSitesList.innerHTML = sites.map(card => {
+        const status = card.cancelled
+          ? { label: "Cancelled", className: "cancelled" }
+          : card.inactive
+            ? { label: "Temporarily inactive", className: "inactive" }
+            : { label: "Active", className: "" };
+        const staffCount = assignedEmployeeCount(card);
+        return `<button type="button" class="event-site-option" data-event-site-id="${escapeAttr(card.id)}">
+          <span class="event-site-option-copy">
+            <span class="event-site-option-name">${escapeHtml(card.location || "Unnamed site")}</span>
+            <span class="event-site-option-meta">${escapeHtml(formatDateDisplay(card.date) || "Date not set")} · ${escapeHtml(regionLabel(card))} · ${escapeHtml(missionLabel(card))} · ${staffCount} employee${staffCount === 1 ? "" : "s"}</span>
+          </span>
+          <span class="event-site-option-status ${status.className}">${status.label}</span>
+        </button>`;
+      }).join("");
+    }
+    eventSitesOverlay.classList.add("open");
+    eventSitesOverlay.setAttribute("aria-hidden", "false");
+  };
+  document.getElementById("eventSitesOpenBtn").addEventListener("click", openEmployeeEventSites);
+  document.getElementById("eventSitesCloseBtn").addEventListener("click", closeEmployeeEventSites);
+  eventSitesOverlay.addEventListener("click", event => {
+    if (event.target === eventSitesOverlay) closeEmployeeEventSites();
+  });
+  eventSitesList.addEventListener("click", async event => {
+    const option = event.target.closest("[data-event-site-id]");
+    if (!option) return;
+    const site = lastEmployeeAllCards.find(card => card.id === option.dataset.eventSiteId);
+    if (!site) return;
+    closeEmployeeEventSites();
+
+    const { team } = splitDepartmentClient(employeeSession.department);
+    const employeeTeam = roleToTeam(team).toUpperCase();
+    const needsCrossBranchConfirmation =
+      site.region !== employeeSession.branch &&
+      (employeeTeam === "PHARMACY ASSISTANT" || employeeTeam === "BILLING");
+    if (needsCrossBranchConfirmation) {
+      const proceed = await showChoice(
+        `Do you want to see the events on the ${regionLabel(site)} branch?`,
+        "Proceed",
+        "Cancel"
+      );
+      if (!proceed) return;
+    }
+
+    employeeRegionFilter = site.region;
+    employeeSelectedDate = site.date || undefined;
+    employeeSelectedSiteId = site.id;
+    renderEmployeeSchedule(lastEmployeeAllCards, employeeSession.branch);
+    notifCenterJump(site.id, site.date || "");
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && eventSitesOverlay.classList.contains("open")) {
+      closeEmployeeEventSites();
+    }
+  });
   document.querySelectorAll("#regionAccordions .region-acc-head").forEach(btn => {
     btn.addEventListener("click", async () => {
       const region = btn.dataset.filter;
@@ -5926,10 +6745,11 @@ if (employeeSession) {
       }
       employeeRegionFilter = wasActive ? null : region;
       employeeSelectedDate = undefined;
+      employeeSelectedSiteId = null;
+      employeeExpandedSiteId = null;
       renderEmployeeSchedule(lastEmployeeAllCards, employeeSession.branch);
     });
   });
-  let lastEmployeeAllCards = [];
   const pushSiteParams = new URLSearchParams(window.location.search);
   let pendingPushSiteId = pushSiteParams.get("viewSite") || "";
   const pendingPushDate = pushSiteParams.get("date") || "";
@@ -5977,7 +6797,6 @@ if (employeeSession) {
     hasEmployeePublishedCardsSnapshot = true;
     renderEmployeeSchedule(allCards, employeeSession.branch);
     renderLeaderboard(allCards);
-    lastRenderedLiveSiteCount = allCards.filter(c => !siteIsExpired(c)).length;
     if (movedAssignedCard) notifCenterJump(movedAssignedCard.id, movedAssignedCard.date || "");
     if (pendingPushSiteId) {
       const regionButton = [...document.querySelectorAll("#regionAccordions .region-acc-head")]
@@ -5992,16 +6811,6 @@ if (employeeSession) {
       history.replaceState(null, "", cleanUrl);
     }
   });
-  // A site disappears the second its 12:00 AM auto-delete moment passes, even
-  // if the page has been sitting open all night.
-  let lastRenderedLiveSiteCount = -1;
-  setInterval(() => {
-    const live = lastEmployeeAllCards.filter(c => !siteIsExpired(c)).length;
-    if (lastRenderedLiveSiteCount !== -1 && live !== lastRenderedLiveSiteCount) {
-      lastRenderedLiveSiteCount = live;
-      renderEmployeeSchedule(lastEmployeeAllCards, employeeSession.branch);
-    }
-  }, 2000);
 } else {
   // Admin/manager mode: full editable dashboard, as before.
   renderDatalists();
@@ -6184,7 +6993,6 @@ if (employeeSession) {
     const isTypingInCard = activeEl && activeEl.closest && activeEl.closest(".site-card");
     if (isTypingInCard) {
       updateStats();
-      affectedDates.forEach(d => updateTabBadge(d));
     } else {
       render();
     }
@@ -6209,6 +7017,8 @@ if (employeeSession) {
    user, never pushed at them on login.
    ========================================================================== */
 const NOTIF_CENTER_META = {
+  siteInactive:        { icon: "\u23F8", title: "Assigned site inactive",            tone: "warn",   cat: "status"   },
+  siteReactivated:     { icon: "\u25B6", title: "Assigned site active again",        tone: "ok",     cat: "status"   },
   dateChanged:         { icon: "\uD83D\uDCC5", title: "Date changed",                  tone: "warn",   cat: "schedule" },
   eventUpdated:        { icon: "\u270F\uFE0F", title: "Event details updated",         tone: "warn",   cat: "schedule" },
   branchChanged:       { icon: "\uD83D\uDCCD", title: "Branch changed",                tone: "warn",   cat: "branch"   },
@@ -6229,11 +7039,14 @@ const NOTIF_CENTER_META = {
 };
 
 function notifCenterMeta(n) {
+  if (n.type === "removed" && n.scheduleReset) {
+    return { icon: "\uD83D\uDD04", title: "Event schedule reset", tone: "warn", cat: "schedule" };
+  }
   if (n.type === "removed" && n.replacedByName) {
     return { icon: "\uD83D\uDEAB", title: "You were removed from the event slot", tone: "danger", cat: "staffing" };
   }
   if (n.type === "pharmacistNote") {
-    return { icon: "\uD83D\uDCDD", title: `Note from ${n.actorLabel || "department head"}`, tone: "info", cat: "staffing" };
+    return { icon: "\uD83D\uDCDD", title: `Note from ${employeeNotificationActorLabel(n) || "department head"}`, tone: "info", cat: "staffing" };
   }
   // Being put into a Store Reliever slot is not a "site move" or a plain event
   // slot -- word it as what it is.
@@ -6382,8 +7195,19 @@ function notifCenterRows(n) {
   const rows = [];
   const push = (label, html) => { if (html) rows.push({ label, html }); };
   if (n.type === "eventsDeployed") {
-    push("Update", "The pharmacy department deployed the events.");
+    push("Update", "Operations deployed the events.");
     notifDetailRows(n).forEach(([k, v]) => push(k, escapeHtml(v)));
+    return rows;
+  }
+  if (["siteInactive", "siteReactivated"].includes(n.type)) {
+    push("Update", n.type === "siteInactive"
+      ? `The site ${escapeHtml(n.location || "you were assigned to")} is inactive. Operations will notify you when it becomes active again.`
+      : `Operations reactivated ${escapeHtml(n.location || "your assigned site")}. Your assignment is still in place.`);
+    if (n.location) push("Site", escapeHtml(n.location));
+    if (n.date) push("Date", escapeHtml(formatDateDisplay(n.date)));
+    if (n.region) push("Branch", escapeHtml(regionLabelFromValue(n.region)));
+    const eventTypeLabel = notifEventTypeLabel(n);
+    if (eventTypeLabel) push("Event type", escapeHtml(eventTypeLabel));
     return rows;
   }
   if (n.type === "removed" && n.replacedByName) {
@@ -6393,7 +7217,8 @@ function notifCenterRows(n) {
   }
   if (n.type === "pharmacistNote") {
     if (n.noteText) push("Note", escapeHtml(n.noteText));
-    if (n.actorLabel) push("From", escapeHtml(n.actorLabel));
+    const actorLabel = employeeNotificationActorLabel(n);
+    if (actorLabel) push("From", escapeHtml(actorLabel));
     if (n.location) push("Event site", escapeHtml(n.location));
     if (n.date) push("Event date", escapeHtml(formatDateDisplay(n.date)));
     return rows;
@@ -6541,7 +7366,7 @@ function renderNotifCenter() {
   if (!shown.length) {
     body.innerHTML = `<div class="nc-empty">
       <span class="stub">\uD83D\uDD14</span>
-      ${items.length ? "No updates in this category." : "No updates yet. Anything the pharmacy department changes will be listed here, one by one."}
+      ${items.length ? "No updates in this category." : "No updates yet. Anything Operations changes will be listed here, one by one."}
     </div>`;
     return;
   }
@@ -6641,6 +7466,28 @@ function closeNotifCenter() {
   if (overlay) overlay.classList.remove("open");
 }
 
+const leaderboardOverlay = document.getElementById("leaderboardOverlay");
+const leaderboardOpenBtn = document.getElementById("leaderboardOpenBtn");
+const leaderboardCloseBtn = document.getElementById("leaderboardCloseBtn");
+function openLeaderboardModal() {
+  if (!leaderboardOverlay) return;
+  renderLeaderboard(lastScheduleCardsForLeaderboard);
+  leaderboardOverlay.classList.add("open");
+  leaderboardOverlay.setAttribute("aria-hidden", "false");
+  leaderboardCloseBtn?.focus();
+}
+function closeLeaderboardModal() {
+  if (!leaderboardOverlay || !leaderboardOverlay.classList.contains("open")) return;
+  leaderboardOverlay.classList.remove("open");
+  leaderboardOverlay.setAttribute("aria-hidden", "true");
+  leaderboardOpenBtn?.focus();
+}
+leaderboardOpenBtn?.addEventListener("click", openLeaderboardModal);
+leaderboardCloseBtn?.addEventListener("click", closeLeaderboardModal);
+leaderboardOverlay?.addEventListener("click", event => {
+  if (event.target === leaderboardOverlay) closeLeaderboardModal();
+});
+
 const notifNavBtn = document.getElementById("notifNavBtn");
 if (notifNavBtn) {
   notifNavBtn.addEventListener("click", e => { e.preventDefault(); openNotifCenter(); });
@@ -6654,7 +7501,10 @@ if (notifCenterOverlayEl) {
   });
 }
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") closeNotifCenter();
+  if (e.key === "Escape") {
+    closeNotifCenter();
+    closeLeaderboardModal();
+  }
 });
 const notifCenterClearAllBtn = document.getElementById("notifCenterClearAll");
 if (notifCenterClearAllBtn) {

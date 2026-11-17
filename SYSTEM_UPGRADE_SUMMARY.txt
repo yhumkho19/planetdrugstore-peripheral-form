@@ -1,0 +1,140 @@
+PLANET DRUGSTORE SYSTEM
+UPGRADE SUMMARY
+
+Prepared: October 28, 2026
+
+OVERVIEW
+This document summarizes the employee registration, Billing Manila access,
+Billing Head navigation, and Daily Task UI/UX improvements made to the system.
+
+
+TABLE OF CONTENTS
+
+1. Billing Home and Employee Home Navigation
+2. Employee Self-Registration
+3. Registration ON/OFF Controls
+4. Billing Manila Department and Access
+5. Registration URL and Signup Link
+6. Daily Task UI/UX Improvements
+7. Incomplete-Field Submission Warning
+8. Billing Head Past Review Modal
+9. Validation and Deployment Notes
+
+
+1. BILLING HOME AND EMPLOYEE HOME NAVIGATION
+
+- Fixed Billing Head navigation so Billing Home links lead to the Billing Home
+  landing page instead of the deployment roster or event schedule.
+- Restored a visible "Go back home" link on the Billing Daily Task page.
+- The employee-facing Daily Task Home link returns to the Employee Landing
+  page, while Billing Head roster pages link to Billing Home.
+- These destinations are intentionally different because they serve different
+  account roles and landing pages.
+
+
+2. EMPLOYEE SELF-REGISTRATION
+
+- Updated the employee registration page to follow the Staff ID-based employee
+  account flow used by the IT Admin employee registration process.
+- Employees can register themselves without an administrator having to create
+  each employee account manually.
+- The registration page can be opened without an employee or administrator
+  already being signed in.
+- Registration form feedback explains when self-registration is unavailable.
+- Removed the "Recently Registered" section from the registration experience.
+
+
+3. REGISTRATION ON/OFF CONTROLS
+
+- Added a registration availability control for IT Admins in the IT Admin
+  Console.
+- Added a registration availability control for the Billing Head in the
+  Billing Head interface.
+- When registration is ON, employees can use the public registration page.
+- When registration is OFF, the public page remains accessible but informs
+  employees that registration is closed, and new registrations are blocked.
+- Firestore rules also enforce this setting, so disabling registration in the
+  UI is backed by the database rules and is not only a visual restriction.
+- Registration is OFF by default when the setting is absent or false. An
+  authorized IT Admin or Billing Head must turn it ON to allow signups.
+
+
+4. BILLING MANILA DEPARTMENT AND ACCESS
+
+- Added "Billing Manila" as a department option for employee registration.
+- Billing Manila employees can access the Daily Task workflow.
+- Other employee landing-page links intended for North/South teams are hidden
+  from Billing Manila employees.
+- Direct access to restricted employee pages is also checked; hiding a link
+  alone is not treated as the access restriction.
+- Billing North, Billing South, and Billing Manila are recognized as Billing
+  teams by the relevant employee and Billing task flows.
+
+
+5. REGISTRATION URL AND SIGNUP LINK
+
+- Added the clean public registration route:
+  https://planetdrugstoreconsole.web.app/register
+- Updated the employee login "Create your account" link to open the
+  registration page rather than Admin Login.
+- The legacy registration URL redirects to the clean /register route.
+- The registration page being reachable does not mean signup is currently
+  enabled; the ON/OFF setting still controls whether registration can proceed.
+
+
+6. DAILY TASK UI/UX IMPROVEMENTS
+
+- Redesigned the Billing Daily Task page to use a clearer form layout inspired
+  by the supplied design.
+- Added "Log an update" to quickly move focus to the task form.
+- Added "My history" to view the employee's submitted task history.
+- Removed the "Update summary" panel from the employee Daily Task form.
+- Kept employee identity and the live Pending logs count in a floating panel
+  that can be dragged, collapsed, or hidden and restored.
+- Replaced visible browser-native file picker controls with styled Camera and
+  Attach files buttons, and added a photo drop zone.
+- Added attachment count and image previews. Existing file validation and
+  compression are retained; up to five photos can be attached to a task.
+- Restored the "Go back home" link so employees can return to the Employee
+  Landing page from Daily Task.
+
+
+7. INCOMPLETE-FIELD SUBMISSION WARNING
+
+- The Daily Task form checks for missing required details before sending.
+- If fields are empty, a warning modal lists the missing fields and offers
+  Cancel and Proceed.
+- Cancel closes the warning and leaves the employee on the form to make edits.
+- Proceed submits the task as entered, even if those fields are empty.
+- With all required fields filled, the task submits without the warning.
+- Existing task saving, photo processing, and success/error feedback remain in
+  place.
+
+
+8. BILLING HEAD PAST REVIEW MODAL
+
+- On the Billing Head Daily Tasks page, changed "View past review" from an
+  expandable dropdown to a modal.
+- The modal displays previous task versions, including the saved details and
+  any photos captured in the previous version.
+- The review button is shown when a task has previous versions.
+- The current task card remains visible behind the modal.
+
+
+9. VALIDATION AND DEPLOYMENT NOTES
+
+- Checked the affected page scripts for JavaScript syntax errors.
+- Ran Firebase Hosting dry runs before deployment for the recent UI changes.
+- Verified the deployed public routes and relevant UI elements using live
+  Hosting responses.
+- Hosting URL:
+  https://planetdrugstoreconsole.web.app
+- Firebase project:
+  planetdrugstore-peripher-d24c0
+- Hosting deployment publishes the full public/ directory, not only one
+  changed page. Deployment of the Billing Head review modal was confirmed
+  after acknowledging that other current public/ changes would also be
+  included.
+
+
+END OF SUMMARY

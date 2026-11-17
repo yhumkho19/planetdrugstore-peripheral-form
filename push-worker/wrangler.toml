@@ -6,9 +6,26 @@ compatibility_date = "2026-09-01"
 FIREBASE_PROJECT_ID = "planetdrugstore-peripher-d24c0"
 APP_ORIGIN = "https://planetdrugstoreconsole.web.app"
 APP_URL = "https://planetdrugstoreconsole.web.app/47fto0gim6"
+PUSH_SCHEDULE_ENABLED = "false"
 
 [triggers]
-crons = ["*/5 * * * *"]
+crons = []
+
+[[durable_objects.bindings]]
+name = "SCHEDULED_JOBS"
+class_name = "ScheduledJobs"
+
+[[durable_objects.bindings]]
+name = "EMPLOYEE_LOGIN_LIMITER"
+class_name = "EmployeeLoginRateLimiter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ScheduledJobs"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["EmployeeLoginRateLimiter"]
 
 [[kv_namespaces]]
 binding = "PUSH_SUBSCRIPTIONS"

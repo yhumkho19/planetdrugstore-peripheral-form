@@ -1,7 +1,17 @@
 import { getApp, initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getMessaging, getToken, isSupported, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+import { doc, getDoc, getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { deleteToken, getMessaging, getToken, isSupported, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
+const isLocalTestHost = ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname);
+if (isLocalTestHost) {
+  window.pdWakePushDelivery = async () => {};
+  const pushToggleButton = document.getElementById("pushToggleButton");
+  if (pushToggleButton) {
+    pushToggleButton.disabled = true;
+    pushToggleButton.textContent = "Push disabled in local testing";
+  }
+} else {
 const firebaseConfig = {
   apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
   authDomain: "planetdrugstore-peripher-d24c0.firebaseapp.com",
@@ -35,7 +45,8 @@ function readEmployeeSession() {
     const raw = sessionStorage.getItem(sessionKey) || localStorage.getItem(sessionKey);
     const session = raw ? JSON.parse(raw) : null;
     const staffId = String(session?.staffId || "").trim().toLowerCase();
-    return staffId ? { staffId } : null;
+    const department = String(session?.department || "").trim();
+    return staffId ? { staffId, department } : null;
   } catch {
     return null;
   }
@@ -44,32 +55,67 @@ function readEmployeeSession() {
 async function readHeadSession() {
   const auth = getAuth(getApp());
   await auth.authStateReady();
-  const email = String(auth.currentUser?.email || "").trim().toLowerCase();
+  const user = auth.currentUser;
+  const email = String(user?.email || "").trim().toLowerCase();
   const rolesByEmail = {
     "pharmacistdepart@planetdrugstore.ph": "pharmacist",
     "billingdepart@planetdrugstore.ph": "billing",
     "informationdepart@planetdrugstore.ph": "information",
-    "adminstockreq@planetdrugstore.ph": "stock"
+    "adminstockreqmeds@planetdrugstore.ph": "stock",
+    "adminstockreqsup@planetdrugstore.ph": "stock"
   };
-  const headRole = rolesByEmail[email];
-  return headRole ? { headRole } : null;
+  let headRole = rolesByEmail[email] || "";
+  if (!headRole && user?.uid) {
+    try {
+      const profile = await getDoc(doc(getFirestore(getApp()), "eventScheduleAdmins", user.uid));
+      const data = profile.exists() ? profile.data() : null;
+      if (data?.active === true && data?.role === "pharmacist"
+          && String(data.email || "").trim().toLowerCase() === email) {
+        headRole = "pharmacist";
+      }
+    } catch (error) {
+      console.warn("Could not verify Pharmacy schedule push profile:", error);
+    }
+  }
+  return headRole ? {
+    headRole,
+    uid: user?.uid || "",
+    ...(headRole === "stock"
+      ? { stockType: email === "adminstockreqsup@planetdrugstore.ph" ? "supplies" : "medicine" }
+      : {})
+  } : null;
+}
+
+async function pushRequestHeaders(session) {
+  const headers = { "content-type": "application/json" };
+  if (session.headRole) {
+    const user = getAuth(getApp()).currentUser;
+    if (!user) throw new Error("The department sign-in is unavailable.");
+    headers.authorization = `Bearer ${await user.getIdToken()}`;
+  }
+  return headers;
 }
 
 function pushStorageKeys(session) {
+  const stockSuffix = session.headRole === "stock" ? `_${session.stockType}` : "";
   return session.headRole
-    ? { owner: `pdPushHeadRole_${session.headRole}`, token: `pdPushHeadToken_${session.headRole}` }
+    ? { owner: `pdPushHeadRole_${session.headRole}${stockSuffix}`, token: `pdPushHeadToken_${session.headRole}${stockSuffix}` }
     : { owner: "pdPushStaffId", token: "pdPushToken" };
 }
 
 function pushRecipient(session) {
   return session.headRole
     ? { headRole: session.headRole }
-    : { staffId: session.staffId };
+    : { staffId: session.staffId, department: session.department };
 }
 
 async function refreshPushSubscription(config, session, storageKeys, recipientId) {
   if (!isValidVapidKey(config.vapidKey) || Notification.permission !== "granted") return;
-  const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", { scope: "/" });
+  const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
+    scope: "/",
+    updateViaCache: "none"
+  });
+  await registration.update();
   await navigator.serviceWorker.ready;
   const token = await getToken(getMessaging(app), {
     vapidKey: config.vapidKey,
@@ -80,7 +126,7 @@ async function refreshPushSubscription(config, session, storageKeys, recipientId
   const previousToken = localStorage.getItem(storageKeys.token);
   const response = await fetch(`${config.workerUrl.replace(/\/$/, "")}/subscribe`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: await pushRequestHeaders(session),
     body: JSON.stringify({ ...pushRecipient(session), token })
   });
   if (!response.ok) throw new Error(`Push registration failed (${response.status}).`);
@@ -88,7 +134,7 @@ async function refreshPushSubscription(config, session, storageKeys, recipientId
   if (previousToken && previousToken !== token) {
     await fetch(`${config.workerUrl.replace(/\/$/, "")}/subscribe`, {
       method: "DELETE",
-      headers: { "content-type": "application/json" },
+      headers: await pushRequestHeaders(session),
       body: JSON.stringify({ ...pushRecipient(session), token: previousToken })
     });
   }
@@ -120,9 +166,13 @@ function addPushControl(panel, config, session) {
   control.className = "push-notification-control";
   const headerButton = document.getElementById("pushToggleButton");
   const storageKeys = pushStorageKeys(session);
-  const recipientId = session.headRole ? `head:${session.headRole}` : session.staffId;
+  const recipientId = session.headRole
+    ? `head:${session.headRole}${session.stockType ? `:${session.stockType}` : ""}`
+    : session.staffId;
   let enabled = localStorage.getItem(storageKeys.owner) === recipientId
     && Boolean(localStorage.getItem(storageKeys.token));
+  const legacyStockSubscription = session.headRole === "stock"
+    && Boolean(localStorage.getItem("pdPushHeadToken_stock"));
   const updateLabel = () => {
     const label = !config.enabled
       ? "Phone notifications not configured"
@@ -157,10 +207,13 @@ function addPushControl(panel, config, session) {
         const token = localStorage.getItem(storageKeys.token);
         const response = await fetch(`${config.workerUrl.replace(/\/$/, "")}/subscribe`, {
           method: "DELETE",
-          headers: { "content-type": "application/json" },
+          headers: await pushRequestHeaders(session),
           body: JSON.stringify({ ...pushRecipient(session), token })
         });
         if (!response.ok) throw new Error(`Push removal failed (${response.status}).`);
+        try { await deleteToken(messaging); } catch (error) {
+          console.warn("Could not delete the browser push token:", error);
+        }
         localStorage.removeItem(storageKeys.token);
         localStorage.removeItem(storageKeys.owner);
         enabled = false;
@@ -203,7 +256,11 @@ function addPushControl(panel, config, session) {
     if (headerButton) headerButton.textContent = control.textContent;
     let phase = "service worker registration";
     try {
-      const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", { scope: "/" });
+      const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
+        scope: "/",
+        updateViaCache: "none"
+      });
+      await registration.update();
       await navigator.serviceWorker.ready;
       phase = "Firebase push token creation";
       const token = await getToken(messaging, {
@@ -215,7 +272,7 @@ function addPushControl(panel, config, session) {
       phase = "saving device subscription";
       const response = await fetch(`${config.workerUrl.replace(/\/$/, "")}/subscribe`, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: await pushRequestHeaders(session),
         body: JSON.stringify({ ...pushRecipient(session), token })
       });
       if (!response.ok) throw new Error(`Push registration failed (${response.status}).`);
@@ -239,8 +296,15 @@ function addPushControl(panel, config, session) {
 
   if (headerButton) headerButton.addEventListener("click", handleToggle);
   control.addEventListener("click", handleToggle);
-  if (enabled && Notification.permission === "granted") {
-    refreshPushSubscription(config, session, storageKeys, recipientId).catch(error => {
+  if ((enabled || legacyStockSubscription) && Notification.permission === "granted") {
+    refreshPushSubscription(config, session, storageKeys, recipientId).then(()=>{
+      if (legacyStockSubscription) {
+        localStorage.removeItem("pdPushHeadRole_stock");
+        localStorage.removeItem("pdPushHeadToken_stock");
+      }
+      enabled = true;
+      updateLabel();
+    }).catch(error => {
       console.warn("Could not refresh the phone notification subscription:", error);
     });
   }
@@ -254,6 +318,16 @@ async function initializePushControl() {
     : readEmployeeSession();
   if (!session || !("serviceWorker" in navigator) || !("Notification" in window)) return;
   if (headerButton) headerButton.style.display = "inline-flex";
+
+  try {
+    const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
+      scope: "/",
+      updateViaCache: "none"
+    });
+    await registration.update();
+  } catch (error) {
+    console.warn("Could not update the phone notification service worker:", error);
+  }
 
   const style = document.createElement("style");
   style.textContent = ".push-notification-control{display:block;width:calc(100% - 24px);margin:10px 12px;padding:9px 12px;border:1px solid #18794e;border-radius:3px;background:#eaf5ee;color:#145c3a;font:inherit;font-size:13px;font-weight:600;line-height:1.35;text-align:left;cursor:pointer}.push-notification-control:disabled{cursor:default;opacity:.7}.push-toggle-button{display:inline-flex;align-items:center;justify-content:center;border:1px solid #18794e;border-radius:999px;padding:9px 14px;background:#eaf5ee;color:#145c3a;font:inherit;font-size:12px;font-weight:700;line-height:1.2;cursor:pointer}.push-toggle-button:disabled{cursor:default;opacity:.7}.admin-dropdown .push-toggle-button{width:100%;justify-content:flex-start;border-radius:6px;padding:9px 10px;box-shadow:none;text-align:left}";
@@ -274,7 +348,18 @@ async function initializePushControl() {
     const data = payload.data || {};
     const isEventReminder = data.eventReminder === "1";
     const isPharmacistNote = data.notificationType === "pharmacistNote";
-    const isStockDayNotification = String(data.notificationType || "").startsWith("stockDay");
+    const isStockRequestRemoved = data.notificationType === "stockRequestRemoved";
+    const isStockDayNotification = String(data.notificationType || "").startsWith("stockDay")
+      || String(data.notificationType || "").startsWith("stockRequest")
+      || isStockRequestRemoved
+      || data.notificationType === "stockRequestUnblocked";
+    const hasContactAdmin = Boolean(data.contactAdminUrl);
+    const viewAction = { action: "view-site", title: isPharmacistNote ? "View notes" : isStockDayNotification ? "View Stock Request" : "View site" };
+    const closeAction = { action: "close", title: "Close" };
+    const contactAction = { action: "contact-admin", title: "Contact Admin" };
+    const actions = hasContactAdmin
+      ? (Notification.maxActions >= 3 ? [viewAction, closeAction, contactAction] : [contactAction, closeAction])
+      : [viewAction, closeAction];
     if (isEventReminder) {
       window.dispatchEvent(new CustomEvent("pd-event-reminder", { detail: data }));
     }
@@ -285,10 +370,7 @@ async function initializePushControl() {
       tag: data.notificationId || (isEventReminder ? "event-reminder" : "schedule-update"),
       requireInteraction: true,
       vibrate: isEventReminder ? [180, 100, 180, 100, 360] : [180, 100, 180],
-      actions: [
-        { action: "view-site", title: isPharmacistNote ? "View notes" : isStockDayNotification ? "View page" : "View site" },
-        { action: "close", title: "Close" }
-      ],
+      actions,
       data: {
         url: data.url || "/47fto0gim6",
         cardId: data.cardId || "",
@@ -296,7 +378,8 @@ async function initializePushControl() {
         region: data.region || "",
         eventReminder: true,
         reminderKey: data.reminderKey || "",
-        reminderActionToken: data.reminderActionToken || ""
+        reminderActionToken: data.reminderActionToken || "",
+        contactAdminUrl: data.contactAdminUrl || ""
       }
     })).catch(error => console.warn("Could not show event reminder notification:", error));
   });
@@ -309,3 +392,4 @@ async function initializePushControl() {
 }
 
 if (await isSupported()) initializePushControl();
+}

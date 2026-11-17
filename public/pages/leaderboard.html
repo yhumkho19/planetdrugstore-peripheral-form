@@ -260,6 +260,7 @@ function startVersionWatch() {
 startVersionWatch();
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
 import {
   initializeFirestore, doc, collection, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -274,11 +275,12 @@ const firebaseConfig = {
   messagingSenderId: "115454971026",
   appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
 };
-const fbApp = initializeApp(firebaseConfig);
+const fbApp = initializeApp(getFirebaseConfigForHost(firebaseConfig));
 const db = initializeFirestore(fbApp, {
   experimentalForceLongPolling: true,
   useFetchStreams: false
 });
+connectLocalFirebaseEmulators({ db });
 const scheduleDocRef = doc(db, "eventSchedule", "current");
 const employeesCollRef = collection(db, "employees");
 

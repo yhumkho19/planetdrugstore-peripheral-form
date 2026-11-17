@@ -1,6 +1,9 @@
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
 
+self.addEventListener("install", event => event.waitUntil(self.skipWaiting()));
+self.addEventListener("activate", event => event.waitUntil(self.clients.claim()));
+
 firebase.initializeApp({
   apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
   authDomain: "planetdrugstore-peripher-d24c0.firebaseapp.com",
@@ -16,7 +19,17 @@ messaging.onBackgroundMessage(async payload => {
   const data = payload.data || {};
   const isEventReminder = data.eventReminder === "1";
   const isPharmacistNote = data.notificationType === "pharmacistNote";
-  const isStockDayNotification = String(data.notificationType || "").startsWith("stockDay");
+  const isStockRequestRemoved = data.notificationType === "stockRequestRemoved";
+  const isStockDayNotification = String(data.notificationType || "").startsWith("stockDay")
+    || isStockRequestRemoved
+    || data.notificationType === "stockRequestUnblocked";
+  const hasContactAdmin = Boolean(data.contactAdminUrl);
+  const viewAction = { action: "view-site", title: isPharmacistNote ? "View notes" : isStockDayNotification ? "View Stock Request" : "View site" };
+  const closeAction = { action: "close", title: "Close" };
+  const contactAction = { action: "contact-admin", title: "Contact Admin" };
+  const actions = hasContactAdmin
+    ? (Notification.maxActions >= 3 ? [viewAction, closeAction, contactAction] : [contactAction, closeAction])
+    : [viewAction, closeAction];
   if (isEventReminder) {
     const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     clients.forEach(client => client.postMessage({ type: "event-reminder", data }));
@@ -30,10 +43,7 @@ messaging.onBackgroundMessage(async payload => {
     silent: false,
     renotify: true,
     vibrate: isEventReminder ? [180, 100, 180, 100, 360] : [180, 100, 180],
-    actions: [
-      { action: "view-site", title: isPharmacistNote ? "View notes" : isStockDayNotification ? "View page" : "View site" },
-      { action: "close", title: "Close" }
-    ],
+    actions,
     data: {
       url: data.url || "/47fto0gim6",
       cardId: data.cardId || "",
@@ -41,7 +51,8 @@ messaging.onBackgroundMessage(async payload => {
       region: data.region || "",
       eventReminder: isEventReminder,
       reminderKey: data.reminderKey || "",
-      reminderActionToken: data.reminderActionToken || ""
+      reminderActionToken: data.reminderActionToken || "",
+      contactAdminUrl: data.contactAdminUrl || ""
     }
   });
 });
@@ -49,6 +60,11 @@ messaging.onBackgroundMessage(async payload => {
 self.addEventListener("notificationclick", event => {
   event.notification.close();
   if (event.action === "close") return;
+  if (event.action === "contact-admin") {
+    const contactUrl = event.notification.data?.contactAdminUrl;
+    if (contactUrl) event.waitUntil(self.clients.openWindow(contactUrl));
+    return;
+  }
   if (["snooze", "dismiss"].includes(event.action)) {
     event.waitUntil((async () => {
       const configResponse = await fetch("/push-config.json", { cache: "no-store" });
@@ -68,6 +84,10 @@ self.addEventListener("notificationclick", event => {
     return;
   }
   const targetUrl = new URL(event.notification.data?.url || "/47fto0gim6", self.location.origin).href;
+  if (new URL(targetUrl).origin !== self.location.origin) {
+    event.waitUntil(self.clients.openWindow(targetUrl));
+    return;
+  }
   event.waitUntil((async () => {
     const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     for (const client of clients) {
