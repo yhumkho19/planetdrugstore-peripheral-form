@@ -6,7 +6,8 @@ const PROJECT_ID = "demo-peripherals-local";
 const PORT = 5002;
 const allowedOrigins = new Set([
   "http://127.0.0.1:5000",
-  "http://localhost:5000"
+  "http://localhost:5000",
+  "http://[::1]:5000"
 ]);
 
 if (process.env.FIRESTORE_EMULATOR_HOST !== "127.0.0.1:8081"

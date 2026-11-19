@@ -1604,7 +1604,12 @@ function clearTaskConversationTyping() {
   clearTimeout(taskTypingStopTimeout);
   taskTypingInputTimeout = null;
   taskTypingStopTimeout = null;
-  if (selectedTaskForComments && selectedTaskReplyCommentId && auth.currentUser?.uid) {
+  if (
+    selectedTaskForComments
+    && selectedTaskReplyCommentId
+    && currentTaskComments.some(comment => comment.id === selectedTaskReplyCommentId)
+    && auth.currentUser?.uid
+  ) {
     const reference = doc(
       db, "dailyTasks", selectedTaskForComments.id, "comments",
       selectedTaskReplyCommentId, "typing", auth.currentUser.uid

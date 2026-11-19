@@ -1198,6 +1198,7 @@ service cloud.firestore {
             allow delete: if isBillingScheduleOwner();
           }
         }
+      }
 
       match /dailyTaskDeletionNotifications/{notificationId} {
         allow create: if isBillingScheduleOwner()
@@ -1428,7 +1429,6 @@ service cloud.firestore {
           && request.resource.data.readAt == request.time;
         allow delete: if isBillingScheduleOwner() || dailyTaskEmployee(resource.data.staffId);
       }
-    }
     match /{document=**} {
       allow read: if isViewer();
     }

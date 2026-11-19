@@ -312,6 +312,7 @@ startVersionWatch();
     getAuth, signInWithCustomToken, signOut, setPersistence,
     browserLocalPersistence, browserSessionPersistence
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
   // Same Firebase project as the rest of the system.
   const firebaseConfig = {
     apiKey: "AIzaSyAD6rm7RPOObiSw3Pz0wsQJZNaxr0O0TRQ",
@@ -322,10 +323,13 @@ startVersionWatch();
     appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
   };
 
-  const app = initializeApp(firebaseConfig);
+  const app = initializeApp(getFirebaseConfigForHost(firebaseConfig));
   const auth = getAuth(app);
+  connectLocalFirebaseEmulators({ auth });
   await auth.authStateReady();
-  const EMPLOYEE_AUTH_URL = 'https://peripherals-push.pds-peripherals.workers.dev/employee-authenticate';
+  const EMPLOYEE_AUTH_URL = app.options.projectId === 'demo-peripherals-local'
+    ? 'http://127.0.0.1:5002/employee-authenticate'
+    : 'https://peripherals-push.pds-peripherals.workers.dev/employee-authenticate';
   // The Worker validates Staff ID/password and issues a Firebase employee token.
   const SESSION_KEY = 'pdEmployeeSession';
 
