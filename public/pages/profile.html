@@ -126,11 +126,12 @@ button:disabled{opacity:.55;cursor:wait}
     <section class="personal-card" aria-labelledby="personalHeading">
       <header class="personal-heading">
         <h2 id="personalHeading">Personal information</h2>
-        <p>Only your display name and bio can be changed. Other details are managed by your administrator.</p>
+        <p>Your display name is managed by your administrator. You can update your profile photo and About me.</p>
       </header>
       <div class="field">
         <label for="displayName">Display name</label>
-        <input id="displayName" name="displayName" type="text" maxlength="120" autocomplete="name" required>
+        <span class="readonly-wrap"><input id="displayName" name="displayName" type="text" maxlength="120" autocomplete="name" readonly><svg class="field-lock" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
+        <p class="help">Contact your administrator if your name needs correction.</p>
       </div>
       <div class="field-row">
         <div class="field">
@@ -354,17 +355,21 @@ async function loadProfile() {
     const profileSnapshot = await getDoc(doc(db, "userProfiles", account.uid));
     savedProfile = profileSnapshot.exists() ? profileSnapshot.data() : null;
   }
+  const canonicalDisplayName = String(account.displayName || user?.displayName || account.department || "Employee").trim();
   let sharedPhoto = null;
+  let sharedProfile = null;
   if (account.uid && (account.isBillingHead || account.isEmployee)) {
     const sharedPhotoSnapshot = await getDoc(doc(db, "dailyTaskProfilePhotos", account.photoKey));
-    const value = sharedPhotoSnapshot.exists() ? sharedPhotoSnapshot.data().photoData : null;
+    sharedProfile = sharedPhotoSnapshot.exists() ? sharedPhotoSnapshot.data() : null;
+    const value = sharedProfile?.photoData;
     sharedPhoto = isValidPhoto(value) ? value : null;
-    if (savedProfile && isValidPhoto(savedProfile.photoData) && savedProfile.photoData !== sharedPhoto) {
+    if (savedProfile && isValidPhoto(savedProfile.photoData)
+        && (savedProfile.photoData !== sharedPhoto || sharedProfile?.displayName !== canonicalDisplayName)) {
       try {
         const batch = writeBatch(db);
         batch.set(doc(db, "dailyTaskProfilePhotos", account.photoKey), {
           photoData: savedProfile.photoData,
-          displayName: savedProfile.displayName || account.displayName,
+          displayName: canonicalDisplayName,
           updatedAt: serverTimestamp()
         });
         await batch.commit();
@@ -377,9 +382,7 @@ async function loadProfile() {
   profilePhoto = savedProfile
     ? isValidPhoto(savedProfile.photoData) ? savedProfile.photoData : null
     : sharedPhoto;
-  $("displayName").value = typeof savedProfile?.displayName === "string" && savedProfile.displayName.trim()
-    ? savedProfile.displayName.trim()
-    : account.displayName || user?.displayName || account.department;
+  $("displayName").value = canonicalDisplayName;
   $("about").value = typeof savedProfile?.about === "string" ? savedProfile.about : "";
   $("identityName").textContent = $("displayName").value;
   $("identityDepartment").textContent = account.department;
@@ -417,10 +420,6 @@ $("removePhoto").addEventListener("click", () => {
   profilePhoto = null;
   showPhoto(null, $("displayName").value);
 });
-$("displayName").addEventListener("input", () => {
-  $("identityName").textContent = $("displayName").value.trim() || account?.displayName || "Employee";
-  showPhoto(profilePhoto, $("displayName").value);
-});
 $("about").addEventListener("input", () => {
   $("aboutCount").textContent = `${$("about").value.length} / 240`;
   updateProfileCompleteness();
@@ -433,7 +432,7 @@ $("profileForm").addEventListener("submit", async event => {
   event.preventDefault();
   showError("");
   const user = auth.currentUser;
-  const displayName = $("displayName").value.trim();
+  const displayName = String(account?.displayName || user?.displayName || account?.department || "Employee").trim();
   const about = $("about").value.trim();
   if (!account?.uid) {
     showError("Profile changes are not available for this sign-in method.");
@@ -441,7 +440,7 @@ $("profileForm").addEventListener("submit", async event => {
   }
   if (!account || !user || user.uid !== account.uid || !displayName
       || displayName.length > 120 || about.length > 240) {
-    showError("Enter a display name up to 120 characters and an About me up to 240 characters.");
+    showError("Your display name could not be verified, or About me is too long.");
     return;
   }
   const button = $("saveProfile");

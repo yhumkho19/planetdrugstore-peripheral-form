@@ -312,6 +312,7 @@ startVersionWatch();
     getAuth, onAuthStateChanged, signInWithEmailAndPassword, setPersistence,
     browserLocalPersistence, browserSessionPersistence
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirebaseConfigForHost, connectLocalFirebaseEmulators } from "../assets/js/firebase-emulators.js";
 
   // Same Firebase project as the receiving form and admin console.
   const firebaseConfig = {
@@ -323,8 +324,9 @@ startVersionWatch();
     appId: "1:115454971026:web:0357eaa6bfb171e86cea4b"
   };
 
-  const app = initializeApp(firebaseConfig);
+  const app = initializeApp(getFirebaseConfigForHost(firebaseConfig));
   const auth = getAuth(app);
+  connectLocalFirebaseEmulators({ auth });
 
   // Event Schedule has its own fixed account — this login page is shared
   // by IT Admin and the Event Schedule team; we branch on the signed-in

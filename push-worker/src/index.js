@@ -75,6 +75,12 @@ export function shouldNotify(subscription, notification) {
       && stockType === notification.requestType
       && ["medicine", "supplies"].includes(String(notification.requestType || "").trim().toLowerCase());
   }
+  if (["siteSwapRequest", "siteSwapApproved", "siteSwapDeclined"].includes(notification.type)) {
+    return !subscription.headRole
+      && notification.visibleToEmployees !== false
+      && Array.isArray(notification.targetStaffIds)
+      && notification.targetStaffIds.map(id => String(id || "").trim().toLowerCase()).includes(staffId);
+  }
   if (["siteInactive", "siteReactivated"].includes(notification.type)) {
     return !subscription.headRole
       && notification.visibleToEmployees !== false
@@ -153,6 +159,24 @@ export function shouldNotify(subscription, notification) {
 
   return personalTypes.has(notification.type)
     && String(notification.staffId || "").trim().toLowerCase() === staffId;
+}
+
+export function isDirectlyDeliverableSwapNotification(notification) {
+  if (!notification || notification.visibleToEmployees === false || !Array.isArray(notification.targetStaffIds)) {
+    return false;
+  }
+  const targetStaffIds = notification.targetStaffIds
+    .map(id => String(id || "").trim().toLowerCase())
+    .filter(Boolean);
+  if (!targetStaffIds.length) return false;
+
+  if (notification.type === "siteSwapRequest") {
+    const targetStaffId = String(notification.targetStaffId || "").trim().toLowerCase();
+    return notification.status === "pending" && Boolean(targetStaffId) && targetStaffIds.includes(targetStaffId);
+  }
+  if (notification.type === "siteSwapApproved") return notification.status === "approved";
+  if (notification.type === "siteSwapDeclined") return ["declined", "expired"].includes(notification.status);
+  return false;
 }
 
 export function firestoreValue(value) {
@@ -337,6 +361,147 @@ async function firestoreReadHeaders(env) {
   return apiKey ? {} : { authorization: `Bearer ${await getAccessToken(env)}` };
 }
 
+function firestoreAdminUrl(env, path) {
+  const projectId = String(env.FIREBASE_PROJECT_ID || "").trim();
+  return `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents${path}`;
+}
+
+async function patchFirestoreDocument(env, path, fields, updateMaskFields = [], mustNotExist = false) {
+  const mask = updateMaskFields.length
+    ? `?${updateMaskFields.map(field => `updateMask.fieldPaths=${encodeURIComponent(field)}`).join("&")}`
+    : "";
+  const precondition = mustNotExist
+    ? `${mask ? "&" : "?"}currentDocument.exists=false`
+    : "";
+  const response = await fetch(`${firestoreAdminUrl(env, path)}${mask}${precondition}`, {
+    method: "PATCH",
+    headers: {
+      authorization: `Bearer ${await getAccessToken(env)}`,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({ fields })
+  });
+  if (!response.ok) {
+    if (response.status === 409 || response.status === 412) {
+      throw new Error(`Firestore precondition failed (${response.status})`);
+    }
+    throw new Error(`Firestore document update failed (${response.status})`);
+  }
+  return response.json();
+}
+
+async function deleteFirestoreDocument(env, path) {
+  const response = await fetch(firestoreAdminUrl(env, path), {
+    method: "DELETE",
+    headers: { authorization: `Bearer ${await getAccessToken(env)}` }
+  });
+  if (!response.ok && response.status !== 404) {
+    throw new Error(`Firestore document delete failed (${response.status})`);
+  }
+}
+
+async function getAdminFirestoreDocument(env, path) {
+  const response = await fetch(firestoreAdminUrl(env, path), {
+    headers: { authorization: `Bearer ${await getAccessToken(env)}` }
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    const body = await response.text();
+    let detail = "";
+    try { detail = JSON.parse(body)?.error?.message || ""; } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+    }
+    throw new Error(`Firestore document lookup failed (${response.status})${detail ? `: ${detail}` : ""}`);
+  }
+  return decodeDocument(await response.json());
+}
+
+async function handleEmployeeRegistration(request, env) {
+  const origin = request.headers.get("Origin") || "";
+  const headers = corsHeaders(env, origin);
+  if (!isAllowedOrigin(env, origin)) return new Response("Forbidden", { status: 403, headers });
+  if (request.method === "OPTIONS") return new Response(null, { headers });
+  if (request.method !== "POST") return new Response("Method not allowed", { status: 405, headers });
+
+  let body;
+  try { body = await request.json(); } catch { return new Response("Invalid JSON", { status: 400, headers }); }
+  const name = typeof body?.name === "string" ? body.name.trim() : "";
+  const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+  const staffId = typeof body?.staffId === "string" ? body.staffId.trim() : "";
+  const department = typeof body?.department === "string" ? body.department.trim() : "";
+  const branch = typeof body?.branch === "string" ? body.branch.trim().toLowerCase() : "";
+  const siteName = typeof body?.siteName === "string" ? body.siteName.trim() : "";
+  const password = typeof body?.password === "string" ? body.password : "";
+  const allowedDepartments = new Set([
+    "IT NORTH", "IT SOUTH",
+    "BILLING NORTH", "BILLING SOUTH", "BILLING MANILA",
+    "PHARMACIST NORTH", "PHARMACIST SOUTH",
+    "Pharmacy Assistant NORTH", "Pharmacy Assistant SOUTH"
+  ]);
+  if (name.length < 2 || name.length > 120
+      || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+      || staffId.length < 1 || staffId.length > 40 || !/^[A-Za-z0-9._-]+$/.test(staffId)
+      || !allowedDepartments.has(department)
+      || siteName.length < 1 || siteName.length > 120
+      || password.length < 8 || password.length > 256) {
+    return new Response("Invalid registration data.", { status: 400, headers });
+  }
+  const expectedBranch = department.endsWith(" NORTH") ? "north"
+    : department.endsWith(" SOUTH") ? "south"
+    : department === "BILLING MANILA" ? "manila" : "";
+  if (branch !== expectedBranch) return new Response("Invalid registration branch.", { status: 400, headers });
+
+  try {
+    if (!await employeeLoginRateLimit(env, request)) {
+      return new Response("Too many registration attempts. Please try again later.", { status: 429, headers });
+    }
+    const registrationConfig = await getAdminFirestoreDocument(env, "/config/employeeRegistration");
+    if (!registrationConfig?.registrationEnabled) {
+      return new Response("Employee registration is closed.", { status: 403, headers });
+    }
+    const staffDocId = staffId.toLowerCase();
+    if (await getAdminFirestoreDocument(env, `/employees/${encodeURIComponent(staffDocId)}`)) {
+      return new Response("That Staff ID is already registered.", { status: 409, headers });
+    }
+    const passwordHash = await derivePasswordHash(password);
+    try {
+      await patchFirestoreDocument(env, `/employees/${encodeURIComponent(staffDocId)}`, {
+        name: { stringValue: name },
+        email: { stringValue: email },
+        staffId: { stringValue: staffId },
+        department: { stringValue: department },
+        branch: { stringValue: branch },
+        siteName: { stringValue: siteName },
+        createdAt: { timestampValue: new Date().toISOString() },
+        createdBy: { stringValue: "self-registration" }
+      }, [], true);
+    } catch (error) {
+      if (/precondition failed \(409\)|precondition failed \(412\)/.test(error.message)) {
+        return new Response("That Staff ID is already registered.", { status: 409, headers });
+      }
+      throw error;
+    }
+    try {
+      await patchFirestoreDocument(env, `/employeeCredentials/${encodeURIComponent(staffDocId)}`, {
+        passwordHash: { stringValue: passwordHash },
+        updatedAt: { timestampValue: new Date().toISOString() }
+      }, [], true);
+    } catch (error) {
+      await deleteFirestoreDocument(env, `/employees/${encodeURIComponent(staffDocId)}`);
+      if (/precondition failed \(409\)|precondition failed \(412\)/.test(error.message)) {
+        return new Response("That Staff ID is already registered.", { status: 409, headers });
+      }
+      throw error;
+    }
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { ...headers, "content-type": "application/json", "cache-control": "no-store" }
+    });
+  } catch (error) {
+    console.error("Employee registration failed:", error);
+    return new Response("Employee registration is temporarily unavailable.", { status: 503, headers });
+  }
+}
+
 async function createFirebaseCustomToken(env, uid, claims = undefined) {
   const now = Math.floor(Date.now() / 1000);
   const unsigned = `${encodeJson({ alg: "RS256", typ: "JWT" })}.${encodeJson({
@@ -386,6 +551,70 @@ async function sha256Hex(value) {
   return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, "0")).join("");
 }
 
+async function derivePasswordHash(password) {
+  const iterations = 100000;
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+    key,
+    256
+  );
+  const hash = [...new Uint8Array(bits)].map(byte => byte.toString(16).padStart(2, "0")).join("");
+  const saltBase64 = base64Url(salt);
+  return `pbkdf2-sha256$${iterations}$${saltBase64}$${hash}`;
+}
+
+async function verifyPasswordHash(password, storedPasswordHash) {
+  if (typeof storedPasswordHash !== "string") return { matches: false, needsUpgrade: false };
+  if (/^pbkdf2-sha256\$/i.test(storedPasswordHash)) {
+    const [algorithm, iterationsText, saltBase64, expectedHash] = storedPasswordHash.split("$");
+    const iterations = Number(iterationsText);
+    if (algorithm.toLowerCase() !== "pbkdf2-sha256"
+        || !Number.isInteger(iterations) || iterations < 100000 || iterations > 100000
+        || !saltBase64 || !/^[a-f0-9]{64}$/i.test(expectedHash)) {
+      return { matches: false, needsUpgrade: false };
+    }
+    let salt;
+    try {
+      salt = decodeBase64Url(saltBase64);
+    } catch {
+      return { matches: false, needsUpgrade: false };
+    }
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(password),
+      "PBKDF2",
+      false,
+      ["deriveBits"]
+    );
+    const bits = await crypto.subtle.deriveBits(
+      { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+      key,
+      256
+    );
+    const actualHash = [...new Uint8Array(bits)].map(byte => byte.toString(16).padStart(2, "0")).join("");
+    return {
+      matches: constantTimeStringEqual(actualHash, expectedHash.toLowerCase()),
+      needsUpgrade: false
+    };
+  }
+  if (/^[a-f0-9]{64}$/i.test(storedPasswordHash)) {
+    const suppliedHash = await sha256Hex(password);
+    return {
+      matches: constantTimeStringEqual(suppliedHash, storedPasswordHash.toLowerCase()),
+      needsUpgrade: true
+    };
+  }
+  return { matches: false, needsUpgrade: false };
+}
+
 function baseNotificationText(notification) {
   if (!notification || typeof notification !== "object") {
     return { title: "Schedule update", body: "Your schedule has changed. Open the app to review the details." };
@@ -409,6 +638,21 @@ function baseNotificationText(notification) {
     : "the updated time";
 
   switch (notification.type) {
+    case "siteSwapRequest":
+      return {
+        title: "Event site swap request",
+        body: `${notification.requesterName || "Your teammate"} wants to swap event sites with you. Tap to review the request.`
+      };
+    case "siteSwapApproved":
+      return {
+        title: "Your site swap was approved",
+        body: `You and ${notification.swapPartnerName || "your teammate"} exchanged event sites. Tap to view your new site.`
+      };
+    case "siteSwapDeclined":
+      return {
+        title: "Your site swap request was not approved",
+        body: `${notification.swapPartnerName || "Your teammate"} declined the request.${notification.responseReason ? ` ${notification.responseReason}` : ""}`
+      };
     case "siteInactive":
       return {
         title: "Your assigned site is inactive",
@@ -739,6 +983,27 @@ function notificationEventType(notification) {
   return String(notification.missionCustom || "").trim();
 }
 
+function formatNotificationDate(value) {
+  const raw = String(value || "").trim();
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+  if (!match) return raw;
+  const [, year, month, day] = match;
+  return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))).toLocaleDateString("en-US", {
+    timeZone: "UTC", month: "long", day: "numeric", year: "numeric"
+  });
+}
+
+function eventCancelledNotificationText(notification) {
+  const eventType = notificationEventType(notification) || "Event";
+  const site = String(notification.location || "Unnamed site").trim();
+  const date = formatNotificationDate(notification.date) || "Date not set";
+  const reason = String(notification.cancelReason || "Not provided.").trim();
+  return {
+    title: "Event cancelled",
+    body: `Site: ${site}\nEvent: ${eventType}\nDate: ${date}\nReason: ${reason}`
+  };
+}
+
 function headNotificationText(notification) {
   const context = [];
   if (notification.location && !["siteAutoDeleted", "eventCutoffReached", "siteInactive", "siteReactivated"].includes(notification.type)) context.push(`Site: ${notification.location}`);
@@ -806,6 +1071,7 @@ function headNotificationText(notification) {
 }
 
 export function notificationText(notification, subscription = {}) {
+  if (notification?.type === "eventCancelled") return eventCancelledNotificationText(notification);
   if (notification?.type === "stockDayClosedEarly") {
     const requestType = notification.requestType === "supplies" ? "Supplies" : "Medicine";
     return {
@@ -825,6 +1091,7 @@ export function notificationText(notification, subscription = {}) {
   }
   const message = baseNotificationText(notification);
   if (!notification || typeof notification !== "object") return message;
+  if (["siteSwapRequest", "siteSwapApproved", "siteSwapDeclined"].includes(notification.type)) return message;
   if (notification.type === "pharmacistNote") return message;
   const actorLabel = String(notification.actorLabel || "").trim();
   const appendActor = text => actorLabel
@@ -861,6 +1128,9 @@ export function notificationUrl(appUrl, notification, headRole = "") {
     }
     return stockTarget.toString();
   }
+  if (notification?.type === "siteSwapRequest" && notification?.id) {
+    target.searchParams.set("swapRequest", String(notification.id));
+  }
   if (notification?.cardId) target.searchParams.set("viewSite", String(notification.cardId));
   if (notification?.date) target.searchParams.set("date", String(notification.date));
   if (notification?.type === "pharmacistNote" && notification?.id) {
@@ -891,12 +1161,234 @@ export function pushPlatformOptions(notification = {}) {
   };
 }
 
+export function formatPushNotificationBody(notification, body) {
+  const type = String(notification?.type || "");
+  const originalBody = String(body || "").trim();
+  if (type === "eventCancelled" && originalBody.startsWith("Site:")) return originalBody;
+
+  const rows = [];
+  const add = (label, value) => {
+    const text = String(value || "").trim();
+    if (text) rows.push(`${label}: ${text}`);
+  };
+  const date = value => formatNotificationDate(value);
+  const site = notification?.location || notification?.siteName;
+  const eventType = notificationEventType(notification || {});
+
+  if (type === "siteSwapRequest") {
+    add("Requested by", notification.requesterName);
+    add("Your site", notification.targetLocation);
+    add("Their site", notification.requesterLocation);
+    add("Your date", date(notification.targetDate));
+    add("Their date", date(notification.requesterDate));
+    add("Note", notification.requesterNote);
+    return rows.join("\n") || `Details: ${originalBody}`;
+  }
+  if (["siteSwapApproved", "siteSwapDeclined"].includes(type)) {
+    add("Teammate", notification.swapPartnerName);
+    add("Status", type === "siteSwapApproved" ? "Approved" : "Disapproved");
+    add("Site", site);
+    add("Event", eventType);
+    add("Date", date(notification.date));
+    add("Reason", notification.responseReason);
+    return rows.join("\n") || `Details: ${originalBody}`;
+  }
+  if (type === "pharmacistNote") {
+    add("From", notification.actorLabel || notification.assignedBy);
+    add("Site", site);
+    add("Event", eventType);
+    add("Date", date(notification.date));
+    add("Note", notification.noteText);
+    return rows.join("\n") || `Details: ${originalBody}`;
+  }
+  if (type === "eventReminder") {
+    const assignment = notification.recipientAssignment || {};
+    const isReliever = assignment.list === "relievers";
+    add("Site", assignment.location || site);
+    add("Date", date(assignment.date || notification.date));
+    if (isReliever) {
+      add("Starts", formatRelieverTime(assignment.relieverTime || assignment.time || "20:00"));
+    } else {
+      add("Time", assignment.time || notification.time);
+    }
+    return rows.join("\n") || `Details: ${originalBody}`;
+  }
+
+  if (type.startsWith("stock")) {
+    const requestType = notification.requestType === "supplies" ? "Supplies"
+      : notification.requestType === "medicine" ? "Medicine" : "";
+    const formatDays = values => (Array.isArray(values) ? values : [])
+      .map(value => String(value || "").trim())
+      .filter(Boolean)
+      .map(value => value.charAt(0).toUpperCase() + value.slice(1).toLowerCase())
+      .join(", ");
+    const formatMinutes = value => Number.isInteger(value)
+      ? formatCutoffTime(`${String(Math.floor(value / 60)).padStart(2, "0")}:${String(value % 60).padStart(2, "0")}`)
+      : "";
+
+    add("Request type", requestType);
+    add("Site", site);
+    add("Branch", formatNotificationBranch(notification.branch || ""));
+    add("Date", date(notification.date));
+    add("Day", notification.day);
+    add("SR#", notification.sr);
+
+    switch (type) {
+      case "stockDayActivated":
+        add("Status", "Open");
+        add("Next step", "Open Stock Request to submit your SR#");
+        break;
+      case "stockDayClosed":
+        add("Status", "Closed");
+        break;
+      case "stockDayClosedEarly":
+        add("Status", "Closed early by the admin");
+        break;
+      case "stockDayScheduleChanged": {
+        const assignedDays = formatDays(notification.requestDays);
+        if (notification.wasUnscheduled && assignedDays) {
+          add("Assigned days", assignedDays);
+        } else if (!assignedDays) {
+          add("Status", "No assigned request days");
+        } else {
+          add("Added days", formatDays(notification.addedDays));
+          add("Removed days", formatDays(notification.removedDays));
+          add("Current days", assignedDays);
+        }
+        break;
+      }
+      case "stockDayCutoffUpdated": {
+        const previousCutoff = formatMinutes(notification.previousCutoffMin);
+        const newCutoff = formatMinutes(notification.cutoffMin);
+        add("Previous cutoff", previousCutoff);
+        add("New cutoff", newCutoff);
+        add("Status", notification.unclosed === true || notification.reopened === true ? "Reopened" : "Updated");
+        if (newCutoff) add("Next step", `Submit, edit, or remove your SR# before ${newCutoff}`);
+        break;
+      }
+      case "stockRequestRemoved":
+        add("Status", "SR# removed");
+        add("Next step", "Contact your Stock Request Admin for details");
+        break;
+      case "stockRequestCompleted":
+        add("Status", "Completed by the admin");
+        break;
+      case "stockRequestUnblocked":
+        add("Status", "Unblocked");
+        add("Next step", "Edit your SR# or keep your current SR#");
+        break;
+      case "stockRequestSubmitted":
+        add("Employee", notification.employeeName);
+        add("Status", notification.updated === true ? "Updated stock request" : "New stock request");
+        if (notification.updated === true) add("Previous SR#", notification.previousSr);
+        break;
+      default:
+        add("Details", originalBody);
+    }
+    return rows.join("\n") || `Details: ${originalBody}`;
+  }
+
+  if (notification?.actorLabel && type !== "slotAssigned" && !type.startsWith("stock")) {
+    add("Action by", notification.actorLabel);
+  }
+  add("Site", site);
+  if (type === "missionChanged") {
+    add("Previous event", notification.oldMissionLabel);
+    add("Event", notification.newMissionLabel || eventType);
+  } else {
+    add("Event", eventType);
+  }
+  if (type === "dateChanged") {
+    add("Previous date", date(notification.oldDate));
+    add("Date", date(notification.newDate || notification.date));
+  } else {
+    add("Date", date(notification.date));
+  }
+  if (notification.day) add("Day", notification.day);
+  if (notification.role) add("Role", notification.role);
+  if (notification.time) add("Time", notification.time);
+  if (["slotAssigned", "slotOpened"].includes(type) && notification.list === "relievers") {
+    add("Starts", formatRelieverTime(notification.relieverTime || "20:00"));
+  }
+  if (type === "slotAssigned") add("Assigned by", notification.actorLabel || notification.assignedBy);
+
+  if (type === "eventCancelled") {
+    add("Reason", notification.cancelReason || "Not provided.");
+  } else if (type === "dateChanged") {
+    if (notification.timeChanged) add("Time update", notification.time || "Updated");
+    if (notification.locationChanged) add("Site update", notification.location || "Updated");
+  } else if (type === "eventUpdated") {
+    const changes = [
+      notification.timeChanged && "Time",
+      notification.locationChanged && "Site name"
+    ].filter(Boolean);
+    add("Updated", changes.join(" and "));
+  } else if (type === "crossBranchSignup") {
+    add("Employee", notification.employeeName);
+    add("Employee branch", notification.employeeBranch);
+    add("Event branch", notification.eventBranch);
+  } else if (type === "eventsDeployed") {
+    add("Sites deployed", notification.siteCount);
+    add("Sites", notification.siteSummary);
+  } else if (type === "siteFilled" && notification.filledCount) {
+    add("Filled roles", notification.filledCount);
+  }
+
+  if (type === "branchChanged") {
+    add("Previous branch", formatNotificationBranch(notification.oldRegionCustom || notification.oldRegion || ""));
+    add("Branch", formatNotificationBranch(notification.newRegionCustom || notification.newRegion || ""));
+    add("Status", "Previous slot cleared");
+  }
+  if (type === "removed") {
+    add("Status", notification.scheduleReset ? "Previous assignment cleared" : "Removed from assignment");
+    if (notification.replacedByName) add("Replaced by", notification.replacedByName);
+    else add("Next step", notification.scheduleReset ? "Sign up again if a slot is available" : "Choose another slot");
+  }
+  if (type === "slotRoleRemoved") {
+    add("Removed by", notification.removedByDepartment);
+    add("Next step", "Choose another slot");
+  }
+  if (type === "slotOpened") add("Next step", "Sign up now");
+  if (type === "slotAssigned") add("Status", "Assigned");
+  if (type === "siteMoved") add("Status", "Assignment moved");
+  if (type === "eventDeleted") {
+    add("Status", "Event deleted");
+    add("Next step", "Choose another slot");
+  }
+  if (type === "siteRemoved") add("Status", "Site removed from the schedule");
+  if (type === "siteAutoDeleted") add("Status", "Automatically deleted after the event date");
+  if (type === "eventReinstated") add("Status", "Reinstated");
+  if (type === "siteInactive") add("Status", "Temporarily inactive");
+  if (type === "siteReactivated") add("Status", "Active again");
+  if (type === "eventCreated") add("Status", "Available in the schedule");
+  if (type === "deploymentConfirmed") add("Status", "Published to employees");
+  if (type === "eventCutoffChanged" && notification.cutoffTime) {
+    add("New cutoff", formatCutoffTime(notification.cutoffTime));
+  }
+  if (type === "eventCutoffReached" && notification.cutoffTime) {
+    add("Cutoff", formatCutoffTime(notification.cutoffTime));
+  }
+
+  const actionInTitle = new Set([
+    "eventCancelled", "eventReinstated", "eventDeleted", "siteRemoved", "siteAutoDeleted",
+    "siteInactive", "siteReactivated", "slotAssigned", "slotOpened", "slotRoleRemoved",
+    "siteMoved", "removed", "deploymentConfirmed", "eventCreated", "dateChanged",
+    "eventUpdated", "missionChanged", "branchChanged", "crossBranchSignup",
+    "eventCutoffChanged", "eventsDeployed", "siteFilled", "eventReminder"
+  ]);
+  if ((!actionInTitle.has(type) || notification.scheduleReset === true) && originalBody) {
+    add("Details", originalBody);
+  }
+  return rows.join("\n") || (originalBody ? `Details: ${originalBody}` : "Details: Open the app to review the update.");
+}
+
 async function sendPush(env, subscription, notification) {
   const sentKey = `sent-device:${notification.id}:${(await subscriptionKey(subscription.token)).slice(4)}`;
   if (await env.PUSH_SUBSCRIPTIONS.get(sentKey)) return true;
 
   const accessToken = await getAccessToken(env);
   const text = notificationText(notification, subscription);
+  const body = formatPushNotificationBody(notification, text.body);
   const type = String(notification.type || "");
   const contactAdminUrl = notificationContactUrl(notification);
   const response = await fetch(
@@ -913,7 +1405,7 @@ async function sendPush(env, subscription, notification) {
           ...pushPlatformOptions(notification),
           data: {
             title: text.title,
-            body: text.body,
+            body,
             url: notificationUrl(env.APP_URL, notification, subscription.headRole),
             ...(contactAdminUrl ? { contactAdminUrl } : {}),
             notificationId: notification.id,
@@ -1489,28 +1981,30 @@ async function handleEmployeeAuthentication(request, env) {
     }
 
     const staffId = staffIdInput.toLowerCase();
-    const employeeResponse = await fetch(
-      firestoreDocumentsUrl(env, `/employees/${encodeURIComponent(staffId)}`),
-      { headers: await firestoreReadHeaders(env) }
-    );
-    if (employeeResponse.status === 404) {
+    const employee = await getAdminFirestoreDocument(env, `/employees/${encodeURIComponent(staffId)}`);
+    if (!employee) {
       return new Response("Incorrect Staff ID or password.", { status: 401, headers });
     }
-    if (!employeeResponse.ok) {
-      throw new Error(`Employee account lookup failed (${employeeResponse.status})`);
+    const credential = await getAdminFirestoreDocument(env, `/employeeCredentials/${encodeURIComponent(staffId)}`);
+    const storedPasswordHash = credential?.passwordHash || employee.passwordHash;
+    if (credential?.passwordHash && employee.passwordHash) {
+      await patchFirestoreDocument(env, `/employees/${encodeURIComponent(staffId)}`, {}, ["passwordHash"]);
     }
-
-    const employee = decodeDocument(await employeeResponse.json());
-    const storedPasswordHash = typeof employee.passwordHash === "string"
-      && /^[a-f0-9]{64}$/i.test(employee.passwordHash)
-      ? employee.passwordHash.toLowerCase()
-      : "0".repeat(64);
-    const suppliedPasswordHash = await sha256Hex(password);
-    const passwordMatches = constantTimeStringEqual(suppliedPasswordHash, storedPasswordHash);
+    const passwordVerification = await verifyPasswordHash(password, storedPasswordHash);
+    const passwordMatches = passwordVerification.matches;
     if (!passwordMatches
         || typeof employee.staffId !== "string"
         || employee.staffId.trim().toLowerCase() !== staffId) {
       return new Response("Incorrect Staff ID or password.", { status: 401, headers });
+    }
+    if (passwordVerification.needsUpgrade) {
+      const upgradedHash = await derivePasswordHash(password);
+      await patchFirestoreDocument(env, `/employeeCredentials/${encodeURIComponent(staffId)}`, {
+        passwordHash: { stringValue: upgradedHash },
+        updatedAt: { timestampValue: new Date().toISOString() }
+      });
+      await patchFirestoreDocument(env, `/employees/${encodeURIComponent(staffId)}`, {
+      }, ["passwordHash"]);
     }
 
     const tokenStaffId = employee.staffId.trim().toLowerCase();
@@ -1729,11 +2223,27 @@ async function handleWake(request, env, context) {
         throw new Error(`Firestore notification lookup failed (${response.status}): ${detail}`);
       }
       const notification = decodeDocument(await response.json());
-      if (notification.type !== "siteFilled" ||
-          !Array.isArray(notification.targetRoles) ||
-          !notification.targetRoles.includes("pharmacist") ||
-          notification.employeeOnly === true) {
+      const isSiteFilled = notification.type === "siteFilled" &&
+        Array.isArray(notification.targetRoles) &&
+        notification.targetRoles.includes("pharmacist") &&
+        notification.employeeOnly !== true;
+      const isSwapNotification = isDirectlyDeliverableSwapNotification(notification);
+      if (!isSiteFilled && !isSwapNotification) {
         return new Response("Notification is not eligible for direct delivery", { status: 404, headers });
+      }
+
+      if (isSwapNotification) {
+        const result = await deliverDirectNotifications(env, [notification], { bypassSentMarker: true });
+        if (!result.targetCount) {
+          return new Response("No active notification subscription for the swap recipient.", { status: 409, headers });
+        }
+        if (result.failedCount) {
+          return new Response("Push delivery failed for one or more recipient devices.", { status: 502, headers });
+        }
+        return new Response(JSON.stringify({ ok: true, delivered: result.deliveredCount }), {
+          status: 202,
+          headers: { ...headers, "content-type": "application/json" }
+        });
       }
 
       context.waitUntil(deliverDirectNotifications(env, [notification]).catch(error => {
@@ -1758,15 +2268,19 @@ async function handleWake(request, env, context) {
   });
 }
 
-async function deliverDirectNotifications(env, notifications) {
+async function deliverDirectNotifications(env, notifications, { bypassSentMarker = false } = {}) {
   const subscriptions = await loadSubscriptions(env);
+  let targetCount = 0;
+  let deliveredCount = 0;
+  let failedCount = 0;
   for (const notification of notifications) {
     const id = String(notification.id || "");
-    if (await env.PUSH_SUBSCRIPTIONS.get(`sent:${id}`)) continue;
+    if (!bypassSentMarker && await env.PUSH_SUBSCRIPTIONS.get(`sent:${id}`)) continue;
 
     let complete = true;
     const targets = subscriptions.filter(subscription => shouldNotify(subscription, notification));
     for (const subscription of targets) {
+      targetCount++;
       let delivery = notification;
       if (notification.type === "eventReminder") {
         const staffId = String(subscription.staffId || "").trim().toLowerCase();
@@ -1776,10 +2290,17 @@ async function deliverDirectNotifications(env, notifications) {
         ) || assignments.find(item => String(item.staffId || "").trim().toLowerCase() === staffId);
         delivery = { ...notification, ...(assignment ? { recipientAssignment: assignment } : {}) };
       }
-      if (!(await sendPush(env, subscription, delivery))) complete = false;
+      if (await sendPush(env, subscription, delivery)) deliveredCount++;
+      else {
+        complete = false;
+        failedCount++;
+      }
     }
-    if (complete) await env.PUSH_SUBSCRIPTIONS.put(`sent:${id}`, "1", { expirationTtl: 604800 });
+    if (complete && !bypassSentMarker) {
+      await env.PUSH_SUBSCRIPTIONS.put(`sent:${id}`, "1", { expirationTtl: 604800 });
+    }
   }
+  return { targetCount, deliveredCount, failedCount };
 }
 
 async function syncEventCutoffSchedules(env, notifications) {
@@ -1951,6 +2472,7 @@ export default {
   async fetch(request, env, context) {
     const url = new URL(request.url);
     if (url.pathname === "/employee-authenticate") return handleEmployeeAuthentication(request, env);
+    if (url.pathname === "/employee-register") return handleEmployeeRegistration(request, env);
     if (url.pathname === "/subscribe") return handleSubscription(request, env);
     if (url.pathname === "/dispatch") return handleDispatch(request, env, context);
     if (url.pathname === "/wake") return handleWake(request, env, context);

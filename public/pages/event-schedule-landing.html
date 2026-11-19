@@ -465,11 +465,12 @@
     <section class="profile-personal-card" aria-labelledby="profilePersonalHeading">
       <header class="profile-personal-heading">
         <h3 id="profilePersonalHeading">Personal information</h3>
-        <p>Only your display name and bio can be changed. Other details are managed by your administrator.</p>
+        <p>Your display name is managed by your administrator. You can update your profile picture and bio.</p>
       </header>
       <div class="profile-field">
         <label for="profileDisplayName">Display name</label>
-        <input id="profileDisplayName" name="displayName" type="text" maxlength="120" autocomplete="name" required>
+        <input id="profileDisplayName" name="displayName" type="text" maxlength="120" autocomplete="name" readonly>
+        <p class="profile-help">Contact your administrator if your name needs correction.</p>
       </div>
       <div class="profile-field-row">
         <div class="profile-field">
@@ -506,7 +507,7 @@
 // bypassed, reads the APP_VERSION embedded in that fresh copy, and — if it
 // doesn't match what this tab is currently running — shows a small banner
 // instead of silently staying on stale code.
-const APP_VERSION = "2026-11-09.2";
+const APP_VERSION = "2026-11-09.3";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -687,9 +688,7 @@ startVersionWatch();
       profileLoadError = 'Unable to load your profile. Refresh the page before editing it.';
       console.error('Unable to load the signed-in user profile:', error);
     }
-    const displayName = typeof savedProfile?.displayName === 'string' && savedProfile.displayName.trim()
-      ? savedProfile.displayName.trim()
-      : currentUser.displayName || account.label;
+    const displayName = String(account.label || currentUser.displayName || 'Account').trim();
     const about = typeof savedProfile?.about === 'string' ? savedProfile.about : '';
     const photoData = typeof savedProfile?.photoData === 'string'
         && savedProfile.photoData.length <= MAX_PROFILE_PHOTO_DATA_LENGTH
@@ -738,11 +737,6 @@ startVersionWatch();
   document.getElementById('cameraProfilePhoto').addEventListener('click', () => {
     document.getElementById('profilePhotoInput').click();
   });
-  document.getElementById('profileDisplayName').addEventListener('input', event => {
-    document.getElementById('profileIdentityName').textContent = event.currentTarget.value.trim()
-      || account?.label
-      || 'Profile';
-  });
   profileDialog.addEventListener('click', event => {
     if (event.target === profileDialog) profileDialog.close();
   });
@@ -758,7 +752,7 @@ startVersionWatch();
       pendingProfilePhoto = await compressProfilePicture(file);
       applyProfilePicture(
         pendingProfilePhoto,
-        document.getElementById('profileDisplayName').value.trim() || account?.label || 'Profile',
+        account?.label || currentUser?.displayName || 'Account',
         account?.initials || 'BD'
       );
     } catch (error) {
@@ -773,13 +767,13 @@ startVersionWatch();
     pendingProfilePhoto = null;
     applyProfilePicture(
       null,
-      document.getElementById('profileDisplayName').value.trim() || account?.label || 'Profile',
+      account?.label || currentUser?.displayName || 'Account',
       account?.initials || 'BD'
     );
   });
   profileForm.addEventListener('submit', async event => {
     event.preventDefault();
-    const displayName = document.getElementById('profileDisplayName').value.trim();
+    const displayName = String(account?.label || currentUser?.displayName || 'Account').trim();
     const about = document.getElementById('profileAbout').value.trim();
     const saveButton = document.getElementById('saveProfileButton');
     profileError.hidden = true;
@@ -790,7 +784,7 @@ startVersionWatch();
       return;
     }
     if (!currentUser || !displayName || displayName.length > 120 || about.length > 300) {
-      profileError.textContent = 'Enter a display name up to 120 characters and an About me up to 300 characters.';
+      profileError.textContent = 'Your display name could not be verified, or About me is too long.';
       profileError.hidden = false;
       return;
     }

@@ -1477,9 +1477,7 @@ async function loadEmployeeProfile() {
   const photoData = savedProfile
     ? validProfilePhotoData(savedProfile.photoData) ? savedProfile.photoData : null
     : sharedPhotoResult.value;
-  const displayName = typeof savedProfile?.displayName === "string" && savedProfile.displayName.trim()
-      ? savedProfile.displayName.trim()
-      : String(employee.name || employee.staffId);
+  const displayName = String(employee.name || employee.staffId);
   applyEmployeeProfilePhoto(photoData, displayName);
 }
 

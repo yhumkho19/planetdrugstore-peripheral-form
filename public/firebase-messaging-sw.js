@@ -19,12 +19,13 @@ messaging.onBackgroundMessage(async payload => {
   const data = payload.data || {};
   const isEventReminder = data.eventReminder === "1";
   const isPharmacistNote = data.notificationType === "pharmacistNote";
+  const isSiteSwapRequest = data.notificationType === "siteSwapRequest";
   const isStockRequestRemoved = data.notificationType === "stockRequestRemoved";
   const isStockDayNotification = String(data.notificationType || "").startsWith("stockDay")
     || isStockRequestRemoved
     || data.notificationType === "stockRequestUnblocked";
   const hasContactAdmin = Boolean(data.contactAdminUrl);
-  const viewAction = { action: "view-site", title: isPharmacistNote ? "View notes" : isStockDayNotification ? "View Stock Request" : "View site" };
+  const viewAction = { action: "view-site", title: isSiteSwapRequest ? "Review swap" : isPharmacistNote ? "View notes" : isStockDayNotification ? "View Stock Request" : "View site" };
   const closeAction = { action: "close", title: "Close" };
   const contactAction = { action: "contact-admin", title: "Contact Admin" };
   const actions = hasContactAdmin

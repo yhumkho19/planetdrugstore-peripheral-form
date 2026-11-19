@@ -15,6 +15,7 @@
 <title>Deployment Roster — Medical &amp; People's Day</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="/assets/css/event-cancel-modal.css?v=cancel-reason-1" rel="stylesheet">
 <style>
   :root {
     --bg: #EEF1FA;
@@ -2535,7 +2536,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-11-09.16";
+const APP_VERSION = "2026-11-19.5";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -2596,6 +2597,8 @@ function closeModal() {
   activeHeadSiteModal?.summary?.setAttribute("aria-expanded", "false");
   activeHeadSiteModal = null;
   appModal.classList.remove("open");
+  appModal.classList.remove("event-cancel-open");
+  appModal.removeAttribute("aria-labelledby");
   appModalActions.innerHTML = "";
 }
 
@@ -2715,6 +2718,72 @@ function showConfirm(message) {
     // call doesn't fire mid-transition and scroll the page instead of the
     // modal.
     setTimeout(() => okBtn.focus(), 30);
+  });
+}
+
+function showEventCancellationReasonPrompt(card) {
+  return new Promise(resolve => {
+    setModalIcon("warn");
+    appModalMessage.innerHTML = `
+      <div class="event-cancel-header">
+        <span class="event-cancel-icon" aria-hidden="true">!</span>
+        <div class="event-cancel-heading">
+          <h2 id="eventCancelTitle">Cancel this event?</h2>
+          <p>Everyone signed up for this site will be told it was cancelled.</p>
+        </div>
+        <button class="event-cancel-close" id="eventCancelClose" type="button" aria-label="Close cancellation prompt">&times;</button>
+      </div>
+      <div class="event-cancel-context">
+        <strong>${escapeHtml(missionLabel(card))}</strong>
+        <span>${escapeHtml(card.location || "Unnamed site")} · ${escapeHtml(formatDateDisplay(card.date) || "Date not set")}</span>
+      </div>
+      <textarea class="event-cancel-reason-input" id="eventCancelReason" maxlength="200" required
+        aria-label="Cancellation reason shared with employees"
+        aria-describedby="eventCancelReasonError eventCancelReasonCount"
+        placeholder="Employees will see this message"></textarea>
+      <div class="event-cancel-reason-meta">
+        <span class="event-cancel-reason-error" id="eventCancelReasonError" role="alert">Please give employees a reason</span>
+        <span class="event-cancel-reason-count" id="eventCancelReasonCount">0/200</span>
+      </div>
+      <div class="event-cancel-warning">
+        <span class="event-cancel-warning-icon" aria-hidden="true">🔔</span>
+        <p>The site's slots are cleared and the reason is sent as a notification. This can't be undone.</p>
+      </div>
+    `;
+    appModal.classList.add("event-cancel-open");
+    appModal.setAttribute("role", "dialog");
+    appModal.setAttribute("aria-modal", "true");
+    appModal.setAttribute("aria-labelledby", "eventCancelTitle");
+    appModalActions.innerHTML = "";
+    const closePrompt = () => { closeModal(); resolve(null); };
+    document.getElementById("eventCancelClose").addEventListener("click", closePrompt);
+    const backButton = document.createElement("button");
+    backButton.textContent = "Go back";
+    backButton.addEventListener("click", closePrompt);
+    const cancelButton = document.createElement("button");
+    cancelButton.className = "primary";
+    cancelButton.textContent = "Cancel event";
+    cancelButton.disabled = true;
+    const reasonInput = document.getElementById("eventCancelReason");
+    const reasonError = document.getElementById("eventCancelReasonError");
+    const reasonCount = document.getElementById("eventCancelReasonCount");
+    reasonInput.addEventListener("input", () => {
+      const hasReason = Boolean(reasonInput.value.trim());
+      cancelButton.disabled = !hasReason;
+      reasonError.hidden = hasReason;
+      reasonCount.textContent = `${reasonInput.value.length}/200`;
+    });
+    cancelButton.addEventListener("click", () => {
+      const reason = reasonInput.value.trim();
+      if (!reason) return;
+      closeModal();
+      resolve(reason);
+    });
+    appModalActions.append(backButton, cancelButton);
+    appModal.setAttribute("role", "dialog");
+    appModal.setAttribute("aria-modal", "true");
+    appModal.classList.add("open");
+    setTimeout(() => reasonInput.focus(), 30);
   });
 }
 
@@ -2940,6 +3009,7 @@ import {
   initializeFirestore, doc, collection, setDoc, getDoc, onSnapshot, serverTimestamp, runTransaction,
   addDoc, deleteDoc, updateDoc, query, orderBy, arrayUnion, arrayRemove, limit, where, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { closePendingSiteSwapsForCards } from "../assets/js/site-swap-cleanup.js?v=site-swap-cleanup-2";
 // Only needed here for Logout — admin-login.html is what actually signs
 // the Event Team account in and keeps them signed in via persistence, so
 // logging out has to sign that same session out too. Without this, clicking
@@ -3212,9 +3282,8 @@ const ROLE_LABELS = [
 // Choices offered in each role field's dropdown.
 const ROLE_OPTIONS = ["PHARMACIST", "PICKER", "ENCODER", "BILLING", "IT SPECIALIST"];
 
-// Store Reliever duty is Pharmacy Assistant work only — every reliever row
-// is simply "PHARMACY ASSISTANT", no separate Picker/Encoder distinction.
-const RELIEVER_ROLE_OPTIONS = ["PHARMACY ASSISTANT", "BILLING"];
+// Pharmacy Assistants, Pharmacists, and Billing employees may cover stores.
+const RELIEVER_ROLE_OPTIONS = ["PHARMACY ASSISTANT", "PHARMACIST", "BILLING"];
 
 function newScheduleSlotId() {
   return crypto.randomUUID ? crypto.randomUUID() : `slot-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -3558,18 +3627,20 @@ function normalizeCards(arr) {
       s.name = (s.name || "").toUpperCase();
       if (s.site === undefined) s.site = "";
     });
-    // Store Reliever rows may be covered by Pharmacy Assistant or Billing.
+    // Store Reliever rows may be covered by Pharmacy Assistants, Pharmacists, or Billing.
     // Keep the row's department only once an employee is assigned; an empty
     // row should not display "PHARMACY ASSISTANT" beside its placeholder.
     // (no name AND no site) from before Store Reliever rows were auto-added
     // per Picker/Encoder signup — a blank, site-less row is meaningless now.
     c.relievers = c.relievers
-      .filter(s => ["PHARMACY ASSISTANT", "BILLING"].includes(roleToTeam(s.label).toUpperCase()))
+      .filter(s => ["PHARMACY ASSISTANT", "PHARMACIST", "BILLING"].includes(roleToTeam(s.relieverDepartment || s.label).toUpperCase()))
       .filter(s => (s.name || "").trim() || (s.site || "").trim())
       .map(s => ({
         ...s,
         label: (s.name || "").trim()
-          ? (roleToTeam(s.relieverDepartment || s.label).toUpperCase() === "BILLING" ? "BILLING" : "PHARMACY ASSISTANT")
+          ? (["PHARMACIST", "BILLING"].includes(roleToTeam(s.relieverDepartment || s.label).toUpperCase())
+            ? roleToTeam(s.relieverDepartment || s.label).toUpperCase()
+            : "PHARMACY ASSISTANT")
           : ""
       }));
   });
@@ -4059,6 +4130,14 @@ function notifTitleCase(str) {
 function notifDetailRows(n, opts) {
   const includeBranch = !!(opts && opts.includeBranch);
   const rows = [];
+  if (n.type === "eventCancelled") {
+    if (n.location) rows.push(["Event Site", n.location]);
+    const eventLabel = n.missionLabel || notifEventTypeLabel(n);
+    if (eventLabel) rows.push(["Event", eventLabel]);
+    if (n.date) rows.push(["Event Date", formatDateDisplay(n.date)]);
+    if (n.cancelReason) rows.push(["Reason", n.cancelReason]);
+    return rows;
+  }
   const role = n.list === "schedule" ? "" : notifTitleCase(n.role);
   if (role) rows.push(["Role", role + (n.list === "relievers" ? " (Store Reliever)" : "")]);
   if (includeBranch && n.region) rows.push(["Branch", regionLabelFromValue(n.region)]);
@@ -4449,13 +4528,16 @@ function render() {
 
     cardEl.querySelector(".cancel-event-btn")?.addEventListener("click", async function () {
       const nowCancelled = !cards[idx].cancelled;
-      const ok = await showConfirm(
-        nowCancelled
-          ? "Cancel this event? Employees will see it marked as cancelled and won't be able to sign up until it's reinstated."
-          : "Reinstate this event? It will become active again for employees."
-      );
-      if (!ok) return;
+      let cancelReason = "";
+      if (nowCancelled) {
+        cancelReason = await showEventCancellationReasonPrompt(cards[idx]);
+        if (cancelReason === null) return;
+      } else {
+        const ok = await showConfirm("Reinstate this event? It will become active again for employees.");
+        if (!ok) return;
+      }
       cards[idx].cancelled = nowCancelled;
+      cards[idx].cancelReason = nowCancelled ? cancelReason : "";
       saveCards();
       // Flip the visible state on this exact card right away, instead of
       // waiting on the full render() below (or a page refresh) to notice.
@@ -4475,7 +4557,10 @@ function render() {
       render();
       // Published events update for employees immediately; unpublished drafts
       // remain hidden until the pharmacist sends the bracket.
-      pushCardPatchToRemote(card.id, { cancelled: nowCancelled }, cards[idx], false);
+      pushCardPatchToRemote(card.id, {
+        cancelled: nowCancelled,
+        cancelReason: cards[idx].cancelReason
+      }, cards[idx], false);
     });
 
     cardEl.querySelector(".remove-btn")?.addEventListener("click", async () => {
@@ -5001,7 +5086,7 @@ function renderEmployeeSchedule(scheduleCards, branch) {
         if (!isRoleAllowedForEmployee(roleLabel, btnListKey)) {
           const { team: myTeam } = employeeSession ? splitDepartmentClient(employeeSession.department) : { team: "—" };
           if (btnListKey === "relievers") {
-            await showAlert(`You can't sign up here. Store Reliever duty is for Pharmacy Assistant only, and your department is ${myTeam}.`);
+            await showAlert(`You can't sign up here. Store Reliever duty is for Pharmacy Assistant, Pharmacist, or Billing employees, and your department is ${myTeam}.`);
           } else {
             await showAlert(`You can't sign up here. This is a "${roleLabel}" role only, and your department is ${myTeam}.`);
           }
@@ -5214,9 +5299,9 @@ function relieverDisplayLabel(slot) {
   ).toUpperCase() : "";
   const storedTeam = roleToTeam(slot.relieverDepartment || "").toUpperCase();
   const labelTeam = roleToTeam(slot.label).toUpperCase();
-  return employeeTeam === "BILLING" || storedTeam === "BILLING" || labelTeam === "BILLING"
-    ? "BILLING"
-    : "PHARMACY ASSISTANT";
+  return [employeeTeam, storedTeam, labelTeam].find(team =>
+    ["PHARMACIST", "BILLING"].includes(team)
+  ) || "PHARMACY ASSISTANT";
 }
 
 // Keeps the auto-added Store Reliever row for one Picker/Encoder staff slot
@@ -6443,7 +6528,7 @@ function applyPublishedOpenSlotNotifications(previousPublishedCards, publishedCa
         if (!slot || (slot.name || "").trim()) continue;
         const role = String(slot.label || "").trim().toUpperCase().replace(/\s+/g, " ");
         const eligibleTeams = listKey === "relievers"
-          ? ["PHARMACY ASSISTANT", "BILLING"]
+          ? ["PHARMACY ASSISTANT", "PHARMACIST", "BILLING"]
           : role === "PHARMACIST" ? ["PHARMACIST"]
             : role === "BILLING" ? ["BILLING"]
               : role === "IT SPECIALIST" ? ["IT"]
@@ -6730,7 +6815,7 @@ async function claimSlot(cardId, listKey, staffIdx, btn) {
       if ((slot.name || "").trim()) throw new Error("Someone already signed up here before you. Try refreshing.");
       if (!isRoleAllowedForEmployee(slot.label, listKey)) {
         throw new Error(listKey === "relievers"
-          ? "You can't sign up here. Store Reliever duty is for Pharmacy Assistant only."
+          ? "You can't sign up here. Store Reliever duty is for Pharmacy Assistant, Pharmacist, or Billing employees."
           : `You can't sign up here. This is a "${slot.label}" role only.`);
       }
       const alreadyHasSlot = remoteCards.some(c =>
@@ -7400,6 +7485,7 @@ async function deleteDateFromRemote(dateKey) {
       sentAt: serverTimestamp(),
       sentBy: "admin"
     });
+    await closeUnavailableSiteSwapRequests(removedCards.map(card => card.id), "removed");
     // The delete already happened locally (and just got confirmed on the
     // server above) — but these ids were never removed from
     // lastSavedCardSnapshots, so differsFromSnapshot() kept seeing a "saved
@@ -7428,6 +7514,20 @@ async function deleteDateFromRemote(dateKey) {
     }
   } catch (err) {
     await showAlert("Deleted in your browser, but failed to sync online: " + err.message);
+  }
+}
+
+async function closeUnavailableSiteSwapRequests(cardId, action) {
+  try {
+    const cardIds = Array.isArray(cardId) ? cardId : [cardId];
+    const closedCount = await closePendingSiteSwapsForCards(db, notificationsCollRef, cardIds, action);
+    if (closedCount) console.info(`Closed ${closedCount} pending site swap request(s) after the site was ${action}.`);
+  } catch (error) {
+    console.error(`Failed to close pending site swap requests after the site was ${action}:`, error);
+    await showAlert(
+      `The site was ${action}, but pending site-swap requests could not be cleared: ${error.message || String(error)}`,
+      "warn"
+    );
   }
 }
 
@@ -7485,6 +7585,7 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard, publishTo
                   region: cardBeforePatch.region || "",
                   regionCustom: cardBeforePatch.regionCustom || "",
                   missionLabel: missionLabel(cardBeforePatch),
+                  cancelReason: nowCancelled ? String(patch.cancelReason || "").trim() : "",
                   employeeName: slot.name || "",
                   staffId: notifyStaffId,
                   createdAt: serverTimestamp(),
@@ -7511,7 +7612,8 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard, publishTo
             time: cardBeforePatch.time || "",
             region: cardBeforePatch.region || "",
             regionCustom: cardBeforePatch.regionCustom || "",
-                  missionLabel: missionLabel(cardBeforePatch),
+            missionLabel: missionLabel(cardBeforePatch),
+            cancelReason: nowCancelled ? String(patch.cancelReason || "").trim() : "",
             createdBy: signedInScheduleEmail,
             createdAt: serverTimestamp(),
             resolved: false
@@ -7530,6 +7632,7 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard, publishTo
         : currentPublishedCards.map(card => card.id === cardId ? { ...card, ...patch } : card)
     };
     await setDoc(scheduleDocRef, update);
+    if (patch.cancelled === true) await closeUnavailableSiteSwapRequests(cardId, "cancelled");
     if (notifyPayloads.length) {
       let notifFailCount = 0;
       await Promise.all(notifyPayloads.map(p =>
@@ -7596,6 +7699,7 @@ async function deleteSiteFromRemote(cardId) {
       sentAt: serverTimestamp(),
       sentBy: "admin"
     });
+    await closeUnavailableSiteSwapRequests(cardId, "removed");
     // Same fix as deleteDateFromRemote above: drop this now-deleted id from
     // lastSavedCardSnapshots so it stops permanently reading as "unsaved"
     // once the delete is actually confirmed on the server.
@@ -7937,9 +8041,7 @@ function renderNotifPanel(items) {
       btnLabel = "Got it";
     } else if (isEventCancelled) {
       title = `🔔 This event was cancelled`;
-      statusLine = scheduleChangeAudience(n) === "department"
-        ? `Operations cancelled this event.`
-        : `The Event Team cancelled this event — you're still on the roster, but there's nothing to show up for unless it's reinstated.`;
+      statusLine = `The event was cancelled. See the event details and reason below.`;
       btnLabel = "Got it";
     } else if (isEventReinstated) {
       title = `🔔 This event is back on`;
@@ -8156,9 +8258,8 @@ onSnapshot(
           } else if (isEventCreated) {
             message = `📅 Operations deployed a new site.`;
           } else if (isEventCancelled) {
-            message = scheduleChangeAudience(n) === "department"
-              ? `⛔ Operations cancelled this event.`
-              : `The event team cancelled this event.\n\nYou're still on the roster — nothing to show up for unless it's reinstated.`;
+            const eventLabel = n.missionLabel || notifEventTypeLabel(n) || "Event";
+            message = `Site: ${n.location || "Unnamed site"}\nEvent: ${eventLabel}\nDate: ${formatDateDisplay(n.date) || "Date not set"}\nReason: ${n.cancelReason || "Not provided."}`;
           } else if (isEventReinstated) {
             message = scheduleChangeAudience(n) === "department"
               ? `✅ Operations reinstated this event.`
@@ -8173,7 +8274,7 @@ onSnapshot(
             showBranchRow = true;
             message = `🚨 Emergency vacancy just opened for your team.\n\n${n.employeeName || "A teammate"} became unavailable — sign up below if you can cover.`;
           }
-          const detailText = notifDetailText(n, { includeBranch: showBranchRow });
+          const detailText = isEventCancelled ? "" : notifDetailText(n, { includeBranch: showBranchRow });
           if (detailText) message += `\n\n${detailText}`;
           void (loginNotifPromptPromise || Promise.resolve()).then(() => window.showScheduleTopBanner(n, message, () => {
             if (n.cardId) notifCenterJump(n.cardId, n.date || "");
@@ -8466,22 +8567,20 @@ if (employeeSession) {
   let lastEmployeeAllCards = [];
   onSnapshot(scheduleDocRef, snap => {
     const data = snap.exists() ? snap.data() : { cards: [] };
-    // Store Reliever duty is Pharmacy Assistant only — strip any leftover
-    // PHARMACIST/BILLING/IT SPECIALIST reliever rows pushed from older data,
-    // relabel any old PICKER/ENCODER entries to "PHARMACY ASSISTANT", and
-    // drop empty leftover placeholder rows (no name AND no site) from
-    // before Store Reliever rows were auto-added per Picker/Encoder signup —
-    // before showing the roster to employees.
+    // Keep supported Pharmacy Assistant, Pharmacist, and Billing reliever
+    // rows, dropping empty, site-less placeholders before showing the roster.
     const publishedCards = Array.isArray(data.employeeCards) ? data.employeeCards : [];
     const allCards = publishedCards.map(c => ({
       ...c,
       relievers: (c.relievers || [])
-        .filter(s => ["PHARMACY ASSISTANT", "BILLING"].includes(roleToTeam(s.label).toUpperCase()))
+        .filter(s => ["PHARMACY ASSISTANT", "PHARMACIST", "BILLING"].includes(roleToTeam(s.relieverDepartment || s.label).toUpperCase()))
         .filter(s => (s.name || "").trim() || (s.site || "").trim())
         .map(s => ({
           ...s,
           label: (s.name || "").trim()
-            ? (roleToTeam(s.relieverDepartment || s.label).toUpperCase() === "BILLING" ? "BILLING" : "PHARMACY ASSISTANT")
+            ? (["PHARMACIST", "BILLING"].includes(roleToTeam(s.relieverDepartment || s.label).toUpperCase())
+              ? roleToTeam(s.relieverDepartment || s.label).toUpperCase()
+              : "PHARMACY ASSISTANT")
             : ""
         }))
     }));
@@ -8667,18 +8766,20 @@ if (employeeSession) {
           ...s,
           slotId: s.slotId || legacyScheduleSlotId(remoteCard.id, "staff", index)
         })),
-        // Store Reliever duty is Pharmacy Assistant only — drop any
-        // leftover PHARMACIST/BILLING/IT SPECIALIST reliever rows, relabel
-        // any old PICKER/ENCODER entries to "PHARMACY ASSISTANT", and drop
-        // empty leftover placeholder rows (no name AND no site).
+        // Keep supported reliever teams and drop empty, site-less rows.
         relievers: (remoteCard.relievers || [])
           .map((s, index) => ({
             ...s,
             slotId: s.slotId || legacyScheduleSlotId(remoteCard.id, "relievers", index)
           }))
-          .filter(s => roleToTeam(s.label).toUpperCase() === "PHARMACY ASSISTANT")
+          .filter(s => ["PHARMACY ASSISTANT", "PHARMACIST", "BILLING"].includes(roleToTeam(s.relieverDepartment || s.label).toUpperCase()))
           .filter(s => (s.name || "").trim() || (s.site || "").trim())
-          .map(s => ({ ...s, label: "PHARMACY ASSISTANT" }))
+          .map(s => ({
+            ...s,
+            label: (["PHARMACIST", "BILLING"].includes(roleToTeam(s.relieverDepartment || s.label).toUpperCase())
+              ? roleToTeam(s.relieverDepartment || s.label).toUpperCase()
+              : "PHARMACY ASSISTANT")
+          }))
       });
       structuralChange = true;
       touchedIds.add(remoteCard.id);

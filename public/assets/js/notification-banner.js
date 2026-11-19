@@ -6,6 +6,9 @@ window.showScheduleTopBanner = (notification, message, onOpen) => new Promise(re
 
 	const isCancelled = notification && notification.type === "eventCancelled";
 	const isReinstated = notification && notification.type === "eventReinstated";
+	const isSwapRequest = notification && notification.type === "siteSwapRequest";
+	const isSwapApproved = notification && notification.type === "siteSwapApproved";
+	const isSwapDeclined = notification && notification.type === "siteSwapDeclined";
 	const banner = document.createElement("section");
 	banner.id = "scheduleTopBanner";
 	banner.setAttribute("role", isCancelled ? "alert" : "status");
@@ -32,7 +35,12 @@ window.showScheduleTopBanner = (notification, message, onOpen) => new Promise(re
 
 	const content = document.createElement("div");
 	const title = document.createElement("strong");
-	title.textContent = isCancelled ? "Event cancelled" : isReinstated ? "Event reinstated" : "Schedule update";
+	title.textContent = isCancelled ? "Event cancelled"
+		: isReinstated ? "Event reinstated"
+			: isSwapRequest ? "Event site swap request"
+				: isSwapApproved ? "Site swap approved"
+					: isSwapDeclined ? "Site swap declined"
+						: "Schedule update";
 	title.style.cssText = "display:block;font-weight:700;margin-bottom:3px";
 	const body = document.createElement("div");
 	body.textContent = String(message || "Your schedule has changed.");
@@ -50,7 +58,7 @@ window.showScheduleTopBanner = (notification, message, onOpen) => new Promise(re
 	if (typeof onOpen === "function") {
 		const viewButton = document.createElement("button");
 		viewButton.type = "button";
-		viewButton.textContent = "View event";
+		viewButton.textContent = isSwapRequest ? "Review swap" : isSwapApproved ? "View new site" : "View event";
 		viewButton.style.cssText = "border:0;border-radius:4px;padding:8px 11px;background:#18212b;color:#fff;font:600 13px 'IBM Plex Sans',system-ui,sans-serif;cursor:pointer";
 		viewButton.addEventListener("click", () => {
 			try { onOpen(); } finally { finish("open"); }

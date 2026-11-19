@@ -12,6 +12,7 @@
 <title>Deployment Roster — Medical &amp; People's Day</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="/assets/css/event-cancel-modal.css?v=cancel-reason-1" rel="stylesheet">
 <style>
   :root {
     --bg: #EEF1FA;
@@ -862,6 +863,20 @@
     margin-left: 8px;
   }
   .unclaim-btn:disabled { opacity: 0.6; cursor: default; }
+  .swap-site-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 10px;
+    border: 1px solid #315ca8;
+    border-radius: 6px;
+    background: #f1f6ff;
+    color: #244b8d;
+    cursor: pointer;
+  }
+  .swap-site-btn:hover { background: #e2edff; }
+  .swap-site-btn:disabled { opacity: 0.6; cursor: default; }
+  .notif-note-view-btn.swap-review-action { border-color: #315ca8; background: #f1f6ff; color: #244b8d; }
 
   /* ---------- Card ---------- */
   .site-card {
@@ -1718,7 +1733,7 @@
     from { transform: scale(0.3); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
   }
-  .modal-box p {
+  .modal-box #appModalMessage {
     margin: 0 0 22px;
     font-size: 14.5px;
     line-height: 1.55;
@@ -1750,6 +1765,274 @@
     box-shadow: 0 6px 14px -4px rgba(24,87,166,.5);
   }
   .modal-actions button.primary:hover { opacity: 0.92; transform: translateY(-1px); }
+  .swap-picker-open { padding: 18px; }
+  .swap-picker-open .modal-box {
+    width: min(580px, 100%);
+    max-width: 580px;
+    max-height: min(790px, calc(100dvh - 36px));
+    padding: 24px 24px 0;
+    overflow: hidden;
+    border-color: #ead9da;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(48, 16, 20, .24);
+  }
+  .swap-picker-open .modal-icon { display: none; }
+  .swap-picker-open #appModalMessage {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 0;
+    margin: 0;
+    overflow-y: auto;
+    color: #311a1b;
+    font-family: 'Inter', sans-serif;
+  }
+  .swap-picker-header { display: flex; align-items: flex-start; gap: 16px; }
+  .swap-picker-heading { flex: 1; min-width: 0; }
+  .swap-picker-icon {
+    display: grid;
+    width: 56px;
+    height: 56px;
+    flex: 0 0 56px;
+    place-items: center;
+    border-radius: 16px;
+    background: #fde9eb;
+    color: #d61f2c;
+    font-size: 24px;
+  }
+  .swap-picker-title { margin: 1px 0 3px; font-size: 24px; line-height: 1.2; font-weight: 800; letter-spacing: -.03em; }
+  .swap-picker-subtitle { margin: 0; color: #8c6b6e; font-size: 14px; line-height: 1.45; }
+  .swap-picker-close {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #8c6b6e;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .swap-picker-close:hover { background: #fbf0f1; }
+  .swap-picker-current,
+  .swap-picker-preview {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    padding: 13px 16px;
+    border: 1px solid #eadcdd;
+    border-radius: 20px;
+    background: #fcf6f6;
+  }
+  .swap-picker-avatar {
+    position: relative;
+    display: grid;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    place-items: center;
+    border-radius: 50%;
+    background: #311a1b;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+    overflow: hidden;
+  }
+  .swap-picker-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+  .swap-picker-current-copy { display: flex; min-width: 0; flex-direction: column; }
+  .swap-picker-caption { color: #8c6b6e; font-size: 13px; font-weight: 700; }
+  .swap-picker-site {
+    overflow-wrap: anywhere;
+    color: #311a1b;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+  .swap-picker-field-label { margin: 0 0 -9px; color: #806467; font-size: 13px; font-weight: 700; }
+  .swap-picker-candidates {
+    display: grid;
+    flex: 0 0 auto;
+    gap: 9px;
+    min-height: 76px;
+    max-height: 190px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .swap-picker-candidate {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    min-width: 0;
+    min-height: 72px;
+    box-sizing: border-box;
+    padding: 12px 16px;
+    border: 1px solid #eadcdd;
+    border-radius: 19px;
+    background: #fff;
+    color: #311a1b;
+    text-align: left;
+    cursor: pointer;
+  }
+  .swap-picker-candidate:hover { background: #fff8f8; }
+  .swap-picker-candidate[aria-pressed="true"] { border-color: #d61f2c; background: #fff0f2; }
+  .swap-picker-candidate .swap-picker-avatar { background: #d61f3b; }
+  .swap-picker-candidate-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+  .swap-picker-candidate-name { overflow-wrap: anywhere; font-size: 15px; font-weight: 700; line-height: 1.3; }
+  .swap-picker-candidate-meta { color: #8c6b6e; font-size: 13px; line-height: 1.35; }
+  .swap-picker-check {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 24px;
+    place-items: center;
+    border-radius: 50%;
+    background: #d61f2c;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 800;
+    opacity: 0;
+  }
+  .swap-picker-candidate[aria-pressed="true"] .swap-picker-check { opacity: 1; }
+  .swap-picker-empty { padding: 16px; color: #8c6b6e; font-size: 13px; text-align: center; }
+  .swap-picker-preview {
+    display: grid;
+    gap: 7px;
+    border-color: #cfe7d9;
+    background: #f0f8f3;
+  }
+  .swap-picker-preview[hidden] { display: none; }
+  .swap-picker-preview-row { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+  .swap-picker-preview-row strong { color: #18804e; text-align: right; }
+  .swap-picker-note {
+    width: 100%;
+    min-height: 78px;
+    resize: vertical;
+    padding: 12px 15px;
+    border: 1px solid #eadcdd;
+    border-radius: 15px;
+    color: #311a1b;
+    font: inherit;
+    font-size: 14px;
+  }
+  .swap-picker-open .modal-actions {
+    flex-wrap: nowrap;
+    margin: 18px -24px 0;
+    padding: 18px 24px 22px;
+    border-top: 1px solid #efe3e4;
+  }
+  .swap-picker-open .modal-actions button {
+    flex: 1;
+    min-height: 56px;
+    border: 1px solid #eadcdd;
+    border-radius: 15px;
+    color: #311a1b;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .swap-picker-open .modal-actions button.primary {
+    border-color: #d31135;
+    background: #d31135;
+    color: #fff;
+    box-shadow: none;
+  }
+  .swap-picker-open .modal-actions button:disabled { opacity: .48; cursor: default; }
+  .swap-log-open { padding: 18px; }
+  .swap-log-open .modal-box { width: 100%; max-width: 600px; max-height: 90dvh; padding: 0; border-radius: 24px; }
+  .swap-log-open .modal-icon { display: none; }
+  .swap-log-open #appModalMessage { margin: 0; padding: 20px 20px 14px; white-space: normal; }
+  .swap-log-open .modal-actions { margin: 0; padding: 14px 20px 18px; border-top: 1px solid #f1e4e6; }
+  .swap-log-open .modal-actions button { width: 100%; min-height: 56px; border: 1px solid #f0d9dd; border-radius: 16px; color: #311a1b; font-size: 15px; font-weight: 700; }
+  .swap-log-open .modal-actions button.primary { border-color: #d7ae8b; background: #e8c5a5; color: #4a3022; box-shadow: none; }
+  .swap-log-open .modal-actions button.primary:hover { background: #ddb58f; transform: none; }
+  .swap-log-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
+  .swap-log-header-icon { display: grid; width: 56px; height: 56px; flex: 0 0 auto; place-items: center; border-radius: 16px; background: #fdecef; color: #2874e8; font-size: 24px; }
+  .swap-log-heading { min-width: 0; flex: 1; }
+  .swap-log-title-line { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+  .swap-log-title { margin: 0; color: #311a1b; font-size: 23px; font-weight: 800; letter-spacing: -.03em; line-height: 1.2; }
+  .swap-log-count { display: inline-grid; min-width: 26px; height: 26px; padding: 0 7px; place-items: center; border-radius: 999px; background: #d31135; color: #fff; font-size: 14px; font-weight: 800; }
+  .swap-log-subtitle { margin: 6px 0 0; color: #806b6c; font-size: 14px; line-height: 1.45; }
+  .swap-log-close { display: grid; width: 32px; height: 32px; flex: 0 0 auto; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #806b6c; font-size: 22px; cursor: pointer; }
+  .swap-log-close:hover { background: #f9eff0; color: #311a1b; }
+  .swap-log-list { display: grid; gap: 14px; max-height: 58vh; overflow-y: auto; padding: 4px; }
+  .swap-log-item { padding: 18px; border: 1px solid #ffbdc7; border-radius: 22px; background: #fff; box-shadow: 0 0 0 4px #fff0f2; }
+  .swap-log-item-head { display: flex; align-items: flex-start; gap: 14px; }
+  .swap-log-avatar { display: grid; width: 50px; height: 50px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: #d31135; color: #fff; font-size: 15px; font-weight: 800; }
+  .swap-log-person { min-width: 0; flex: 1; }
+  .swap-log-item-title { display: block; color: #311a1b; font-size: 17px; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; }
+  .swap-log-item-subtitle { display: block; color: #806b6c; font-size: 14px; line-height: 1.4; }
+  .swap-log-status { flex: 0 0 auto; padding: 7px 12px; border-radius: 999px; background: #fdecef; color: #b51c34; font-size: 12px; font-weight: 800; white-space: nowrap; }
+  .swap-log-sites { display: grid; grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr); align-items: center; gap: 10px; margin-top: 16px; }
+  .swap-log-site { min-width: 0; min-height: 96px; padding: 12px 14px; border-radius: 16px; background: #fbf4f4; }
+  .swap-log-site-label { display: block; color: #806b6c; font-size: 12px; font-weight: 700; line-height: 1.35; }
+  .swap-log-site-name { display: block; margin-top: 3px; color: #311a1b; font-size: 14px; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; }
+  .swap-log-site-meta { display: block; margin-top: 3px; color: #806b6c; font-size: 12px; line-height: 1.35; }
+  .swap-log-arrow { color: #d31135; font-size: 21px; text-align: center; }
+  .swap-log-item-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+  .swap-log-meta { color: #806b6c; font-size: 13px; line-height: 1.4; }
+  .swap-log-review { flex: 0 0 auto; min-height: 44px; padding: 0 18px; border: 0; border-radius: 14px; background: #d31135; color: #fff; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+  .swap-log-review:hover { background: #b90e2e; }
+  .swap-log-empty { padding: 28px 14px; color: #806b6c; text-align: center; font-size: 14px; }
+  @media (max-width: 620px) {
+    .swap-picker-open {
+      align-items: center;
+      padding: max(8px, env(safe-area-inset-top)) 10px max(8px, env(safe-area-inset-bottom));
+    }
+    .swap-picker-open .modal-box {
+      width: 100%;
+      max-width: none;
+      height: min(90dvh, 620px);
+      max-height: calc(100dvh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom)));
+      min-height: 0;
+      padding: 14px 16px 0;
+      border-radius: 22px;
+    }
+    .swap-picker-open #appModalMessage { flex: 1 1 0; gap: 10px; }
+    .swap-picker-header { align-items: center; gap: 10px; }
+    .swap-picker-icon { width: 42px; height: 42px; flex-basis: 42px; border-radius: 13px; font-size: 20px; }
+    .swap-picker-title { font-size: 19px; line-height: 1.2; }
+    .swap-picker-subtitle { font-size: 12px; line-height: 1.35; }
+    .swap-picker-close { width: 30px; height: 30px; flex-basis: 30px; font-size: 22px; }
+    .swap-picker-current,
+    .swap-picker-candidate { gap: 10px; padding: 8px 10px; border-radius: 16px; }
+    .swap-picker-avatar { width: 40px; height: 40px; flex-basis: 40px; }
+    .swap-picker-site { font-size: 14px; }
+    .swap-picker-field-label { font-size: 12px; }
+    .swap-picker-candidates { max-height: 112px; min-height: 60px; gap: 7px; }
+    .swap-picker-candidate { min-height: 60px; }
+    .swap-picker-candidate-name { font-size: 14px; }
+    .swap-picker-candidate-meta { font-size: 12px; }
+    .swap-picker-note { min-height: 56px; max-height: 80px; padding: 9px 12px; resize: none; }
+    .swap-picker-open .modal-actions {
+      margin: 10px -16px 0;
+      padding: 10px 16px max(10px, env(safe-area-inset-bottom));
+    }
+    .swap-picker-open .modal-actions button { min-height: 46px; font-size: 14px; }
+    .swap-log-open { align-items: center; padding: 10px; }
+    .swap-log-open .modal-box { max-height: 94dvh; border-radius: 24px; }
+    .swap-log-open #appModalMessage { padding: 16px 16px 12px; }
+    .swap-log-open .modal-actions { padding: 12px 16px 16px; }
+    .swap-log-header { gap: 11px; margin-bottom: 14px; }
+    .swap-log-header-icon { width: 50px; height: 50px; border-radius: 14px; }
+    .swap-log-title { font-size: 21px; }
+    .swap-log-subtitle { font-size: 13px; }
+    .swap-log-item { padding: 14px; border-radius: 20px; }
+    .swap-log-item-head { gap: 10px; }
+    .swap-log-avatar { width: 44px; height: 44px; }
+    .swap-log-item-title { font-size: 15px; }
+    .swap-log-item-subtitle { font-size: 13px; }
+    .swap-log-status { padding: 6px 9px; font-size: 11px; }
+    .swap-log-sites { grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr); gap: 6px; margin-top: 14px; }
+    .swap-log-site { min-height: 96px; padding: 10px; border-radius: 14px; }
+    .swap-log-site-label, .swap-log-site-meta { font-size: 11px; }
+    .swap-log-site-name { font-size: 13px; }
+    .swap-log-item-footer { align-items: flex-end; gap: 8px; }
+    .swap-log-meta { font-size: 12px; }
+    .swap-log-review { min-height: 44px; padding: 0 14px; font-size: 13px; }
+  }
 
   /* ---------- Leaderboard (employee side) ---------- */
   .leaderboard-overlay {
@@ -2019,7 +2302,8 @@
   }
 
   /* ---------- Notification Center (sidebar "Notifications" nav item) ---------- */
-  .sidebar-nav a .nav-badge {
+  .sidebar-nav a .nav-badge,
+  .sidebar-nav button .nav-badge {
     margin-left: auto;
     min-width: 18px;
     height: 18px;
@@ -2033,7 +2317,8 @@
     text-align: center;
     display: none;
   }
-  .sidebar-nav a .nav-badge.show { display: inline-block; }
+  .sidebar-nav a .nav-badge.show,
+  .sidebar-nav button .nav-badge.show { display: inline-block; }
 
   .notifcenter-overlay {
     position: fixed;
@@ -2371,6 +2656,7 @@
     .staff-row.employee-roster-row { grid-template-columns: 30px minmax(0, 1fr); }
     .emp-name, .claim-btn { grid-column: 2; justify-self: start; }
     .roster-profile-person { grid-column: 2 / -1; }
+    .swap-site-btn { grid-column: 2; justify-self: start; }
   }
   @media (max-width: 620px) {
     .topbar { gap: 10px; padding: 8px 14px; }
@@ -2435,11 +2721,12 @@
     .reliever-section .staff-grid { border-top: 0; padding-top: 0; }
     .staff-row {
       display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
-      align-items: center; gap: 6px 8px; padding: 7px 0;
+      align-items: center; gap: 6px 12px; padding: 7px 0;
     }
+    .staff-row.employee-roster-row { grid-template-columns: auto minmax(0, 1fr) auto; }
     .staff-row .status-dot {
       display: inline-flex; align-items: center; justify-content: center;
-      width: auto; min-width: 45px; height: 20px; padding: 0 6px;
+      width: auto; min-width: 50px; height: 20px; padding: 0 7px;
       border-radius: 999px; box-shadow: none; background: #FDE7E8; color: #B4232D;
       font-size: 8px; font-weight: 700; line-height: 1;
     }
@@ -2448,15 +2735,22 @@
     .staff-row .status-dot.filled::after { content: "Filled"; }
     .employee-slot-label {
       display: flex; min-width: 0 !important; flex-wrap: wrap; align-items: center;
-      gap: 2px 5px; font-size: 10px !important; font-weight: 600; line-height: 1.25;
+      gap: 2px 5px; overflow-wrap: anywhere; font-size: 10px !important; font-weight: 600; line-height: 1.25;
     }
     .employee-slot-label .reliever-site-tag { flex: 1 1 100%; margin-top: 0; font-size: 9px; }
     .employee-slot-name { grid-column: 2 / -1; justify-self: start; font-size: 12px; line-height: 1.25; }
     .employee-cancelled-label { grid-column: 2 / -1; justify-self: start; }
+    .employee-roster-row > .roster-profile-person {
+      grid-column: 3;
+      justify-self: end;
+      max-width: 100%;
+    }
     .staff-row .claim-btn {
       grid-column: 3; justify-self: end; min-height: 30px; padding: 6px 8px;
       border-radius: 7px; font-size: 10px; white-space: nowrap;
     }
+    .employee-roster-row > .claim-btn { grid-column: 3; justify-self: end; }
+    .employee-roster-row > .swap-site-btn { grid-column: 2 / -1; justify-self: start; }
     .empty-state { margin-top: 10px; padding: 28px 18px; }
   }
 </style>
@@ -2466,7 +2760,7 @@
 <div class="modal-overlay" id="appModal">
   <div class="modal-box">
     <div class="modal-icon" id="appModalIcon"></div>
-    <p id="appModalMessage"></p>
+    <div id="appModalMessage"></div>
     <div class="modal-actions" id="appModalActions"></div>
   </div>
 </div>
@@ -2525,6 +2819,7 @@
       <a href="#" data-current="true"><span class="ic">🗓️</span>My Schedule</a>
       <button type="button" id="eventSitesOpenBtn" aria-haspopup="dialog" aria-controls="eventSitesOverlay"><span class="ic">📍</span>Event Sites</button>
       <button type="button" id="leaderboardOpenBtn" aria-haspopup="dialog" aria-controls="leaderboardOverlay"><span class="ic">🏆</span>Leaderboard</button>
+      <button type="button" id="swapLogsOpenBtn"><span class="ic">🔄</span>Pending swaps<span class="nav-badge" id="swapLogsBadge">0</span></button>
       <a href="#" id="notifNavBtn"><span class="ic">🔔</span>Notifications<span class="nav-badge" id="notifNavBadge">0</span></a>
     </nav>
     <div class="sidebar-foot">✚ One ticket per site,<br>Staff assignment tracker</div>
@@ -2625,7 +2920,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-11-09.10";
+const APP_VERSION = "2026-11-19.14";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -2675,10 +2970,16 @@ const appModal = document.getElementById("appModal");
 const appModalMessage = document.getElementById("appModalMessage");
 const appModalActions = document.getElementById("appModalActions");
 const appModalIcon = document.getElementById("appModalIcon");
+let activeSiteSwapRequestId = "";
 
 function closeModal() {
   appModal.classList.remove("open");
+  appModal.classList.remove("event-cancel-open");
+  appModal.classList.remove("swap-picker-open");
+  appModal.classList.remove("swap-log-open");
+  appModal.removeAttribute("aria-labelledby");
   appModalActions.innerHTML = "";
+  activeSiteSwapRequestId = "";
 }
 
 // Sets the little animated badge above the modal text. "kind" controls both
@@ -2755,6 +3056,72 @@ function showConfirm(message) {
     appModal.classList.add("open");
     // See the matching comment in showAlert above.
     setTimeout(() => okBtn.focus(), 30);
+  });
+}
+
+function showEventCancellationReasonPrompt(card) {
+  return new Promise(resolve => {
+    setModalIcon("warn");
+    appModalMessage.innerHTML = `
+      <div class="event-cancel-header">
+        <span class="event-cancel-icon" aria-hidden="true">!</span>
+        <div class="event-cancel-heading">
+          <h2 id="eventCancelTitle">Cancel this event?</h2>
+          <p>Everyone signed up for this site will be told it was cancelled.</p>
+        </div>
+        <button class="event-cancel-close" id="eventCancelClose" type="button" aria-label="Close cancellation prompt">&times;</button>
+      </div>
+      <div class="event-cancel-context">
+        <strong>${escapeHtml(missionLabel(card))}</strong>
+        <span>${escapeHtml(card.location || "Unnamed site")} · ${escapeHtml(formatDateDisplay(card.date) || "Date not set")}</span>
+      </div>
+      <textarea class="event-cancel-reason-input" id="eventCancelReason" maxlength="200" required
+        aria-label="Cancellation reason shared with employees"
+        aria-describedby="eventCancelReasonError eventCancelReasonCount"
+        placeholder="Employees will see this message"></textarea>
+      <div class="event-cancel-reason-meta">
+        <span class="event-cancel-reason-error" id="eventCancelReasonError" role="alert">Please give employees a reason</span>
+        <span class="event-cancel-reason-count" id="eventCancelReasonCount">0/200</span>
+      </div>
+      <div class="event-cancel-warning">
+        <span class="event-cancel-warning-icon" aria-hidden="true">🔔</span>
+        <p>The site's slots are cleared and the reason is sent as a notification. This can't be undone.</p>
+      </div>
+    `;
+    appModal.classList.add("event-cancel-open");
+    appModal.setAttribute("role", "dialog");
+    appModal.setAttribute("aria-modal", "true");
+    appModal.setAttribute("aria-labelledby", "eventCancelTitle");
+    appModalActions.innerHTML = "";
+    const closePrompt = () => { closeModal(); resolve(null); };
+    document.getElementById("eventCancelClose").addEventListener("click", closePrompt);
+    const backButton = document.createElement("button");
+    backButton.textContent = "Go back";
+    backButton.addEventListener("click", closePrompt);
+    const cancelButton = document.createElement("button");
+    cancelButton.className = "primary";
+    cancelButton.textContent = "Cancel event";
+    cancelButton.disabled = true;
+    const reasonInput = document.getElementById("eventCancelReason");
+    const reasonError = document.getElementById("eventCancelReasonError");
+    const reasonCount = document.getElementById("eventCancelReasonCount");
+    reasonInput.addEventListener("input", () => {
+      const hasReason = Boolean(reasonInput.value.trim());
+      cancelButton.disabled = !hasReason;
+      reasonError.hidden = hasReason;
+      reasonCount.textContent = `${reasonInput.value.length}/200`;
+    });
+    cancelButton.addEventListener("click", () => {
+      const reason = reasonInput.value.trim();
+      if (!reason) return;
+      closeModal();
+      resolve(reason);
+    });
+    appModalActions.append(backButton, cancelButton);
+    appModal.setAttribute("role", "dialog");
+    appModal.setAttribute("aria-modal", "true");
+    appModal.classList.add("open");
+    setTimeout(() => reasonInput.focus(), 30);
   });
 }
 
@@ -2894,6 +3261,7 @@ import {
   initializeFirestore, doc, collection, setDoc, getDoc, onSnapshot, serverTimestamp, runTransaction,
   addDoc, deleteDoc, updateDoc, query, orderBy, arrayUnion, arrayRemove, limit, where, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { closePendingSiteSwapsForCards } from "../assets/js/site-swap-cleanup.js?v=site-swap-cleanup-2";
 
 // Same Firebase project as employee-signup.html / landing-employee-page.html,
 // used here so "Send" can publish the roster for employees to read.
@@ -3121,6 +3489,7 @@ if ("serviceWorker" in navigator) {
   if (avatarEl) avatarEl.textContent = avatar;
   if (labelEl) labelEl.textContent = label;
 })();
+let currentEmployeeProfilePhotoData = null;
 async function loadEmployeeChipProfilePhoto() {
   const user = auth.currentUser;
   const photoImage = document.getElementById("empChipProfilePhoto");
@@ -3141,11 +3510,13 @@ async function loadEmployeeChipProfilePhoto() {
     if (sharedPhotoSnapshot.exists()) photoData = sharedPhotoSnapshot.data().photoData;
   }
   if (typeof photoData !== "string" || photoData.length > 180000
-      || !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(photoData)) return;
+      || !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(photoData)) return null;
 
+  currentEmployeeProfilePhotoData = photoData;
   photoImage.src = photoData;
   photoImage.hidden = false;
   initials.hidden = true;
+  return photoData;
 }
 void loadEmployeeChipProfilePhoto().catch(error => {
   console.error("Unable to load employee schedule profile photo:", error);
@@ -3197,9 +3568,8 @@ const ROLE_LABELS = [
 // Choices offered in each role field's dropdown.
 const ROLE_OPTIONS = ["PHARMACIST", "PICKER", "ENCODER", "BILLING", "IT SPECIALIST"];
 
-// Store Reliever rows display as Pharmacy Assistant work. Pharmacy Assistant
-// and Billing employees may both sign up to cover those rows.
-const RELIEVER_ROLE_OPTIONS = ["PHARMACY ASSISTANT", "BILLING"];
+// Pharmacy Assistant, Pharmacist, and Billing employees may cover stores.
+const RELIEVER_ROLE_OPTIONS = ["PHARMACY ASSISTANT", "PHARMACIST", "BILLING"];
 
 // Default "Store Reliever" fields for a new site card — covers the store
 // roles left behind when their usual staff join the Event Team above.
@@ -3322,20 +3692,15 @@ cards.forEach(c => {
     if (s.site === undefined) s.site = "";
     if (!s.relieverTime) s.relieverTime = "20:00";
   });
-  // Store Reliever rows display as Pharmacy Assistant duty — drop any leftover
-  // PHARMACIST/BILLING/IT SPECIALIST reliever rows from older cards, and
-  // relabel whatever's left (old PICKER/ENCODER entries) to a single
-  // "PHARMACY ASSISTANT" role, since there's no longer a Picker/Encoder
-  // distinction for relievers. Also drop empty leftover placeholder rows
-  // (no name AND no site) from before Store Reliever rows were auto-added
-  // per Picker/Encoder signup — a blank, site-less row is meaningless now.
+  // Keep supported Pharmacy Assistant, Pharmacist, and Billing reliever rows.
+  // A blank, site-less placeholder is still meaningless until a store is set.
   c.relievers = c.relievers
-    .filter(s => ["PHARMACY ASSISTANT", "BILLING"].includes(roleToTeam(s.label).toUpperCase()))
+    .filter(s => isSupportedRelieverTeam(s.relieverDepartment || s.label))
     .filter(s => (s.name || "").trim() || (s.site || "").trim())
     .map(s => ({
       ...s,
       label: (s.name || "").trim()
-        ? (roleToTeam(s.label).toUpperCase() === "BILLING" ? "BILLING" : "PHARMACY ASSISTANT")
+        ? relieverRoleForTeam(s.relieverDepartment || s.label)
         : ""
     }));
 });
@@ -3628,6 +3993,14 @@ function notifDetailRows(n, opts) {
     if (actorLabel) rows.push(["From", actorLabel]);
     if (n.location) rows.push(["Event Site", n.location]);
     if (n.date) rows.push(["Event Date", formatDateDisplay(n.date)]);
+    return rows;
+  }
+  if (n.type === "eventCancelled") {
+    if (n.location) rows.push(["Event Site", n.location]);
+    const eventLabel = n.missionLabel || notifEventTypeLabel(n);
+    if (eventLabel) rows.push(["Event", eventLabel]);
+    if (n.date) rows.push(["Event Date", formatDateDisplay(n.date)]);
+    if (n.cancelReason) rows.push(["Reason", n.cancelReason]);
     return rows;
   }
   const role = n.list === "schedule" ? "" : notifTitleCase(n.role);
@@ -4005,13 +4378,16 @@ function render() {
     // ---- Events ----
     cardEl.querySelector(".cancel-event-btn").addEventListener("click", async function () {
       const nowCancelled = !cards[idx].cancelled;
-      const ok = await showConfirm(
-        nowCancelled
-          ? "Cancel this event? Employees will see it marked as cancelled and won't be able to sign up until it's reinstated."
-          : "Reinstate this event? It will become active again for employees."
-      );
-      if (!ok) return;
+      let cancelReason = "";
+      if (nowCancelled) {
+        cancelReason = await showEventCancellationReasonPrompt(cards[idx]);
+        if (cancelReason === null) return;
+      } else {
+        const ok = await showConfirm("Reinstate this event? It will become active again for employees.");
+        if (!ok) return;
+      }
       cards[idx].cancelled = nowCancelled;
+      cards[idx].cancelReason = nowCancelled ? cancelReason : "";
       saveCards();
       // Flip the visible state on this exact card right away, instead of
       // waiting on the full render() below (or a page refresh) to notice.
@@ -4029,7 +4405,11 @@ function render() {
         stampEl.remove();
       }
       render();
-      pushCardPatchToRemote(card.id, { cancelled: nowCancelled }, cards[idx]);
+      await pushCardPatchToRemote(
+        card.id,
+        { cancelled: nowCancelled, cancelReason: cards[idx].cancelReason },
+        cards[idx]
+      );
     });
 
     cardEl.querySelector(".remove-btn").addEventListener("click", async () => {
@@ -4508,7 +4888,7 @@ function renderEmployeeSchedule(scheduleCards, branch) {
         if (!isRoleAllowedForEmployee(roleLabel, btnListKey)) {
           const { team: myTeam } = employeeSession ? splitDepartmentClient(employeeSession.department) : { team: "—" };
           if (btnListKey === "relievers") {
-            await showAlert(`You can't sign up here. Store Reliever duty is for Pharmacy Assistant or Billing employees, and your department is ${myTeam}.`);
+            await showAlert(`You can't sign up here. Store Reliever duty is for Pharmacy Assistant, Pharmacist, or Billing employees, and your department is ${myTeam}.`);
           } else {
             await showAlert(`You can't sign up here. This is a "${roleLabel}" role only, and your department is ${myTeam}.`);
           }
@@ -4542,6 +4922,9 @@ function renderEmployeeSchedule(scheduleCards, branch) {
         if (!ok) return;
         unclaimSlot(btn.dataset.cardId, btn.dataset.list || "staff", parseInt(btn.dataset.sidx, 10), btn);
       });
+    });
+    cardEl.querySelectorAll(".swap-site-btn").forEach(btn => {
+      btn.addEventListener("click", () => requestSiteSwap(btn.dataset.cardId, parseInt(btn.dataset.sidx, 10), btn));
     });
     renderPharmacistNoteBadge(cardEl);
     if (useCompactSiteCards) {
@@ -4644,6 +5027,10 @@ function employeeStaffRowHtml(s, sIdx, listKey, card, myActiveSlot, cancelled, i
       ${filled
         ? `<span class="roster-profile-person">` +
           `<strong class="employee-slot-name${isMine ? " is-mine" : ""}" style="flex:${isMine ? "0 1 auto" : "1"};">${escapeHtml(s.name)}</strong></span>` +
+          (isMine && listKey === "staff" && !cancelled && !inactive &&
+            String(s.filledByStaffId || "").trim().toLowerCase() === String(employeeSession && employeeSession.staffId || "").trim().toLowerCase()
+            ? `<button type="button" class="swap-site-btn" data-card-id="${escapeAttr(card.id)}" data-sidx="${sIdx}">Request site swap</button>`
+            : "") +
           (isMine && cancelled
             ? `<span class="employee-cancelled-label" style="flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);">Event cancelled</span>`
             : "")
@@ -4693,9 +5080,9 @@ function relieverDisplayLabel(slot) {
     : "";
   const storedTeam = roleToTeam(slot.relieverDepartment || "").toUpperCase();
   const labelTeam = roleToTeam(slot.label).toUpperCase();
-  return employeeTeam === "BILLING" || storedTeam === "BILLING" || labelTeam === "BILLING"
-    ? "BILLING"
-    : "PHARMACY ASSISTANT";
+  return [employeeTeam, storedTeam, labelTeam].find(team =>
+    ["PHARMACIST", "BILLING"].includes(team)
+  ) || "PHARMACY ASSISTANT";
 }
 function formatRelieverTime(value) {
   const match = String(value || "20:00").match(/^(\d{1,2}):(\d{2})$/);
@@ -4730,11 +5117,23 @@ function roleToTeam(label) {
   return "Pharmacy Assistant"; // PICKER, ENCODER, ENCODER/PICKER
 }
 
+function isSupportedRelieverTeam(team) {
+  return ["PHARMACY ASSISTANT", "PHARMACIST", "BILLING"]
+    .includes(roleToTeam(team).toUpperCase());
+}
+
+function relieverRoleForTeam(team) {
+  const normalizedTeam = roleToTeam(team).toUpperCase();
+  return ["PHARMACIST", "BILLING"].includes(normalizedTeam)
+    ? normalizedTeam
+    : "PHARMACY ASSISTANT";
+}
+
 // Whether the currently logged-in employee's own department matches the
 // team a given role slot belongs to. Used to block signing up for roles
 // outside your own department (e.g. a BILLING employee can't sign up for
 // a PHARMACIST slot). Store Reliever ("relievers") slots may be covered by
-// Pharmacy Assistant or Billing employees, regardless of the display role
+// Pharmacy Assistant, Pharmacist, or Billing employees, regardless of the display role
 // label on the reliever row.
 function isRoleAllowedForEmployee(label, listKey) {
   if (!employeeSession) return false;
@@ -4749,7 +5148,7 @@ function isDepartmentAllowedForSlot(department, label, listKey) {
   // the broader "Pharmacy Assistant" label.
   const normalizedTeam = roleToTeam(team).toUpperCase();
   if (listKey === "relievers") {
-    return normalizedTeam === "PHARMACY ASSISTANT" || normalizedTeam === "BILLING";
+    return ["PHARMACY ASSISTANT", "PHARMACIST", "BILLING"].includes(normalizedTeam);
   }
   return normalizedTeam === roleToTeam(label).toUpperCase();
 }
@@ -5327,7 +5726,7 @@ async function claimSlot(cardId, listKey, staffIdx, btn, confirmedSignupBranch) 
       if ((slot.name || "").trim()) throw new Error("Someone already signed up here before you. Try refreshing.");
       if (!isRoleAllowedForEmployee(slot.label, listKey)) {
         throw new Error(listKey === "relievers"
-          ? "You can't sign up here. Store Reliever duty is for Pharmacy Assistant or Billing employees."
+          ? "You can't sign up here. Store Reliever duty is for Pharmacy Assistant, Pharmacist, or Billing employees."
           : `You can't sign up here. This is a "${slot.label}" role only.`);
       }
       const alreadyHasSlot = remoteCards.some(c =>
@@ -5354,9 +5753,7 @@ async function claimSlot(cardId, listKey, staffIdx, btn, confirmedSignupBranch) 
         ...slot,
         slotId: slot.slotId || `legacy-${card.id}-${listKey}-${staffIdx}`,
         label: listKey === "relievers"
-          ? (splitDepartmentClient(employeeSession.department).team.toUpperCase() === "BILLING"
-            ? "BILLING"
-            : "PHARMACY ASSISTANT")
+          ? relieverRoleForTeam(splitDepartmentClient(employeeSession.department).team)
           : slot.label,
         relieverDepartment: listKey === "relievers"
           ? splitDepartmentClient(employeeSession.department).team
@@ -5629,6 +6026,628 @@ async function unclaimSlot(cardId, listKey, staffIdx, btn) {
   }
 }
 
+function swapCardSlot(cards, cardId, staffIdx) {
+  const card = (cards || []).find(item => item && item.id === cardId);
+  return { card, slot: card && (card.staff || [])[staffIdx] };
+}
+
+function swapStaffId(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function swapCardLocation(card) {
+  return String(card && card.location || "Unnamed site");
+}
+
+function swapCardRegion(card) {
+  return String(card && card.region || "");
+}
+
+function siteSwapCandidates(sourceCardId, sourceStaffIdx) {
+  const myStaffId = swapStaffId(employeeSession && employeeSession.staffId);
+  if (!employeeSession || !String(employeeSession.department || "").trim()) return [];
+  const myTeam = roleToTeam(splitDepartmentClient(employeeSession && employeeSession.department).team).toUpperCase();
+  const source = swapCardSlot(employeePublishedCardsForLookup, sourceCardId, sourceStaffIdx);
+  if (!myStaffId || !source.card || !source.slot || !String(source.slot.label || "").trim() ||
+      swapStaffId(source.slot.filledByStaffId) !== myStaffId ||
+      source.slot.emergency || source.card.cancelled || source.card.inactive || !source.card.date ||
+      roleToTeam(source.slot.label).toUpperCase() !== myTeam) {
+    return [];
+  }
+
+  const candidates = [];
+  for (const card of employeePublishedCardsForLookup || []) {
+    if (!card || card.id === sourceCardId || card.cancelled || card.inactive || !card.date) continue;
+    (card.staff || []).forEach((slot, staffIdx) => {
+      const staffId = swapStaffId(slot && slot.filledByStaffId);
+      if (!staffId || staffId === myStaffId || !(slot.name || "").trim() || !String(slot.label || "").trim() ||
+          slot.emergency ||
+          roleToTeam(slot.label).toUpperCase() !== myTeam) return;
+      candidates.push({
+        cardId: card.id,
+        staffIdx,
+        staffId,
+        name: slot.name,
+        role: slot.label,
+        date: card.date,
+        region: card.region || "",
+        location: card.location || "Unnamed site"
+      });
+    });
+  }
+  return candidates;
+}
+
+function showSiteSwapPicker(sourceCard, candidates) {
+  return new Promise(resolve => {
+    setModalIcon("bell");
+    appModalMessage.innerHTML = `
+      <header class="swap-picker-header">
+        <div class="swap-picker-icon" aria-hidden="true">🔄</div>
+        <div class="swap-picker-heading">
+          <h2 class="swap-picker-title">Request a site swap</h2>
+          <p class="swap-picker-subtitle">Your current assignment stays in place unless the other employee approves.</p>
+        </div>
+        <button type="button" class="swap-picker-close" id="siteSwapClose" aria-label="Close">×</button>
+      </header>
+      <div class="swap-picker-current">
+        <span class="swap-picker-avatar" id="siteSwapCurrentAvatar" aria-hidden="true">You</span>
+        <span class="swap-picker-current-copy">
+          <span class="swap-picker-caption">Your site</span>
+          <strong class="swap-picker-site">${escapeHtml(sourceCard.location || "Unnamed site")} · ${escapeHtml(formatDateDisplay(sourceCard.date))}</strong>
+        </span>
+      </div>
+      <div class="swap-picker-field-label">Swap with</div>
+      <div class="swap-picker-candidates" id="siteSwapCandidates" role="listbox" aria-label="Employees available for a site swap"></div>
+      <div class="swap-picker-preview" id="siteSwapPreview" hidden></div>
+      <label class="swap-picker-field-label" for="siteSwapNote">Note for them (optional)</label>
+      <textarea class="swap-picker-note" id="siteSwapNote" maxlength="500" placeholder="Note a reason"></textarea>
+    `;
+    appModal.classList.add("swap-picker-open");
+    appModalActions.innerHTML = "";
+    const cancelButton = document.createElement("button");
+    cancelButton.textContent = "Cancel";
+    cancelButton.addEventListener("click", () => { closeModal(); resolve(null); });
+    const sendButton = document.createElement("button");
+    sendButton.className = "primary";
+    sendButton.textContent = "Send swap request";
+    sendButton.disabled = true;
+    const candidateList = document.getElementById("siteSwapCandidates");
+    const preview = document.getElementById("siteSwapPreview");
+    const closeButton = document.getElementById("siteSwapClose");
+    const currentAvatar = document.getElementById("siteSwapCurrentAvatar");
+    let selectedIndex = -1;
+
+    const applyCurrentProfilePhoto = photoData => {
+      if (typeof photoData !== "string" || photoData.length > 180000
+          || !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(photoData)
+          || !currentAvatar.isConnected) return;
+      const image = document.createElement("img");
+      image.src = photoData;
+      image.alt = "";
+      currentAvatar.replaceChildren(image);
+    };
+    if (currentEmployeeProfilePhotoData) {
+      applyCurrentProfilePhoto(currentEmployeeProfilePhotoData);
+    } else {
+      void loadEmployeeChipProfilePhoto().then(applyCurrentProfilePhoto).catch(error => {
+        console.error("Unable to load site swap requester profile photo:", error);
+      });
+    }
+
+    const renderCandidates = () => {
+      candidateList.replaceChildren();
+      if (!candidates.length) {
+        const empty = document.createElement("div");
+        empty.className = "swap-picker-empty";
+        empty.textContent = "No coworkers with a compatible role are available to swap.";
+        candidateList.appendChild(empty);
+        return;
+      }
+
+      candidates.forEach((candidate, index) => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "swap-picker-candidate";
+        item.dataset.swapIndex = String(index);
+        item.setAttribute("role", "option");
+        item.setAttribute("aria-selected", String(index === selectedIndex));
+        item.setAttribute("aria-pressed", String(index === selectedIndex));
+
+        const initials = String(candidate.name || "?").trim().split(/\s+/)
+          .slice(0, 2).map(part => part.charAt(0)).join("").toUpperCase();
+        const avatar = document.createElement("span");
+        avatar.className = "swap-picker-avatar";
+        avatar.setAttribute("aria-hidden", "true");
+        avatar.textContent = initials;
+        avatar.classList.add("roster-profile-avatar");
+        avatar.dataset.profileKey = String(candidate.staffId || "").trim().toLowerCase();
+        const copy = document.createElement("span");
+        copy.className = "swap-picker-candidate-copy";
+        const name = document.createElement("strong");
+        name.className = "swap-picker-candidate-name";
+        name.textContent = `${candidate.name || "Employee"}${candidate.staffId ? ` — ${candidate.staffId.toUpperCase()}` : ""}`;
+        const meta = document.createElement("span");
+        meta.className = "swap-picker-candidate-meta";
+        meta.textContent = `${candidate.role || "IT SPECIALIST"}${candidate.region ? ` · ${regionLabelFromValue(candidate.region)}` : ""}`;
+        copy.append(name, meta);
+        const check = document.createElement("span");
+        check.className = "swap-picker-check";
+        check.setAttribute("aria-hidden", "true");
+        check.textContent = "✓";
+        item.append(avatar, copy, check);
+        candidateList.appendChild(item);
+      });
+      attachRosterProfilePhotos(candidateList, db);
+    };
+
+    const renderPreview = () => {
+      const selected = selectedIndex >= 0 ? candidates[selectedIndex] : null;
+      sendButton.disabled = !selected;
+      preview.replaceChildren();
+      preview.hidden = !selected;
+      if (!selected) return;
+
+      [
+        ["You move to", selected.location || "Unnamed site"],
+        [`${selected.name || "Your teammate"} moves to`, sourceCard.location || "Unnamed site"]
+      ].forEach(([label, site]) => {
+        const row = document.createElement("div");
+        row.className = "swap-picker-preview-row";
+        const rowLabel = document.createElement("span");
+        rowLabel.textContent = label;
+        const rowSite = document.createElement("strong");
+        rowSite.textContent = site;
+        row.append(rowLabel, rowSite);
+        preview.appendChild(row);
+      });
+    };
+
+    candidateList.addEventListener("click", event => {
+      const item = event.target.closest("[data-swap-index]");
+      if (!item) return;
+      selectedIndex = Number(item.dataset.swapIndex);
+      candidateList.querySelectorAll("[data-swap-index]").forEach(candidateButton => {
+        const selected = Number(candidateButton.dataset.swapIndex) === selectedIndex;
+        candidateButton.setAttribute("aria-selected", String(selected));
+        candidateButton.setAttribute("aria-pressed", String(selected));
+      });
+      renderPreview();
+    });
+    closeButton.addEventListener("click", () => { closeModal(); resolve(null); });
+    sendButton.addEventListener("click", async () => {
+      const selected = selectedIndex >= 0 ? candidates[selectedIndex] : null;
+      if (!selected) return;
+      const note = document.getElementById("siteSwapNote").value.trim();
+      closeModal();
+      resolve({ candidate: selected, note });
+    });
+    appModalActions.append(cancelButton, sendButton);
+    appModal.setAttribute("role", "dialog");
+    appModal.setAttribute("aria-modal", "true");
+    appModal.classList.add("open");
+    renderCandidates();
+    setTimeout(() => searchInput.focus(), 30);
+  });
+}
+
+async function requestSiteSwap(sourceCardId, sourceStaffIdx, button) {
+  const source = swapCardSlot(employeePublishedCardsForLookup, sourceCardId, sourceStaffIdx);
+  const candidates = siteSwapCandidates(sourceCardId, sourceStaffIdx);
+  if (!source.card || !source.slot || !candidates.length) {
+    await showAlert("There are no eligible employees at another active event site to swap with.", "warn");
+    return;
+  }
+  const choice = await showSiteSwapPicker(source.card, candidates);
+  if (!choice) return;
+  const { candidate: selected, note: requesterNote } = choice;
+
+  if (button) button.disabled = true;
+  const requestRef = doc(notificationsCollRef);
+  try {
+    await runTransaction(db, async tx => {
+      const scheduleSnap = await tx.get(scheduleDocRef);
+      const data = scheduleSnap.exists() ? scheduleSnap.data() : { cards: [] };
+      const liveCards = Array.isArray(data.cards) ? data.cards : [];
+      const publishedCards = Array.isArray(data.employeeCards) ? data.employeeCards : [];
+      const currentSource = swapCardSlot(liveCards, sourceCardId, sourceStaffIdx);
+      const currentTarget = swapCardSlot(liveCards, selected.cardId, selected.staffIdx);
+      const publishedSource = swapCardSlot(publishedCards, sourceCardId, sourceStaffIdx);
+      const publishedTarget = swapCardSlot(publishedCards, selected.cardId, selected.staffIdx);
+      const myStaffId = swapStaffId(employeeSession && employeeSession.staffId);
+      if (!myStaffId || myStaffId === selected.staffId || sourceCardId === selected.cardId ||
+          !currentSource.card || !currentTarget.card || !publishedSource.card || !publishedTarget.card ||
+          !currentSource.slot || !currentTarget.slot || !publishedSource.slot || !publishedTarget.slot ||
+          !String(currentSource.slot.label || "").trim() || !String(currentTarget.slot.label || "").trim() ||
+          !String(publishedSource.slot.label || "").trim() || !String(publishedTarget.slot.label || "").trim() ||
+          currentSource.slot.emergency || currentTarget.slot.emergency ||
+          publishedSource.slot.emergency || publishedTarget.slot.emergency ||
+          currentSource.card.cancelled || currentSource.card.inactive ||
+          currentTarget.card.cancelled || currentTarget.card.inactive ||
+          publishedSource.card.cancelled || publishedSource.card.inactive ||
+          publishedTarget.card.cancelled || publishedTarget.card.inactive ||
+          swapStaffId(currentSource.slot.filledByStaffId) !== myStaffId ||
+          swapStaffId(publishedSource.slot.filledByStaffId) !== myStaffId ||
+          swapStaffId(currentTarget.slot.filledByStaffId) !== selected.staffId ||
+          swapStaffId(publishedTarget.slot.filledByStaffId) !== selected.staffId ||
+          !currentSource.card.date || !currentTarget.card.date ||
+          currentSource.card.date !== source.card.date ||
+          currentTarget.card.date !== selected.date ||
+          swapCardLocation(currentSource.card) !== swapCardLocation(source.card) ||
+          swapCardLocation(currentTarget.card) !== selected.location ||
+          swapCardRegion(currentSource.card) !== swapCardRegion(source.card) ||
+          swapCardRegion(currentTarget.card) !== selected.region ||
+          publishedSource.card.date !== source.card.date ||
+          publishedTarget.card.date !== selected.date ||
+          swapCardLocation(publishedSource.card) !== swapCardLocation(source.card) ||
+          swapCardLocation(publishedTarget.card) !== selected.location ||
+          swapCardRegion(publishedSource.card) !== swapCardRegion(source.card) ||
+          swapCardRegion(publishedTarget.card) !== selected.region ||
+          roleToTeam(currentSource.slot.label).toUpperCase() !== roleToTeam(splitDepartmentClient(employeeSession.department).team).toUpperCase() ||
+          roleToTeam(publishedSource.slot.label).toUpperCase() !== roleToTeam(splitDepartmentClient(employeeSession.department).team).toUpperCase() ||
+          roleToTeam(currentTarget.slot.label).toUpperCase() !== roleToTeam(splitDepartmentClient(employeeSession.department).team).toUpperCase() ||
+          roleToTeam(publishedTarget.slot.label).toUpperCase() !== roleToTeam(splitDepartmentClient(employeeSession.department).team).toUpperCase()) {
+        throw new Error("An assignment changed before the request was sent. Refresh the schedule and try again.");
+      }
+      tx.set(requestRef, {
+        type: "siteSwapRequest",
+        status: "pending",
+        requesterStaffId: myStaffId,
+        requesterName: employeeSession.name || currentSource.slot.name,
+        requesterCardId: sourceCardId,
+        requesterStaffIdx: sourceStaffIdx,
+        requesterRole: currentSource.slot.label || "",
+        requesterDate: currentSource.card.date || "",
+        requesterRegion: swapCardRegion(currentSource.card),
+        requesterLocation: swapCardLocation(currentSource.card),
+        targetStaffId: selected.staffId,
+        targetStaffIds: [selected.staffId],
+        targetName: selected.name,
+        targetCardId: selected.cardId,
+        targetStaffIdx: selected.staffIdx,
+        targetRole: currentTarget.slot.label || "",
+        targetDate: currentTarget.card.date || "",
+        targetRegion: swapCardRegion(currentTarget.card),
+        targetLocation: swapCardLocation(currentTarget.card),
+        requesterNote,
+        cardId: selected.cardId,
+        date: currentTarget.card.date || "",
+        region: swapCardRegion(currentTarget.card),
+        location: swapCardLocation(currentTarget.card),
+        visibleToEmployees: true,
+        createdAt: serverTimestamp()
+      });
+    });
+    const pushQueued = await window.pdWakePushDelivery?.(requestRef.id);
+    await showAlert(
+      `Swap request sent to ${selected.name}. Your current assignment will stay the same until they respond.` +
+      (pushQueued === true ? "" : "\n\nThe request was saved, but push delivery could not be confirmed. Ask them to connect their notification-enabled device.")
+    );
+  } catch (error) {
+    await showAlert(error.message || "The swap request could not be sent.", "warn");
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+function swapAssignmentsOnCards(cards, request) {
+  const nextCards = cards.slice();
+  const sourceIndex = nextCards.findIndex(card => card.id === request.requesterCardId);
+  const targetIndex = nextCards.findIndex(card => card.id === request.targetCardId);
+  const sourceCard = { ...nextCards[sourceIndex] };
+  const targetCard = { ...nextCards[targetIndex] };
+  const sourceStaff = (sourceCard.staff || []).slice();
+  const targetStaff = (targetCard.staff || []).slice();
+  const sourceSlot = sourceStaff[request.requesterStaffIdx];
+  const targetSlot = targetStaff[request.targetStaffIdx];
+  sourceStaff[request.requesterStaffIdx] = {
+    ...sourceSlot,
+    name: targetSlot.name,
+    filledByStaffId: targetSlot.filledByStaffId
+  };
+  targetStaff[request.targetStaffIdx] = {
+    ...targetSlot,
+    name: sourceSlot.name,
+    filledByStaffId: sourceSlot.filledByStaffId
+  };
+
+  const requesterId = swapStaffId(request.requesterStaffId);
+  const targetId = swapStaffId(request.targetStaffId);
+  const sourceRelievers = (sourceCard.relievers || []).slice();
+  const targetRelievers = (targetCard.relievers || []).slice();
+  const requesterRelievers = sourceRelievers.filter(slot => swapStaffId(slot.addedForStaffId) === requesterId);
+  const targetRelieverRows = targetRelievers.filter(slot => swapStaffId(slot.addedForStaffId) === targetId);
+  sourceCard.staff = sourceStaff;
+  sourceCard.relievers = sourceRelievers
+    .filter(slot => swapStaffId(slot.addedForStaffId) !== requesterId)
+    .concat(targetRelieverRows);
+  targetCard.staff = targetStaff;
+  targetCard.relievers = targetRelievers
+    .filter(slot => swapStaffId(slot.addedForStaffId) !== targetId)
+    .concat(requesterRelievers);
+  nextCards[sourceIndex] = sourceCard;
+  nextCards[targetIndex] = targetCard;
+  return nextCards;
+}
+
+async function respondToSiteSwapRequest(notification, approve) {
+  const requestRef = doc(notificationsCollRef, notification.id);
+  const outcomeRef = doc(notificationsCollRef);
+  let finalStatus = approve ? "approved" : "declined";
+  let responseReason = "";
+  let destination = null;
+  await runTransaction(db, async tx => {
+    finalStatus = approve ? "approved" : "declined";
+    responseReason = "";
+    destination = null;
+    const requestSnap = await tx.get(requestRef);
+    if (!requestSnap.exists()) throw new Error("This swap request is no longer available.");
+    const request = requestSnap.data();
+    if (request.status !== "pending") throw new Error("This swap request has already been answered.");
+    if (swapStaffId(request.targetStaffId) !== swapStaffId(employeeSession && employeeSession.staffId)) {
+      throw new Error("This swap request was sent to a different employee.");
+    }
+
+    let updatedCards = null;
+    let data = null;
+    if (approve) {
+      const scheduleSnap = await tx.get(scheduleDocRef);
+      data = scheduleSnap.exists() ? scheduleSnap.data() : { cards: [] };
+      const liveCards = Array.isArray(data.cards) ? data.cards : [];
+      const publishedCards = Array.isArray(data.employeeCards) ? data.employeeCards : [];
+      const source = swapCardSlot(liveCards, request.requesterCardId, request.requesterStaffIdx);
+      const target = swapCardSlot(liveCards, request.targetCardId, request.targetStaffIdx);
+      const publishedSource = swapCardSlot(publishedCards, request.requesterCardId, request.requesterStaffIdx);
+      const publishedTarget = swapCardSlot(publishedCards, request.targetCardId, request.targetStaffIdx);
+      const team = roleToTeam(request.requesterRole).toUpperCase();
+      const matches = swapStaffId(request.requesterStaffId) !== swapStaffId(request.targetStaffId) &&
+        request.requesterCardId !== request.targetCardId &&
+        Number.isInteger(request.requesterStaffIdx) && Number.isInteger(request.targetStaffIdx) &&
+        [source, target, publishedSource, publishedTarget].every(item =>
+        item.card && item.slot && String(item.slot.label || "").trim() &&
+        !item.slot.emergency && !item.card.cancelled && !item.card.inactive
+      ) &&
+        swapStaffId(source.slot.filledByStaffId) === swapStaffId(request.requesterStaffId) &&
+        swapStaffId(publishedSource.slot.filledByStaffId) === swapStaffId(request.requesterStaffId) &&
+        swapStaffId(target.slot.filledByStaffId) === swapStaffId(request.targetStaffId) &&
+        swapStaffId(publishedTarget.slot.filledByStaffId) === swapStaffId(request.targetStaffId) &&
+        roleToTeam(source.slot.label).toUpperCase() === team &&
+        roleToTeam(target.slot.label).toUpperCase() === team &&
+        roleToTeam(publishedSource.slot.label).toUpperCase() === team &&
+        roleToTeam(publishedTarget.slot.label).toUpperCase() === team &&
+        source.slot.label === request.requesterRole &&
+        target.slot.label === request.targetRole &&
+        publishedSource.slot.label === request.requesterRole &&
+        publishedTarget.slot.label === request.targetRole &&
+        source.card.date === request.requesterDate &&
+        target.card.date === request.targetDate &&
+        swapCardRegion(source.card) === request.requesterRegion &&
+        swapCardRegion(target.card) === request.targetRegion &&
+        swapCardLocation(source.card) === request.requesterLocation &&
+        swapCardLocation(target.card) === request.targetLocation &&
+        publishedSource.card.date === request.requesterDate &&
+        publishedTarget.card.date === request.targetDate &&
+        swapCardRegion(publishedSource.card) === request.requesterRegion &&
+        swapCardRegion(publishedTarget.card) === request.targetRegion &&
+        swapCardLocation(publishedSource.card) === request.requesterLocation &&
+        swapCardLocation(publishedTarget.card) === request.targetLocation;
+      if (matches) {
+        updatedCards = swapAssignmentsOnCards(liveCards, request);
+        destination = target.card;
+      } else {
+        finalStatus = "expired";
+        responseReason = "One of the assignments changed, so the swap could not be completed.";
+      }
+    }
+
+    tx.update(requestRef, {
+      status: finalStatus,
+      responseReason,
+      respondedBy: swapStaffId(employeeSession && employeeSession.staffId),
+      respondedByName: employeeSession.name || "",
+      respondedAt: serverTimestamp()
+    });
+    if (updatedCards) {
+      tx.set(scheduleDocRef, {
+        cards: scrubUndefined(updatedCards),
+        employeeCards: scrubUndefined(publishedCardsWithRosterChanges(data, updatedCards)),
+        sentAt: serverTimestamp(),
+        sentBy: data.sentBy || "admin"
+      });
+    }
+    const approved = finalStatus === "approved";
+    tx.set(outcomeRef, {
+      type: approved ? "siteSwapApproved" : "siteSwapDeclined",
+      status: finalStatus,
+      staffId: swapStaffId(request.requesterStaffId),
+      targetStaffIds: [swapStaffId(request.requesterStaffId)],
+      visibleToEmployees: true,
+      employeeName: request.requesterName || "Your teammate",
+      swapPartnerName: employeeSession.name || request.targetName || "Your teammate",
+      responseReason,
+      cardId: approved && destination ? destination.id : request.requesterCardId,
+      date: approved && destination ? destination.date || "" : request.requesterDate || "",
+      region: approved && destination ? destination.region || "" : request.requesterRegion || "",
+      location: approved && destination ? destination.location || "Unnamed site" : request.requesterLocation || "Unnamed site",
+      createdAt: serverTimestamp()
+    });
+  });
+  const pushQueued = await window.pdWakePushDelivery?.(outcomeRef.id);
+  if (finalStatus === "expired") {
+    await showAlert(
+      (responseReason || "This swap request is no longer valid.") +
+      (pushQueued === true ? "" : "\n\nYour response was saved, but push delivery to the requester could not be confirmed."),
+      "warn"
+    );
+  } else if (finalStatus === "approved") {
+    await showAlert(
+      "The site swap is approved. Both employees' assignments have been exchanged." +
+      (pushQueued === true ? "" : "\n\nYour response was saved, but push delivery to the requester could not be confirmed.")
+    );
+  } else {
+    await showAlert(
+      "The request was declined." +
+      (pushQueued === true ? "" : "\n\nYour response was saved, but push delivery to the requester could not be confirmed.")
+    );
+  }
+}
+
+function showSiteSwapRequestModal(notification) {
+  if (!employeeSession || !notification || notification.type !== "siteSwapRequest" ||
+      swapStaffId(notification.targetStaffId) !== swapStaffId(employeeSession.staffId) ||
+      notification.status !== "pending") return Promise.resolve(false);
+
+  return new Promise(resolve => {
+    activeSiteSwapRequestId = notification.id;
+    setModalIcon("question");
+    appModalMessage.innerHTML = `
+      <h2 class="bf-title">Event site swap request</h2>
+      <div style="margin-top:10px;line-height:1.55;">
+        <strong>${escapeHtml(notification.requesterName || "Your teammate")}</strong> wants to swap event sites with you.
+        <div style="margin-top:12px;"><strong>Your current site:</strong> ${escapeHtml(notification.targetLocation || "Unnamed site")} · ${escapeHtml(notification.targetRole || "Event Team")} · ${escapeHtml(formatDateDisplay(notification.targetDate))}</div>
+        <div style="margin-top:8px;"><strong>Their site:</strong> ${escapeHtml(notification.requesterLocation || "Unnamed site")} · ${escapeHtml(notification.requesterRole || "Event Team")} · ${escapeHtml(formatDateDisplay(notification.requesterDate))}</div>
+        ${notification.requesterNote ? `<div style="margin-top:12px;padding:10px 12px;border-radius:10px;background:#fcf6f6;white-space:pre-wrap;"><strong>Note from ${escapeHtml(notification.requesterName || "your teammate")}:</strong> ${escapeHtml(notification.requesterNote)}</div>` : ""}
+        <div style="margin-top:12px;color:var(--ink-muted);">Approving moves each employee to the other site and its listed role. Declining leaves both assignments unchanged.</div>
+      </div>
+    `;
+    appModalActions.innerHTML = "";
+    const laterButton = document.createElement("button");
+    laterButton.textContent = "Later";
+    const declineButton = document.createElement("button");
+    declineButton.textContent = "Disapprove";
+    const approveButton = document.createElement("button");
+    approveButton.className = "primary";
+    approveButton.textContent = "Approve swap";
+    const finish = async approve => {
+      declineButton.disabled = true;
+      approveButton.disabled = true;
+      closeModal();
+      try {
+        await respondToSiteSwapRequest(notification, approve);
+      } catch (error) {
+        await showAlert(error.message || "The swap response could not be saved.", "warn");
+      } finally {
+        resolve(true);
+      }
+    };
+    declineButton.addEventListener("click", () => finish(false));
+    approveButton.addEventListener("click", () => finish(true));
+    laterButton.addEventListener("click", () => {
+      closeModal();
+      resolve(true);
+    });
+    appModalActions.append(laterButton, declineButton, approveButton);
+    appModal.setAttribute("role", "dialog");
+    appModal.setAttribute("aria-modal", "true");
+    appModal.classList.add("open");
+    setTimeout(() => approveButton.focus(), 30);
+  });
+}
+
+function swapLogTimestamp(value) {
+  const ms = notifCenterMillis(value);
+  return ms ? notifCenterClockTime(ms) : "Time unavailable";
+}
+
+function renderSiteSwapLogsModal() {
+  if (!appModal.classList.contains("swap-log-open")) return;
+  const myStaffId = swapStaffId(employeeSession && employeeSession.staffId);
+  const requests = latestSiteSwapLogRequests
+    .filter(request => request.type === "siteSwapRequest" && request.status === "pending" &&
+      [request.requesterStaffId, request.targetStaffId].some(id => swapStaffId(id) === myStaffId))
+    .sort((a, b) => notifCenterMillis(b.createdAt) - notifCenterMillis(a.createdAt));
+
+  const requestMarkup = requests.map(request => {
+    const isRequester = swapStaffId(request.requesterStaffId) === myStaffId;
+    const partnerName = isRequester ? request.targetName : request.requesterName;
+    const viewerDestination = isRequester ? request.targetLocation : request.requesterLocation;
+    const viewerDestinationDate = isRequester ? request.targetDate : request.requesterDate;
+    const viewerDestinationRole = isRequester ? request.targetRole : request.requesterRole;
+    const partnerDestination = isRequester ? request.requesterLocation : request.targetLocation;
+    const partnerDestinationDate = isRequester ? request.requesterDate : request.targetDate;
+    const partnerDestinationRole = isRequester ? request.requesterRole : request.targetRole;
+    const initials = String(partnerName || "?").trim().split(/\s+/)
+      .slice(0, 2).map(part => part.charAt(0)).join("").toUpperCase();
+    const reviewButton = !isRequester
+      ? `<button type="button" class="swap-log-review" data-swap-log-review="${escapeAttr(request.id)}">Review request</button>`
+      : "";
+    return `<article class="swap-log-item">
+      <div class="swap-log-item-head">
+        <span class="swap-log-avatar" aria-hidden="true">${escapeHtml(initials || "?")}</span>
+        <div class="swap-log-person">
+          <strong class="swap-log-item-title">${escapeHtml(partnerName || "Your teammate")} — ${escapeHtml(isRequester ? request.targetLocation || "Unnamed site" : request.requesterLocation || "Unnamed site")}</strong>
+          <span class="swap-log-item-subtitle">${isRequester ? "You requested a swap" : "wants to swap with you"}</span>
+        </div>
+        <span class="swap-log-status">${isRequester ? "Waiting for reply" : "Needs your reply"}</span>
+      </div>
+      <div class="swap-log-sites">
+        <div class="swap-log-site">
+          <span class="swap-log-site-label">You move to</span>
+          <strong class="swap-log-site-name">${escapeHtml(viewerDestination || "Unnamed site")}</strong>
+          <span class="swap-log-site-meta">${escapeHtml(viewerDestinationRole || "IT SPECIALIST")} · ${escapeHtml(formatDateDisplay(viewerDestinationDate))}</span>
+        </div>
+        <span class="swap-log-arrow" aria-hidden="true">↔</span>
+        <div class="swap-log-site">
+          <span class="swap-log-site-label">${escapeHtml(partnerName || "Your teammate")} moves to</span>
+          <strong class="swap-log-site-name">${escapeHtml(partnerDestination || "Unnamed site")}</strong>
+          <span class="swap-log-site-meta">${escapeHtml(partnerDestinationRole || "IT SPECIALIST")} · ${escapeHtml(formatDateDisplay(partnerDestinationDate))}</span>
+        </div>
+      </div>
+      <div class="swap-log-item-footer">
+        <span class="swap-log-meta">Requested ${escapeHtml(swapLogTimestamp(request.createdAt))}</span>
+        ${reviewButton}
+      </div>
+    </article>`;
+  }).join("");
+
+  appModalMessage.innerHTML = `
+    <header class="swap-log-header">
+      <span class="swap-log-header-icon" aria-hidden="true">🔄</span>
+      <div class="swap-log-heading">
+        <div class="swap-log-title-line">
+          <h2 class="swap-log-title">Pending site swaps</h2>
+          ${requests.length ? `<span class="swap-log-count">${requests.length}</span>` : ""}
+        </div>
+        <p class="swap-log-subtitle">Requests stay here until they are approved or declined.</p>
+      </div>
+      <button type="button" class="swap-log-close" data-swap-log-close aria-label="Close">×</button>
+    </header>
+    ${!siteSwapLogLoaded
+      ? '<div class="swap-log-empty">Loading pending requests…</div>'
+      : siteSwapLogError
+        ? `<div class="swap-log-empty" style="color:var(--danger);">${escapeHtml(siteSwapLogError)}</div>`
+        : requests.length
+          ? `<div class="swap-log-list">${requestMarkup}</div>`
+          : '<div class="swap-log-empty">No pending site swap requests.</div>'}
+  `;
+  appModalMessage.querySelector("[data-swap-log-close]")?.addEventListener("click", closeModal);
+  appModalActions.replaceChildren();
+  const closeButton = document.createElement("button");
+  closeButton.className = "primary";
+  closeButton.textContent = "Close";
+  closeButton.addEventListener("click", closeModal);
+  appModalActions.appendChild(closeButton);
+  appModalMessage.querySelectorAll("[data-swap-log-review]").forEach(button => {
+    button.addEventListener("click", () => {
+      const request = requests.find(item => item.id === button.dataset.swapLogReview);
+      if (!request) return;
+      closeModal();
+      showSiteSwapRequestModal(request);
+    });
+  });
+}
+
+function showSiteSwapLogsModal() {
+  setModalIcon("bell");
+  appModal.classList.add("swap-log-open");
+  appModal.setAttribute("role", "dialog");
+  appModal.setAttribute("aria-modal", "true");
+  appModal.classList.add("open");
+  renderSiteSwapLogsModal();
+}
+
+document.getElementById("swapLogsOpenBtn")?.addEventListener("click", showSiteSwapLogsModal);
+
 async function sendAllToEmployees(btn) {
   const originalLabel = btn.textContent;
   btn.disabled = true;
@@ -5781,6 +6800,7 @@ async function deleteDateFromRemote(dateKey) {
       sentAt: serverTimestamp(),
       sentBy: "admin"
     });
+    await closeUnavailableSiteSwapRequests(removedCards.map(card => card.id), "removed");
     if (notifyPayloads.length) {
       let notifFailCount = 0;
       await Promise.all(notifyPayloads.map(p =>
@@ -5798,6 +6818,20 @@ async function deleteDateFromRemote(dateKey) {
     }
   } catch (err) {
     await showAlert("Deleted in your browser, but failed to sync online: " + err.message);
+  }
+}
+
+async function closeUnavailableSiteSwapRequests(cardId, action) {
+  try {
+    const cardIds = Array.isArray(cardId) ? cardId : [cardId];
+    const closedCount = await closePendingSiteSwapsForCards(db, notificationsCollRef, cardIds, action);
+    if (closedCount) console.info(`Closed ${closedCount} pending site swap request(s) after the site was ${action}.`);
+  } catch (error) {
+    console.error(`Failed to close pending site swap requests after the site was ${action}:`, error);
+    await showAlert(
+      `The site was ${action}, but pending site-swap requests could not be cleared: ${error.message || String(error)}`,
+      "warn"
+    );
   }
 }
 
@@ -5847,6 +6881,8 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard) {
                 date: cardBeforePatch.date || "",
                 time: cardBeforePatch.time || "",
                 region: cardBeforePatch.region || "",
+                missionLabel: missionLabel(cardBeforePatch),
+                cancelReason: nowCancelled ? String(patch.cancelReason || "").trim() : "",
                 employeeName: slot.name || "",
                 staffId: slot.filledByStaffId,
                 createdAt: serverTimestamp(),
@@ -5862,6 +6898,7 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard) {
       sentAt: serverTimestamp(),
       sentBy: data.sentBy || "admin"
     });
+    if (patch.cancelled === true) await closeUnavailableSiteSwapRequests(cardId, "cancelled");
     if (notifyPayloads.length) {
       let notifFailCount = 0;
       await Promise.all(notifyPayloads.map(p =>
@@ -5870,6 +6907,7 @@ async function pushCardPatchToRemote(cardId, patch, fallbackLocalCard) {
           console.error("Failed to file cancel-toggle notification:", err);
         })
       ));
+      await wakeSchedulePushDelivery();
       if (notifFailCount > 0) {
         const actionLabel = patch.cancelled ? "Event cancelled" : "Event reinstated";
         await showAlert(
@@ -5920,6 +6958,7 @@ async function deleteSiteFromRemote(cardId) {
       sentAt: serverTimestamp(),
       sentBy: "admin"
     });
+    await closeUnavailableSiteSwapRequests(cardId, "removed");
     if (notifyPayloads.length) {
       let notifFailCount = 0;
       await Promise.all(notifyPayloads.map(p =>
@@ -5974,6 +7013,9 @@ async function pushNewCardToRemote(card) {
 // in sync by the onSnapshot listener below. Used both to render the
 // bell/banner and to find & update the right doc(s) once a slot is refilled.
 let latestNotifications = [];
+let latestSiteSwapLogRequests = [];
+let siteSwapLogLoaded = false;
+let siteSwapLogError = "";
 // True only once the emergencyNotifications listener below has received its
 // FIRST real snapshot. Guards notifCenterItems()' stale-id pruning: before
 // this flips true, latestNotifications is still [] simply because Firestore
@@ -6089,7 +7131,9 @@ function renderNotifPanel(items) {
   const panel = document.getElementById("notifPanel");
   if (!badge || !wrap || !panel) return;
   wrap.style.display = "inline-block";
-  const openCount = items.filter(n => !n.resolved).length;
+  const openCount = items.filter(n =>
+    !n.resolved && !(n.type === "siteSwapRequest" && n.status !== "pending")
+  ).length;
   badge.textContent = String(openCount);
   badge.classList.toggle("show", openCount > 0);
   if (!items.length) {
@@ -6114,12 +7158,34 @@ function renderNotifPanel(items) {
     const isSiteMoved = n.type === "siteMoved";
     const isPharmacistNote = n.type === "pharmacistNote";
     const isEventsDeployed = n.type === "eventsDeployed";
+    const isSwapRequest = n.type === "siteSwapRequest";
+    const isSwapOutcome = ["siteSwapApproved", "siteSwapDeclined"].includes(n.type);
     const isCrossBranchSignup = n.type === "crossBranchSignup";
     const isSiteInactive = n.type === "siteInactive";
     const isSiteReactivated = n.type === "siteReactivated";
-    const isPersonalNotice = isRemoved || isSlotRoleRemoved || isBranchChanged || isDateChanged || isEventUpdated || isMissionChanged || isEventDeleted || isSiteRemoved || isSiteAutoDeleted || isEventCancelled || isEventReinstated || isSiteInactive || isSiteReactivated || isSlotAssigned || isSiteMoved || isPharmacistNote || isEventsDeployed;
+    const isPersonalNotice = isRemoved || isSlotRoleRemoved || isBranchChanged || isDateChanged || isEventUpdated || isMissionChanged || isEventDeleted || isSiteRemoved || isSiteAutoDeleted || isEventCancelled || isEventReinstated || isSiteInactive || isSiteReactivated || isSlotAssigned || isSiteMoved || isPharmacistNote || isEventsDeployed || isSwapRequest || isSwapOutcome;
     let title, statusLine, btnLabel;
-    if (isEventsDeployed) {
+    if (isSwapRequest) {
+      if (n.status === "pending") {
+        title = `🔄 ${escapeHtml(n.requesterName || "Your teammate")} wants to swap sites`;
+        statusLine = "Review their request to exchange your current event assignments.";
+        btnLabel = "Review swap";
+      } else {
+        title = n.status === "approved" ? "✅ Site swap approved" : "Site swap request closed";
+        statusLine = n.status === "approved"
+          ? "This request was approved."
+          : `This request is ${escapeHtml(n.status || "no longer pending")}.`;
+        btnLabel = "Clear";
+      }
+    } else if (n.type === "siteSwapApproved") {
+      title = "✅ Your site swap was approved";
+      statusLine = `You and ${escapeHtml(n.swapPartnerName || "your teammate")} exchanged event sites.`;
+      btnLabel = "View new site";
+    } else if (n.type === "siteSwapDeclined") {
+      title = "Your site swap request was not approved";
+      statusLine = `${escapeHtml(n.swapPartnerName || "Your teammate")} declined the request.${n.responseReason ? ` ${escapeHtml(n.responseReason)}` : ""}`;
+      btnLabel = "Got it";
+    } else if (isEventsDeployed) {
       title = `📅 New events deployed`;
       statusLine = `Operations deployed the events. Check the schedule for the available slots.`;
       btnLabel = "Got it";
@@ -6185,7 +7251,7 @@ function renderNotifPanel(items) {
       btnLabel = "Got it";
     } else if (isEventCancelled) {
       title = `🔔 This event was cancelled`;
-      statusLine = `The Event Team cancelled this event — you're still on the roster, but there's nothing to show up for unless it's reinstated.`;
+      statusLine = `The event was cancelled. See the event details and reason below.`;
       btnLabel = "Got it";
     } else if (isEventReinstated) {
       title = `🔔 This event is back on`;
@@ -6216,7 +7282,9 @@ function renderNotifPanel(items) {
       statusLine = `Needs a replacement.`;
       btnLabel = "Resolved";
     }
-    const btnClass = isPharmacistNote ? "notif-note-view-btn" : (isPersonalNotice || isResolved || isCrossBranchSignup) ? "notif-clear-btn" : "notif-resolve-btn";
+    const btnClass = isPharmacistNote || (isSwapRequest && n.status === "pending")
+      ? `notif-note-view-btn${isSwapRequest ? " swap-review-action" : ""}`
+      : (isPersonalNotice || isResolved || isCrossBranchSignup) ? "notif-clear-btn" : "notif-resolve-btn";
     const actionMarkup = `<button type="button" class="${btnClass}" data-id="${escapeAttr(n.id)}">${btnLabel}</button>`;
     return `
     <div class="notif-item ${(isResolved || isPersonalNotice || isCrossBranchSignup) ? "is-resolved" : ""}">
@@ -6232,6 +7300,11 @@ function renderNotifPanel(items) {
     btn.addEventListener("click", () => {
       const target = items.find(x => x.id === btn.dataset.id);
       if (target && target.type === "pharmacistNote") showPharmacistNoteModal(target);
+      else if (target && target.type === "siteSwapRequest" && target.status === "pending") showSiteSwapRequestModal(target);
+      else if (target && target.type === "siteSwapApproved") {
+        openEmployeeScheduleSite(target);
+        resolveNotification(target.id);
+      }
       else if (target && ["eventsDeployed", "crossBranchSignup", "siteInactive", "siteReactivated"].includes(target.type)) notifCenterClear([target.id]); // per-viewer only
       else resolveNotification(btn.dataset.id);
     });
@@ -6240,13 +7313,20 @@ function renderNotifPanel(items) {
 
 // Admins and employees see only notifications for supported schedule changes.
 function getRelevantNotifications(items) {
-  const personalTypes = ["removed", "slotRoleRemoved", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "siteInactive", "siteReactivated", "slotAssigned", "siteMoved", "pharmacistNote"];
+  const personalTypes = ["removed", "slotRoleRemoved", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "siteInactive", "siteReactivated", "slotAssigned", "siteMoved", "pharmacistNote", "siteSwapRequest", "siteSwapApproved", "siteSwapDeclined"];
   if (!employeeSession) {
-    return items.filter(n => personalTypes.includes(n.type) && n.type !== "slotAssigned" && n.type !== "pharmacistNote");
+    return items.filter(n => personalTypes.includes(n.type) && !["slotAssigned", "pharmacistNote", "siteSwapRequest", "siteSwapApproved", "siteSwapDeclined"].includes(n.type));
   }
   const myTeam = splitDepartmentClient(employeeSession.department).team;
   const myStaffId = String(employeeSession.staffId || "").trim().toLowerCase();
   return items.filter(n => {
+    if (n.type === "siteSwapRequest") {
+      return n.visibleToEmployees !== false && swapStaffId(n.targetStaffId) === myStaffId;
+    }
+    if (["siteSwapApproved", "siteSwapDeclined"].includes(n.type)) {
+      return n.visibleToEmployees !== false && Array.isArray(n.targetStaffIds) &&
+        n.targetStaffIds.some(id => swapStaffId(id) === myStaffId);
+    }
     if (["siteInactive", "siteReactivated"].includes(n.type)) {
       return n.visibleToEmployees !== false && Array.isArray(n.targetStaffIds) &&
         n.targetStaffIds.some(id => String(id || "").trim().toLowerCase() === myStaffId);
@@ -6307,9 +7387,24 @@ function latestPersonalNotifications(items) {
   });
 }
 
+function openEmployeeScheduleSite(notification) {
+  if (!notification || !notification.cardId) return;
+  const card = (lastEmployeeAllCards || []).find(item => item.id === notification.cardId);
+  if (card) {
+    employeeRegionFilter = notification.region || card.region || employeeRegionFilter;
+    employeeSelectedDate = notification.date || card.date || undefined;
+    employeeSelectedSiteId = card.id;
+    employeeExpandedSiteId = card.id;
+    renderEmployeeSchedule(lastEmployeeAllCards, employeeSession && employeeSession.branch);
+  }
+  notifCenterJump(notification.cardId, notification.date || (card && card.date) || "");
+}
+
 async function showEmployeeNotificationBanner(notification, message) {
   const result = await window.showScheduleTopBanner(notification, message, () => {
-    if (notification.cardId) notifCenterJump(notification.cardId, notification.date || "");
+    if (notification.type === "siteSwapRequest") showSiteSwapRequestModal(notification);
+    else if (notification.type === "siteSwapApproved") openEmployeeScheduleSite(notification);
+    else if (notification.cardId) notifCenterJump(notification.cardId, notification.date || "");
     else document.querySelector(".content-scroll")?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
   if (["open", "dismiss"].includes(result) &&
@@ -6400,10 +7495,11 @@ function showPharmacistNotesModal(notes) {
 // Only notifications that genuinely arrive while the page is open pop up.
 // Past notices are still reachable any time via the bell panel.
 let seenNotificationIds = null;
-const personalNotifTypes = ["removed", "slotRoleRemoved", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "siteInactive", "siteReactivated", "slotAssigned", "siteMoved"];
+const personalNotifTypes = ["removed", "slotRoleRemoved", "branchChanged", "dateChanged", "eventUpdated", "missionChanged", "eventDeleted", "siteRemoved", "siteAutoDeleted", "eventCancelled", "eventReinstated", "siteInactive", "siteReactivated", "slotAssigned", "siteMoved", "siteSwapRequest", "siteSwapApproved", "siteSwapDeclined"];
 personalNotifTypes.push("pharmacistNote");
 const initialNotificationParams = new URLSearchParams(window.location.search);
 let pendingPushNoteId = initialNotificationParams.get("viewNotes") || "";
+let pendingPushSwapRequestId = initialNotificationParams.get("swapRequest") || "";
 // One-time housekeeping: drop the old persisted catch-up sets left behind
 // by the previous behaviour, so no stale ids linger in localStorage.
 try {
@@ -6412,6 +7508,63 @@ try {
     if (k && k.startsWith("pdAlertedPersonalNotifIds_")) localStorage.removeItem(k);
   }
 } catch (e) { /* storage unavailable — nothing to clean up */ }
+
+const swapLogRequestsByRequester = new Map();
+const swapLogRequestsByTarget = new Map();
+let swapLogRequesterSnapshotReady = false;
+let swapLogTargetSnapshotReady = false;
+const refreshSiteSwapLogRecords = () => {
+  latestSiteSwapLogRequests = [...new Map([
+    ...swapLogRequestsByRequester,
+    ...swapLogRequestsByTarget
+  ]).values()];
+  siteSwapLogLoaded = Boolean(siteSwapLogError) || (swapLogRequesterSnapshotReady && swapLogTargetSnapshotReady);
+  const pendingCount = latestSiteSwapLogRequests.filter(request =>
+    request.type === "siteSwapRequest" &&
+    request.status === "pending" &&
+    swapStaffId(request.targetStaffId) === swapStaffId(employeeSession.staffId)
+  ).length;
+  const badge = document.getElementById("swapLogsBadge");
+  if (badge) {
+    badge.textContent = pendingCount > 99 ? "99+" : String(pendingCount);
+    badge.classList.toggle("show", pendingCount > 0);
+  }
+  renderSiteSwapLogsModal();
+};
+onSnapshot(
+  query(notificationsCollRef, where("requesterStaffId", "==", swapStaffId(employeeSession.staffId))),
+  snap => {
+    swapLogRequestsByRequester.clear();
+    snap.forEach(documentSnapshot => {
+      swapLogRequestsByRequester.set(documentSnapshot.id, { id: documentSnapshot.id, ...documentSnapshot.data() });
+    });
+    swapLogRequesterSnapshotReady = true;
+    refreshSiteSwapLogRecords();
+  },
+  error => {
+    console.error("Site swap requester history listener failed:", error);
+    siteSwapLogError = `Unable to load site swap history: ${error.message || String(error)}`;
+    siteSwapLogLoaded = true;
+    renderSiteSwapLogsModal();
+  }
+);
+onSnapshot(
+  query(notificationsCollRef, where("targetStaffId", "==", swapStaffId(employeeSession.staffId))),
+  snap => {
+    swapLogRequestsByTarget.clear();
+    snap.forEach(documentSnapshot => {
+      swapLogRequestsByTarget.set(documentSnapshot.id, { id: documentSnapshot.id, ...documentSnapshot.data() });
+    });
+    swapLogTargetSnapshotReady = true;
+    refreshSiteSwapLogRecords();
+  },
+  error => {
+    console.error("Site swap recipient history listener failed:", error);
+    siteSwapLogError = `Unable to load site swap history: ${error.message || String(error)}`;
+    siteSwapLogLoaded = true;
+    renderSiteSwapLogsModal();
+  }
+);
 
 onSnapshot(
   query(
@@ -6423,6 +7576,16 @@ onSnapshot(
   async snap => {
     const all = [];
     snap.forEach(d => all.push({ id: d.id, ...d.data() }));
+    if (activeSiteSwapRequestId) {
+      const activeRequest = all.find(item => item.id === activeSiteSwapRequestId);
+      if (!activeRequest || activeRequest.type !== "siteSwapRequest" || activeRequest.status !== "pending") {
+        const wasCancelled = activeRequest?.status === "cancelled";
+        closeModal();
+        if (wasCancelled) {
+          void showAlert("This swap request was closed automatically because one of its event sites was cancelled or removed.", "warn");
+        }
+      }
+    }
     // Keep resolved items too now (they're no longer deleted on cover) so
     // the panel can still show the green "FOR BACKUP" state.
     latestNotifications = all;
@@ -6440,6 +7603,18 @@ onSnapshot(
         cleanUrl.searchParams.delete("viewNotes");
         history.replaceState(null, "", cleanUrl);
         showPharmacistNoteModal(pushedNote);
+      }
+    }
+    if (pendingPushSwapRequestId) {
+      const pushedRequest = relevant.find(n =>
+        n.id === pendingPushSwapRequestId && n.type === "siteSwapRequest"
+      );
+      if (pushedRequest) {
+        pendingPushSwapRequestId = "";
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("swapRequest");
+        history.replaceState(null, "", cleanUrl);
+        showSiteSwapRequestModal(pushedRequest);
       }
     }
 
@@ -6474,6 +7649,15 @@ onSnapshot(
         ).slice(0, 1);
       }
       for (const n of freshOnes) {
+        if (n.type === "siteSwapRequest") {
+          if (n.status === "pending") {
+            const message = `${n.requesterName || "Your teammate"} wants to swap event sites with you.\n\n` +
+              `Your current site: ${n.targetLocation || "Unnamed site"} · ${n.targetRole || "Event Team"} · ${formatDateDisplay(n.targetDate)}\n` +
+              `Their site: ${n.requesterLocation || "Unnamed site"} · ${n.requesterRole || "Event Team"} · ${formatDateDisplay(n.requesterDate)}`;
+            await showEmployeeNotificationBanner(n, message);
+          }
+          continue;
+        }
         const actorLabel = employeeNotificationActorLabel(n);
         const isRemoved = n.type === "removed";
           const isSlotRoleRemoved = n.type === "slotRoleRemoved";
@@ -6494,7 +7678,12 @@ onSnapshot(
         const isEventsDeployed = n.type === "eventsDeployed";
         let message;
         let showBranchRow = false;
-        if (isEventsDeployed) {
+        if (n.type === "siteSwapApproved") {
+          message = `Your site swap was approved.\n\nYou and ${n.swapPartnerName || "your teammate"} exchanged event sites.`;
+        } else if (n.type === "siteSwapDeclined") {
+          message = `Your site swap request was not approved by ${n.swapPartnerName || "your teammate"}.` +
+            (n.responseReason ? `\n\n${n.responseReason}` : "");
+        } else if (isEventsDeployed) {
           message = `📅 Operations deployed the events.\n\nCheck the schedule for the available sites and slots.`;
         } else if (isSiteInactive) {
           message = `Your assigned site ${n.location || "site"} is temporarily inactive.\n\nOperations will notify you when it becomes active again.`;
@@ -6534,7 +7723,8 @@ onSnapshot(
         } else if (isSiteAutoDeleted) {
           message = `🗑️ Your site was deleted.\n\n${n.location || "This site"} was automatically deleted at 12:00 AM after its event date. You're free to sign up for another slot now.`;
         } else if (isEventCancelled) {
-          message = `The event team cancelled this event.\n\nYou're still on the roster — nothing to show up for unless it's reinstated.`;
+          const eventLabel = n.missionLabel || notifEventTypeLabel(n) || "Event";
+          message = `Site: ${n.location || "Unnamed site"}\nEvent: ${eventLabel}\nDate: ${formatDateDisplay(n.date) || "Date not set"}\nReason: ${n.cancelReason || "Not provided."}`;
         } else if (isEventReinstated) {
           message = `Good news — this event is back on.\n\nYou're good to go as scheduled.`;
         } else if (isSlotAssigned) {
@@ -6548,7 +7738,7 @@ onSnapshot(
         if (actorLabel && n.type !== "slotAssigned" && n.type !== "siteMoved") {
           message += `\n\nAction by: ${actorLabel}.`;
         }
-        const detailText = isPharmacistNote ? "" : notifDetailText(n, { includeBranch: showBranchRow });
+        const detailText = isPharmacistNote || isEventCancelled ? "" : notifDetailText(n, { includeBranch: showBranchRow });
         if (detailText) message += `\n\n${detailText}`;
         if (loginNotifPromptPromise) await loginNotifPromptPromise; // don't replace the login prompt while it's open
         await showEmployeeNotificationBanner(n, message);
@@ -6704,7 +7894,7 @@ if (employeeSession) {
     const employeeTeam = roleToTeam(team).toUpperCase();
     const needsCrossBranchConfirmation =
       site.region !== employeeSession.branch &&
-      (employeeTeam === "PHARMACY ASSISTANT" || employeeTeam === "BILLING");
+      ["PHARMACY ASSISTANT", "PHARMACIST", "BILLING"].includes(employeeTeam);
     if (needsCrossBranchConfirmation) {
       const proceed = await showChoice(
         `Do you want to see the events on the ${regionLabel(site)} branch?`,
@@ -6734,7 +7924,7 @@ if (employeeSession) {
       const needsCrossBranchConfirmation =
         !wasActive &&
         region !== employeeSession.branch &&
-        (employeeTeam === "PHARMACY ASSISTANT" || employeeTeam === "BILLING");
+        ["PHARMACY ASSISTANT", "PHARMACIST", "BILLING"].includes(employeeTeam);
       if (needsCrossBranchConfirmation) {
         const proceed = await showChoice(
           `Do you want to see the events on the ${region.toUpperCase()} branch?`,
@@ -6756,12 +7946,8 @@ if (employeeSession) {
   const pendingPushRegion = pushSiteParams.get("region") || "";
   onSnapshot(scheduleDocRef, snap => {
     const data = snap.exists() ? snap.data() : { cards: [] };
-    // Store Reliever rows display as Pharmacy Assistant duty — strip any leftover
-    // PHARMACIST/BILLING/IT SPECIALIST reliever rows pushed from older data,
-    // relabel any old PICKER/ENCODER entries to "PHARMACY ASSISTANT", and
-    // drop empty leftover placeholder rows (no name AND no site) from
-    // before Store Reliever rows were auto-added per Picker/Encoder signup —
-    // before showing the roster to employees.
+    // Keep supported Pharmacy Assistant, Pharmacist, and Billing reliever
+    // rows, dropping empty, site-less placeholders before showing the roster.
     // `cards` is the heads/admin working roster. Employees must only read
     // the separately published snapshot, so unpublished pharmacist drafts
     // stay hidden until Send/Update writes `employeeCards`.
@@ -6769,12 +7955,12 @@ if (employeeSession) {
     const allCards = publishedCards.map(c => ({
       ...c,
       relievers: (c.relievers || [])
-        .filter(s => ["PHARMACY ASSISTANT", "BILLING"].includes(roleToTeam(s.label).toUpperCase()))
+        .filter(s => isSupportedRelieverTeam(s.relieverDepartment || s.label))
         .filter(s => (s.name || "").trim() || (s.site || "").trim())
         .map(s => ({
           ...s,
           label: (s.name || "").trim()
-            ? (roleToTeam(s.label).toUpperCase() === "BILLING" ? "BILLING" : "PHARMACY ASSISTANT")
+            ? relieverRoleForTeam(s.relieverDepartment || s.label)
             : ""
         }))
     }));
@@ -6799,10 +7985,11 @@ if (employeeSession) {
     renderLeaderboard(allCards);
     if (movedAssignedCard) notifCenterJump(movedAssignedCard.id, movedAssignedCard.date || "");
     if (pendingPushSiteId) {
-      const regionButton = [...document.querySelectorAll("#regionAccordions .region-acc-head")]
-        .find(button => button.dataset.filter === pendingPushRegion);
-      if (regionButton && employeeRegionFilter !== pendingPushRegion) regionButton.click();
-      notifCenterJump(pendingPushSiteId, pendingPushDate);
+      openEmployeeScheduleSite({
+        cardId: pendingPushSiteId,
+        date: pendingPushDate,
+        region: pendingPushRegion
+      });
       pendingPushSiteId = "";
       const cleanUrl = new URL(window.location.href);
       cleanUrl.searchParams.delete("viewSite");
@@ -6938,17 +8125,14 @@ if (employeeSession) {
       cards.push({
         ...remoteCard,
         staff: (remoteCard.staff || []).map(s => ({ ...s })),
-        // Store Reliever rows display as Pharmacy Assistant duty — drop any
-        // leftover PHARMACIST/BILLING/IT SPECIALIST reliever rows, relabel
-        // any old PICKER/ENCODER entries to "PHARMACY ASSISTANT", and drop
-        // empty leftover placeholder rows (no name AND no site).
+        // Keep supported reliever teams and drop empty, site-less rows.
         relievers: (remoteCard.relievers || [])
-          .filter(s => ["PHARMACY ASSISTANT", "BILLING"].includes(roleToTeam(s.label).toUpperCase()))
+          .filter(s => isSupportedRelieverTeam(s.relieverDepartment || s.label))
           .filter(s => (s.name || "").trim() || (s.site || "").trim())
           .map(s => ({
             ...s,
             label: (s.name || "").trim()
-              ? (roleToTeam(s.label).toUpperCase() === "BILLING" ? "BILLING" : "PHARMACY ASSISTANT")
+              ? relieverRoleForTeam(s.relieverDepartment || s.label)
               : ""
           }))
       });
@@ -7667,8 +8851,8 @@ renderNotifCenter = function () {
 };
 maybeShowLoginNotifPrompt();
 </script>
-<script src="/assets/js/notification-banner.js"></script>
-<script type="module" src="/assets/js/push-notifications.js"></script>
+<script src="/assets/js/notification-banner.js?v=swap-push-2"></script>
+<script type="module" src="/assets/js/push-notifications.js?v=swap-push-2"></script>
 
 </body>
 </html>

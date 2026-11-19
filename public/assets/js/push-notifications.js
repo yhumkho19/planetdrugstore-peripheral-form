@@ -24,19 +24,25 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig, "schedule-push");
 const sessionKey = "pdEmployeeSession";
 
-window.pdWakePushDelivery = async () => {
+window.pdWakePushDelivery = async notificationId => {
   try {
     const response = await fetch("/push-config.json", { cache: "no-store" });
-    if (!response.ok) return;
+    if (!response.ok) throw new Error(`Could not load push configuration (${response.status}).`);
     const config = await response.json();
-    if (!config.enabled || !config.workerUrl) return;
-    await fetch(`${config.workerUrl.replace(/\/$/, "")}/wake`, {
+    if (!config.enabled || !config.workerUrl) throw new Error("Push delivery is not configured.");
+    const wakeResponse = await fetch(`${config.workerUrl.replace(/\/$/, "")}/wake`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: "{}"
+      body: JSON.stringify(notificationId ? { notificationId } : {})
     });
+    if (!wakeResponse.ok) {
+      const detail = await wakeResponse.text();
+      throw new Error(detail || `Push delivery could not be queued (${wakeResponse.status}).`);
+    }
+    return true;
   } catch (error) {
     console.warn("Immediate push wake failed:", error);
+    return false;
   }
 };
 
@@ -348,13 +354,14 @@ async function initializePushControl() {
     const data = payload.data || {};
     const isEventReminder = data.eventReminder === "1";
     const isPharmacistNote = data.notificationType === "pharmacistNote";
+    const isSiteSwapRequest = data.notificationType === "siteSwapRequest";
     const isStockRequestRemoved = data.notificationType === "stockRequestRemoved";
     const isStockDayNotification = String(data.notificationType || "").startsWith("stockDay")
       || String(data.notificationType || "").startsWith("stockRequest")
       || isStockRequestRemoved
       || data.notificationType === "stockRequestUnblocked";
     const hasContactAdmin = Boolean(data.contactAdminUrl);
-    const viewAction = { action: "view-site", title: isPharmacistNote ? "View notes" : isStockDayNotification ? "View Stock Request" : "View site" };
+    const viewAction = { action: "view-site", title: isSiteSwapRequest ? "Review swap" : isPharmacistNote ? "View notes" : isStockDayNotification ? "View Stock Request" : "View site" };
     const closeAction = { action: "close", title: "Close" };
     const contactAction = { action: "contact-admin", title: "Contact Admin" };
     const actions = hasContactAdmin

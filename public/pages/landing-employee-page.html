@@ -450,7 +450,7 @@
 // so it's been dropped in favor of the in-page banner, which never
 // navigates away on its own -- the user stays on this page and refresh
 // only happens when they click the button.
-const APP_VERSION = "2026-11-04.4";
+const APP_VERSION = "2026-11-04.5";
 function startVersionWatch() {
   async function checkForUpdate() {
     try {
@@ -579,7 +579,7 @@ startVersionWatch();
       const photoSnapshot = await getDoc(doc(db,'dailyTaskProfilePhotos',staffId));
       photoData = photoSnapshot.exists() ? photoSnapshot.data().photoData : null;
     }
-    applyProfilePhoto(photoData, savedProfile?.displayName || employeeSession.name || employeeSession.staffId);
+    applyProfilePhoto(photoData, employeeSession.name || employeeSession.staffId);
   }
 
   function isViewerSession(session){
@@ -614,9 +614,8 @@ startVersionWatch();
     return true;
   }
 
-  // Fill the welcome badge with the signed-in employee's own name/role
-  // (from employee-login.html's session), instead of the old hardcoded
-  // "IT ADMIN" placeholder.
+  // Fill the welcome badge with the signed-in employee's own name from the
+  // employee session, replacing the department label and default placeholder.
   (function fillWelcomeBadge(){
     try{
       const raw = localStorage.getItem('pdEmployeeSession') || sessionStorage.getItem('pdEmployeeSession');
@@ -624,9 +623,8 @@ startVersionWatch();
       if(session){
         employeeSession = session;
         if (applyViewerLandingState(session)) return;
-        const name = session.name || session.staffId || 'Employee';
-        const role = session.department || 'Employee';
-        document.getElementById('welcomeName').textContent = role.toUpperCase();
+        const name = String(session.name || '').trim() || String(session.staffId || '').trim() || 'Employee';
+        document.getElementById('welcomeName').textContent = name;
         document.getElementById('welcomeAvatarInitials').textContent =
           name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase() || 'EM';
       }

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import worker, { EmployeeLoginRateLimiter, ScheduledJobs, shouldNotify, notificationText, notificationUrl, notificationContactUrl, shouldSaveScanCursor, pushPlatformOptions, stockCutoffAt, scheduleStockCutoff, eventCutoffAt, scheduleEventCutoff, registeredPharmacistAdminRole } from "../src/index.js";
+import worker, { EmployeeLoginRateLimiter, ScheduledJobs, shouldNotify, isDirectlyDeliverableSwapNotification, notificationText, notificationUrl, notificationContactUrl, shouldSaveScanCursor, pushPlatformOptions, formatPushNotificationBody, stockCutoffAt, scheduleStockCutoff, eventCutoffAt, scheduleEventCutoff, registeredPharmacistAdminRole } from "../src/index.js";
 
 function createScheduledJobs(env) {
   const jobs = new Map();
@@ -65,6 +65,89 @@ test("event alarms are attempted immediately and are not delivered late", () => 
   });
 });
 
+test("push banner bodies align event fields and retain relevant changes", () => {
+  const body = formatPushNotificationBody({
+    type: "eventUpdated",
+    location: "SM North",
+    eventType: "People's Day",
+    date: "2026-11-20",
+    time: "9:00 AM",
+    timeChanged: true,
+    locationChanged: true
+  }, "The schedule was updated.");
+  assert.equal(body, [
+    "Site: SM North",
+    "Event: People's Day",
+    "Date: November 20, 2026",
+    "Time: 9:00 AM",
+    "Updated: Time and Site name"
+  ].join("\n"));
+});
+
+test("push banner bodies preserve the cancellation and swap field layouts", () => {
+  const cancelledBody = "Site: SM North\nEvent: Medical Mission\nDate: November 20, 2026\nReason: Severe weather";
+  assert.equal(formatPushNotificationBody({ type: "eventCancelled" }, cancelledBody), cancelledBody);
+
+  assert.equal(formatPushNotificationBody({
+    type: "siteSwapRequest",
+    requesterName: "JV MANES",
+    requesterLocation: "South Hall",
+    requesterDate: "2026-11-20",
+    targetLocation: "North Hall",
+    targetDate: "2026-11-21",
+    requesterNote: "Please confirm."
+  }, "JV MANES wants to swap event sites with you. Tap to review the request."), [
+    "Requested by: JV MANES",
+    "Your site: North Hall",
+    "Their site: South Hall",
+    "Your date: November 21, 2026",
+    "Their date: November 20, 2026",
+    "Note: Please confirm."
+  ].join("\n"));
+});
+
+test("push banner bodies retain automatic deletion and reliever reminder details", () => {
+  assert.equal(formatPushNotificationBody({
+    type: "siteAutoDeleted",
+    location: "SM North",
+    date: "2026-11-20"
+  }, "The site at SM North on 2026-11-20 was automatically deleted after its event date."), [
+    "Site: SM North",
+    "Date: November 20, 2026",
+    "Status: Automatically deleted after the event date"
+  ].join("\n"));
+
+  assert.equal(formatPushNotificationBody({
+    type: "eventReminder",
+    recipientAssignment: {
+      list: "relievers",
+      location: "Center 09099",
+      date: "2026-11-20",
+      relieverTime: "20:00"
+    }
+  }, "You are relieving Center 09099 on 2026-11-20 from 8:00 PM onwards."), [
+    "Site: Center 09099",
+    "Date: November 20, 2026",
+    "Starts: 8:00 PM"
+  ].join("\n"));
+});
+
+test("push banner bodies keep stock notification details in labeled lines", () => {
+  const body = formatPushNotificationBody({
+    type: "stockDayActivated",
+    requestType: "medicine",
+    day: "WEDNESDAY",
+    date: "2026-11-18"
+  }, "Medicine SR# entry is now open! You are scheduled for WEDNESDAY (2026-11-18). Open Stock Request to submit it.");
+  assert.equal(body, [
+    "Request type: Medicine",
+    "Date: November 18, 2026",
+    "Day: WEDNESDAY",
+    "Status: Open",
+    "Next step: Open Stock Request to submit your SR#"
+  ].join("\n"));
+});
+
 test("personal schedule notifications are sent only to the matching staff ID", () => {
   const subscription = { staffId: "staff-17" };
   assert.equal(shouldNotify(subscription, { type: "dateChanged", staffId: "STAFF-17" }), true);
@@ -72,6 +155,104 @@ test("personal schedule notifications are sent only to the matching staff ID", (
   for (const type of ["removed", "eventReinstated"]) {
     assert.equal(shouldNotify(subscription, { type, staffId: "STAFF-17" }), true);
     assert.equal(shouldNotify(subscription, { type, staffId: "staff-18" }), false);
+  }
+});
+
+test("site swap notifications target only the intended employee and route to the right action", () => {
+  const request = {
+    id: "swap-request-42",
+    type: "siteSwapRequest",
+    status: "pending",
+    targetStaffId: "STAFF-17",
+    targetStaffIds: ["STAFF-17"],
+    requesterName: "JV MANES",
+    cardId: "event-site-9",
+    date: "2026-10-14",
+    region: "south",
+    visibleToEmployees: true
+  };
+  assert.equal(shouldNotify({ staffId: "staff-17" }, request), true);
+  assert.equal(shouldNotify({ staffId: "staff-18" }, request), false);
+  assert.equal(shouldNotify({ headRole: "pharmacist" }, request), false);
+  assert.equal(shouldNotify({ staffId: "staff-17" }, { ...request, visibleToEmployees: false }), false);
+  assert.equal(isDirectlyDeliverableSwapNotification(request), true);
+  assert.equal(isDirectlyDeliverableSwapNotification({ ...request, targetStaffId: "STAFF-18" }), false);
+  assert.equal(isDirectlyDeliverableSwapNotification({ ...request, status: "approved" }), false);
+  assert.equal(isDirectlyDeliverableSwapNotification({ ...request, visibleToEmployees: false }), false);
+  assert.deepEqual(notificationText(request), {
+    title: "Event site swap request",
+    body: "JV MANES wants to swap event sites with you. Tap to review the request."
+  });
+  const requestUrl = new URL(notificationUrl("https://example.test/47fto0gim6", request));
+  assert.equal(requestUrl.searchParams.get("swapRequest"), "swap-request-42");
+  assert.equal(requestUrl.searchParams.get("viewSite"), "event-site-9");
+  assert.equal(requestUrl.searchParams.get("date"), "2026-10-14");
+
+  const approved = {
+    type: "siteSwapApproved",
+    status: "approved",
+    targetStaffIds: ["STAFF-17"],
+    swapPartnerName: "JV MANES",
+    cardId: "event-site-10",
+    date: "2026-10-15",
+    region: "north"
+  };
+  assert.equal(shouldNotify({ staffId: "staff-17" }, approved), true);
+  assert.equal(shouldNotify({ staffId: "staff-18" }, approved), false);
+  assert.equal(isDirectlyDeliverableSwapNotification(approved), true);
+  assert.equal(isDirectlyDeliverableSwapNotification({ ...approved, status: "declined" }), false);
+  assert.match(notificationText(approved).body, /exchanged event sites/);
+  const approvedUrl = new URL(notificationUrl("https://example.test/47fto0gim6", approved));
+  assert.equal(approvedUrl.searchParams.get("viewSite"), "event-site-10");
+  assert.equal(approvedUrl.searchParams.get("date"), "2026-10-15");
+
+  assert.match(notificationText({
+    type: "siteSwapDeclined",
+    status: "declined",
+    targetStaffIds: ["STAFF-17"],
+    swapPartnerName: "JV MANES",
+    responseReason: "The assignment changed."
+  }).body, /The assignment changed\./);
+  assert.equal(isDirectlyDeliverableSwapNotification({
+    type: "siteSwapDeclined",
+    status: "declined",
+    targetStaffIds: ["STAFF-17"]
+  }), true);
+});
+
+test("direct swap push wake reports an unpaired recipient device", async () => {
+  const originalFetch = globalThis.fetch;
+  const storedNotification = {
+    name: "projects/test/databases/(default)/documents/emergencyNotifications/swap-request-42",
+    fields: {
+      type: { stringValue: "siteSwapRequest" },
+      status: { stringValue: "pending" },
+      targetStaffId: { stringValue: "STAFF-17" },
+      targetStaffIds: { arrayValue: { values: [{ stringValue: "STAFF-17" }] } },
+      visibleToEmployees: { booleanValue: true }
+    }
+  };
+  const env = {
+    APP_ORIGIN: "https://planetdrugstoreconsole.web.app",
+    FIREBASE_PROJECT_ID: "test-project",
+    FIREBASE_API_KEY: "test-api-key",
+    PUSH_SUBSCRIPTIONS: {
+      async list() { return { keys: [], list_complete: true }; },
+      async get() { return null; },
+      async put() {}
+    }
+  };
+  globalThis.fetch = async () => new Response(JSON.stringify(storedNotification), { status: 200 });
+  try {
+    const response = await worker.fetch(new Request("https://worker.test/wake", {
+      method: "POST",
+      headers: { Origin: env.APP_ORIGIN, "content-type": "application/json" },
+      body: JSON.stringify({ notificationId: "swap-request-42" })
+    }), env, { waitUntil() {} });
+    assert.equal(response.status, 409);
+    assert.match(await response.text(), /No active notification subscription/);
+  } finally {
+    globalThis.fetch = originalFetch;
   }
 });
 
@@ -1116,7 +1297,8 @@ test("removal and move push messages describe the action", () => {
     type: "eventCancelled",
     actorLabel: "Billing Head"
   });
-  assert.match(attributedCancellation.body, /Action by: Billing Head/);
+  assert.match(attributedCancellation.body, /Reason: Not provided\./);
+  assert.doesNotMatch(attributedCancellation.body, /Action by: Billing Head/);
 
   const relieverRemoved = notificationText({ type: "removed", list: "relievers", location: "MMMM" });
   assert.match(relieverRemoved.title, /removed as Store Reliever/i);
@@ -1168,9 +1350,20 @@ test("schedule change messages identify the changed field and old/new values", (
   const eventType = notificationText({ type: "missionChanged", oldMissionLabel: "Medical Mission", newMissionLabel: "People's Day" });
   assert.match(eventType.body, /Medical Mission to People's Day/);
 
-  const cancelled = notificationText({ type: "eventCancelled", location: "SM North" });
+  const cancelled = notificationText({
+    type: "eventCancelled",
+    location: "SM North",
+    missionLabel: "Medical Mission",
+    date: "2026-11-20",
+    time: "10:00 AM",
+    cancelReason: "Severe weather"
+  });
   assert.match(cancelled.title, /cancelled/i);
+  assert.match(cancelled.body, /Event: Medical Mission/);
   assert.match(cancelled.body, /SM North/);
+  assert.match(cancelled.body, /November 20, 2026/);
+  assert.match(cancelled.body, /Reason: Severe weather/);
+  assert.doesNotMatch(cancelled.body, /10:00 AM/);
 
   const deleted = notificationText({ type: "eventDeleted", location: "SM North" });
   assert.match(deleted.title, /deleted/i);
@@ -1892,7 +2085,12 @@ test("stock cutoff alarm alerts the employee and Stock Request admin", async () 
       "stock-admin-device-token"
     ]);
     assert.equal(sentMessages.every(message => message.data.notificationType === "stockDayClosed"), true);
-    assert.equal(sentMessages.every(message => message.data.body.includes("Medicine stock requests for today are now closed!")), true);
+    assert.equal(sentMessages.every(message =>
+      message.data.body.includes("Request type: Medicine") &&
+      message.data.body.includes("Date: October 14, 2026") &&
+      message.data.body.includes("Day: WEDNESDAY") &&
+      message.data.body.includes("Status: Closed")
+    ), true);
     assert.equal(values.has("scheduled:stock-cutoff:medicine:2026-10-14"), false);
   } finally {
     globalThis.fetch = originalFetch;
@@ -1915,14 +2113,52 @@ test("employee sign-in verifies credentials and issues a Firebase custom token w
     "SHA-256",
     new TextEncoder().encode("test-password")
   )).toString("hex");
+  const pbkdf2Salt = new TextEncoder().encode("test-salt-123456");
+  const pbkdf2Key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode("stored-password"),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+  const pbkdf2Bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt: pbkdf2Salt, iterations: 100000, hash: "SHA-256" },
+    pbkdf2Key,
+    256
+  );
+  const storedPasswordHash = [
+    "pbkdf2-sha256",
+    "100000",
+    Buffer.from(pbkdf2Salt).toString("base64url"),
+    Buffer.from(pbkdf2Bits).toString("hex")
+  ].join("$");
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url, options = {}) => {
     const target = String(url);
     if (target === "https://oauth2.googleapis.com/token") {
       return new Response(JSON.stringify({ access_token: "test-access-token", expires_in: 3600 }));
     }
+    if (target.includes(`/documents/employeeCredentials/bill-18`)) {
+      return new Response(JSON.stringify({
+        fields: { passwordHash: { stringValue: storedPasswordHash } }
+      }));
+    }
+    if (target.includes(`/documents/employeeCredentials/bill-17`)) {
+      if (options.method === "PATCH") return new Response(JSON.stringify({ fields: {} }));
+      return new Response(JSON.stringify({ error: { code: 404 } }), { status: 404 });
+    }
+    if (target.includes(`/documents/employees/bill-18`)) {
+      assert.match(options.headers.authorization, /^Bearer .+/);
+      return new Response(JSON.stringify({
+        fields: {
+          staffId: { stringValue: "BILL-18" },
+          name: { stringValue: "Existing PBKDF2 Employee" }
+        }
+      }));
+    }
     if (target.includes(`/documents/employees/bill-17`)) {
       assert.match(options.headers.authorization, /^Bearer .+/);
+      if (options.method === "PATCH") return new Response(JSON.stringify({ fields: {} }));
       return new Response(JSON.stringify({
         fields: {
           staffId: { stringValue: "BILL-17" },
@@ -1945,17 +2181,17 @@ test("employee sign-in verifies credentials and issues a Firebase custom token w
       FIREBASE_PRIVATE_KEY: privateKeyPem,
       EMPLOYEE_LOGIN_LIMITER: createEmployeeLoginLimiterBinding()
     };
-    const makeRequest = password => new Request("https://worker.test/employee-authenticate", {
+    const makeRequest = (staffId, password) => new Request("https://worker.test/employee-authenticate", {
       method: "POST",
       headers: {
         Origin: env.APP_ORIGIN,
         "cf-connecting-ip": "203.0.113.17",
         "content-type": "application/json"
       },
-      body: JSON.stringify({ staffId: "bill-17", password })
+      body: JSON.stringify({ staffId, password })
     });
 
-    const response = await worker.fetch(makeRequest("test-password"), env, {});
+    const response = await worker.fetch(makeRequest("bill-17", "test-password"), env, {});
     assert.equal(response.status, 200);
     const result = await response.json();
     assert.deepEqual(result.employee, {
@@ -1979,8 +2215,13 @@ test("employee sign-in verifies credentials and issues a Firebase custom token w
     });
     assert.equal(Object.hasOwn(result.employee, "passwordHash"), false);
 
-    const incorrectPassword = await worker.fetch(makeRequest("wrong-password"), env, {});
+    const incorrectPassword = await worker.fetch(makeRequest("bill-17", "wrong-password"), env, {});
     assert.equal(incorrectPassword.status, 401);
+
+    const existingPbkdf2Hash = await worker.fetch(makeRequest("bill-18", "stored-password"), env, {});
+    assert.equal(existingPbkdf2Hash.status, 200);
+    const incorrectPbkdf2Password = await worker.fetch(makeRequest("bill-18", "wrong-password"), env, {});
+    assert.equal(incorrectPbkdf2Password.status, 401);
   } finally {
     globalThis.fetch = originalFetch;
   }

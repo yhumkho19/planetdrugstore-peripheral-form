@@ -130,9 +130,14 @@ service cloud.firestore {
     }
 
     match /employees/{staffId} {
-      allow get: if true;
+      allow get: if isAdmin()
+        || isViewer()
+        || (request.auth != null
+          && request.auth.token.get('employee', false) == true
+          && request.auth.token.get('staffId', '') is string
+          && request.auth.token.staffId.lower() == staffId);
       allow list: if isAdmin() || isViewer();
-      allow create: if !isViewer() && (isAdmin() || validSelfRegistration(staffId));
+      allow create: if isAdmin();
       allow update, delete: if isAdmin();
     }
 
